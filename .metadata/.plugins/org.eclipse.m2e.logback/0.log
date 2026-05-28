@@ -1,0 +1,733 @@
+2026-05-26 17:53:47,771 [Worker-6: Loading available Gradle versions] INFO  o.e.b.c.i.u.g.PublishedGradleVersions - Gradle version information cache is up-to-date. Trying to read.
+2026-05-26 17:56:30,885 [Worker-2: Import Getting Started Content] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:Api-Gateway:0.0.1-SNAPSHOT @ D:\MediRevolution\Api-Gateway\pom.xml.
+2026-05-26 17:56:31,847 [Worker-2: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /Api-Gateway/src/main/java
+2026-05-26 17:56:31,848 [Worker-2: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /Api-Gateway/src/main/resources
+2026-05-26 17:56:31,850 [Worker-2: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /Api-Gateway/src/main/resources
+2026-05-26 17:56:31,852 [Worker-2: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /Api-Gateway/src/test/java
+2026-05-26 17:56:31,853 [Worker-2: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /Api-Gateway/src/test/resources
+2026-05-26 17:56:31,853 [Worker-2: Import Getting Started Content] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-26 17:56:32,310 [Worker-2: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Imported and configured 1 project(s) in 2 sec
+2026-05-26 17:56:32,314 [Worker-2: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update started
+2026-05-26 17:56:32,504 [Worker-2: Import Getting Started Content] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:Api-Gateway:0.0.1-SNAPSHOT @ D:\MediRevolution\Api-Gateway\pom.xml.
+2026-05-26 17:56:33,005 [Worker-2: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /Api-Gateway/src/main/java
+2026-05-26 17:56:33,006 [Worker-2: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /Api-Gateway/src/main/resources
+2026-05-26 17:56:33,006 [Worker-2: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /Api-Gateway/src/main/resources
+2026-05-26 17:56:33,007 [Worker-2: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /Api-Gateway/src/test/java
+2026-05-26 17:56:33,007 [Worker-2: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /Api-Gateway/src/test/resources
+2026-05-26 17:56:33,008 [Worker-2: Import Getting Started Content] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-26 17:56:33,492 [Worker-2: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update completed for 1 poms: local refresh takes 0.00 sec, refresh facades takes 0.00 sec, update config takes 0.00 sec 
+2026-05-26 17:56:33,824 [Worker-1: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-26 17:56:33,840 [Worker-1: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-26 17:56:33,845 [Worker-1: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\Api-Gateway\src\test\resources
+2026-05-26 17:57:17,978 [Worker-9: Updating Maven Project] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update started
+2026-05-26 17:57:18,220 [Worker-9: Updating Maven Project] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:Api-Gateway:0.0.1-SNAPSHOT @ D:\MediRevolution\Api-Gateway\pom.xml.
+2026-05-26 17:57:18,781 [Worker-9: Updating Maven Project] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /Api-Gateway/src/main/java
+2026-05-26 17:57:18,782 [Worker-9: Updating Maven Project] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /Api-Gateway/src/main/resources
+2026-05-26 17:57:18,783 [Worker-9: Updating Maven Project] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /Api-Gateway/src/main/resources
+2026-05-26 17:57:18,784 [Worker-9: Updating Maven Project] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /Api-Gateway/src/test/java
+2026-05-26 17:57:18,785 [Worker-9: Updating Maven Project] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /Api-Gateway/src/test/resources
+2026-05-26 17:57:18,785 [Worker-9: Updating Maven Project] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-26 17:57:19,034 [Worker-9: Updating Maven Project] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update completed for 1 poms: local refresh takes 0.00 sec, refresh facades takes 0.00 sec, update config takes 0.00 sec 
+2026-05-26 17:57:19,253 [Worker-8: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-26 17:57:19,263 [Worker-8: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-26 17:57:19,266 [Worker-8: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\Api-Gateway\src\test\resources
+2026-05-27 09:53:35,358 [Worker-18: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 09:53:35,364 [Worker-18: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 09:53:35,366 [Worker-18: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\Api-Gateway\src\test\resources
+2026-05-27 09:53:47,830 [Worker-16: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 09:53:47,832 [Worker-16: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 09:53:47,835 [Worker-16: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\test\resources to target\test-classes
+2026-05-27 09:53:54,026 [Worker-19: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 09:53:54,027 [Worker-19: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 09:53:54,029 [Worker-19: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\test\resources to target\test-classes
+2026-05-27 10:14:41,989 [Worker-4: Loading available Gradle versions] INFO  o.e.b.c.i.u.g.PublishedGradleVersions - Gradle version information cache is up-to-date. Trying to read.
+2026-05-27 12:37:34,463 [Worker-26: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:Api-Gateway:0.0.1-SNAPSHOT @ D:\MediRevolution\Api-Gateway\pom.xml.
+2026-05-27 12:37:35,931 [Worker-26: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 12:37:35,945 [Worker-26: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:37:35,948 [Worker-26: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\test\resources to target\test-classes
+2026-05-27 12:37:37,649 [Worker-21: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 12:37:37,650 [Worker-21: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:37:37,652 [Worker-21: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\test\resources to target\test-classes
+2026-05-27 12:38:20,808 [Worker-24: Import Getting Started Content] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:discovery-server:0.0.1-SNAPSHOT @ D:\MediRevolution\discovery-server\pom.xml.
+2026-05-27 12:38:21,815 [Worker-24: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /discovery-server/src/main/java
+2026-05-27 12:38:21,816 [Worker-24: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /discovery-server/src/main/resources
+2026-05-27 12:38:21,818 [Worker-24: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /discovery-server/src/main/resources
+2026-05-27 12:38:21,820 [Worker-24: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /discovery-server/src/test/java
+2026-05-27 12:38:21,821 [Worker-24: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /discovery-server/src/test/resources
+2026-05-27 12:38:21,822 [Worker-24: Import Getting Started Content] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-27 12:38:22,909 [Worker-21: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/cloud/spring-cloud-starter-netflix-eureka-server/5.0.1/spring-cloud-starter-netflix-eureka-server-5.0.1-javadoc.jar
+2026-05-27 12:38:22,912 [Worker-21: Download sources and javadoc] ERROR o.e.m.j.internal.DownloadSourcesJob - Could not download javadoc for org.springframework.cloud:spring-cloud-starter-netflix-eureka-server:5.0.1
+org.eclipse.core.runtime.CoreException: Could not resolve artifact org.springframework.cloud:spring-cloud-starter-netflix-eureka-server:jar:javadoc:5.0.1
+	at org.eclipse.m2e.core.internal.embedder.MavenImpl.lambda$7(MavenImpl.java:540)
+	at org.eclipse.m2e.core.internal.embedder.MavenExecutionContext.executeBare(MavenExecutionContext.java:458)
+	at org.eclipse.m2e.core.internal.embedder.MavenExecutionContext.execute(MavenExecutionContext.java:292)
+	at org.eclipse.m2e.core.internal.embedder.MavenExecutionContext.execute(MavenExecutionContext.java:278)
+	at org.eclipse.m2e.core.internal.embedder.MavenImpl.resolve(MavenImpl.java:509)
+	at org.eclipse.m2e.core.internal.embedder.MavenImpl.resolve(MavenImpl.java:494)
+	at org.eclipse.m2e.jdt.internal.DownloadSourcesJob.download(DownloadSourcesJob.java:308)
+	at org.eclipse.m2e.jdt.internal.DownloadSourcesJob.downloadAttachments(DownloadSourcesJob.java:294)
+	at org.eclipse.m2e.jdt.internal.DownloadSourcesJob.downloadMaven(DownloadSourcesJob.java:252)
+	at org.eclipse.m2e.jdt.internal.DownloadSourcesJob.downloadFilesAndPopulateToUpdate(DownloadSourcesJob.java:220)
+	at org.eclipse.m2e.jdt.internal.DownloadSourcesJob.lambda$0(DownloadSourcesJob.java:149)
+	at org.eclipse.m2e.core.internal.embedder.MavenExecutionContext.executeBare(MavenExecutionContext.java:458)
+	at org.eclipse.m2e.core.internal.embedder.MavenExecutionContext.execute(MavenExecutionContext.java:339)
+	at org.eclipse.m2e.core.internal.embedder.MavenExecutionContext.execute(MavenExecutionContext.java:278)
+	at org.eclipse.m2e.core.embedder.IMaven.execute(IMaven.java:300)
+	at org.eclipse.m2e.jdt.internal.DownloadSourcesJob.run(DownloadSourcesJob.java:149)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+2026-05-27 12:38:23,443 [Worker-24: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Imported and configured 1 project(s) in 2 sec
+2026-05-27 12:38:23,446 [Worker-24: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update started
+2026-05-27 12:38:23,622 [Worker-24: Import Getting Started Content] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:discovery-server:0.0.1-SNAPSHOT @ D:\MediRevolution\discovery-server\pom.xml.
+2026-05-27 12:38:24,251 [Worker-24: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /discovery-server/src/main/java
+2026-05-27 12:38:24,252 [Worker-24: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /discovery-server/src/main/resources
+2026-05-27 12:38:24,252 [Worker-24: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /discovery-server/src/main/resources
+2026-05-27 12:38:24,252 [Worker-24: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /discovery-server/src/test/java
+2026-05-27 12:38:24,253 [Worker-24: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /discovery-server/src/test/resources
+2026-05-27 12:38:24,253 [Worker-24: Import Getting Started Content] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-27 12:38:24,556 [Worker-24: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update completed for 1 poms: local refresh takes 0.00 sec, refresh facades takes 0.00 sec, update config takes 0.00 sec 
+2026-05-27 12:38:25,075 [Worker-31: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 12:38:25,086 [Worker-31: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:38:25,090 [Worker-31: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\discovery-server\src\test\resources
+2026-05-27 12:41:31,103 [Worker-25: Import Getting Started Content] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:auth-services:0.0.1-SNAPSHOT @ D:\MediRevolution\auth-services\pom.xml.
+2026-05-27 12:41:31,539 [Worker-25: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /auth-services/src/main/java
+2026-05-27 12:41:31,540 [Worker-25: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /auth-services/src/main/resources
+2026-05-27 12:41:31,541 [Worker-25: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /auth-services/src/main/resources
+2026-05-27 12:41:31,543 [Worker-25: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /auth-services/src/test/java
+2026-05-27 12:41:31,543 [Worker-25: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /auth-services/src/test/resources
+2026-05-27 12:41:31,543 [Worker-25: Import Getting Started Content] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-27 12:41:31,725 [Worker-25: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Imported and configured 1 project(s) in 0 sec
+2026-05-27 12:41:31,726 [Worker-25: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update started
+2026-05-27 12:41:31,893 [Worker-25: Import Getting Started Content] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:auth-services:0.0.1-SNAPSHOT @ D:\MediRevolution\auth-services\pom.xml.
+2026-05-27 12:41:32,227 [Worker-25: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /auth-services/src/main/java
+2026-05-27 12:41:32,228 [Worker-25: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /auth-services/src/main/resources
+2026-05-27 12:41:32,228 [Worker-25: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /auth-services/src/main/resources
+2026-05-27 12:41:32,228 [Worker-25: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /auth-services/src/test/java
+2026-05-27 12:41:32,228 [Worker-25: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /auth-services/src/test/resources
+2026-05-27 12:41:32,228 [Worker-25: Import Getting Started Content] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-27 12:41:32,403 [Worker-25: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update completed for 1 poms: local refresh takes 0.00 sec, refresh facades takes 0.00 sec, update config takes 0.00 sec 
+2026-05-27 12:41:32,672 [Worker-34: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 12:41:32,680 [Worker-34: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:41:32,682 [Worker-34: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 12:43:29,499 [Worker-25: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:auth-services:0.0.1-SNAPSHOT @ D:\MediRevolution\auth-services\pom.xml.
+2026-05-27 12:43:30,163 [Worker-25: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:43:30,164 [Worker-25: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:43:30,166 [Worker-25: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 12:43:30,371 [Worker-37: Updating Maven Project] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update started
+2026-05-27 12:43:30,533 [Worker-37: Updating Maven Project] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:auth-services:0.0.1-SNAPSHOT @ D:\MediRevolution\auth-services\pom.xml.
+2026-05-27 12:43:31,143 [Worker-37: Updating Maven Project] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /auth-services/src/main/java
+2026-05-27 12:43:31,144 [Worker-37: Updating Maven Project] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /auth-services/src/main/resources
+2026-05-27 12:43:31,144 [Worker-37: Updating Maven Project] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /auth-services/src/main/resources
+2026-05-27 12:43:31,145 [Worker-37: Updating Maven Project] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /auth-services/src/test/java
+2026-05-27 12:43:31,145 [Worker-37: Updating Maven Project] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /auth-services/src/test/resources
+2026-05-27 12:43:31,145 [Worker-37: Updating Maven Project] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-27 12:43:31,432 [Worker-37: Updating Maven Project] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update completed for 1 poms: local refresh takes 0.00 sec, refresh facades takes 0.00 sec, update config takes 0.00 sec 
+2026-05-27 12:43:31,436 [Worker-33: Updating Maven Project] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update started
+2026-05-27 12:43:31,621 [Worker-33: Updating Maven Project] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:auth-services:0.0.1-SNAPSHOT @ D:\MediRevolution\auth-services\pom.xml.
+2026-05-27 12:43:32,212 [Worker-33: Updating Maven Project] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /auth-services/src/main/java
+2026-05-27 12:43:32,212 [Worker-33: Updating Maven Project] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /auth-services/src/main/resources
+2026-05-27 12:43:32,212 [Worker-33: Updating Maven Project] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /auth-services/src/main/resources
+2026-05-27 12:43:32,213 [Worker-33: Updating Maven Project] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /auth-services/src/test/java
+2026-05-27 12:43:32,213 [Worker-33: Updating Maven Project] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /auth-services/src/test/resources
+2026-05-27 12:43:32,213 [Worker-33: Updating Maven Project] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-27 12:43:32,567 [Worker-33: Updating Maven Project] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update completed for 1 poms: local refresh takes 0.00 sec, refresh facades takes 0.00 sec, update config takes 0.00 sec 
+2026-05-27 12:43:32,863 [Worker-37: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 12:43:32,872 [Worker-37: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:43:32,874 [Worker-37: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 12:44:28,869 [Worker-36: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:Api-Gateway:0.0.1-SNAPSHOT @ D:\MediRevolution\api-gateway\pom.xml.
+2026-05-27 12:45:32,545 [Worker-25: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:Api-Gateway:0.0.1-SNAPSHOT @ D:\MediRevolution\api-gateway\pom.xml.
+2026-05-27 12:45:32,908 [Worker-25: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:45:32,909 [Worker-25: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:45:32,911 [Worker-25: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\test\resources to target\test-classes
+2026-05-27 12:45:34,055 [Worker-37: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 12:45:34,064 [Worker-37: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:45:34,066 [Worker-37: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\test\resources to target\test-classes
+2026-05-27 12:45:45,550 [Worker-37: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:Api-Gateway:0.0.1-SNAPSHOT @ D:\MediRevolution\api-gateway\pom.xml.
+2026-05-27 12:45:45,996 [Worker-37: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:45:45,996 [Worker-37: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:45:45,998 [Worker-37: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\test\resources to target\test-classes
+2026-05-27 12:45:46,425 [Worker-40: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 12:45:46,433 [Worker-40: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:45:46,435 [Worker-40: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\test\resources to target\test-classes
+2026-05-27 12:46:25,641 [Worker-34: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:Api-Gateway:0.0.1-SNAPSHOT @ D:\MediRevolution\api-gateway\pom.xml.
+2026-05-27 12:46:32,269 [Worker-40: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:Api-Gateway:0.0.1-SNAPSHOT @ D:\MediRevolution\api-gateway\pom.xml.
+2026-05-27 12:46:32,663 [Worker-40: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:46:32,663 [Worker-40: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:46:32,665 [Worker-40: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\test\resources to target\test-classes
+2026-05-27 12:46:33,781 [Worker-34: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 12:46:33,789 [Worker-34: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:46:33,791 [Worker-34: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\test\resources to target\test-classes
+2026-05-27 12:47:31,917 [Worker-25: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:Api-Gateway:0.0.1-SNAPSHOT @ D:\MediRevolution\api-gateway\pom.xml.
+2026-05-27 12:47:31,964 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-webflux/4.0.6/spring-boot-starter-webflux-4.0.6.pom
+2026-05-27 12:47:31,988 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-webflux/4.0.6/spring-boot-starter-webflux-4.0.6.pom
+2026-05-27 12:47:32,048 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-reactor-netty/4.0.6/spring-boot-starter-reactor-netty-4.0.6.pom
+2026-05-27 12:47:32,051 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-reactor-netty/4.0.6/spring-boot-starter-reactor-netty-4.0.6.pom
+2026-05-27 12:47:32,070 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-reactor/4.0.6/spring-boot-reactor-4.0.6.pom
+2026-05-27 12:47:32,073 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-reactor/4.0.6/spring-boot-reactor-4.0.6.pom
+2026-05-27 12:47:32,095 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-reactor-netty/4.0.6/spring-boot-reactor-netty-4.0.6.pom
+2026-05-27 12:47:32,098 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-reactor-netty/4.0.6/spring-boot-reactor-netty-4.0.6.pom
+2026-05-27 12:47:32,122 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/projectreactor/netty/reactor-netty-http/1.3.5/reactor-netty-http-1.3.5.pom
+2026-05-27 12:47:32,125 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/projectreactor/netty/reactor-netty-http/1.3.5/reactor-netty-http-1.3.5.pom
+2026-05-27 12:47:32,144 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-http/4.2.12.Final/netty-codec-http-4.2.12.Final.pom
+2026-05-27 12:47:32,147 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-http/4.2.12.Final/netty-codec-http-4.2.12.Final.pom
+2026-05-27 12:47:32,169 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-parent/4.2.12.Final/netty-parent-4.2.12.Final.pom
+2026-05-27 12:47:32,174 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-parent/4.2.12.Final/netty-parent-4.2.12.Final.pom
+2026-05-27 12:47:32,199 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/bouncycastle/bc-jdk18on-bom/1.83/bc-jdk18on-bom-1.83.pom
+2026-05-27 12:47:32,202 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/bouncycastle/bc-jdk18on-bom/1.83/bc-jdk18on-bom-1.83.pom
+2026-05-27 12:47:32,224 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-common/4.2.12.Final/netty-common-4.2.12.Final.pom
+2026-05-27 12:47:32,228 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-common/4.2.12.Final/netty-common-4.2.12.Final.pom
+2026-05-27 12:47:32,250 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-buffer/4.2.12.Final/netty-buffer-4.2.12.Final.pom
+2026-05-27 12:47:32,254 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-buffer/4.2.12.Final/netty-buffer-4.2.12.Final.pom
+2026-05-27 12:47:32,275 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-transport/4.2.12.Final/netty-transport-4.2.12.Final.pom
+2026-05-27 12:47:32,278 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-transport/4.2.12.Final/netty-transport-4.2.12.Final.pom
+2026-05-27 12:47:32,298 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-resolver/4.2.12.Final/netty-resolver-4.2.12.Final.pom
+2026-05-27 12:47:32,301 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-resolver/4.2.12.Final/netty-resolver-4.2.12.Final.pom
+2026-05-27 12:47:32,325 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-base/4.2.12.Final/netty-codec-base-4.2.12.Final.pom
+2026-05-27 12:47:32,328 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-base/4.2.12.Final/netty-codec-base-4.2.12.Final.pom
+2026-05-27 12:47:32,354 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-compression/4.2.12.Final/netty-codec-compression-4.2.12.Final.pom
+2026-05-27 12:47:32,357 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-compression/4.2.12.Final/netty-codec-compression-4.2.12.Final.pom
+2026-05-27 12:47:32,379 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-handler/4.2.12.Final/netty-handler-4.2.12.Final.pom
+2026-05-27 12:47:32,382 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-handler/4.2.12.Final/netty-handler-4.2.12.Final.pom
+2026-05-27 12:47:32,404 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-unix-common/4.2.12.Final/netty-transport-native-unix-common-4.2.12.Final.pom
+2026-05-27 12:47:32,406 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-unix-common/4.2.12.Final/netty-transport-native-unix-common-4.2.12.Final.pom
+2026-05-27 12:47:32,428 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-http2/4.2.12.Final/netty-codec-http2-4.2.12.Final.pom
+2026-05-27 12:47:32,431 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-http2/4.2.12.Final/netty-codec-http2-4.2.12.Final.pom
+2026-05-27 12:47:32,451 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-http3/4.2.12.Final/netty-codec-http3-4.2.12.Final.pom
+2026-05-27 12:47:32,454 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-http3/4.2.12.Final/netty-codec-http3-4.2.12.Final.pom
+2026-05-27 12:47:32,475 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-classes-quic/4.2.12.Final/netty-codec-classes-quic-4.2.12.Final.pom
+2026-05-27 12:47:32,477 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-classes-quic/4.2.12.Final/netty-codec-classes-quic-4.2.12.Final.pom
+2026-05-27 12:47:32,500 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-native-quic/4.2.12.Final/netty-codec-native-quic-4.2.12.Final.pom
+2026-05-27 12:47:32,505 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-native-quic/4.2.12.Final/netty-codec-native-quic-4.2.12.Final.pom
+2026-05-27 12:47:32,532 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns/4.2.12.Final/netty-resolver-dns-4.2.12.Final.pom
+2026-05-27 12:47:32,535 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns/4.2.12.Final/netty-resolver-dns-4.2.12.Final.pom
+2026-05-27 12:47:32,555 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-dns/4.2.12.Final/netty-codec-dns-4.2.12.Final.pom
+2026-05-27 12:47:32,557 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-dns/4.2.12.Final/netty-codec-dns-4.2.12.Final.pom
+2026-05-27 12:47:32,578 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns-native-macos/4.2.12.Final/netty-resolver-dns-native-macos-4.2.12.Final.pom
+2026-05-27 12:47:32,581 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns-native-macos/4.2.12.Final/netty-resolver-dns-native-macos-4.2.12.Final.pom
+2026-05-27 12:47:32,607 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns-classes-macos/4.2.12.Final/netty-resolver-dns-classes-macos-4.2.12.Final.pom
+2026-05-27 12:47:32,610 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns-classes-macos/4.2.12.Final/netty-resolver-dns-classes-macos-4.2.12.Final.pom
+2026-05-27 12:47:32,630 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-epoll/4.2.12.Final/netty-transport-native-epoll-4.2.12.Final.pom
+2026-05-27 12:47:32,634 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-epoll/4.2.12.Final/netty-transport-native-epoll-4.2.12.Final.pom
+2026-05-27 12:47:32,662 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-transport-classes-epoll/4.2.12.Final/netty-transport-classes-epoll-4.2.12.Final.pom
+2026-05-27 12:47:32,665 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-transport-classes-epoll/4.2.12.Final/netty-transport-classes-epoll-4.2.12.Final.pom
+2026-05-27 12:47:32,686 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/projectreactor/netty/reactor-netty-core/1.3.5/reactor-netty-core-1.3.5.pom
+2026-05-27 12:47:32,689 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/projectreactor/netty/reactor-netty-core/1.3.5/reactor-netty-core-1.3.5.pom
+2026-05-27 12:47:32,708 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-handler-proxy/4.2.12.Final/netty-handler-proxy-4.2.12.Final.pom
+2026-05-27 12:47:32,711 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-handler-proxy/4.2.12.Final/netty-handler-proxy-4.2.12.Final.pom
+2026-05-27 12:47:32,730 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-socks/4.2.12.Final/netty-codec-socks-4.2.12.Final.pom
+2026-05-27 12:47:32,733 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-socks/4.2.12.Final/netty-codec-socks-4.2.12.Final.pom
+2026-05-27 12:47:32,755 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-netty/4.0.6/spring-boot-netty-4.0.6.pom
+2026-05-27 12:47:32,758 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-netty/4.0.6/spring-boot-netty-4.0.6.pom
+2026-05-27 12:47:32,782 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-webflux/4.0.6/spring-boot-webflux-4.0.6.pom
+2026-05-27 12:47:32,785 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-webflux/4.0.6/spring-boot-webflux-4.0.6.pom
+2026-05-27 12:47:32,806 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-http-codec/4.0.6/spring-boot-http-codec-4.0.6.pom
+2026-05-27 12:47:32,809 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-http-codec/4.0.6/spring-boot-http-codec-4.0.6.pom
+2026-05-27 12:47:32,848 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/spring-webflux/7.0.7/spring-webflux-7.0.7.pom
+2026-05-27 12:47:32,851 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/spring-webflux/7.0.7/spring-webflux-7.0.7.pom
+2026-05-27 12:47:32,873 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/projectreactor/reactor-test/3.8.5/reactor-test-3.8.5.pom
+2026-05-27 12:47:32,876 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/projectreactor/reactor-test/3.8.5/reactor-test-3.8.5.pom
+2026-05-27 12:47:33,097 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-webflux/4.0.6/spring-boot-starter-webflux-4.0.6.jar
+2026-05-27 12:47:33,100 [Worker-25: Building] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-webflux/4.0.6/spring-boot-starter-webflux-4.0.6.jar
+2026-05-27 12:47:33,117 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-reactor-netty/4.0.6/spring-boot-reactor-netty-4.0.6.jar
+2026-05-27 12:47:33,121 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-reactor-netty/4.0.6/spring-boot-reactor-netty-4.0.6.jar
+2026-05-27 12:47:33,137 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-transport/4.2.12.Final/netty-transport-4.2.12.Final.jar
+2026-05-27 12:47:33,145 [BasicRepositoryConnector-repo.maven.apache.org-0-0] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-reactor-netty/4.0.6/spring-boot-starter-reactor-netty-4.0.6.jar
+2026-05-27 12:47:33,148 [BasicRepositoryConnector-repo.maven.apache.org-0-0] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-reactor-netty/4.0.6/spring-boot-starter-reactor-netty-4.0.6.jar
+2026-05-27 12:47:33,151 [BasicRepositoryConnector-repo.maven.apache.org-0-3] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-http/4.2.12.Final/netty-codec-http-4.2.12.Final.jar
+2026-05-27 12:47:33,167 [BasicRepositoryConnector-repo.maven.apache.org-0-4] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-buffer/4.2.12.Final/netty-buffer-4.2.12.Final.jar
+2026-05-27 12:47:33,184 [BasicRepositoryConnector-repo.maven.apache.org-0-2] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/projectreactor/netty/reactor-netty-http/1.3.5/reactor-netty-http-1.3.5.jar
+2026-05-27 12:47:33,194 [BasicRepositoryConnector-repo.maven.apache.org-0-0] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-base/4.2.12.Final/netty-codec-base-4.2.12.Final.jar
+2026-05-27 12:47:33,219 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-transport/4.2.12.Final/netty-transport-4.2.12.Final.jar
+2026-05-27 12:47:33,241 [BasicRepositoryConnector-repo.maven.apache.org-0-0] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-base/4.2.12.Final/netty-codec-base-4.2.12.Final.jar
+2026-05-27 12:47:33,265 [BasicRepositoryConnector-repo.maven.apache.org-0-0] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-handler/4.2.12.Final/netty-handler-4.2.12.Final.jar
+2026-05-27 12:47:33,271 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-compression/4.2.12.Final/netty-codec-compression-4.2.12.Final.jar
+2026-05-27 12:47:33,286 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-compression/4.2.12.Final/netty-codec-compression-4.2.12.Final.jar
+2026-05-27 12:47:33,335 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-http2/4.2.12.Final/netty-codec-http2-4.2.12.Final.jar
+2026-05-27 12:47:33,370 [BasicRepositoryConnector-repo.maven.apache.org-0-4] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-buffer/4.2.12.Final/netty-buffer-4.2.12.Final.jar
+2026-05-27 12:47:33,419 [BasicRepositoryConnector-repo.maven.apache.org-0-4] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-http3/4.2.12.Final/netty-codec-http3-4.2.12.Final.jar
+2026-05-27 12:47:33,438 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-http2/4.2.12.Final/netty-codec-http2-4.2.12.Final.jar
+2026-05-27 12:47:33,455 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-unix-common/4.2.12.Final/netty-transport-native-unix-common-4.2.12.Final.jar
+2026-05-27 12:47:33,455 [BasicRepositoryConnector-repo.maven.apache.org-0-3] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-http/4.2.12.Final/netty-codec-http-4.2.12.Final.jar
+2026-05-27 12:47:33,464 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-unix-common/4.2.12.Final/netty-transport-native-unix-common-4.2.12.Final.jar
+2026-05-27 12:47:33,469 [BasicRepositoryConnector-repo.maven.apache.org-0-0] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-handler/4.2.12.Final/netty-handler-4.2.12.Final.jar
+2026-05-27 12:47:33,475 [BasicRepositoryConnector-repo.maven.apache.org-0-3] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-resolver/4.2.12.Final/netty-resolver-4.2.12.Final.jar
+2026-05-27 12:47:33,484 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-classes-quic/4.2.12.Final/netty-codec-classes-quic-4.2.12.Final.jar
+2026-05-27 12:47:33,490 [BasicRepositoryConnector-repo.maven.apache.org-0-3] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-resolver/4.2.12.Final/netty-resolver-4.2.12.Final.jar
+2026-05-27 12:47:33,495 [BasicRepositoryConnector-repo.maven.apache.org-0-2] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/projectreactor/netty/reactor-netty-http/1.3.5/reactor-netty-http-1.3.5.jar
+2026-05-27 12:47:33,497 [BasicRepositoryConnector-repo.maven.apache.org-0-0] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-native-quic/4.2.12.Final/netty-codec-native-quic-4.2.12.Final-linux-x86_64.jar
+2026-05-27 12:47:33,508 [BasicRepositoryConnector-repo.maven.apache.org-0-3] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-native-quic/4.2.12.Final/netty-codec-native-quic-4.2.12.Final-linux-aarch_64.jar
+2026-05-27 12:47:33,545 [BasicRepositoryConnector-repo.maven.apache.org-0-2] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-native-quic/4.2.12.Final/netty-codec-native-quic-4.2.12.Final-osx-x86_64.jar
+2026-05-27 12:47:33,573 [BasicRepositoryConnector-repo.maven.apache.org-0-4] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-http3/4.2.12.Final/netty-codec-http3-4.2.12.Final.jar
+2026-05-27 12:47:33,628 [BasicRepositoryConnector-repo.maven.apache.org-0-4] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-native-quic/4.2.12.Final/netty-codec-native-quic-4.2.12.Final-osx-aarch_64.jar
+2026-05-27 12:47:33,885 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-classes-quic/4.2.12.Final/netty-codec-classes-quic-4.2.12.Final.jar
+2026-05-27 12:47:33,902 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-native-quic/4.2.12.Final/netty-codec-native-quic-4.2.12.Final-windows-x86_64.jar
+2026-05-27 12:47:37,010 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-native-quic/4.2.12.Final/netty-codec-native-quic-4.2.12.Final-windows-x86_64.jar
+2026-05-27 12:47:37,073 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns/4.2.12.Final/netty-resolver-dns-4.2.12.Final.jar
+2026-05-27 12:47:37,390 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns/4.2.12.Final/netty-resolver-dns-4.2.12.Final.jar
+2026-05-27 12:47:37,434 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-dns/4.2.12.Final/netty-codec-dns-4.2.12.Final.jar
+2026-05-27 12:47:37,558 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-dns/4.2.12.Final/netty-codec-dns-4.2.12.Final.jar
+2026-05-27 12:47:37,582 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns-native-macos/4.2.12.Final/netty-resolver-dns-native-macos-4.2.12.Final-osx-x86_64.jar
+2026-05-27 12:47:37,605 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns-native-macos/4.2.12.Final/netty-resolver-dns-native-macos-4.2.12.Final-osx-x86_64.jar
+2026-05-27 12:47:37,650 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns-classes-macos/4.2.12.Final/netty-resolver-dns-classes-macos-4.2.12.Final.jar
+2026-05-27 12:47:37,653 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns-classes-macos/4.2.12.Final/netty-resolver-dns-classes-macos-4.2.12.Final.jar
+2026-05-27 12:47:37,670 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-epoll/4.2.12.Final/netty-transport-native-epoll-4.2.12.Final-linux-x86_64.jar
+2026-05-27 12:47:37,750 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-epoll/4.2.12.Final/netty-transport-native-epoll-4.2.12.Final-linux-x86_64.jar
+2026-05-27 12:47:37,795 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-transport-classes-epoll/4.2.12.Final/netty-transport-classes-epoll-4.2.12.Final.jar
+2026-05-27 12:47:38,088 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-transport-classes-epoll/4.2.12.Final/netty-transport-classes-epoll-4.2.12.Final.jar
+2026-05-27 12:47:38,130 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/projectreactor/netty/reactor-netty-core/1.3.5/reactor-netty-core-1.3.5.jar
+2026-05-27 12:47:38,281 [BasicRepositoryConnector-repo.maven.apache.org-0-4] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-native-quic/4.2.12.Final/netty-codec-native-quic-4.2.12.Final-osx-aarch_64.jar
+2026-05-27 12:47:38,343 [BasicRepositoryConnector-repo.maven.apache.org-0-4] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-handler-proxy/4.2.12.Final/netty-handler-proxy-4.2.12.Final.jar
+2026-05-27 12:47:38,371 [BasicRepositoryConnector-repo.maven.apache.org-0-4] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-handler-proxy/4.2.12.Final/netty-handler-proxy-4.2.12.Final.jar
+2026-05-27 12:47:38,404 [BasicRepositoryConnector-repo.maven.apache.org-0-2] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-native-quic/4.2.12.Final/netty-codec-native-quic-4.2.12.Final-osx-x86_64.jar
+2026-05-27 12:47:38,414 [BasicRepositoryConnector-repo.maven.apache.org-0-4] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-socks/4.2.12.Final/netty-codec-socks-4.2.12.Final.jar
+2026-05-27 12:47:38,435 [BasicRepositoryConnector-repo.maven.apache.org-0-2] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-netty/4.0.6/spring-boot-netty-4.0.6.jar
+2026-05-27 12:47:38,437 [BasicRepositoryConnector-repo.maven.apache.org-0-2] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-netty/4.0.6/spring-boot-netty-4.0.6.jar
+2026-05-27 12:47:38,490 [BasicRepositoryConnector-repo.maven.apache.org-0-2] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-common/4.2.12.Final/netty-common-4.2.12.Final.jar
+2026-05-27 12:47:38,585 [BasicRepositoryConnector-repo.maven.apache.org-0-3] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-native-quic/4.2.12.Final/netty-codec-native-quic-4.2.12.Final-linux-aarch_64.jar
+2026-05-27 12:47:38,637 [BasicRepositoryConnector-repo.maven.apache.org-0-3] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-reactor/4.0.6/spring-boot-reactor-4.0.6.jar
+2026-05-27 12:47:38,641 [BasicRepositoryConnector-repo.maven.apache.org-0-3] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-reactor/4.0.6/spring-boot-reactor-4.0.6.jar
+2026-05-27 12:47:38,641 [BasicRepositoryConnector-repo.maven.apache.org-0-4] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-socks/4.2.12.Final/netty-codec-socks-4.2.12.Final.jar
+2026-05-27 12:47:38,663 [BasicRepositoryConnector-repo.maven.apache.org-0-3] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-webflux/4.0.6/spring-boot-webflux-4.0.6.jar
+2026-05-27 12:47:38,706 [BasicRepositoryConnector-repo.maven.apache.org-0-4] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-http-codec/4.0.6/spring-boot-http-codec-4.0.6.jar
+2026-05-27 12:47:38,710 [BasicRepositoryConnector-repo.maven.apache.org-0-4] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-http-codec/4.0.6/spring-boot-http-codec-4.0.6.jar
+2026-05-27 12:47:38,776 [BasicRepositoryConnector-repo.maven.apache.org-0-4] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/spring-webflux/7.0.7/spring-webflux-7.0.7.jar
+2026-05-27 12:47:38,808 [BasicRepositoryConnector-repo.maven.apache.org-0-0] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-native-quic/4.2.12.Final/netty-codec-native-quic-4.2.12.Final-linux-x86_64.jar
+2026-05-27 12:47:38,850 [BasicRepositoryConnector-repo.maven.apache.org-0-0] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/projectreactor/reactor-test/3.8.5/reactor-test-3.8.5.jar
+2026-05-27 12:47:38,947 [BasicRepositoryConnector-repo.maven.apache.org-0-3] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-webflux/4.0.6/spring-boot-webflux-4.0.6.jar
+2026-05-27 12:47:39,093 [BasicRepositoryConnector-repo.maven.apache.org-0-0] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/projectreactor/reactor-test/3.8.5/reactor-test-3.8.5.jar
+2026-05-27 12:47:39,094 [BasicRepositoryConnector-repo.maven.apache.org-0-1] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/projectreactor/netty/reactor-netty-core/1.3.5/reactor-netty-core-1.3.5.jar
+2026-05-27 12:47:39,454 [BasicRepositoryConnector-repo.maven.apache.org-0-2] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-common/4.2.12.Final/netty-common-4.2.12.Final.jar
+2026-05-27 12:47:39,594 [BasicRepositoryConnector-repo.maven.apache.org-0-4] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/spring-webflux/7.0.7/spring-webflux-7.0.7.jar
+2026-05-27 12:47:40,778 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-webflux/4.0.6/spring-boot-starter-webflux-4.0.6-sources.jar
+2026-05-27 12:47:40,781 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-webflux/4.0.6/spring-boot-starter-webflux-4.0.6-sources.jar
+2026-05-27 12:47:40,784 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for org.springframework.boot:spring-boot-starter-webflux:4.0.6
+2026-05-27 12:47:40,848 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-reactor-netty/4.0.6/spring-boot-starter-reactor-netty-4.0.6-sources.jar
+2026-05-27 12:47:40,853 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-reactor-netty/4.0.6/spring-boot-starter-reactor-netty-4.0.6-sources.jar
+2026-05-27 12:47:40,856 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for org.springframework.boot:spring-boot-starter-reactor-netty:4.0.6
+2026-05-27 12:47:40,898 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-reactor-netty/4.0.6/spring-boot-reactor-netty-4.0.6-sources.jar
+2026-05-27 12:47:40,910 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-reactor-netty/4.0.6/spring-boot-reactor-netty-4.0.6-sources.jar
+2026-05-27 12:47:40,913 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for org.springframework.boot:spring-boot-reactor-netty:4.0.6
+2026-05-27 12:47:40,958 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/projectreactor/netty/reactor-netty-http/1.3.5/reactor-netty-http-1.3.5-sources.jar
+2026-05-27 12:47:40,999 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/projectreactor/netty/reactor-netty-http/1.3.5/reactor-netty-http-1.3.5-sources.jar
+2026-05-27 12:47:41,001 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.projectreactor.netty:reactor-netty-http:1.3.5
+2026-05-27 12:47:41,038 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-http/4.2.12.Final/netty-codec-http-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,123 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-http/4.2.12.Final/netty-codec-http-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,125 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-codec-http:4.2.12.Final
+2026-05-27 12:47:41,166 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-buffer/4.2.12.Final/netty-buffer-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,244 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-buffer/4.2.12.Final/netty-buffer-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,247 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-buffer:4.2.12.Final
+2026-05-27 12:47:41,287 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-transport/4.2.12.Final/netty-transport-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,348 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-transport/4.2.12.Final/netty-transport-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,350 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-transport:4.2.12.Final
+2026-05-27 12:47:41,398 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-base/4.2.12.Final/netty-codec-base-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,460 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-base/4.2.12.Final/netty-codec-base-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,462 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-codec-base:4.2.12.Final
+2026-05-27 12:47:41,516 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-compression/4.2.12.Final/netty-codec-compression-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,530 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-compression/4.2.12.Final/netty-codec-compression-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,532 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-codec-compression:4.2.12.Final
+2026-05-27 12:47:41,585 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-handler/4.2.12.Final/netty-handler-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,632 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-handler/4.2.12.Final/netty-handler-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,634 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-handler:4.2.12.Final
+2026-05-27 12:47:41,669 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-http2/4.2.12.Final/netty-codec-http2-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,708 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-http2/4.2.12.Final/netty-codec-http2-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,710 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-codec-http2:4.2.12.Final
+2026-05-27 12:47:41,745 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-http3/4.2.12.Final/netty-codec-http3-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,770 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-http3/4.2.12.Final/netty-codec-http3-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,772 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-codec-http3:4.2.12.Final
+2026-05-27 12:47:41,812 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-unix-common/4.2.12.Final/netty-transport-native-unix-common-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,830 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-unix-common/4.2.12.Final/netty-transport-native-unix-common-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,832 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-transport-native-unix-common:4.2.12.Final
+2026-05-27 12:47:41,868 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-resolver/4.2.12.Final/netty-resolver-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,876 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-resolver/4.2.12.Final/netty-resolver-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,878 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-resolver:4.2.12.Final
+2026-05-27 12:47:41,912 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-classes-quic/4.2.12.Final/netty-codec-classes-quic-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,944 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-classes-quic/4.2.12.Final/netty-codec-classes-quic-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,946 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-codec-classes-quic:4.2.12.Final
+2026-05-27 12:47:41,992 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-native-quic/4.2.12.Final/netty-codec-native-quic-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,995 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-native-quic/4.2.12.Final/netty-codec-native-quic-4.2.12.Final-sources.jar
+2026-05-27 12:47:41,997 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-codec-native-quic:4.2.12.Finallinux-x86_64
+2026-05-27 12:47:41,999 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-codec-native-quic:4.2.12.Finallinux-aarch_64
+2026-05-27 12:47:42,001 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-codec-native-quic:4.2.12.Finalosx-x86_64
+2026-05-27 12:47:42,003 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-codec-native-quic:4.2.12.Finalosx-aarch_64
+2026-05-27 12:47:42,005 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-codec-native-quic:4.2.12.Finalwindows-x86_64
+2026-05-27 12:47:42,042 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns/4.2.12.Final/netty-resolver-dns-4.2.12.Final-sources.jar
+2026-05-27 12:47:42,061 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns/4.2.12.Final/netty-resolver-dns-4.2.12.Final-sources.jar
+2026-05-27 12:47:42,063 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-resolver-dns:4.2.12.Final
+2026-05-27 12:47:42,097 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-dns/4.2.12.Final/netty-codec-dns-4.2.12.Final-sources.jar
+2026-05-27 12:47:42,112 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-dns/4.2.12.Final/netty-codec-dns-4.2.12.Final-sources.jar
+2026-05-27 12:47:42,114 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-codec-dns:4.2.12.Final
+2026-05-27 12:47:42,148 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns-native-macos/4.2.12.Final/netty-resolver-dns-native-macos-4.2.12.Final-sources.jar
+2026-05-27 12:47:42,151 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns-native-macos/4.2.12.Final/netty-resolver-dns-native-macos-4.2.12.Final-sources.jar
+2026-05-27 12:47:42,153 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-resolver-dns-native-macos:4.2.12.Finalosx-x86_64
+2026-05-27 12:47:42,194 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns-classes-macos/4.2.12.Final/netty-resolver-dns-classes-macos-4.2.12.Final-sources.jar
+2026-05-27 12:47:42,205 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-resolver-dns-classes-macos/4.2.12.Final/netty-resolver-dns-classes-macos-4.2.12.Final-sources.jar
+2026-05-27 12:47:42,206 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-resolver-dns-classes-macos:4.2.12.Final
+2026-05-27 12:47:42,242 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-epoll/4.2.12.Final/netty-transport-native-epoll-4.2.12.Final-sources.jar
+2026-05-27 12:47:42,249 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-transport-native-epoll/4.2.12.Final/netty-transport-native-epoll-4.2.12.Final-sources.jar
+2026-05-27 12:47:42,251 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-transport-native-epoll:4.2.12.Finallinux-x86_64
+2026-05-27 12:47:42,296 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-transport-classes-epoll/4.2.12.Final/netty-transport-classes-epoll-4.2.12.Final-sources.jar
+2026-05-27 12:47:42,315 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-transport-classes-epoll/4.2.12.Final/netty-transport-classes-epoll-4.2.12.Final-sources.jar
+2026-05-27 12:47:42,317 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-transport-classes-epoll:4.2.12.Final
+2026-05-27 12:47:42,364 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/projectreactor/netty/reactor-netty-core/1.3.5/reactor-netty-core-1.3.5-sources.jar
+2026-05-27 12:47:42,399 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/projectreactor/netty/reactor-netty-core/1.3.5/reactor-netty-core-1.3.5-sources.jar
+2026-05-27 12:47:42,400 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.projectreactor.netty:reactor-netty-core:1.3.5
+2026-05-27 12:47:42,442 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-handler-proxy/4.2.12.Final/netty-handler-proxy-4.2.12.Final-sources.jar
+2026-05-27 12:47:42,452 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-handler-proxy/4.2.12.Final/netty-handler-proxy-4.2.12.Final-sources.jar
+2026-05-27 12:47:42,454 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-handler-proxy:4.2.12.Final
+2026-05-27 12:47:42,492 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-codec-socks/4.2.12.Final/netty-codec-socks-4.2.12.Final-sources.jar
+2026-05-27 12:47:42,511 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-codec-socks/4.2.12.Final/netty-codec-socks-4.2.12.Final-sources.jar
+2026-05-27 12:47:42,513 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-codec-socks:4.2.12.Final
+2026-05-27 12:47:42,564 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-netty/4.0.6/spring-boot-netty-4.0.6-sources.jar
+2026-05-27 12:47:42,567 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-netty/4.0.6/spring-boot-netty-4.0.6-sources.jar
+2026-05-27 12:47:42,569 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for org.springframework.boot:spring-boot-netty:4.0.6
+2026-05-27 12:47:42,608 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/netty/netty-common/4.2.12.Final/netty-common-4.2.12.Final-sources.jar
+2026-05-27 12:47:42,686 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/netty/netty-common/4.2.12.Final/netty-common-4.2.12.Final-sources.jar
+2026-05-27 12:47:42,688 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.netty:netty-common:4.2.12.Final
+2026-05-27 12:47:42,723 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-reactor/4.0.6/spring-boot-reactor-4.0.6-sources.jar
+2026-05-27 12:47:42,726 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-reactor/4.0.6/spring-boot-reactor-4.0.6-sources.jar
+2026-05-27 12:47:42,728 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for org.springframework.boot:spring-boot-reactor:4.0.6
+2026-05-27 12:47:42,773 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-webflux/4.0.6/spring-boot-webflux-4.0.6-sources.jar
+2026-05-27 12:47:42,796 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-webflux/4.0.6/spring-boot-webflux-4.0.6-sources.jar
+2026-05-27 12:47:42,798 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for org.springframework.boot:spring-boot-webflux:4.0.6
+2026-05-27 12:47:42,854 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-http-codec/4.0.6/spring-boot-http-codec-4.0.6-sources.jar
+2026-05-27 12:47:42,861 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-http-codec/4.0.6/spring-boot-http-codec-4.0.6-sources.jar
+2026-05-27 12:47:42,863 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for org.springframework.boot:spring-boot-http-codec:4.0.6
+2026-05-27 12:47:42,902 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/org/springframework/spring-webflux/7.0.7/spring-webflux-7.0.7-sources.jar
+2026-05-27 12:47:42,988 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/org/springframework/spring-webflux/7.0.7/spring-webflux-7.0.7-sources.jar
+2026-05-27 12:47:42,990 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for org.springframework:spring-webflux:7.0.7
+2026-05-27 12:47:43,028 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloading https://repo.maven.apache.org/maven2/io/projectreactor/reactor-test/3.8.5/reactor-test-3.8.5-sources.jar
+2026-05-27 12:47:43,053 [Worker-40: Download sources and javadoc] INFO  o.e.m.c.i.e.AbstractTransferListenerAdapter - Downloaded https://repo.maven.apache.org/maven2/io/projectreactor/reactor-test/3.8.5/reactor-test-3.8.5-sources.jar
+2026-05-27 12:47:43,055 [Worker-40: Download sources and javadoc] INFO  o.e.m.j.internal.DownloadSourcesJob - Downloaded sources for io.projectreactor:reactor-test:3.8.5
+2026-05-27 12:48:02,406 [Worker-38: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:Api-Gateway:0.0.1-SNAPSHOT @ D:\MediRevolution\api-gateway\pom.xml.
+2026-05-27 12:48:02,651 [Worker-38: Building] ERROR o.e.m.c.i.p.ProjectConfigurationManager - Could not read maven project
+org.eclipse.core.runtime.CoreException: Could not read maven project
+	at org.eclipse.m2e.core.internal.embedder.MavenImpl.lambda$4(MavenImpl.java:371)
+	at org.eclipse.m2e.core.internal.embedder.MavenExecutionContext.executeBare(MavenExecutionContext.java:458)
+	at org.eclipse.m2e.core.internal.embedder.MavenExecutionContext.execute(MavenExecutionContext.java:292)
+	at org.eclipse.m2e.core.internal.embedder.MavenExecutionContext.execute(MavenExecutionContext.java:278)
+	at org.eclipse.m2e.core.internal.embedder.MavenImpl.readProject(MavenImpl.java:361)
+	at org.eclipse.m2e.mavenarchiver.internal.AbstractMavenArchiverConfigurator.lambda$4(AbstractMavenArchiverConfigurator.java:576)
+	at org.eclipse.m2e.core.internal.embedder.MavenExecutionContext.executeBare(MavenExecutionContext.java:458)
+	at org.eclipse.m2e.core.internal.embedder.MavenExecutionContext.execute(MavenExecutionContext.java:339)
+	at org.eclipse.m2e.mavenarchiver.internal.AbstractMavenArchiverConfigurator.loadParentHierarchy(AbstractMavenArchiverConfigurator.java:568)
+	at org.eclipse.m2e.mavenarchiver.internal.AbstractMavenArchiverConfigurator.generateManifest(AbstractMavenArchiverConfigurator.java:365)
+	at org.eclipse.m2e.mavenarchiver.internal.AbstractMavenArchiverConfigurator.mavenProjectChanged(AbstractMavenArchiverConfigurator.java:228)
+	at org.eclipse.m2e.mavenarchiver.internal.AbstractMavenArchiverConfigurator.mavenProjectChanged(AbstractMavenArchiverConfigurator.java:220)
+	at org.eclipse.m2e.core.internal.project.ProjectConfigurationManager.mavenProjectChanged(ProjectConfigurationManager.java:882)
+	at org.eclipse.m2e.core.internal.project.registry.ProjectRegistryManager.notifyProjectChangeListeners(ProjectRegistryManager.java:888)
+	at org.eclipse.m2e.core.internal.project.registry.ProjectRegistryManager.applyMutableProjectRegistry(ProjectRegistryManager.java:1038)
+	at org.eclipse.m2e.core.internal.project.registry.ProjectRegistryManager.refresh(ProjectRegistryManager.java:320)
+	at org.eclipse.m2e.core.internal.builder.MavenBuilder$BuildMethod.getProjectFacade(MavenBuilder.java:146)
+	at org.eclipse.m2e.core.internal.builder.MavenBuilder$BuildMethod.lambda$0(MavenBuilder.java:84)
+	at org.eclipse.m2e.core.internal.embedder.MavenExecutionContext.executeBare(MavenExecutionContext.java:458)
+	at org.eclipse.m2e.core.internal.embedder.MavenExecutionContext.execute(MavenExecutionContext.java:339)
+	at org.eclipse.m2e.core.internal.embedder.MavenExecutionContext.execute(MavenExecutionContext.java:278)
+	at org.eclipse.m2e.core.internal.builder.MavenBuilder$BuildMethod.execute(MavenBuilder.java:83)
+	at org.eclipse.m2e.core.internal.builder.MavenBuilder.build(MavenBuilder.java:192)
+	at org.eclipse.core.internal.events.BuildManager$2.run(BuildManager.java:1077)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:47)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:296)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:352)
+	at org.eclipse.core.internal.events.BuildManager$1.run(BuildManager.java:441)
+	at org.eclipse.core.runtime.SafeRunner.run(SafeRunner.java:47)
+	at org.eclipse.core.internal.events.BuildManager.basicBuild(BuildManager.java:444)
+	at org.eclipse.core.internal.events.BuildManager.basicBuildLoop(BuildManager.java:555)
+	at org.eclipse.core.internal.events.BuildManager.basicBuildLoop(BuildManager.java:503)
+	at org.eclipse.core.internal.events.BuildManager.build(BuildManager.java:585)
+	at org.eclipse.core.internal.events.AutoBuildJob.doBuild(AutoBuildJob.java:207)
+	at org.eclipse.core.internal.events.AutoBuildJob.run(AutoBuildJob.java:300)
+	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+Caused by: org.apache.maven.project.ProjectBuildingException: 1 problem was encountered while building the effective model
+[FATAL] Non-readable POM D:\MediRevolution\api-gateway: D:\MediRevolution\api-gateway (Access is denied) @ 
+ for project  at D:\MediRevolution\api-gateway
+	at org.apache.maven.project.DefaultProjectBuilder.build(DefaultProjectBuilder.java:180)
+	at org.apache.maven.project.DefaultProjectBuilder.build(DefaultProjectBuilder.java:123)
+	at org.eclipse.m2e.core.internal.embedder.MavenImpl.lambda$4(MavenImpl.java:369)
+	... 35 common frames omitted
+Caused by: org.apache.maven.model.building.ModelBuildingException: 1 problem was encountered while building the effective model
+[FATAL] Non-readable POM D:\MediRevolution\api-gateway: D:\MediRevolution\api-gateway (Access is denied) @ 
+
+	at org.apache.maven.model.building.DefaultModelProblemCollector.newModelBuildingException(DefaultModelProblemCollector.java:176)
+	at org.apache.maven.model.building.DefaultModelBuilder.readModel(DefaultModelBuilder.java:600)
+	at org.apache.maven.model.building.DefaultModelBuilder.build(DefaultModelBuilder.java:257)
+	at org.apache.maven.model.building.DefaultModelBuilder.build(DefaultModelBuilder.java:243)
+	at org.apache.maven.project.DefaultProjectBuilder.build(DefaultProjectBuilder.java:176)
+	... 37 common frames omitted
+2026-05-27 12:48:21,766 [Worker-33: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:Api-Gateway:0.0.1-SNAPSHOT @ D:\MediRevolution\api-gateway\pom.xml.
+2026-05-27 12:48:22,142 [Worker-33: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 12:48:22,149 [Worker-33: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:48:22,153 [Worker-33: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\test\resources to target\test-classes
+2026-05-27 12:48:23,253 [Worker-25: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 12:48:23,254 [Worker-25: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:48:23,255 [Worker-25: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\test\resources to target\test-classes
+2026-05-27 12:49:30,281 [Worker-38: Updating Maven Project] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update started
+2026-05-27 12:49:30,412 [Worker-38: Updating Maven Project] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:auth-services:0.0.1-SNAPSHOT @ D:\MediRevolution\auth-services\pom.xml.
+2026-05-27 12:49:30,909 [Worker-38: Updating Maven Project] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /auth-services/src/main/java
+2026-05-27 12:49:30,909 [Worker-38: Updating Maven Project] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /auth-services/src/main/resources
+2026-05-27 12:49:30,909 [Worker-38: Updating Maven Project] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /auth-services/src/main/resources
+2026-05-27 12:49:30,910 [Worker-38: Updating Maven Project] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /auth-services/src/test/java
+2026-05-27 12:49:30,910 [Worker-38: Updating Maven Project] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /auth-services/src/test/resources
+2026-05-27 12:49:30,910 [Worker-38: Updating Maven Project] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-27 12:49:31,121 [Worker-38: Updating Maven Project] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update completed for 1 poms: local refresh takes 0.00 sec, refresh facades takes 0.00 sec, update config takes 0.00 sec 
+2026-05-27 12:49:31,316 [Worker-38: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 12:49:31,323 [Worker-38: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:49:31,325 [Worker-38: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 12:49:49,351 [Worker-28: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:auth-services:0.0.1-SNAPSHOT @ D:\MediRevolution\auth-services\pom.xml.
+2026-05-27 12:49:59,106 [Worker-33: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:auth-services:0.0.1-SNAPSHOT @ D:\MediRevolution\auth-services\pom.xml.
+2026-05-27 12:49:59,584 [Worker-33: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:49:59,584 [Worker-33: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:49:59,586 [Worker-33: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 12:50:00,903 [Worker-40: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 12:50:00,909 [Worker-40: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:50:00,911 [Worker-40: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 12:52:00,463 [Worker-40: Import Getting Started Content] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:user-service:0.0.1-SNAPSHOT @ D:\MediRevolution\user-service\pom.xml.
+2026-05-27 12:52:00,891 [Worker-40: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /user-service/src/main/java
+2026-05-27 12:52:00,892 [Worker-40: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /user-service/src/main/resources
+2026-05-27 12:52:00,895 [Worker-40: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /user-service/src/main/resources
+2026-05-27 12:52:00,897 [Worker-40: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /user-service/src/test/java
+2026-05-27 12:52:00,897 [Worker-40: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /user-service/src/test/resources
+2026-05-27 12:52:00,897 [Worker-40: Import Getting Started Content] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-27 12:52:01,092 [Worker-40: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Imported and configured 1 project(s) in 0 sec
+2026-05-27 12:52:01,092 [Worker-40: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update started
+2026-05-27 12:52:01,231 [Worker-40: Import Getting Started Content] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:user-service:0.0.1-SNAPSHOT @ D:\MediRevolution\user-service\pom.xml.
+2026-05-27 12:52:01,734 [Worker-40: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /user-service/src/main/java
+2026-05-27 12:52:01,734 [Worker-40: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /user-service/src/main/resources
+2026-05-27 12:52:01,734 [Worker-40: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /user-service/src/main/resources
+2026-05-27 12:52:01,734 [Worker-40: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /user-service/src/test/java
+2026-05-27 12:52:01,734 [Worker-40: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /user-service/src/test/resources
+2026-05-27 12:52:01,735 [Worker-40: Import Getting Started Content] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-27 12:52:02,002 [Worker-40: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update completed for 1 poms: local refresh takes 0.00 sec, refresh facades takes 0.00 sec, update config takes 0.00 sec 
+2026-05-27 12:52:02,206 [Worker-45: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 12:52:02,213 [Worker-45: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:52:02,215 [Worker-45: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\user-service\src\test\resources
+2026-05-27 12:52:39,027 [Worker-43: Import Getting Started Content] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:medicine-service:0.0.1-SNAPSHOT @ D:\MediRevolution\medicine-service\pom.xml.
+2026-05-27 12:52:39,415 [Worker-43: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /medicine-service/src/main/java
+2026-05-27 12:52:39,416 [Worker-43: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /medicine-service/src/main/resources
+2026-05-27 12:52:39,417 [Worker-43: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /medicine-service/src/main/resources
+2026-05-27 12:52:39,420 [Worker-43: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /medicine-service/src/test/java
+2026-05-27 12:52:39,420 [Worker-43: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /medicine-service/src/test/resources
+2026-05-27 12:52:39,420 [Worker-43: Import Getting Started Content] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-27 12:52:39,633 [Worker-43: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Imported and configured 1 project(s) in 0 sec
+2026-05-27 12:52:39,635 [Worker-43: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update started
+2026-05-27 12:52:39,755 [Worker-43: Import Getting Started Content] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:medicine-service:0.0.1-SNAPSHOT @ D:\MediRevolution\medicine-service\pom.xml.
+2026-05-27 12:52:40,166 [Worker-43: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /medicine-service/src/main/java
+2026-05-27 12:52:40,167 [Worker-43: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /medicine-service/src/main/resources
+2026-05-27 12:52:40,167 [Worker-43: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /medicine-service/src/main/resources
+2026-05-27 12:52:40,167 [Worker-43: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /medicine-service/src/test/java
+2026-05-27 12:52:40,167 [Worker-43: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /medicine-service/src/test/resources
+2026-05-27 12:52:40,167 [Worker-43: Import Getting Started Content] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-27 12:52:40,485 [Worker-43: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update completed for 1 poms: local refresh takes 0.00 sec, refresh facades takes 0.00 sec, update config takes 0.00 sec 
+2026-05-27 12:52:40,718 [Worker-42: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 12:52:40,724 [Worker-42: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:52:40,726 [Worker-42: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\medicine-service\src\test\resources
+2026-05-27 12:53:39,073 [Worker-42: Import Getting Started Content] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:inventory-service:0.0.1-SNAPSHOT @ D:\MediRevolution\inventory-service\pom.xml.
+2026-05-27 12:53:39,487 [Worker-42: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /inventory-service/src/main/java
+2026-05-27 12:53:39,487 [Worker-42: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /inventory-service/src/main/resources
+2026-05-27 12:53:39,488 [Worker-42: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /inventory-service/src/main/resources
+2026-05-27 12:53:39,490 [Worker-42: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /inventory-service/src/test/java
+2026-05-27 12:53:39,490 [Worker-42: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /inventory-service/src/test/resources
+2026-05-27 12:53:39,490 [Worker-42: Import Getting Started Content] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-27 12:53:39,661 [Worker-42: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Imported and configured 1 project(s) in 0 sec
+2026-05-27 12:53:39,662 [Worker-42: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update started
+2026-05-27 12:53:39,785 [Worker-42: Import Getting Started Content] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:inventory-service:0.0.1-SNAPSHOT @ D:\MediRevolution\inventory-service\pom.xml.
+2026-05-27 12:53:40,204 [Worker-42: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /inventory-service/src/main/java
+2026-05-27 12:53:40,205 [Worker-42: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /inventory-service/src/main/resources
+2026-05-27 12:53:40,205 [Worker-42: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /inventory-service/src/main/resources
+2026-05-27 12:53:40,205 [Worker-42: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /inventory-service/src/test/java
+2026-05-27 12:53:40,205 [Worker-42: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /inventory-service/src/test/resources
+2026-05-27 12:53:40,205 [Worker-42: Import Getting Started Content] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-27 12:53:40,428 [Worker-42: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update completed for 1 poms: local refresh takes 0.00 sec, refresh facades takes 0.00 sec, update config takes 0.00 sec 
+2026-05-27 12:53:40,754 [Worker-42: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 12:53:40,761 [Worker-42: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:53:40,762 [Worker-42: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\inventory-service\src\test\resources
+2026-05-27 12:54:49,404 [Worker-41: Import Getting Started Content] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:order-service:0.0.1-SNAPSHOT @ D:\MediRevolution\order-service\pom.xml.
+2026-05-27 12:54:49,848 [Worker-41: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /order-service/src/main/java
+2026-05-27 12:54:49,849 [Worker-41: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /order-service/src/main/resources
+2026-05-27 12:54:49,851 [Worker-41: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /order-service/src/main/resources
+2026-05-27 12:54:49,852 [Worker-41: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /order-service/src/test/java
+2026-05-27 12:54:49,852 [Worker-41: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /order-service/src/test/resources
+2026-05-27 12:54:49,852 [Worker-41: Import Getting Started Content] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-27 12:54:50,079 [Worker-41: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Imported and configured 1 project(s) in 0 sec
+2026-05-27 12:54:50,080 [Worker-41: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update started
+2026-05-27 12:54:50,203 [Worker-41: Import Getting Started Content] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:order-service:0.0.1-SNAPSHOT @ D:\MediRevolution\order-service\pom.xml.
+2026-05-27 12:54:50,621 [Worker-41: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /order-service/src/main/java
+2026-05-27 12:54:50,622 [Worker-41: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /order-service/src/main/resources
+2026-05-27 12:54:50,622 [Worker-41: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /order-service/src/main/resources
+2026-05-27 12:54:50,622 [Worker-41: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /order-service/src/test/java
+2026-05-27 12:54:50,622 [Worker-41: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /order-service/src/test/resources
+2026-05-27 12:54:50,622 [Worker-41: Import Getting Started Content] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-27 12:54:50,832 [Worker-41: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update completed for 1 poms: local refresh takes 0.00 sec, refresh facades takes 0.00 sec, update config takes 0.00 sec 
+2026-05-27 12:54:51,145 [Worker-41: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 12:54:51,155 [Worker-41: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:54:51,157 [Worker-41: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\order-service\src\test\resources
+2026-05-27 12:55:21,361 [Worker-40: Import Getting Started Content] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:billing-service:0.0.1-SNAPSHOT @ D:\MediRevolution\billing-service\pom.xml.
+2026-05-27 12:55:21,738 [Worker-40: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /billing-service/src/main/java
+2026-05-27 12:55:21,738 [Worker-40: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /billing-service/src/main/resources
+2026-05-27 12:55:21,739 [Worker-40: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /billing-service/src/main/resources
+2026-05-27 12:55:21,740 [Worker-40: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /billing-service/src/test/java
+2026-05-27 12:55:21,740 [Worker-40: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /billing-service/src/test/resources
+2026-05-27 12:55:21,740 [Worker-40: Import Getting Started Content] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-27 12:55:21,918 [Worker-40: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Imported and configured 1 project(s) in 0 sec
+2026-05-27 12:55:21,918 [Worker-40: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update started
+2026-05-27 12:55:22,089 [Worker-40: Import Getting Started Content] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:billing-service:0.0.1-SNAPSHOT @ D:\MediRevolution\billing-service\pom.xml.
+2026-05-27 12:55:22,520 [Worker-40: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /billing-service/src/main/java
+2026-05-27 12:55:22,521 [Worker-40: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /billing-service/src/main/resources
+2026-05-27 12:55:22,521 [Worker-40: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /billing-service/src/main/resources
+2026-05-27 12:55:22,521 [Worker-40: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /billing-service/src/test/java
+2026-05-27 12:55:22,521 [Worker-40: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /billing-service/src/test/resources
+2026-05-27 12:55:22,521 [Worker-40: Import Getting Started Content] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-27 12:55:22,758 [Worker-40: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update completed for 1 poms: local refresh takes 0.00 sec, refresh facades takes 0.00 sec, update config takes 0.00 sec 
+2026-05-27 12:55:23,038 [Worker-42: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 12:55:23,047 [Worker-42: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:55:23,049 [Worker-42: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\billing-service\src\test\resources
+2026-05-27 12:57:30,939 [Worker-43: Import Getting Started Content] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:notification-service:0.0.1-SNAPSHOT @ D:\MediRevolution\notification-service\pom.xml.
+2026-05-27 12:57:31,320 [Worker-43: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /notification-service/src/main/java
+2026-05-27 12:57:31,321 [Worker-43: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /notification-service/src/main/resources
+2026-05-27 12:57:31,322 [Worker-43: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /notification-service/src/main/resources
+2026-05-27 12:57:31,323 [Worker-43: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /notification-service/src/test/java
+2026-05-27 12:57:31,323 [Worker-43: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /notification-service/src/test/resources
+2026-05-27 12:57:31,323 [Worker-43: Import Getting Started Content] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-27 12:57:31,544 [Worker-43: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Imported and configured 1 project(s) in 0 sec
+2026-05-27 12:57:31,545 [Worker-43: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update started
+2026-05-27 12:57:31,675 [Worker-43: Import Getting Started Content] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:notification-service:0.0.1-SNAPSHOT @ D:\MediRevolution\notification-service\pom.xml.
+2026-05-27 12:57:32,085 [Worker-43: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /notification-service/src/main/java
+2026-05-27 12:57:32,085 [Worker-43: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /notification-service/src/main/resources
+2026-05-27 12:57:32,085 [Worker-43: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /notification-service/src/main/resources
+2026-05-27 12:57:32,085 [Worker-43: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding source folder /notification-service/src/test/java
+2026-05-27 12:57:32,086 [Worker-43: Import Getting Started Content] INFO  o.e.m.j.i.AbstractJavaProjectConfigurator - Adding resource folder /notification-service/src/test/resources
+2026-05-27 12:57:32,086 [Worker-43: Import Getting Started Content] ERROR o.e.m.j.i.AbstractJavaProjectConfigurator - Failed to find a compatible VM for environment id 'JavaSE-21', falling back to workspace default
+2026-05-27 12:57:32,377 [Worker-43: Import Getting Started Content] INFO  o.e.m.c.i.p.ProjectConfigurationManager - Update completed for 1 poms: local refresh takes 0.00 sec, refresh facades takes 0.00 sec, update config takes 0.00 sec 
+2026-05-27 12:57:32,720 [Worker-48: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 12:57:32,742 [Worker-48: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 12:57:32,744 [Worker-48: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\notification-service\src\test\resources
+2026-05-27 14:12:19,991 [Worker-56: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 14:12:19,998 [Worker-56: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 14:12:19,999 [Worker-56: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\discovery-server\src\test\resources
+2026-05-27 14:12:48,719 [Worker-51: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 14:12:48,726 [Worker-51: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 14:12:48,727 [Worker-51: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\discovery-server\src\test\resources
+2026-05-27 14:13:08,252 [Worker-51: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 14:13:08,252 [Worker-51: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 14:13:08,254 [Worker-51: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\discovery-server\src\test\resources
+2026-05-27 14:13:12,449 [Worker-58: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 14:13:12,456 [Worker-58: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 14:13:12,468 [Worker-58: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\discovery-server\src\test\resources
+2026-05-27 14:14:14,345 [Worker-43: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 14:14:14,346 [Worker-43: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 14:14:14,348 [Worker-43: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\discovery-server\src\test\resources
+2026-05-27 14:23:38,186 [Worker-60: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 14:23:38,192 [Worker-60: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 14:23:38,193 [Worker-60: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\discovery-server\src\test\resources
+2026-05-27 14:25:53,981 [Worker-62: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:Api-Gateway:0.0.1-SNAPSHOT @ D:\MediRevolution\api-gateway\pom.xml.
+2026-05-27 14:25:55,155 [Worker-62: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 14:25:55,155 [Worker-62: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 14:25:55,158 [Worker-62: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\test\resources to target\test-classes
+2026-05-27 14:25:56,328 [Worker-56: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 14:25:56,340 [Worker-56: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 14:25:56,341 [Worker-56: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\test\resources to target\test-classes
+2026-05-27 14:28:53,903 [Worker-66: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 14:28:53,923 [Worker-66: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 14:28:53,926 [Worker-66: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\test\resources to target\test-classes
+2026-05-27 14:35:16,096 [Worker-69: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:auth-services:0.0.1-SNAPSHOT @ D:\MediRevolution\auth-services\pom.xml.
+2026-05-27 14:35:16,696 [Worker-69: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 14:35:16,696 [Worker-69: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 14:35:16,697 [Worker-69: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 14:35:17,813 [Worker-72: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 14:35:17,822 [Worker-72: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 14:35:17,824 [Worker-72: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 14:46:35,303 [Worker-78: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 14:46:35,309 [Worker-78: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 14:46:35,310 [Worker-78: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 14:46:59,457 [Worker-81: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 14:46:59,462 [Worker-81: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 14:46:59,463 [Worker-81: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 15:04:19,917 [Worker-79: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 15:04:19,926 [Worker-79: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 15:04:19,930 [Worker-79: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 15:05:08,926 [Worker-85: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 15:05:08,931 [Worker-85: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 15:05:08,933 [Worker-85: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 15:08:41,582 [Worker-84: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 15:08:41,591 [Worker-84: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 15:08:41,594 [Worker-84: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 15:09:58,025 [Worker-87: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 15:09:58,032 [Worker-87: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 15:09:58,034 [Worker-87: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 15:12:06,810 [Worker-84: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 15:12:06,816 [Worker-84: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 15:12:06,817 [Worker-84: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 15:15:12,245 [Worker-85: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 15:15:12,251 [Worker-85: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 15:15:12,252 [Worker-85: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 15:15:37,565 [Worker-90: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 15:15:37,572 [Worker-90: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 15:15:37,574 [Worker-90: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 15:18:23,266 [Worker-92: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 15:18:23,276 [Worker-92: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 15:18:23,277 [Worker-92: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 15:19:28,211 [Worker-89: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 15:19:28,221 [Worker-89: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 15:19:28,223 [Worker-89: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 15:19:46,585 [Worker-90: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 15:19:46,591 [Worker-90: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 15:19:46,592 [Worker-90: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 15:19:56,997 [Worker-93: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 15:19:57,002 [Worker-93: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 15:19:57,003 [Worker-93: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 15:40:02,820 [Worker-98: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 15:40:02,828 [Worker-98: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 15:40:02,832 [Worker-98: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 15:40:31,620 [Worker-95: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 15:40:31,627 [Worker-95: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 15:40:31,628 [Worker-95: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 15:41:15,375 [Worker-92: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 15:41:15,380 [Worker-92: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 15:41:15,382 [Worker-92: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 15:41:43,440 [Worker-99: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 15:41:43,444 [Worker-99: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 15:41:43,445 [Worker-99: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 15:58:40,565 [Worker-106: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 15:58:40,574 [Worker-106: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 15:58:40,576 [Worker-106: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 16:05:20,381 [Worker-109: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 16:05:20,389 [Worker-109: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 16:05:20,391 [Worker-109: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 16:06:07,441 [Worker-109: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 16:06:07,447 [Worker-109: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 16:06:07,449 [Worker-109: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 16:06:15,480 [Worker-106: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 16:06:15,485 [Worker-106: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 16:06:15,487 [Worker-106: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 16:14:53,372 [Worker-106: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 16:14:53,378 [Worker-106: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 16:14:53,379 [Worker-106: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 16:46:40,926 [Worker-121: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 16:46:40,936 [Worker-121: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 16:46:40,938 [Worker-121: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 16:48:28,292 [Worker-122: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 16:48:28,300 [Worker-122: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 16:48:28,302 [Worker-122: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 16:52:16,452 [Worker-125: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 16:52:16,461 [Worker-125: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 16:52:16,463 [Worker-125: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 17:24:58,698 [Worker-132: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 17:24:58,706 [Worker-132: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 17:24:58,708 [Worker-132: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 17:30:14,497 [Worker-136: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 17:30:14,504 [Worker-136: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 17:30:14,505 [Worker-136: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 17:31:53,423 [Worker-142: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 17:31:53,429 [Worker-142: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 17:31:53,430 [Worker-142: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 17:33:55,235 [Worker-142: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 17:33:55,240 [Worker-142: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 17:33:55,242 [Worker-142: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 17:35:38,781 [Worker-139: Building] INFO  o.e.m.c.i.l.LifecycleMappingFactory - Using org.eclipse.m2e.jdt.JarLifecycleMapping lifecycle mapping for MavenProject: com.example:auth-services:0.0.1-SNAPSHOT @ D:\MediRevolution\auth-services\pom.xml.
+2026-05-27 17:35:39,712 [Worker-139: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 17:35:39,712 [Worker-139: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 17:35:39,714 [Worker-139: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 17:35:40,073 [Worker-146: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 17:35:40,087 [Worker-146: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 17:35:40,088 [Worker-146: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources
+2026-05-27 17:35:48,877 [Worker-153: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 1 resource from src\main\resources to target\classes
+2026-05-27 17:35:48,883 [Worker-153: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - Copying 0 resource from src\main\resources to target\classes
+2026-05-27 17:35:48,884 [Worker-153: Building] INFO  o.a.m.s.f.DefaultMavenResourcesFiltering - skip non existing resourceDirectory D:\MediRevolution\auth-services\src\test\resources

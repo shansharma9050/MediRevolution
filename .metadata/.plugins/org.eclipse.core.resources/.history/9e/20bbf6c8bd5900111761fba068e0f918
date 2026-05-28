@@ -1,0 +1,5 @@
+package com.example.medi.auth.service;
+
+public class AuthService {
+
+}

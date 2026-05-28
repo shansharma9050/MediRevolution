@@ -1,0 +1,90 @@
+package com.example.medi.auth.service;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import com.example.medi.auth.dto.AuthResponse;
+import com.example.medi.auth.dto.LoginRequest;
+import com.example.medi.auth.dto.RegisterRequest;
+import com.example.medi.auth.entity.User;
+import com.example.medi.auth.enums.RoleName;
+import com.example.medi.auth.repository.UserRepository;
+import com.example.medi.auth.security.JwtService;
+
+@Service
+public class AuthService {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+
+    public AuthService(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService
+    ) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+    }
+
+    public AuthResponse register(RegisterRequest request) {
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email already registered");
+        }
+
+        if (request.getMobile() != null && userRepository.existsByMobile(request.getMobile())) {
+            throw new RuntimeException("Mobile already registered");
+        }
+
+        User user = new User();
+        user.setFullName(request.getFullName());
+        user.setEmail(request.getEmail());
+        user.setMobile(request.getMobile());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(request.getRole());
+
+        if (request.getRole() == RoleName.SUPER_ADMIN) {
+            user.setApproved(true);
+        } else {
+            user.setApproved(false);
+        }
+
+        userRepository.save(user);
+
+        return new AuthResponse(
+                null,
+                user.getEmail(),
+                user.getRole().name(),
+                "Registration successful. Please wait for admin approval."
+        );
+    }
+
+    public AuthResponse login(LoginRequest request) {
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new RuntimeException("Invalid email or password");
+        }
+
+        if (!user.isActive()) {
+            throw new RuntimeException("Account is inactive");
+        }
+
+        if (!user.isApproved()) {
+            throw new RuntimeException("Account is pending admin approval");
+        }
+
+        String token = jwtService.generateToken(user);
+
+        return new AuthResponse(
+                token,
+                user.getEmail(),
+                user.getRole().name(),
+                "Login successful"
+        );
+    }
+}

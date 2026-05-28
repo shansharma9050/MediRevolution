@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename compilation unit &apos;com.example.medi.auth.dto.RequestDto.java&apos; to &apos;RegisterRequest.java&apos;&#x0D;&#x0A;- Original project: &apos;auth-services&apos;&#x0D;&#x0A;- Original element: &apos;com.example.medi.auth.dto.RequestDto.java&apos;&#x0D;&#x0A;- Renamed element: &apos;com.example.medi.auth.dto.RegisterRequest.java&apos;" description="Rename compilation unit &apos;RequestDto.java&apos;" flags="2" id="org.eclipse.jdt.ui.rename.compilationunit" input="/src\/main\/java=/optional=/true=/=/maven.pomderived=/true=/&lt;com.example.medi.auth.dto{RequestDto.java" name="RegisterRequest.java" references="false" stamp="1779875368060" version="1.0"/>
+</session>
