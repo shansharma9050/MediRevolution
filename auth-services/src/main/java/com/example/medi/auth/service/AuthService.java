@@ -8,6 +8,7 @@ import com.example.medi.auth.dto.LoginRequest;
 import com.example.medi.auth.dto.RegisterRequest;
 import com.example.medi.auth.entity.User;
 import com.example.medi.auth.enums.RoleName;
+import com.example.medi.auth.exception.ApiException;
 import com.example.medi.auth.repository.UserRepository;
 import com.example.medi.auth.security.JwtService;
 
@@ -31,11 +32,11 @@ public class AuthService {
     public AuthResponse register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered");
+            throw new ApiException("Email already registered");
         }
 
         if (request.getMobile() != null && userRepository.existsByMobile(request.getMobile())) {
-            throw new RuntimeException("Mobile already registered");
+            throw new ApiException("Mobile already registered");
         }
 
         User user = new User();
@@ -64,18 +65,18 @@ public class AuthService {
     public AuthResponse login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+                .orElseThrow(() -> new ApiException("Invalid email or password"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
+            throw new ApiException("Invalid email or password");
         }
 
         if (!user.isActive()) {
-            throw new RuntimeException("Account is inactive");
+            throw new ApiException("Account is inactive");
         }
 
         if (!user.isApproved()) {
-            throw new RuntimeException("Account is pending admin approval");
+            throw new ApiException("Account is pending admin approval");
         }
 
         String token = jwtService.generateToken(user);
