@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>MediRevolution | Dashboard</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+</head>
+
+<body class="dashboard-body">
+
+	<div th:replace="~{layout/topnavbar :: topnavbar}"></div>
+	<div th:replace="~{layout/sidebar :: sidebar}"></div>
+	
+	<main class="mr-main">
+
+		<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+			<div>
+				<h1 class="mr-page-title">Dashboard</h1>
+				<p class="mr-page-subtitle" id="roleDescription">
+					Welcome to MediRevolution
+				</p>
+			</div>
+
+			<div class="mr-card">
+				<strong>Role:</strong> <span id="userRole">ROLE</span>
+			</div>
+		</div>
+
+		<div class="row g-4">
+
+			<div class="col-xl-3 col-md-6">
+				<div class="mr-stat-card">
+					<div class="d-flex justify-content-between align-items-center">
+						<div>
+							<div class="mr-stat-title" id="card1Title">Total Orders</div>
+							<div class="mr-stat-value" id="card1Value">0</div>
+						</div>
+						<div class="mr-stat-icon">📋</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-xl-3 col-md-6">
+				<div class="mr-stat-card">
+					<div class="d-flex justify-content-between align-items-center">
+						<div>
+							<div class="mr-stat-title" id="card2Title">Pending Orders</div>
+							<div class="mr-stat-value" id="card2Value">0</div>
+						</div>
+						<div class="mr-stat-icon">⏳</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-xl-3 col-md-6">
+				<div class="mr-stat-card">
+					<div class="d-flex justify-content-between align-items-center">
+						<div>
+							<div class="mr-stat-title" id="card3Title">Invoices</div>
+							<div class="mr-stat-value" id="card3Value">0</div>
+						</div>
+						<div class="mr-stat-icon">🧾</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-xl-3 col-md-6">
+				<div class="mr-stat-card">
+					<div class="d-flex justify-content-between align-items-center">
+						<div>
+							<div class="mr-stat-title" id="card4Title">Notifications</div>
+							<div class="mr-stat-value" id="card4Value">0</div>
+						</div>
+						<div class="mr-stat-icon">🔔</div>
+					</div>
+				</div>
+			</div>
+
+		</div>
+
+		<div class="row g-4 mt-2">
+
+			<div class="col-lg-8">
+				<div class="mr-card">
+					<h5 class="fw-bold text-primary mb-3">MediRevolution Workflow</h5>
+
+					<div class="row g-3">
+						<div class="col-md-4">
+							<div class="p-3 rounded-4 bg-light">
+								<h6 class="fw-bold">1. Manage</h6>
+								<p class="mb-0 text-muted">Users, medicines, profiles and approvals.</p>
+							</div>
+						</div>
+
+						<div class="col-md-4">
+							<div class="p-3 rounded-4 bg-light">
+								<h6 class="fw-bold">2. Order</h6>
+								<p class="mb-0 text-muted">Retailers search medicines and place orders.</p>
+							</div>
+						</div>
+
+						<div class="col-md-4">
+							<div class="p-3 rounded-4 bg-light">
+								<h6 class="fw-bold">3. Deliver</h6>
+								<p class="mb-0 text-muted">Wholesalers deliver and generate invoices.</p>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+			<div class="col-lg-4">
+				<div class="mr-card">
+					<h5 class="fw-bold text-primary mb-3">Quick Actions</h5>
+
+					<div id="quickActions"></div>
+				</div>
+			</div>
+
+		</div>
+		<div th:replace="~{layout/footer :: footer}"></div>
+	</main>
+	<script th:src="@{/js/dashboard.js}"></script>
+
+</body>
+
+</html>

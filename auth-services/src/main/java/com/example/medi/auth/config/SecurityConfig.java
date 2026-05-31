@@ -32,12 +32,11 @@ public class SecurityConfig {
                  session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
          )
          .authorizeHttpRequests(auth -> auth
-                 .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login").permitAll()
-
-                 .requestMatchers("/auth/admin/users/**").hasRole("SUPER_ADMIN")
-
-                 .anyRequest().authenticated()
-         )
+        	        .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login").permitAll()
+        	        .requestMatchers("/actuator/**").permitAll()
+        	        .requestMatchers("/auth/admin/users/**").hasAuthority("ROLE_SUPER_ADMIN")
+        	        .anyRequest().authenticated()
+        	)
          .addFilterBefore(
                  jwtAuthenticationFilter,
                  UsernamePasswordAuthenticationFilter.class
