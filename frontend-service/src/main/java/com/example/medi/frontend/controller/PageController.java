@@ -20,4 +20,13 @@ public class PageController {
     public String dashboardPage() {
         return "dashboard";
     }
+    @GetMapping("/approvals")
+    public String adminApprovalsPage() {
+        return "admin/approvals";
+    }
+   
+    @GetMapping("/wholesaler/medicines")
+    public String wholesalerMedicinePage() {
+        return "wholesaler/medicines";
+    }
 }

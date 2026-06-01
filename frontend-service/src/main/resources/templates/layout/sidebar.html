@@ -1,0 +1,25 @@
+<aside th:fragment="sidebar" class="mr-sidebar" id="sidebar">
+
+	<a href="/dashboard" class="active">🏠 Dashboard</a>
+
+	<a th:href="@{/approvals}" data-role="SUPER_ADMIN">
+		✅ Pending Approvals
+	</a> <a href="#" data-role="SUPER_ADMIN">👥 Users</a>
+
+	<a href="#" data-role="SUPER_ADMIN WHOLESALER">💊 Medicine Master</a>
+	<a href="#" data-role="WHOLESALER">📦 Inventory</a>
+
+	<a href="#" data-role="RETAILER">🔍 Search Medicines</a>
+	<a href="#" data-role="RETAILER">🛒 Cart</a>
+
+	<a href="#" data-role="SUPER_ADMIN WHOLESALER RETAILER">📋 Orders</a>
+	<a href="#" data-role="SUPER_ADMIN WHOLESALER RETAILER">🧾 Invoices</a>
+
+	<a href="#" data-role="DOCTOR">🩺 Prescriptions</a>
+	<a href="#" data-role="HOSPITAL">🏥 Hospital Procurement</a>
+
+	<a href="#" data-role="SUPER_ADMIN WHOLESALER RETAILER DOCTOR HOSPITAL">🔔 Notifications</a>
+	<a href="#" data-role="SUPER_ADMIN WHOLESALER RETAILER DOCTOR HOSPITAL">👤 Profile</a>
+
+
+</aside>

@@ -1,7 +1,4 @@
-const API_BASE =
-    window.location.hostname === "localhost"
-        ? "http://localhost:8080"
-        : "https://api.medirevolution.com";
+const API_BASE_URL = "http://localhost:8080";
 
 function showMessage(message, type = "danger") {
     document.getElementById("msg").innerHTML =
@@ -27,7 +24,7 @@ async function login() {
     }
 
     try {
-        const response = await fetch(`${API_BASE}/auth/login`, {
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({email, password})
@@ -48,6 +45,7 @@ async function login() {
 
     } catch (error) {
         showMessage("Server not reachable. Please check API Gateway.");
+        console.error(error);
     }
 }
 
@@ -84,7 +82,7 @@ async function register() {
     }
 
     try {
-        const response = await fetch(`${API_BASE}/auth/register`, {
+        const response = await fetch(`${API_BASE_URL}/auth/register`, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
@@ -111,5 +109,6 @@ async function register() {
 
     } catch (error) {
         showMessage("Server not reachable. Please check API Gateway.");
+        console.error(error);
     }
 }
