@@ -1,5 +1,0 @@
-package com.example.medi.auth.repository;
-
-public interface UserRepository {
-
-}

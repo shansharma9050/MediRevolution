@@ -1,5 +1,0 @@
-package com.example.medi.auth.security;
-
-public class JwtService {
-
-}
