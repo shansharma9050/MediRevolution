@@ -1,17 +1,15 @@
 package com.example.medi.order.dto;
 
-import java.math.BigDecimal;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class PlaceOrderItemRequest {
+@NoArgsConstructor
+public class OrderResponse {
 
-    private Long stockId;
-    private Integer quantity;
-    
+    private Long orderId;
+    private String status;
+    private String message;
 }

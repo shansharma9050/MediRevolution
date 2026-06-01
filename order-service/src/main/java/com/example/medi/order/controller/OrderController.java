@@ -1,6 +1,10 @@
 package com.example.medi.order.controller;
+import java.util.List;
+
 import org.springframework.web.bind.annotation.*;
 
+import com.example.medi.order.dto.OrderListResponse;
+import com.example.medi.order.dto.OrderResponse;
 import com.example.medi.order.dto.PlaceOrderRequest;
 import com.example.medi.order.entity.MedicineOrder;
 import com.example.medi.order.enums.OrderStatus;
@@ -17,12 +21,21 @@ public class OrderController {
     }
 
     @PostMapping
-    public MedicineOrder placeOrder(@RequestBody PlaceOrderRequest request) {
-        return orderService.placeOrder(request);
+    public OrderResponse placeOrder(
+            @RequestBody PlaceOrderRequest request) {
+
+        MedicineOrder order =
+                orderService.placeOrder(request);
+
+        return new OrderResponse(
+                order.getId(),
+                order.getStatus().name(),
+                "Order placed successfully"
+        );
     }
 
     @GetMapping("/my")
-    public Object getMyOrders() {
+    public List<OrderListResponse> getMyOrders() {
         return orderService.getMyOrders();
     }
 

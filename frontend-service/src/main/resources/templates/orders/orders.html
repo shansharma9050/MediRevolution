@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>MediRevolution | Orders</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+</head>
+
+<body class="dashboard-body">
+
+	<div th:replace="~{layout/topnavbar :: topnavbar}"></div>
+	<div th:replace="~{layout/sidebar :: sidebar}"></div>
+
+	<main class="mr-main">
+
+		<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+			<div>
+				<h1 class="mr-page-title" id="pageTitle">Orders</h1>
+				<p class="mr-page-subtitle" id="pageSubtitle">
+					Track order lifecycle and manage order status.
+				</p>
+			</div>
+
+			<button class="btn btn-medi" style="width:auto;" onclick="loadOrders()">
+				Refresh Orders
+			</button>
+		</div>
+
+		<div id="msg"></div>
+
+		<div class="row g-4 mb-4">
+
+			<div class="col-md-3">
+				<div class="mr-stat-card">
+					<div class="mr-stat-title">Total Orders</div>
+					<div class="mr-stat-value" id="totalOrders">0</div>
+				</div>
+			</div>
+
+			<div class="col-md-3">
+				<div class="mr-stat-card">
+					<div class="mr-stat-title">Pending</div>
+					<div class="mr-stat-value" id="pendingOrders">0</div>
+				</div>
+			</div>
+
+			<div class="col-md-3">
+				<div class="mr-stat-card">
+					<div class="mr-stat-title">Accepted</div>
+					<div class="mr-stat-value" id="acceptedOrders">0</div>
+				</div>
+			</div>
+
+			<div class="col-md-3">
+				<div class="mr-stat-card">
+					<div class="mr-stat-title">Delivered</div>
+					<div class="mr-stat-value" id="deliveredOrders">0</div>
+				</div>
+			</div>
+
+		</div>
+
+		<div class="mr-card">
+
+			<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+				<h5 class="fw-bold text-primary mb-0">Order List</h5>
+
+				<div class="d-flex gap-2 flex-wrap">
+					<select id="statusFilter" class="form-select" style="max-width:220px;" onchange="filterOrders()">
+						<option value="">All Status</option>
+						<option value="PENDING">Pending</option>
+						<option value="ACCEPTED">Accepted</option>
+						<option value="REJECTED">Rejected</option>
+						<option value="DELIVERED">Delivered</option>
+					</select>
+
+					<input type="text" id="searchBox" class="form-control" style="max-width:280px;"
+						placeholder="Search order no / medicine" onkeyup="filterOrders()">
+				</div>
+			</div>
+
+			<div id="ordersContainer" class="row g-4">
+				<div class="col-12">
+					<div class="text-center text-muted py-5">
+						Loading orders...
+					</div>
+				</div>
+			</div>
+
+		</div>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
+	</main>
+
+	<script th:src="@{/js/common-dashboard.js}"></script>
+	<script th:src="@{/js/orders.js}"></script>
+
+</body>
+
+</html>

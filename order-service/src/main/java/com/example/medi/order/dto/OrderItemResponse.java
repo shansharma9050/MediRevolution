@@ -9,9 +9,14 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PlaceOrderItemRequest {
+public class OrderItemResponse {
 
+    private Long id;
     private Long stockId;
+    private String medicineName;
+    private String batchNumber;
     private Integer quantity;
-    
+    private BigDecimal unitPrice;
+    private BigDecimal gstPercentage;
+    private BigDecimal lineTotal;
 }

@@ -29,4 +29,24 @@ public class PageController {
     public String wholesalerMedicinePage() {
         return "wholesaler/medicines";
     }
+    
+    @GetMapping("/wholesaler/inventory")
+    public String wholesalerInventoryPage() {
+        return "wholesaler/inventory";
+    }
+    
+    @GetMapping("/retailer/search-medicines")
+    public String retailerSearchMedicinesPage() {
+        return "retailer/search-medicines";
+    }
+    
+    @GetMapping("/retailer/cart")
+    public String retailerCartPage() {
+        return "retailer/cart";
+    }
+    
+    @GetMapping("/orders")
+    public String ordersPage() {
+        return "orders/orders";
+    }
 }

@@ -1,10 +1,13 @@
 package com.example.medi.order.service;
+
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import com.example.medi.order.client.MedicineClient;
 import com.example.medi.order.client.NotificationClient;
 import com.example.medi.order.dto.NotificationRequest;
+import com.example.medi.order.dto.OrderItemResponse;
+import com.example.medi.order.dto.OrderListResponse;
 import com.example.medi.order.dto.PlaceOrderItemRequest;
 import com.example.medi.order.dto.PlaceOrderRequest;
 import com.example.medi.order.dto.ReduceStockRequest;
@@ -18,238 +21,224 @@ import com.example.medi.order.security.CurrentUserUtil;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
 public class OrderService {
 
-    private final MedicineOrderRepository orderRepository;
-    private final MedicineClient medicineClient;
-    private final NotificationClient notificationClient;
+	private final MedicineOrderRepository orderRepository;
+	private final MedicineClient medicineClient;
+	private final NotificationClient notificationClient;
 
-    public OrderService(
-            MedicineOrderRepository orderRepository,
-            MedicineClient medicineClient,
-            NotificationClient notificationClient
-    ) {
-        this.orderRepository = orderRepository;
-        this.medicineClient = medicineClient;
-        this.notificationClient = notificationClient;
-    }
+	public OrderService(MedicineOrderRepository orderRepository, MedicineClient medicineClient,
+			NotificationClient notificationClient) {
+		this.orderRepository = orderRepository;
+		this.medicineClient = medicineClient;
+		this.notificationClient = notificationClient;
+	}
 
-    public MedicineOrder placeOrder(PlaceOrderRequest request) {
+	public MedicineOrder placeOrder(PlaceOrderRequest request) {
 
-        if (!CurrentUserUtil.getRole().equals("RETAILER")) {
-            throw new AccessDeniedException("Only RETAILER can place order");
-        }
+		if (!CurrentUserUtil.getRole().equals("RETAILER")) {
+			throw new AccessDeniedException("Only RETAILER can place order");
+		}
 
-        if (request.getWholesalerAuthUserId() == null) {
-            throw new RuntimeException("Wholesaler is required");
-        }
+		if (request.getWholesalerAuthUserId() == null) {
+			throw new RuntimeException("Wholesaler is required");
+		}
 
-        if (request.getItems() == null || request.getItems().isEmpty()) {
-            throw new RuntimeException("Order must contain at least one item");
-        }
+		if (request.getItems() == null || request.getItems().isEmpty()) {
+			throw new RuntimeException("Order must contain at least one item");
+		}
 
-        MedicineOrder order = new MedicineOrder();
-        order.setOrderNumber("MR-ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
-        order.setRetailerAuthUserId(CurrentUserUtil.getUserId());
-        order.setWholesalerAuthUserId(request.getWholesalerAuthUserId());
-        order.setStatus(OrderStatus.PENDING);
+		MedicineOrder order = new MedicineOrder();
+		order.setOrderNumber("MR-ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+		order.setRetailerAuthUserId(CurrentUserUtil.getUserId());
+		order.setWholesalerAuthUserId(request.getWholesalerAuthUserId());
+		order.setStatus(OrderStatus.PENDING);
 
-        BigDecimal total = BigDecimal.ZERO;
-        String token = CurrentUserUtil.getAuthorizationHeader();
+		BigDecimal total = BigDecimal.ZERO;
+		String token = CurrentUserUtil.getAuthorizationHeader();
 
-        for (PlaceOrderItemRequest itemRequest : request.getItems()) {
+		for (PlaceOrderItemRequest itemRequest : request.getItems()) {
 
-            if (itemRequest.getStockId() == null) {
-                throw new RuntimeException("Stock ID is required");
-            }
+			if (itemRequest.getStockId() == null) {
+				throw new RuntimeException("Stock ID is required");
+			}
 
-            if (itemRequest.getQuantity() == null || itemRequest.getQuantity() <= 0) {
-                throw new RuntimeException("Quantity must be greater than zero");
-            }
+			if (itemRequest.getQuantity() == null || itemRequest.getQuantity() <= 0) {
+				throw new RuntimeException("Quantity must be greater than zero");
+			}
 
-            StockResponse stock = medicineClient.getStockById(
-                    itemRequest.getStockId(),
-                    token
-            );
+			StockResponse stock = medicineClient.getStockById(itemRequest.getStockId(), token);
 
-            if (stock == null) {
-                throw new RuntimeException("Stock not found");
-            }
+			if (stock == null) {
+				throw new RuntimeException("Stock not found");
+			}
 
-            if (!stock.getWholesalerAuthUserId().equals(request.getWholesalerAuthUserId())) {
-                throw new RuntimeException("Selected stock does not belong to selected wholesaler");
-            }
+			if (!stock.getWholesalerAuthUserId().equals(request.getWholesalerAuthUserId())) {
+				throw new RuntimeException("Selected stock does not belong to selected wholesaler");
+			}
 
-            if (stock.getAvailableQuantity() == null || stock.getAvailableQuantity() < itemRequest.getQuantity()) {
-                throw new RuntimeException("Insufficient stock for " + stock.getMedicine().getMedicineName());
-            }
+			if (stock.getAvailableQuantity() == null || stock.getAvailableQuantity() < itemRequest.getQuantity()) {
+				throw new RuntimeException("Insufficient stock for " + stock.getMedicine().getMedicineName());
+			}
 
-            if (stock.getExpiryDate() != null && stock.getExpiryDate().isBefore(LocalDate.now())) {
-                throw new RuntimeException("Medicine batch is expired: " + stock.getMedicine().getMedicineName());
-            }
+			if (stock.getExpiryDate() != null && stock.getExpiryDate().isBefore(LocalDate.now())) {
+				throw new RuntimeException("Medicine batch is expired: " + stock.getMedicine().getMedicineName());
+			}
 
-            BigDecimal unitPrice = stock.getWholesalePrice();
-            BigDecimal gst = stock.getGstPercentage() == null
-                    ? BigDecimal.ZERO
-                    : stock.getGstPercentage();
+			BigDecimal unitPrice = stock.getWholesalePrice();
+			BigDecimal gst = stock.getGstPercentage() == null ? BigDecimal.ZERO : stock.getGstPercentage();
 
-            BigDecimal baseAmount = unitPrice.multiply(BigDecimal.valueOf(itemRequest.getQuantity()));
-            BigDecimal gstAmount = baseAmount.multiply(gst).divide(BigDecimal.valueOf(100));
-            BigDecimal lineTotal = baseAmount.add(gstAmount);
+			BigDecimal baseAmount = unitPrice.multiply(BigDecimal.valueOf(itemRequest.getQuantity()));
+			BigDecimal gstAmount = baseAmount.multiply(gst).divide(BigDecimal.valueOf(100));
+			BigDecimal lineTotal = baseAmount.add(gstAmount);
 
-            MedicineOrderItem item = new MedicineOrderItem();
-            item.setStockId(stock.getId());
-            item.setMedicineId(stock.getMedicine().getId());
-            item.setMedicineName(stock.getMedicine().getMedicineName());
-            item.setBatchNumber(stock.getBatchNumber());
-            item.setQuantity(itemRequest.getQuantity());
-            item.setUnitPrice(unitPrice);
-            item.setGstPercentage(gst);
-            item.setLineTotal(lineTotal);
-            item.setOrder(order);
+			MedicineOrderItem item = new MedicineOrderItem();
+			item.setStockId(stock.getId());
+			item.setMedicineId(stock.getMedicine().getId());
+			item.setMedicineName(stock.getMedicine().getMedicineName());
+			item.setBatchNumber(stock.getBatchNumber());
+			item.setQuantity(itemRequest.getQuantity());
+			item.setUnitPrice(unitPrice);
+			item.setGstPercentage(gst);
+			item.setLineTotal(lineTotal);
+			item.setOrder(order);
 
-            order.getItems().add(item);
-            total = total.add(lineTotal);
-        }
+			order.getItems().add(item);
+			total = total.add(lineTotal);
+		}
 
-        order.setTotalAmount(total);
+		order.setTotalAmount(total);
 
-        MedicineOrder savedOrder = orderRepository.save(order);
+		MedicineOrder savedOrder = orderRepository.save(order);
 
-        notificationClient.createNotification(
-                new NotificationRequest(
-                        savedOrder.getWholesalerAuthUserId(),
-                        savedOrder.getRetailerAuthUserId(),
-                        "ORDER_PLACED",
-                        "New Order Received",
-                        "New order " + savedOrder.getOrderNumber() + " has been placed by retailer."
-                ),
-                token
-        );
+		notificationClient.createNotification(new NotificationRequest(savedOrder.getWholesalerAuthUserId(),
+				savedOrder.getRetailerAuthUserId(), "ORDER_PLACED", "New Order Received",
+				"New order " + savedOrder.getOrderNumber() + " has been placed by retailer."), token);
 
-        return savedOrder;
-    }
-    
-    public MedicineOrder updateOrderStatus(Long orderId, OrderStatus status) {
+		return savedOrder;
+	}
 
-        MedicineOrder order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+	public MedicineOrder updateOrderStatus(Long orderId, OrderStatus status) {
 
-        String role = CurrentUserUtil.getRole();
-        Long currentUserId = CurrentUserUtil.getUserId();
+		MedicineOrder order = orderRepository.findById(orderId)
+				.orElseThrow(() -> new RuntimeException("Order not found"));
 
-        if (!role.equals("WHOLESALER")) {
-            throw new AccessDeniedException("Only WHOLESALER can update order status");
-        }
+		String role = CurrentUserUtil.getRole();
+		Long currentUserId = CurrentUserUtil.getUserId();
 
-        if (!order.getWholesalerAuthUserId().equals(currentUserId)) {
-            throw new AccessDeniedException("You can update only your own orders");
-        }
+		if (!role.equals("WHOLESALER")) {
+			throw new AccessDeniedException("Only WHOLESALER can update order status");
+		}
 
-        if (order.getStatus() == OrderStatus.DELIVERED) {
-            throw new RuntimeException("Delivered order status cannot be changed");
-        }
+		if (!order.getWholesalerAuthUserId().equals(currentUserId)) {
+			throw new AccessDeniedException("You can update only your own orders");
+		}
 
-        if (status == OrderStatus.DELIVERED) {
+		if (order.getStatus() == OrderStatus.DELIVERED) {
+			throw new RuntimeException("Delivered order status cannot be changed");
+		}
 
-            if (order.getStatus() != OrderStatus.SHIPPED && order.getStatus() != OrderStatus.ACCEPTED) {
-                throw new RuntimeException("Order must be ACCEPTED or SHIPPED before delivery");
-            }
+		if (status == OrderStatus.DELIVERED) {
 
-            String token = CurrentUserUtil.getAuthorizationHeader();
+			if (order.getStatus() != OrderStatus.SHIPPED && order.getStatus() != OrderStatus.ACCEPTED) {
+				throw new RuntimeException("Order must be ACCEPTED or SHIPPED before delivery");
+			}
 
-            for (MedicineOrderItem item : order.getItems()) {
-                medicineClient.reduceStock(
-                        item.getStockId(),
-                        new ReduceStockRequest(item.getStockId(), item.getQuantity()),
-                        token
-                );
-            }
-        }
+			String token = CurrentUserUtil.getAuthorizationHeader();
 
-        order.setStatus(status);
-        order.setUpdatedAt(LocalDateTime.now());
+			for (MedicineOrderItem item : order.getItems()) {
+				medicineClient.reduceStock(item.getStockId(),
+						new ReduceStockRequest(item.getStockId(), item.getQuantity()), token);
+			}
+		}
 
-        MedicineOrder savedOrder = orderRepository.save(order);
+		order.setStatus(status);
+		order.setUpdatedAt(LocalDateTime.now());
 
-        String title;
-        String message;
-        String type;
+		MedicineOrder savedOrder = orderRepository.save(order);
 
-        if (status == OrderStatus.ACCEPTED) {
-            type = "ORDER_ACCEPTED";
-            title = "Order Accepted";
-            message = "Your order " + savedOrder.getOrderNumber() + " has been accepted by wholesaler.";
-        } else if (status == OrderStatus.REJECTED) {
-            type = "ORDER_REJECTED";
-            title = "Order Rejected";
-            message = "Your order " + savedOrder.getOrderNumber() + " has been rejected by wholesaler.";
-        } else if (status == OrderStatus.DELIVERED) {
-            type = "ORDER_DELIVERED";
-            title = "Order Delivered";
-            message = "Your order " + savedOrder.getOrderNumber() + " has been delivered.";
-        } else {
-            type = "GENERAL";
-            title = "Order Status Updated";
-            message = "Your order " + savedOrder.getOrderNumber() + " status changed to " + status.name();
-        }
+		String title;
+		String message;
+		String type;
 
-        notificationClient.createNotification(
-                new NotificationRequest(
-                        savedOrder.getRetailerAuthUserId(),
-                        savedOrder.getWholesalerAuthUserId(),
-                        type,
-                        title,
-                        message
-                ),
-                CurrentUserUtil.getAuthorizationHeader()
-        );
+		if (status == OrderStatus.ACCEPTED) {
+			type = "ORDER_ACCEPTED";
+			title = "Order Accepted";
+			message = "Your order " + savedOrder.getOrderNumber() + " has been accepted by wholesaler.";
+		} else if (status == OrderStatus.REJECTED) {
+			type = "ORDER_REJECTED";
+			title = "Order Rejected";
+			message = "Your order " + savedOrder.getOrderNumber() + " has been rejected by wholesaler.";
+		} else if (status == OrderStatus.DELIVERED) {
+			type = "ORDER_DELIVERED";
+			title = "Order Delivered";
+			message = "Your order " + savedOrder.getOrderNumber() + " has been delivered.";
+		} else {
+			type = "GENERAL";
+			title = "Order Status Updated";
+			message = "Your order " + savedOrder.getOrderNumber() + " status changed to " + status.name();
+		}
 
-        return savedOrder;
-    }
+		notificationClient.createNotification(new NotificationRequest(savedOrder.getRetailerAuthUserId(),
+				savedOrder.getWholesalerAuthUserId(), type, title, message), CurrentUserUtil.getAuthorizationHeader());
 
-    public Object getMyOrders() {
+		return savedOrder;
+	}
 
-        String role = CurrentUserUtil.getRole();
-        Long userId = CurrentUserUtil.getUserId();
+	public List<OrderListResponse> getMyOrders() {
 
-        if (role.equals("RETAILER")) {
-            return orderRepository.findByRetailerAuthUserId(userId);
-        }
+		String role = CurrentUserUtil.getRole();
+		Long userId = CurrentUserUtil.getUserId();
 
-        if (role.equals("WHOLESALER")) {
-            return orderRepository.findByWholesalerAuthUserId(userId);
-        }
+		List<MedicineOrder> orders;
 
-        if (role.equals("SUPER_ADMIN")) {
-            return orderRepository.findAll();
-        }
+		if (role.equals("RETAILER")) {
+			orders = orderRepository.findByRetailerAuthUserId(userId);
+		} else if (role.equals("WHOLESALER")) {
+			orders = orderRepository.findByWholesalerAuthUserId(userId);
+		} else if (role.equals("SUPER_ADMIN")) {
+			orders = orderRepository.findAll();
+		} else {
+			throw new AccessDeniedException("You do not have permission to view orders");
+		}
 
-        throw new AccessDeniedException("You do not have permission to view orders");
-    }
-    
-    public MedicineOrder getOrderById(Long orderId) {
-        MedicineOrder order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+		return orders.stream().map(this::mapToOrderListResponse).toList();
+	}
 
-        String role = CurrentUserUtil.getRole();
-        Long userId = CurrentUserUtil.getUserId();
+	private OrderListResponse mapToOrderListResponse(MedicineOrder order) {
 
-        if (role.equals("RETAILER") && !order.getRetailerAuthUserId().equals(userId)) {
-            throw new AccessDeniedException("You can view only your own orders");
-        }
+		return new OrderListResponse(order.getId(), order.getOrderNumber(), order.getRetailerAuthUserId(),
+				order.getWholesalerAuthUserId(), order.getTotalAmount(), order.getStatus(), order.getOrderDate(),
+				order.getItems().stream()
+						.map(item -> new OrderItemResponse(item.getId(), item.getStockId(), item.getMedicineName(),
+								item.getBatchNumber(), item.getQuantity(), item.getUnitPrice(), item.getGstPercentage(),
+								item.getLineTotal()))
+						.toList());
+	}
 
-        if (role.equals("WHOLESALER") && !order.getWholesalerAuthUserId().equals(userId)) {
-            throw new AccessDeniedException("You can view only your own orders");
-        }
+	public MedicineOrder getOrderById(Long orderId) {
+		MedicineOrder order = orderRepository.findById(orderId)
+				.orElseThrow(() -> new RuntimeException("Order not found"));
 
-        if (!role.equals("RETAILER") && !role.equals("WHOLESALER") && !role.equals("SUPER_ADMIN")) {
-            throw new AccessDeniedException("You do not have permission to view this order");
-        }
+		String role = CurrentUserUtil.getRole();
+		Long userId = CurrentUserUtil.getUserId();
 
-        return order;
-    }
+		if (role.equals("RETAILER") && !order.getRetailerAuthUserId().equals(userId)) {
+			throw new AccessDeniedException("You can view only your own orders");
+		}
+
+		if (role.equals("WHOLESALER") && !order.getWholesalerAuthUserId().equals(userId)) {
+			throw new AccessDeniedException("You can view only your own orders");
+		}
+
+		if (!role.equals("RETAILER") && !role.equals("WHOLESALER") && !role.equals("SUPER_ADMIN")) {
+			throw new AccessDeniedException("You do not have permission to view this order");
+		}
+
+		return order;
+	}
 }

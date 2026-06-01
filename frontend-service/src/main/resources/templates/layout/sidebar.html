@@ -6,13 +6,13 @@
 		✅ Pending Approvals
 	</a> <a href="#" data-role="SUPER_ADMIN">👥 Users</a>
 
-	<a href="#" data-role="SUPER_ADMIN WHOLESALER">💊 Medicine Master</a>
-	<a href="#" data-role="WHOLESALER">📦 Inventory</a>
+	<a th:href="@{/wholesaler/medicines}" data-role="SUPER_ADMIN WHOLESALER">💊 Medicine Master</a>
+	<a th:href="@{/wholesaler/inventory}" data-role="WHOLESALER">📦 Inventory</a>
 
-	<a href="#" data-role="RETAILER">🔍 Search Medicines</a>
-	<a href="#" data-role="RETAILER">🛒 Cart</a>
+	<a th:href="@{/retailer/search-medicines}" data-role="RETAILER">🔍 Search Medicines</a>
+	<a th:href="@{/retailer/cart}" data-role="RETAILER">🛒 Cart</a>
 
-	<a href="#" data-role="SUPER_ADMIN WHOLESALER RETAILER">📋 Orders</a>
+	<a th:href="@{/orders}" data-role="SUPER_ADMIN WHOLESALER RETAILER">📋 Orders</a>
 	<a href="#" data-role="SUPER_ADMIN WHOLESALER RETAILER">🧾 Invoices</a>
 
 	<a href="#" data-role="DOCTOR">🩺 Prescriptions</a>
