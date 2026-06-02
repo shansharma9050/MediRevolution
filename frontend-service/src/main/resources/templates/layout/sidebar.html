@@ -13,12 +13,12 @@
 	<a th:href="@{/retailer/cart}" data-role="RETAILER">🛒 Cart</a>
 
 	<a th:href="@{/orders}" data-role="SUPER_ADMIN WHOLESALER RETAILER">📋 Orders</a>
-	<a href="#" data-role="SUPER_ADMIN WHOLESALER RETAILER">🧾 Invoices</a>
+	<a th:href="@{/invoices}" data-role="SUPER_ADMIN WHOLESALER RETAILER">🧾 Invoices</a>
 
 	<a href="#" data-role="DOCTOR">🩺 Prescriptions</a>
 	<a href="#" data-role="HOSPITAL">🏥 Hospital Procurement</a>
 
-	<a href="#" data-role="SUPER_ADMIN WHOLESALER RETAILER DOCTOR HOSPITAL">🔔 Notifications</a>
+	<a th:href="@{/notifications}" data-role="SUPER_ADMIN WHOLESALER RETAILER DOCTOR HOSPITAL">🔔 Notifications</a>
 	<a href="#" data-role="SUPER_ADMIN WHOLESALER RETAILER DOCTOR HOSPITAL">👤 Profile</a>
 
 

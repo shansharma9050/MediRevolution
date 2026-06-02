@@ -4,6 +4,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.example.medi.billing.dto.InvoiceResponse;
 import com.example.medi.billing.entity.Invoice;
 import com.example.medi.billing.service.BillingService;
 import com.example.medi.billing.service.InvoicePdfService;
@@ -23,20 +24,22 @@ public class BillingController {
         this.invoicePdfService = invoicePdfService;
     }
 
-    @PostMapping("/invoice/order/{orderId}")
-    public Invoice generateInvoice(@PathVariable Long orderId) {
-        return billingService.generateInvoice(orderId);
+    @PostMapping("/invoice/order/{orderNo}")
+    public InvoiceResponse generateInvoice(@PathVariable String orderNo) {
+        Invoice invoice = billingService.generateInvoice(orderNo);
+        return billingService.mapToInvoiceResponse(invoice);
     }
 
-    @GetMapping("/invoice/order/{orderId}")
-    public Invoice getInvoiceByOrderId(@PathVariable Long orderId) {
-        return billingService.getInvoiceByOrderId(orderId);
+    @GetMapping("/invoice/order/{orderNo}")
+    public InvoiceResponse getInvoiceByOrderId(@PathVariable String orderNo) {
+        Invoice invoice = billingService.getInvoiceByOrderId(orderNo);
+        return billingService.mapToInvoiceResponse(invoice);
     }
     
-    @GetMapping("/invoice/order/{orderId}/download")
-    public ResponseEntity<byte[]> downloadInvoicePdf(@PathVariable Long orderId) {
+    @GetMapping("/invoice/order/{orderNo}/download")
+    public ResponseEntity<byte[]> downloadInvoicePdf(@PathVariable String orderNo) {
 
-        Invoice invoice = billingService.getInvoiceByOrderId(orderId);
+        Invoice invoice = billingService.getInvoiceByOrderId(orderNo);
 
         byte[] pdf = invoicePdfService.generateInvoicePdf(invoice);
 

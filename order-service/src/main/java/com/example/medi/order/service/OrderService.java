@@ -220,25 +220,31 @@ public class OrderService {
 						.toList());
 	}
 
-	public MedicineOrder getOrderById(Long orderId) {
-		MedicineOrder order = orderRepository.findById(orderId)
-				.orElseThrow(() -> new RuntimeException("Order not found"));
+	public OrderListResponse getOrderByOrderNo(String orderNo) {
 
-		String role = CurrentUserUtil.getRole();
-		Long userId = CurrentUserUtil.getUserId();
+	    MedicineOrder order = orderRepository.findByOrderNumber(orderNo);
 
-		if (role.equals("RETAILER") && !order.getRetailerAuthUserId().equals(userId)) {
-			throw new AccessDeniedException("You can view only your own orders");
-		}
+	    if (order == null) {
+	        throw new RuntimeException("Order not found");
+	    }
 
-		if (role.equals("WHOLESALER") && !order.getWholesalerAuthUserId().equals(userId)) {
-			throw new AccessDeniedException("You can view only your own orders");
-		}
+	    String role = CurrentUserUtil.getRole();
+	    Long userId = CurrentUserUtil.getUserId();
 
-		if (!role.equals("RETAILER") && !role.equals("WHOLESALER") && !role.equals("SUPER_ADMIN")) {
-			throw new AccessDeniedException("You do not have permission to view this order");
-		}
+	    if (role.equals("RETAILER") && !order.getRetailerAuthUserId().equals(userId)) {
+	        throw new AccessDeniedException("You can view only your own orders");
+	    }
 
-		return order;
+	    if (role.equals("WHOLESALER") && !order.getWholesalerAuthUserId().equals(userId)) {
+	        throw new AccessDeniedException("You can view only your own orders");
+	    }
+
+	    if (!role.equals("RETAILER")
+	            && !role.equals("WHOLESALER")
+	            && !role.equals("SUPER_ADMIN")) {
+	        throw new AccessDeniedException("You do not have permission to view this order");
+	    }
+
+	    return mapToOrderListResponse(order);
 	}
 }

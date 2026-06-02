@@ -47,8 +47,8 @@ public class OrderController {
         return orderService.updateOrderStatus(orderId, status);
     }
     
-    @GetMapping("/{orderId}")
-    public MedicineOrder getOrderById(@PathVariable Long orderId) {
-        return orderService.getOrderById(orderId);
+    @GetMapping("/{orderNo}")
+    public OrderListResponse getOrderByOrderNo(@PathVariable String orderNo) {
+        return orderService.getOrderByOrderNo(orderNo);
     }
 }

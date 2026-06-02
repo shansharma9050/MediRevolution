@@ -86,7 +86,8 @@ function loadDashboardByRole() {
 			[
 				["Add Medicine", "/wholesaler/medicines"],
 				["Add Stock", "/wholesaler/inventory"],
-				["View Orders", "/orders"]
+				["View Orders", "/orders"],
+				["Invoices", "/invoices"]
 			]
 		);
 	}
@@ -101,7 +102,8 @@ function loadDashboardByRole() {
 			[
 				["Search Medicines", "/retailer/search-medicines"],
 				["View Cart", "/retailer/cart"],
-				["My Orders", "/orders"]
+				["My Orders", "/orders"],
+				["Invoices", "/invoices"]
 			]
 		);
 	}
@@ -180,4 +182,53 @@ function openNotifications() {
 function logout() {
 	localStorage.clear();
 	window.location.href = "/";
+}
+/*===================================websocket===========================================*/
+function connectNotificationSocket() {
+
+    const userId = localStorage.getItem("userId");
+
+    if (!userId) {
+        console.log("UserId not found for websocket");
+        return;
+    }
+
+    const socket = new SockJS("http://localhost:8080/notifications-ws");
+
+    const stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, function () {
+
+        console.log("Notification WebSocket connected");
+
+        stompClient.subscribe("/topic/user-" + userId, function (message) {
+
+            const notification = JSON.parse(message.body);
+
+            console.log("New notification:", notification);
+
+            loadCommonNotificationCount();
+
+            showLiveNotification(notification);
+        });
+
+    });
+}
+
+function showLiveNotification(notification) {
+
+    const toast = document.createElement("div");
+
+    toast.className = "live-toast";
+
+    toast.innerHTML = `
+        <strong>${notification.title}</strong>
+        <p>${notification.message}</p>
+    `;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.remove();
+    }, 5000);
 }

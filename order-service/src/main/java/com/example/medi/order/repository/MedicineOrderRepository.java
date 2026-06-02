@@ -11,4 +11,6 @@ public interface MedicineOrderRepository extends JpaRepository<MedicineOrder, Lo
     List<MedicineOrder> findByRetailerAuthUserId(Long retailerAuthUserId);
 
     List<MedicineOrder> findByWholesalerAuthUserId(Long wholesalerAuthUserId);
+
+    MedicineOrder findByOrderNumber(String orderNumber);
 }

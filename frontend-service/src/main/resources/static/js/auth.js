@@ -40,6 +40,7 @@ async function login() {
         localStorage.setItem("token", result.token);
         localStorage.setItem("email", result.email);
         localStorage.setItem("role", result.role);
+        localStorage.setItem("userId", result.userId);
 
         window.location.href = "/dashboard";
 

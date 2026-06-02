@@ -49,4 +49,14 @@ public class PageController {
     public String ordersPage() {
         return "orders/orders";
     }
+    
+    @GetMapping("/invoices")
+    public String invoicesPage() {
+        return "invoice/invoices";
+    }
+    
+    @GetMapping("/notifications")
+    public String notificationsPage() {
+        return "notification/notifications";
+    }
 }

@@ -12,51 +12,109 @@
 <div class="auth-page">
 
     <div class="auth-left">
-        <div class="auth-left-content">
-            <img th:src="@{/images/logo.png}" alt="MediRevolution Logo">
+		<div class="auth-left-content">
 
-            <h1>Medi<span>Revolution</span></h1>
+		    <div class="hero-badge">
+		        Healthcare Supply Chain Platform
+		    </div>
 
-            <p>
-                Revolutionizing healthcare commerce by connecting wholesalers,
-                retailers, doctors and hospitals through one smart digital platform.
-            </p>
+		    <img th:src="@{/images/logo.png}"
+		         class="hero-logo"
+		         alt="MediRevolution Logo">
 
-            <p class="mt-4">
-                Manage medicines, inventory, orders, invoices and notifications —
-                all from one secure ecosystem.
-            </p>
-        </div>
+		    <h1 class="hero-title">
+		        Medi<span>Revolution</span>
+		    </h1>
+
+		    <p class="hero-description">
+		        Connecting Wholesalers, Retailers, Hospitals and Doctors
+		        through one intelligent medicine commerce ecosystem.
+		    </p>
+
+		    <div class="hero-stats">
+
+		        <div class="stat-card">
+		            <h2>10K+</h2>
+		            <span>Medicines</span>
+		        </div>
+
+		        <div class="stat-card">
+		            <h2>500+</h2>
+		            <span>Retailers</span>
+		        </div>
+
+		        <div class="stat-card">
+		            <h2>24/7</h2>
+		            <span>Support</span>
+		        </div>
+
+		    </div>
+
+		    <div class="feature-list">
+
+		        <div>✔ Inventory Management</div>
+		        <div>✔ Smart Order Processing</div>
+		        <div>✔ GST Billing</div>
+		        <div>✔ Real-Time Notifications</div>
+
+		    </div>
+
+		</div>
     </div>
 
     <div class="auth-right">
-        <div class="auth-card">
+		<div class="auth-card">
 
-            <img th:src="@{/images/logo.png}" class="auth-logo-small" alt="Logo">
+		    <div class="login-header">
 
-            <div class="auth-title">Welcome Back</div>
-            <div class="auth-subtitle">Login to your MediRevolution account</div>
+		        <img th:src="@{/images/logo.png}"
+		             class="auth-logo-small">
 
-            <div id="msg"></div>
+		        <h2>Welcome Back</h2>
 
-            <div class="mb-3">
-                <label class="form-label">Email Address</label>
-                <input type="email" id="email" class="form-control" placeholder="example@email.com">
-            </div>
+		        <p>
+		            Sign in to access your healthcare dashboard
+		        </p>
 
-            <div class="mb-3">
-                <label class="form-label">Password</label>
-                <input type="password" id="password" class="form-control" placeholder="Enter password">
-            </div>
+		    </div>
 
-            <button class="btn btn-medi mt-2" onclick="login()">Login</button>
+		    <div id="msg"></div>
 
-            <p class="text-center mt-4 mb-0">
-                New to MediRevolution?
-                <a href="/register" class="green-link">Create Account</a>
-            </p>
+		    <div class="mb-3">
+		        <label>Email Address</label>
+		        <input type="email"
+		               id="email"
+		               class="form-control form-control-lg"
+		               placeholder="Enter your email">
+		    </div>
 
-        </div>
+		    <div class="mb-3">
+		        <label>Password</label>
+		        <input type="password"
+		               id="password"
+		               class="form-control form-control-lg"
+		               placeholder="Enter password">
+		    </div>
+
+		    <button class="btn btn-login"
+		            onclick="login()">
+
+		        Login to Dashboard
+
+		    </button>
+
+		    <div class="divider">
+		        <span>OR</span>
+		    </div>
+
+		    <p class="text-center mt-3">
+		        New to MediRevolution?
+		        <a href="/register">
+		            Create Account
+		        </a>
+		    </p>
+
+		</div>
     </div>
 
 </div>

@@ -4,6 +4,8 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import com.example.medi.billing.client.OrderClient;
+import com.example.medi.billing.dto.InvoiceItemResponse;
+import com.example.medi.billing.dto.InvoiceResponse;
 import com.example.medi.billing.dto.OrderItemResponse;
 import com.example.medi.billing.dto.OrderResponse;
 import com.example.medi.billing.entity.Invoice;
@@ -28,14 +30,14 @@ public class BillingService {
         this.orderClient = orderClient;
     }
 
-    public Invoice generateInvoice(Long orderId) {
+    public Invoice generateInvoice(String orderNo) {
 
-        invoiceRepository.findByOrderId(orderId).ifPresent(invoice -> {
+        invoiceRepository.findByOrderNumber(orderNo).ifPresent(invoice -> {
             throw new RuntimeException("Invoice already generated for this order");
         });
 
         String token = CurrentUserUtil.getAuthorizationHeader();
-        OrderResponse order = orderClient.getOrderById(orderId, token);
+        OrderResponse order = orderClient.getOrderByOrderNo(orderNo, token);
 
         if (!"DELIVERED".equals(order.getStatus())) {
             throw new RuntimeException("Invoice can be generated only after order is delivered");
@@ -102,8 +104,40 @@ public class BillingService {
         return invoiceRepository.save(invoice);
     }
 
-    public Invoice getInvoiceByOrderId(Long orderId) {
-        return invoiceRepository.findByOrderId(orderId)
+    public Invoice getInvoiceByOrderId(String orderNo) {
+        return invoiceRepository.findByOrderNumber(orderNo)
                 .orElseThrow(() -> new RuntimeException("Invoice not found"));
+    }
+    
+    public InvoiceResponse mapToInvoiceResponse(Invoice invoice) {
+
+        return new InvoiceResponse(
+                invoice.getId(),
+                invoice.getInvoiceNumber(),
+                invoice.getOrderId(),
+                invoice.getOrderNumber(),
+                invoice.getRetailerAuthUserId(),
+                invoice.getWholesalerAuthUserId(),
+                invoice.getTaxableAmount(),
+                invoice.getGstAmount(),
+                invoice.getTotalAmount(),
+                invoice.getInvoiceDate(),
+                invoice.getStatus(),
+                invoice.getItems().stream()
+                        .map(item -> new InvoiceItemResponse(
+                                item.getId(),
+                                item.getStockId(),
+                                item.getMedicineId(),
+                                item.getMedicineName(),
+                                item.getBatchNumber(),
+                                item.getQuantity(),
+                                item.getUnitPrice(),
+                                item.getGstPercentage(),
+                                item.getTaxableAmount(),
+                                item.getGstAmount(),
+                                item.getLineTotal()
+                        ))
+                        .toList()
+        );
     }
 }

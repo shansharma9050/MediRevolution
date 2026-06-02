@@ -1,6 +1,7 @@
 package com.example.medi.notification.service;
 
 
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -14,10 +15,12 @@ import java.util.List;
 @Service
 public class NotificationService {
 
+	private final SimpMessagingTemplate messagingTemplate;
     private final NotificationRepository notificationRepository;
 
-    public NotificationService(NotificationRepository notificationRepository) {
+    public NotificationService(NotificationRepository notificationRepository,SimpMessagingTemplate messagingTemplate) {
         this.notificationRepository = notificationRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
     public Notification createNotification(NotificationRequest request) {
@@ -33,7 +36,14 @@ public class NotificationService {
         notification.setTitle(request.getTitle());
         notification.setMessage(request.getMessage());
 
-        return notificationRepository.save(notification);
+        Notification saved = notificationRepository.save(notification);
+
+        messagingTemplate.convertAndSend(
+                "/topic/user-" + saved.getReceiverAuthUserId(),
+                saved
+        );
+
+        return saved;
     }
 
     public List<Notification> getMyNotifications() {

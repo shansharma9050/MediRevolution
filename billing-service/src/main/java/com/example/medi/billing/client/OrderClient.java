@@ -9,9 +9,9 @@ import com.example.medi.billing.dto.OrderResponse;
 @FeignClient(name = "order-service")
 public interface OrderClient {
 
-    @GetMapping("/orders/{orderId}")
-    OrderResponse getOrderById(
-            @PathVariable Long orderId,
+    @GetMapping("/orders/{orderNo}")
+    OrderResponse getOrderByOrderNo(
+            @PathVariable String orderNo,
             @RequestHeader("Authorization") String token
     );
 }
