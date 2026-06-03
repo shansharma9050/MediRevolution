@@ -3,6 +3,7 @@ package com.example.medi.medicine.service;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import com.example.medi.medicine.dto.WholesalerMedicineDashboardResponse;
 import com.example.medi.medicine.entity.Medicine;
 import com.example.medi.medicine.entity.WholesalerMedicineStock;
 import com.example.medi.medicine.repository.MedicineRepository;
@@ -83,5 +84,36 @@ public class StockService {
         stock.setAvailableQuantity(stock.getAvailableQuantity() - quantity);
 
         return stockRepository.save(stock);
+    }
+    
+    public WholesalerMedicineDashboardResponse getWholesalerDashboardCounts() {
+
+        if (!CurrentUserUtil.getRole().equals("WHOLESALER")) {
+            throw new AccessDeniedException("Only WHOLESALER can view inventory dashboard");
+        }
+
+        Long wholesalerId = CurrentUserUtil.getUserId();
+
+        List<WholesalerMedicineStock> stocks =
+                stockRepository.findByWholesalerAuthUserId(wholesalerId);
+
+        long totalQuantity = stocks.stream()
+                .mapToLong(stock -> stock.getAvailableQuantity() == null ? 0 : stock.getAvailableQuantity())
+                .sum();
+
+        long lowStockItems = stocks.stream()
+                .filter(stock ->
+                        stock.getAvailableQuantity() != null &&
+                        stock.getMinimumStockLevel() != null &&
+                        stock.getAvailableQuantity() <= stock.getMinimumStockLevel()
+                )
+                .count();
+
+        return new WholesalerMedicineDashboardResponse(
+                medicineRepository.count(),
+                stocks.size(),
+                totalQuantity,
+                lowStockItems
+        );
     }
 }

@@ -3,6 +3,7 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.*;
 
+import com.example.medi.order.dto.OrderDashboardCountResponse;
 import com.example.medi.order.dto.OrderListResponse;
 import com.example.medi.order.dto.OrderResponse;
 import com.example.medi.order.dto.PlaceOrderRequest;
@@ -40,15 +41,26 @@ public class OrderController {
     }
 
     @PutMapping("/{orderId}/status")
-    public MedicineOrder updateOrderStatus(
+    public OrderResponse updateOrderStatus(
             @PathVariable Long orderId,
             @RequestParam OrderStatus status
     ) {
-        return orderService.updateOrderStatus(orderId, status);
+        MedicineOrder order = orderService.updateOrderStatus(orderId, status);
+
+        return new OrderResponse(
+                order.getId(),
+                order.getStatus().name(),
+                "Order status updated successfully"
+        );
     }
     
     @GetMapping("/{orderNo}")
     public OrderListResponse getOrderByOrderNo(@PathVariable String orderNo) {
         return orderService.getOrderByOrderNo(orderNo);
+    }
+    
+    @GetMapping("/dashboard-counts")
+    public OrderDashboardCountResponse getOrderDashboardCounts() {
+        return orderService.getOrderDashboardCounts();
     }
 }

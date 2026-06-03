@@ -2,6 +2,7 @@ package com.example.medi.auth.controller;
 
 import org.springframework.web.bind.annotation.*;
 
+import com.example.medi.auth.dto.AdminDashboardCountResponse;
 import com.example.medi.auth.entity.User;
 import com.example.medi.auth.service.AdminUserService;
 
@@ -38,5 +39,10 @@ public class AdminUserController {
     public String deactivateUser(@PathVariable Long userId) {
         adminUserService.deactivateUser(userId);
         return "User deactivated successfully";
+    }
+    
+    @GetMapping("/dashboard-counts")
+    public AdminDashboardCountResponse getDashboardCounts() {
+        return adminUserService.getAdminDashboardCounts();
     }
 }

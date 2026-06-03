@@ -42,6 +42,16 @@ public class HospitalProfile {
 
     private String pincode;
 
+    private String contactPersonName;
+    private String contactPersonMobile;
+
+    private String bankName;
+    private String accountHolderName;
+    private String accountNumber;
+    private String ifscCode;
+    private String branchName;
+
+    private String profileLogoUrl;
     private String documentUrl;
 
     @Enumerated(EnumType.STRING)

@@ -113,3 +113,4 @@ function showLiveNotification(notification) {
         toast.remove();
     }, 5000);
 }
+

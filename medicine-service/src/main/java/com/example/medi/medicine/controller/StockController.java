@@ -2,6 +2,7 @@ package com.example.medi.medicine.controller;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.medi.medicine.dto.ReduceStockRequest;
+import com.example.medi.medicine.dto.WholesalerMedicineDashboardResponse;
 import com.example.medi.medicine.entity.WholesalerMedicineStock;
 import com.example.medi.medicine.service.StockService;
 
@@ -46,5 +47,10 @@ public class StockController {
             @RequestBody ReduceStockRequest request
     ) {
         return stockService.reduceStock(stockId, request.getQuantity());
+    }
+    
+    @GetMapping("/dashboard-counts")
+    public WholesalerMedicineDashboardResponse getWholesalerDashboardCounts() {
+        return stockService.getWholesalerDashboardCounts();
     }
 }

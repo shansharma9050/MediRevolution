@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MediRevolution Offline</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Segoe UI, Arial, sans-serif;
+            background: linear-gradient(135deg, #05285f, #08c7d4);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .card {
+            background: white;
+            color: #05285f;
+            padding: 35px;
+            border-radius: 28px;
+            max-width: 480px;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.25);
+        }
+
+        img {
+            width: 150px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #607080;
+        }
+
+        button {
+            border: none;
+            border-radius: 14px;
+            padding: 12px 22px;
+            background: #05285f;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+    <img src="/images/logo.png" alt="MediRevolution">
+
+    <h1>You are offline</h1>
+
+    <p>
+        MediRevolution cannot connect to the server right now.
+        Please check your internet connection and try again.
+    </p>
+
+    <button onclick="window.location.reload()">
+        Retry
+    </button>
+</div>
+
+</body>
+</html>

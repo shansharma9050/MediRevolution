@@ -97,4 +97,32 @@ public class ProfileController {
         RoleValidator.allowAny("SUPER_ADMIN", "HOSPITAL");
         return profileService.getHospitalProfile(authUserId);
     }
+    
+    @PutMapping("/wholesaler")
+    public WholesalerProfile updateWholesalerProfile(@RequestBody WholesalerProfile profile) {
+        RoleValidator.allowOnly("WHOLESALER");
+        profile.setAuthUserId(CurrentUserUtil.getUserId());
+        return profileService.updateWholesalerProfile(profile);
+    }
+
+    @PutMapping("/retailer")
+    public RetailerProfile updateRetailerProfile(@RequestBody RetailerProfile profile) {
+        RoleValidator.allowOnly("RETAILER");
+        profile.setAuthUserId(CurrentUserUtil.getUserId());
+        return profileService.updateRetailerProfile(profile);
+    }
+
+    @PutMapping("/doctor")
+    public DoctorProfile updateDoctorProfile(@RequestBody DoctorProfile profile) {
+        RoleValidator.allowOnly("DOCTOR");
+        profile.setAuthUserId(CurrentUserUtil.getUserId());
+        return profileService.updateDoctorProfile(profile);
+    }
+
+    @PutMapping("/hospital")
+    public HospitalProfile updateHospitalProfile(@RequestBody HospitalProfile profile) {
+        RoleValidator.allowOnly("HOSPITAL");
+        profile.setAuthUserId(CurrentUserUtil.getUserId());
+        return profileService.updateHospitalProfile(profile);
+    }
 }

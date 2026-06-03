@@ -1,6 +1,7 @@
 package com.example.medi.auth.service;
 import org.springframework.stereotype.Service;
 
+import com.example.medi.auth.dto.AdminDashboardCountResponse;
 import com.example.medi.auth.entity.User;
 import com.example.medi.auth.repository.UserRepository;
 
@@ -42,5 +43,20 @@ public class AdminUserService {
     private User getUser(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+    
+    public AdminDashboardCountResponse getAdminDashboardCounts() {
+
+        long pending = userRepository.countByApprovedFalseAndActiveTrue();
+        long total = userRepository.count();
+        long approved = userRepository.countByApprovedTrueAndActiveTrue();
+        long rejected = userRepository.countByActiveFalse();
+
+        return new AdminDashboardCountResponse(
+                pending,
+                total,
+                approved,
+                rejected
+        );
     }
 }

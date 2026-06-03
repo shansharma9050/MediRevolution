@@ -17,4 +17,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByMobile(String mobile);
     
     List<User> findByApprovedFalseAndActiveTrue();
+    
+    long countByApprovedFalseAndActiveTrue();
+
+    long countByApprovedTrueAndActiveTrue();
+
+    long countByActiveFalse();
 }

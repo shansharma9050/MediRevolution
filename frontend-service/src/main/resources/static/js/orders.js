@@ -294,6 +294,7 @@ function buildActionButtons(order) {
 }
 
 async function updateOrderStatus(orderId, status) {
+
     const confirmMsg = "Are you sure you want to mark this order as " + status + "?";
 
     if (!confirm(confirmMsg)) {
@@ -310,21 +311,21 @@ async function updateOrderStatus(orderId, status) {
             }
         });
 
-        const result = await response.json();
+        const responseText = await response.text();
+        console.log("Status update response:", response.status, responseText);
 
         if (!response.ok) {
-            showOrderMessage(result.message || "Unable to update order status");
+            showOrderMessage("Unable to update order status");
             return;
         }
 
-        showOrderMessage("Order status updated successfully", "success");
-        loadOrders();
+        window.location.reload();
 
     } catch (error) {
+        console.error("Order update error:", error);
         showOrderMessage("Order service not reachable.");
     }
 }
-
 function updateOrderCards(orders) {
     document.getElementById("totalOrders").innerText = orders.length;
 

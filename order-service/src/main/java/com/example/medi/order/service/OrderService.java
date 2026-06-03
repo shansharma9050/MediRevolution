@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import com.example.medi.order.client.MedicineClient;
 import com.example.medi.order.client.NotificationClient;
 import com.example.medi.order.dto.NotificationRequest;
+import com.example.medi.order.dto.OrderDashboardCountResponse;
 import com.example.medi.order.dto.OrderItemResponse;
 import com.example.medi.order.dto.OrderListResponse;
 import com.example.medi.order.dto.PlaceOrderItemRequest;
@@ -246,5 +247,43 @@ public class OrderService {
 	    }
 
 	    return mapToOrderListResponse(order);
+	}
+	
+	public OrderDashboardCountResponse getOrderDashboardCounts() {
+
+	    String role = CurrentUserUtil.getRole();
+	    Long userId = CurrentUserUtil.getUserId();
+
+	    if (role.equals("RETAILER")) {
+	        return new OrderDashboardCountResponse(
+	                orderRepository.countByRetailerAuthUserId(userId),
+	                orderRepository.countByRetailerAuthUserIdAndStatus(userId, OrderStatus.PENDING),
+	                orderRepository.countByRetailerAuthUserIdAndStatus(userId, OrderStatus.ACCEPTED),
+	                orderRepository.countByRetailerAuthUserIdAndStatus(userId, OrderStatus.REJECTED),
+	                orderRepository.countByRetailerAuthUserIdAndStatus(userId, OrderStatus.DELIVERED)
+	        );
+	    }
+
+	    if (role.equals("WHOLESALER")) {
+	        return new OrderDashboardCountResponse(
+	                orderRepository.countByWholesalerAuthUserId(userId),
+	                orderRepository.countByWholesalerAuthUserIdAndStatus(userId, OrderStatus.PENDING),
+	                orderRepository.countByWholesalerAuthUserIdAndStatus(userId, OrderStatus.ACCEPTED),
+	                orderRepository.countByWholesalerAuthUserIdAndStatus(userId, OrderStatus.REJECTED),
+	                orderRepository.countByWholesalerAuthUserIdAndStatus(userId, OrderStatus.DELIVERED)
+	        );
+	    }
+
+	    if (role.equals("SUPER_ADMIN")) {
+	        return new OrderDashboardCountResponse(
+	                orderRepository.count(),
+	                orderRepository.countByStatus(OrderStatus.PENDING),
+	                orderRepository.countByStatus(OrderStatus.ACCEPTED),
+	                orderRepository.countByStatus(OrderStatus.REJECTED),
+	                orderRepository.countByStatus(OrderStatus.DELIVERED)
+	        );
+	    }
+
+	    throw new AccessDeniedException("You do not have permission to view dashboard counts");
 	}
 }

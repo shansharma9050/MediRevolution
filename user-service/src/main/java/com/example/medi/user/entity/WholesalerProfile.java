@@ -42,6 +42,17 @@ public class WholesalerProfile {
     private String pincode;
 
     private String documentUrl;
+    
+    private String contactPersonName;
+    private String contactPersonMobile;
+
+    private String bankName;
+    private String accountHolderName;
+    private String accountNumber;
+    private String ifscCode;
+    private String branchName;
+
+    private String profileLogoUrl;
 
     @Enumerated(EnumType.STRING)
     private VerificationStatus verificationStatus = VerificationStatus.PENDING;

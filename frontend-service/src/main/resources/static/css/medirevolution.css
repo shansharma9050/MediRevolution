@@ -864,6 +864,48 @@ body {
 
 /*===============================end====================================*/
 
+/*=================================PROFILE=======================================*/
+
+.profile-logo-preview {
+    width: 150px;
+    height: 150px;
+    object-fit: contain;
+    border-radius: 30px;
+    background: #f4f9fc;
+    padding: 15px;
+    border: 2px solid rgba(8,199,212,0.25);
+    box-shadow: 0 12px 30px rgba(5,40,95,0.12);
+}
+/*==================================END================================================*/
+
+/*=================================reports=======================================*/
+.report-summary-item {
+    background: #f7fbfd;
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 10px;
+    border-left: 4px solid var(--mr-cyan);
+}
+
+.report-summary-label {
+    color: #6b7b8c;
+    font-size: 13px;
+}
+
+.report-summary-value {
+    color: var(--mr-navy);
+    font-weight: 900;
+    font-size: 22px;
+}
+
+.report-table th {
+    color: var(--mr-navy);
+    background: #eef9fc;
+}
+
+/*=================================end=======================================*/
+
+
 @media (max-width: 991px) {
     .mobile-menu-btn {
         display: inline-block;
@@ -892,6 +934,8 @@ body {
         display: none;
     }
 }
+
+
 @media (max-width: 900px) {
     .auth-page {
         flex-direction: column;

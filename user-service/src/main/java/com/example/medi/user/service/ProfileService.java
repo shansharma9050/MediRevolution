@@ -86,4 +86,113 @@ public class ProfileService {
         return hospitalRepository.findByAuthUserId(authUserId)
                 .orElseThrow(() -> new RuntimeException("Hospital profile not found"));
     }
+    
+    public WholesalerProfile updateWholesalerProfile(WholesalerProfile request) {
+        WholesalerProfile profile = wholesalerRepository.findByAuthUserId(request.getAuthUserId())
+                .orElseThrow(() -> new RuntimeException("Wholesaler profile not found"));
+
+        profile.setBusinessName(request.getBusinessName());
+        profile.setOwnerName(request.getOwnerName());
+        profile.setDrugLicenseNumber(request.getDrugLicenseNumber());
+        profile.setGstNumber(request.getGstNumber());
+        profile.setEmail(request.getEmail());
+        profile.setMobile(request.getMobile());
+        profile.setAddress(request.getAddress());
+        profile.setState(request.getState());
+        profile.setDistrict(request.getDistrict());
+        profile.setPincode(request.getPincode());
+        profile.setContactPersonName(request.getContactPersonName());
+        profile.setContactPersonMobile(request.getContactPersonMobile());
+        profile.setBankName(request.getBankName());
+        profile.setAccountHolderName(request.getAccountHolderName());
+        profile.setAccountNumber(request.getAccountNumber());
+        profile.setIfscCode(request.getIfscCode());
+        profile.setBranchName(request.getBranchName());
+        profile.setProfileLogoUrl(request.getProfileLogoUrl());
+        profile.setDocumentUrl(request.getDocumentUrl());
+
+        return wholesalerRepository.save(profile);
+    }
+    
+    public RetailerProfile updateRetailerProfile(RetailerProfile request) {
+        RetailerProfile profile = retailerRepository.findByAuthUserId(request.getAuthUserId())
+                .orElseThrow(() -> new RuntimeException("Retailer profile not found"));
+
+        profile.setStoreName(request.getStoreName());
+        profile.setOwnerName(request.getOwnerName());
+        profile.setDrugLicenseNumber(request.getDrugLicenseNumber());
+        profile.setGstNumber(request.getGstNumber());
+        profile.setEmail(request.getEmail());
+        profile.setMobile(request.getMobile());
+        profile.setAddress(request.getAddress());
+        profile.setState(request.getState());
+        profile.setDistrict(request.getDistrict());
+        profile.setPincode(request.getPincode());
+        profile.setContactPersonName(request.getContactPersonName());
+        profile.setContactPersonMobile(request.getContactPersonMobile());
+        profile.setBankName(request.getBankName());
+        profile.setAccountHolderName(request.getAccountHolderName());
+        profile.setAccountNumber(request.getAccountNumber());
+        profile.setIfscCode(request.getIfscCode());
+        profile.setBranchName(request.getBranchName());
+        profile.setProfileLogoUrl(request.getProfileLogoUrl());
+        profile.setDocumentUrl(request.getDocumentUrl());
+
+        return retailerRepository.save(profile);
+    }
+    
+    public DoctorProfile updateDoctorProfile(DoctorProfile request) {
+        DoctorProfile profile = doctorRepository.findByAuthUserId(request.getAuthUserId())
+                .orElseThrow(() -> new RuntimeException("Retailer profile not found"));
+
+        profile.setDoctorName(request.getDoctorName());
+        profile.setHospitalName(request.getHospitalName());
+        profile.setSpecialization(request.getSpecialization());
+        profile.setExperienceYears(request.getExperienceYears());
+        profile.setRegistrationNumber(request.getRegistrationNumber());
+        profile.setEmail(request.getEmail());
+        profile.setMobile(request.getMobile());
+        profile.setAddress(request.getAddress());
+        profile.setState(request.getState());
+        profile.setDistrict(request.getDistrict());
+        profile.setPincode(request.getPincode());
+        profile.setContactPersonName(request.getContactPersonName());
+        profile.setContactPersonMobile(request.getContactPersonMobile());
+        profile.setBankName(request.getBankName());
+        profile.setAccountHolderName(request.getAccountHolderName());
+        profile.setAccountNumber(request.getAccountNumber());
+        profile.setIfscCode(request.getIfscCode());
+        profile.setBranchName(request.getBranchName());
+        profile.setProfileLogoUrl(request.getProfileLogoUrl());
+        profile.setDocumentUrl(request.getDocumentUrl());
+
+        return doctorRepository.save(profile);
+    }
+    
+    public HospitalProfile updateHospitalProfile(HospitalProfile request) {
+    	HospitalProfile profile = hospitalRepository.findByAuthUserId(request.getAuthUserId())
+                .orElseThrow(() -> new RuntimeException("Hospital profile not found"));
+
+        profile.setHospitalName(request.getHospitalName());
+        profile.setRegistrationNumber(request.getRegistrationNumber());
+        profile.setHospitalType(request.getHospitalType());
+        profile.setBedCapacity(request.getBedCapacity());
+        profile.setEmail(request.getEmail());
+        profile.setMobile(request.getMobile());
+        profile.setAddress(request.getAddress());
+        profile.setState(request.getState());
+        profile.setDistrict(request.getDistrict());
+        profile.setPincode(request.getPincode());
+        profile.setContactPersonName(request.getContactPersonName());
+        profile.setContactPersonMobile(request.getContactPersonMobile());
+        profile.setBankName(request.getBankName());
+        profile.setAccountHolderName(request.getAccountHolderName());
+        profile.setAccountNumber(request.getAccountNumber());
+        profile.setIfscCode(request.getIfscCode());
+        profile.setBranchName(request.getBranchName());
+        profile.setProfileLogoUrl(request.getProfileLogoUrl());
+        profile.setDocumentUrl(request.getDocumentUrl());
+
+        return hospitalRepository.save(profile);
+    }
 }

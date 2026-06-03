@@ -59,4 +59,14 @@ public class PageController {
     public String notificationsPage() {
         return "notification/notifications";
     }
+    
+    @GetMapping("/profile")
+    public String profilePage() {
+        return "profile/profile";
+    }
+    
+    @GetMapping("/reports")
+    public String reportsPage() {
+        return "reports/reports";
+    }
 }

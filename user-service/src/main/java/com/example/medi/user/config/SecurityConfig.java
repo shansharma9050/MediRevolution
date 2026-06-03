@@ -28,7 +28,8 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/users/profiles/**").authenticated()
+                		.requestMatchers("/users/profiles/**").authenticated()
+                        .requestMatchers("/users/files/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(
