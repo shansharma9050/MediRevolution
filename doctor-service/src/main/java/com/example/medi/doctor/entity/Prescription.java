@@ -6,8 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "prescriptions")
@@ -15,27 +13,29 @@ import java.util.List;
 @NoArgsConstructor
 public class Prescription {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	   @Id
+	    @GeneratedValue(strategy = GenerationType.IDENTITY)
+	    private Long id;
 
-    private Long doctorAuthUserId;
+	    private Long doctorAuthUserId;
 
-    private String patientName;
-    private String patientMobile;
-    private Integer patientAge;
-    private String gender;
+	    @ManyToOne
+	    @JoinColumn(name = "patient_id")
+	    private Patient patient;
 
-    @Column(length = 2000)
-    private String diagnosis;
+	    @Column(length = 3000)
+	    private String symptoms;
 
-    @Column(length = 3000)
-    private String advice;
+	    @Column(length = 3000)
+	    private String diagnosis;
 
-    private LocalDateTime prescriptionDate = LocalDateTime.now();
+	    @Column(length = 5000)
+	    private String medicines;
 
-    @OneToMany(mappedBy = "prescription", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PrescriptionMedicine> medicines = new ArrayList<>();
+	    @Column(length = 3000)
+	    private String advice;
+
+	    private LocalDateTime prescriptionDate = LocalDateTime.now();
 
    
 }

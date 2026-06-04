@@ -7,6 +7,5 @@ import com.example.medi.doctor.entity.Prescription;
 import java.util.List;
 
 public interface PrescriptionRepository extends JpaRepository<Prescription, Long> {
-
-    List<Prescription> findByDoctorAuthUserIdOrderByPrescriptionDateDesc(Long doctorAuthUserId);
+    List<Prescription> findByDoctorAuthUserId(Long doctorAuthUserId);
 }

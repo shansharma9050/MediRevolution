@@ -46,9 +46,17 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
 
-        if (request.getRole() == RoleName.SUPER_ADMIN) {
+        
+        user.setActive(true);
+
+       
+        
+		/*
+		 * if (request.getRole() == RoleName.SUPER_ADMIN) { user.setApproved(true); }
+		 */ 
+        if (request.getRole() == RoleName.PATIENT) {
             user.setApproved(true);
-        } else {
+        }else {
             user.setApproved(false);
         }
 

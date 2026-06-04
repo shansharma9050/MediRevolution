@@ -21,8 +21,8 @@ function setupProfileByRole() {
     const role = localStorage.getItem("role");
     document.getElementById("profileRole").innerText = role;
 
-    if (!["WHOLESALER", "RETAILER", "DOCTOR", "HOSPITAL"].includes(role)) {
-        alert("Profile management is available for Wholesaler, Retailer, Doctor and Hospital only.");
+    if (!["WHOLESALER", "RETAILER", "DOCTOR", "HOSPITAL", "PATIENT"].includes(role)) {
+        alert("Profile management is available for Wholesaler, Retailer, Doctor, Hospital and Patient only.");
         window.location.href = "/dashboard";
         return;
     }
@@ -50,6 +50,12 @@ function setupProfileByRole() {
         document.getElementById("specializationBlock").style.display = "block";
         document.getElementById("specializationBlock").querySelector("label").innerText = "Hospital Type";
     }
+    
+    if (role === "PATIENT") {
+    showFields("field-patient");
+    document.getElementById("profileSubtitle").innerText =
+        "Manage your patient profile, medical history and emergency contact details.";
+}
 }
 
 function getProfileEndpoint(role) {

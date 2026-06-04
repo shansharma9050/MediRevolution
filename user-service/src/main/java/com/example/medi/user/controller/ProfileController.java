@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.example.medi.user.entity.DoctorProfile;
 import com.example.medi.user.entity.HospitalProfile;
+import com.example.medi.user.entity.PatientProfile;
 import com.example.medi.user.entity.RetailerProfile;
 import com.example.medi.user.entity.WholesalerProfile;
 import com.example.medi.user.security.CurrentUserUtil;
@@ -124,5 +125,20 @@ public class ProfileController {
         RoleValidator.allowOnly("HOSPITAL");
         profile.setAuthUserId(CurrentUserUtil.getUserId());
         return profileService.updateHospitalProfile(profile);
+    }
+    
+    @PostMapping("/patient")
+    public PatientProfile createPatientProfile(@RequestBody PatientProfile profile) {
+        return profileService.createPatientProfile(profile);
+    }
+
+    @GetMapping("/me/patient")
+    public PatientProfile getMyPatientProfile() {
+        return profileService.getMyPatientProfile();
+    }
+
+    @PutMapping("/me/patient")
+    public PatientProfile updatePatientProfile(@RequestBody PatientProfile profile) {
+        return profileService.updatePatientProfile(profile);
     }
 }

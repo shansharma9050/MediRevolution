@@ -21,60 +21,59 @@ import java.util.List;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+	 @Value("${jwt.secret}")
+	    private String secret;
 
-    @Value("${jwt.secret}")
-    private String secret;
+	    @Override
+	    protected void doFilterInternal(
+	            HttpServletRequest request,
+	            HttpServletResponse response,
+	            FilterChain filterChain
+	    ) throws ServletException, IOException {
 
-    @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain
-    ) throws ServletException, IOException {
+	        String authHeader = request.getHeader("Authorization");
 
-        String authHeader = request.getHeader("Authorization");
+	        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+	            filterChain.doFilter(request, response);
+	            return;
+	        }
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+	        try {
+	            String token = authHeader.substring(7);
 
-        try {
-            String token = authHeader.substring(7);
+	            Claims claims = Jwts.parser()
+	                    .verifyWith(Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8)))
+	                    .build()
+	                    .parseSignedClaims(token)
+	                    .getPayload();
 
-            Claims claims = Jwts.parser()
-                    .verifyWith(Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8)))
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
+	            Long userId = claims.get("userId", Long.class);
+	            String email = claims.getSubject();
+	            String role = claims.get("role", String.class);
 
-            Long userId = claims.get("userId", Long.class);
-            String email = claims.getSubject();
-            String role = claims.get("role", String.class);
+	            UsernamePasswordAuthenticationToken authentication =
+	                    new UsernamePasswordAuthenticationToken(
+	                            email,
+	                            null,
+	                            List.of(new SimpleGrantedAuthority("ROLE_" + role))
+	                    );
 
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(
-                            email,
-                            null,
-                            List.of(new SimpleGrantedAuthority("ROLE_" + role))
-                    );
+	            authentication.setDetails(userId);
+	            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            authentication.setDetails(userId);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+	        } catch (Exception e) {
+	            response.setContentType("application/json");
+	            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+	            response.getWriter().write("""
+	                    {
+	                      "status": 401,
+	                      "message": "Invalid or expired token"
+	                    }
+	                    """);
+	            return;
+	        }
 
-        } catch (Exception e) {
-            response.setContentType("application/json");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("""
-                    {
-                      "status": 401,
-                      "message": "Invalid or expired token"
-                    }
-                    """);
-            return;
-        }
-
-        filterChain.doFilter(request, response);
-    }
+	        filterChain.doFilter(request, response);
+	    }
 }
 

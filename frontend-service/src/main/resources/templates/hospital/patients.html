@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>MediRevolution | Hospital Patients</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="manifest" href="/manifest.json">
+	<meta name="theme-color" content="#05285f">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+</head>
+
+<body class="dashboard-body">
+
+	<nav class="navbar fixed-top mr-navbar px-3 px-lg-4">
+		<div class="d-flex align-items-center gap-3">
+			<button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+			<a href="/dashboard" class="mr-navbar-brand d-flex align-items-center gap-2">
+				<img th:src="@{/images/logo.png}" class="mr-nav-logo">
+				Medi<span>Revolution</span>
+			</a>
+		</div>
+
+		<div class="d-flex align-items-center gap-3">
+			<div class="mr-user-pill"><span id="userEmail">hospital@email.com</span></div>
+			<button class="btn btn-light position-relative" onclick="window.location='/notifications'">
+				🔔 <span id="notificationCount"
+					class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+			</button>
+			<button class="btn btn-outline-light" onclick="logout()">Logout</button>
+		</div>
+	</nav>
+
+	<aside class="mr-sidebar" id="sidebar">
+		<a href="/dashboard">🏠 Main Dashboard</a>
+		<a href="/hospital/dashboard">🏥 Hospital Dashboard</a>
+		<a href="/hospital/patients" class="active">🧑‍⚕️ OPD / IPD Patients</a>
+		<a href="/hospital/staff">👥 Staff Management</a>
+		<a href="/hospital/inventory">📦 Inventory</a>
+		<a href="/hospital/billing">💳 Billing</a>
+		<a href="/hospital/reports">📊 Reports</a>
+		<a href="/notifications">🔔 Notifications</a>
+		<a href="/profile">👤 Profile</a>
+	</aside>
+
+	<main class="mr-main">
+
+		<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+			<div>
+				<h1 class="mr-page-title">OPD / IPD Patient Management</h1>
+				<p class="mr-page-subtitle">Register OPD and IPD patients with department, doctor and diagnosis.</p>
+			</div>
+
+			<button class="btn btn-medi" style="width:auto;" onclick="togglePatientForm()">+ Add Patient</button>
+		</div>
+
+		<div id="msg"></div>
+
+		<div class="mr-card mb-4" id="patientFormPanel" style="display:none;">
+			<h5 class="fw-bold text-primary mb-3">Add OPD/IPD Patient</h5>
+
+			<div class="row g-3">
+				<div class="col-md-6">
+					<label class="form-label">Patient Name</label>
+					<input type="text" id="patientName" class="form-control">
+				</div>
+
+				<div class="col-md-3">
+					<label class="form-label">Mobile</label>
+					<input type="text" id="mobile" class="form-control">
+				</div>
+
+				<div class="col-md-3">
+					<label class="form-label">Gender</label>
+					<select id="gender" class="form-select">
+						<option value="">Select</option>
+						<option>Male</option>
+						<option>Female</option>
+						<option>Other</option>
+					</select>
+				</div>
+
+				<div class="col-md-3">
+					<label class="form-label">Age</label>
+					<input type="number" id="age" class="form-control">
+				</div>
+
+				<div class="col-md-3">
+					<label class="form-label">Patient Type</label>
+					<select id="patientType" class="form-select">
+						<option value="">Select</option>
+						<option value="OPD">OPD</option>
+						<option value="IPD">IPD</option>
+					</select>
+				</div>
+
+				<div class="col-md-3">
+					<label class="form-label">Department</label>
+					<input type="text" id="department" class="form-control" placeholder="Cardiology">
+				</div>
+
+				<div class="col-md-3">
+					<label class="form-label">Doctor Name</label>
+					<input type="text" id="doctorName" class="form-control">
+				</div>
+
+				<div class="col-md-3">
+					<label class="form-label">Admission Date</label>
+					<input type="date" id="admissionDate" class="form-control">
+				</div>
+
+				<div class="col-md-3">
+					<label class="form-label">Discharge Date</label>
+					<input type="date" id="dischargeDate" class="form-control">
+				</div>
+
+				<div class="col-md-12">
+					<label class="form-label">Diagnosis</label>
+					<textarea id="diagnosis" class="form-control" rows="3"></textarea>
+				</div>
+
+				<div class="col-md-12 text-end">
+					<button class="btn btn-medi" style="width:auto;" onclick="createHospitalPatient()">Save
+						Patient</button>
+				</div>
+			</div>
+		</div>
+
+		<div class="mr-card">
+			<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+				<h5 class="fw-bold text-primary mb-0">Hospital Patient List</h5>
+
+				<div class="d-flex gap-2 flex-wrap">
+					<select id="typeFilter" class="form-select" style="max-width:160px;" onchange="filterPatients()">
+						<option value="">All</option>
+						<option value="OPD">OPD</option>
+						<option value="IPD">IPD</option>
+					</select>
+
+					<input type="text" id="searchBox" class="form-control" style="max-width:280px;"
+						placeholder="Search patient/department/doctor" onkeyup="filterPatients()">
+				</div>
+			</div>
+
+			<div class="table-responsive">
+				<table class="table table-hover align-middle">
+					<thead>
+						<tr>
+							<th>#</th>
+							<th>Patient</th>
+							<th>Type</th>
+							<th>Department</th>
+							<th>Doctor</th>
+							<th>Admission</th>
+							<th>Discharge</th>
+							<th>Diagnosis</th>
+							<th>Action</th>
+						</tr>
+					</thead>
+					<tbody id="patientTable"></tbody>
+				</table>
+			</div>
+		</div>
+
+	</main>
+
+	<script th:src="@{/js/common-dashboard.js}"></script>
+	<script th:src="@{/js/hospital-patients.js}"></script>
+	<script th:src="@{/js/pwa.js}"></script>
+
+</body>
+
+</html>

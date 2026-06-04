@@ -1,15 +1,19 @@
 package com.example.medi.user.service;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import com.example.medi.user.entity.DoctorProfile;
 import com.example.medi.user.entity.HospitalProfile;
+import com.example.medi.user.entity.PatientProfile;
 import com.example.medi.user.entity.RetailerProfile;
 import com.example.medi.user.entity.WholesalerProfile;
 import com.example.medi.user.repository.DoctorProfileRepository;
 import com.example.medi.user.repository.HospitalProfileRepository;
+import com.example.medi.user.repository.PatientProfileRepository;
 import com.example.medi.user.repository.RetailerProfileRepository;
 import com.example.medi.user.repository.WholesalerProfileRepository;
+import com.example.medi.user.security.CurrentUserUtil;
 
 @Service
 public class ProfileService {
@@ -18,17 +22,20 @@ public class ProfileService {
     private final RetailerProfileRepository retailerRepository;
     private final DoctorProfileRepository doctorRepository;
     private final HospitalProfileRepository hospitalRepository;
+    private final PatientProfileRepository patientProfileRepository;
 
     public ProfileService(
             WholesalerProfileRepository wholesalerRepository,
             RetailerProfileRepository retailerRepository,
             DoctorProfileRepository doctorRepository,
-            HospitalProfileRepository hospitalRepository
+            HospitalProfileRepository hospitalRepository,
+            PatientProfileRepository patientProfileRepository
     ) {
         this.wholesalerRepository = wholesalerRepository;
         this.retailerRepository = retailerRepository;
         this.doctorRepository = doctorRepository;
         this.hospitalRepository = hospitalRepository;
+        this.patientProfileRepository = patientProfileRepository;
     }
 
     public WholesalerProfile createWholesalerProfile(WholesalerProfile profile) {
@@ -194,5 +201,58 @@ public class ProfileService {
         profile.setDocumentUrl(request.getDocumentUrl());
 
         return hospitalRepository.save(profile);
+    }
+    
+    public PatientProfile createPatientProfile(PatientProfile request) {
+
+        if (!"PATIENT".equals(CurrentUserUtil.getRole())) {
+            throw new AccessDeniedException("Only PATIENT can create patient profile");
+        }
+
+        Long authUserId = CurrentUserUtil.getUserId();
+
+        if (patientProfileRepository.existsByAuthUserId(authUserId)) {
+            throw new RuntimeException("Patient profile already exists");
+        }
+
+        request.setAuthUserId(authUserId);
+
+        return patientProfileRepository.save(request);
+    }
+    
+    public PatientProfile getMyPatientProfile() {
+
+        if (!"PATIENT".equals(CurrentUserUtil.getRole())) {
+            throw new AccessDeniedException("Only PATIENT can view patient profile");
+        }
+
+        return patientProfileRepository.findByAuthUserId(CurrentUserUtil.getUserId())
+                .orElseThrow(() -> new RuntimeException("Patient profile not found"));
+    }
+    
+    public PatientProfile updatePatientProfile(PatientProfile request) {
+
+        if (!"PATIENT".equals(CurrentUserUtil.getRole())) {
+            throw new AccessDeniedException("Only PATIENT can update patient profile");
+        }
+
+        PatientProfile profile = patientProfileRepository.findByAuthUserId(CurrentUserUtil.getUserId())
+                .orElseThrow(() -> new RuntimeException("Patient profile not found"));
+
+        profile.setPatientName(request.getPatientName());
+        profile.setMobile(request.getMobile());
+        profile.setEmail(request.getEmail());
+        profile.setGender(request.getGender());
+        profile.setDateOfBirth(request.getDateOfBirth());
+        profile.setBloodGroup(request.getBloodGroup());
+        profile.setAddress(request.getAddress());
+        profile.setState(request.getState());
+        profile.setDistrict(request.getDistrict());
+        profile.setPincode(request.getPincode());
+        profile.setMedicalHistory(request.getMedicalHistory());
+        profile.setEmergencyContactName(request.getEmergencyContactName());
+        profile.setEmergencyContactMobile(request.getEmergencyContactMobile());
+
+        return patientProfileRepository.save(profile);
     }
 }
