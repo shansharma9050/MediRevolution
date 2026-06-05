@@ -1,7 +1,9 @@
 let hospitalAvailability = [];
+let hospitalDoctors = [];
 
 document.addEventListener("DOMContentLoaded", function() {
 	requireHospitalRole();
+	loadHospitalDoctors();
 	loadHospitalAvailability();
 });
 
@@ -12,6 +14,52 @@ function requireHospitalRole() {
 	}
 }
 
+async function loadHospitalDoctors() {
+	const token = localStorage.getItem("token");
+
+	try {
+		const response = await fetch(`${API_BASE}/hospital/doctors/my`, {
+			headers: {
+				"Authorization": "Bearer " + token
+			}
+		});
+
+		hospitalDoctors = response.ok ? await response.json() : [];
+		renderDoctorDropdown();
+
+	} catch (e) {
+		showMsg("Unable to load hospital doctors.");
+	}
+}
+
+function renderDoctorDropdown() {
+	const dropdown = document.getElementById("hospitalDoctorId");
+
+	if (!hospitalDoctors.length) {
+		dropdown.innerHTML = `<option value="">No doctors found. Add doctor first.</option>`;
+		return;
+	}
+
+	let html = `<option value="">Select Doctor</option>`;
+
+	hospitalDoctors.forEach(d => {
+		html += `
+            <option value="${d.id}">
+                ${safe(d.doctorName)} - ${safe(d.department)}
+            </option>
+        `;
+	});
+
+	dropdown.innerHTML = html;
+}
+
+function fillDoctorDepartment() {
+	const doctorId = Number(document.getElementById("hospitalDoctorId").value);
+	const doctor = hospitalDoctors.find(d => d.id === doctorId);
+
+	document.getElementById("department").value = doctor ? doctor.department : "";
+}
+
 function toggleAvailabilityForm() {
 	const panel = document.getElementById("availabilityFormPanel");
 	panel.style.display = panel.style.display === "none" ? "block" : "none";
@@ -19,16 +67,15 @@ function toggleAvailabilityForm() {
 
 async function saveHospitalAvailability() {
 	const payload = {
-		doctorName: getVal("doctorName"),
-		department: getVal("department"),
+		hospitalDoctorId: Number(getVal("hospitalDoctorId")),
 		availableDate: getVal("availableDate"),
 		startTime: getVal("startTime") + ":00",
 		endTime: getVal("endTime") + ":00",
 		slotDuration: parseInt(getVal("slotDuration"))
 	};
 
-	if (!payload.doctorName || !payload.department || !payload.availableDate || !getVal("startTime") || !getVal("endTime")) {
-		showMsg("Doctor name, department, date, start time and end time are required");
+	if (!payload.hospitalDoctorId || !payload.availableDate || !getVal("startTime") || !getVal("endTime")) {
+		showMsg("Doctor, date, start time and end time are required");
 		return;
 	}
 
@@ -44,7 +91,13 @@ async function saveHospitalAvailability() {
 			body: JSON.stringify(payload)
 		});
 
-		const result = await response.json();
+		let result = null;
+
+		try {
+			result = await response.json();
+		} catch (e) {
+			result = {};
+		}
 
 		if (!response.ok) {
 			showMsg(result.message || "Unable to save availability");
@@ -66,7 +119,9 @@ async function loadHospitalAvailability() {
 
 	try {
 		const response = await fetch(`${API_BASE}/hospital/doctor-availability/my`, {
-			headers: { "Authorization": "Bearer " + token }
+			headers: {
+				"Authorization": "Bearer " + token
+			}
 		});
 
 		const result = await response.json();
@@ -112,10 +167,27 @@ function renderAvailability() {
 }
 
 function clearForm() {
-	["doctorName", "department", "availableDate", "startTime", "endTime"]
-		.forEach(id => document.getElementById(id).value = "");
 
-	document.getElementById("slotDuration").value = "30";
+	[
+		"hospitalDoctorId",
+		"availableDate",
+		"startTime",
+		"endTime"
+	].forEach(id => {
+
+		const element = document.getElementById(id);
+
+		if (element) {
+			element.value = "";
+		}
+
+	});
+
+	const slotDuration = document.getElementById("slotDuration");
+
+	if (slotDuration) {
+		slotDuration.value = "30";
+	}
 }
 
 function getVal(id) {
@@ -123,7 +195,8 @@ function getVal(id) {
 }
 
 function showMsg(message, type = "danger") {
-	document.getElementById("msg").innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+	document.getElementById("msg").innerHTML =
+		`<div class="alert alert-${type}">${message}</div>`;
 }
 
 function formatDate(value) {

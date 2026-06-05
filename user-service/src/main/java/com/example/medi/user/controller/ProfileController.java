@@ -1,5 +1,6 @@
 package com.example.medi.user.controller;
 
+import java.util.List;
 
 import org.springframework.web.bind.annotation.*;
 
@@ -12,7 +13,6 @@ import com.example.medi.user.security.CurrentUserUtil;
 import com.example.medi.user.security.RoleValidator;
 import com.example.medi.user.service.ProfileService;
 
-
 @RestController
 @RequestMapping("/users/profiles")
 public class ProfileController {
@@ -22,6 +22,8 @@ public class ProfileController {
     public ProfileController(ProfileService profileService) {
         this.profileService = profileService;
     }
+
+    // ===================== CREATE PROFILE =====================
 
     @PostMapping("/wholesaler")
     public WholesalerProfile createWholesalerProfile(@RequestBody WholesalerProfile profile) {
@@ -51,6 +53,15 @@ public class ProfileController {
         return profileService.createHospitalProfile(profile);
     }
 
+    @PostMapping("/patient")
+    public PatientProfile createPatientProfile(@RequestBody PatientProfile profile) {
+        RoleValidator.allowOnly("PATIENT");
+        profile.setAuthUserId(CurrentUserUtil.getUserId());
+        return profileService.createPatientProfile(profile);
+    }
+
+    // ===================== GET MY PROFILE =====================
+
     @GetMapping("/me/wholesaler")
     public WholesalerProfile getMyWholesalerProfile() {
         RoleValidator.allowOnly("WHOLESALER");
@@ -75,6 +86,51 @@ public class ProfileController {
         return profileService.getHospitalProfile(CurrentUserUtil.getUserId());
     }
 
+    @GetMapping("/me/patient")
+    public PatientProfile getMyPatientProfile() {
+        RoleValidator.allowOnly("PATIENT");
+        return profileService.getMyPatientProfile();
+    }
+
+    // ===================== UPDATE MY PROFILE =====================
+
+    @PutMapping("/me/wholesaler")
+    public WholesalerProfile updateMyWholesalerProfile(@RequestBody WholesalerProfile profile) {
+        RoleValidator.allowOnly("WHOLESALER");
+        profile.setAuthUserId(CurrentUserUtil.getUserId());
+        return profileService.updateWholesalerProfile(profile);
+    }
+
+    @PutMapping("/me/retailer")
+    public RetailerProfile updateMyRetailerProfile(@RequestBody RetailerProfile profile) {
+        RoleValidator.allowOnly("RETAILER");
+        profile.setAuthUserId(CurrentUserUtil.getUserId());
+        return profileService.updateRetailerProfile(profile);
+    }
+
+    @PutMapping("/me/doctor")
+    public DoctorProfile updateMyDoctorProfile(@RequestBody DoctorProfile profile) {
+        RoleValidator.allowOnly("DOCTOR");
+        profile.setAuthUserId(CurrentUserUtil.getUserId());
+        return profileService.updateDoctorProfile(profile);
+    }
+
+    @PutMapping("/me/hospital")
+    public HospitalProfile updateMyHospitalProfile(@RequestBody HospitalProfile profile) {
+        RoleValidator.allowOnly("HOSPITAL");
+        profile.setAuthUserId(CurrentUserUtil.getUserId());
+        return profileService.updateHospitalProfile(profile);
+    }
+
+    @PutMapping("/me/patient")
+    public PatientProfile updateMyPatientProfile(@RequestBody PatientProfile profile) {
+        RoleValidator.allowOnly("PATIENT");
+        profile.setAuthUserId(CurrentUserUtil.getUserId());
+        return profileService.updatePatientProfile(profile);
+    }
+
+    // ===================== ADMIN / PUBLIC FETCH =====================
+
     @GetMapping("/wholesaler/{authUserId}")
     public WholesalerProfile getWholesalerProfile(@PathVariable Long authUserId) {
         RoleValidator.allowAny("SUPER_ADMIN", "WHOLESALER");
@@ -98,47 +154,16 @@ public class ProfileController {
         RoleValidator.allowAny("SUPER_ADMIN", "HOSPITAL");
         return profileService.getHospitalProfile(authUserId);
     }
-    
-    @PutMapping("/wholesaler")
-    public WholesalerProfile updateWholesalerProfile(@RequestBody WholesalerProfile profile) {
-        RoleValidator.allowOnly("WHOLESALER");
-        profile.setAuthUserId(CurrentUserUtil.getUserId());
-        return profileService.updateWholesalerProfile(profile);
+
+    @GetMapping("/doctors")
+    public List<DoctorProfile> getAllDoctors() {
+        return profileService.getAllDoctors();
     }
 
-    @PutMapping("/retailer")
-    public RetailerProfile updateRetailerProfile(@RequestBody RetailerProfile profile) {
-        RoleValidator.allowOnly("RETAILER");
-        profile.setAuthUserId(CurrentUserUtil.getUserId());
-        return profileService.updateRetailerProfile(profile);
-    }
-
-    @PutMapping("/doctor")
-    public DoctorProfile updateDoctorProfile(@RequestBody DoctorProfile profile) {
-        RoleValidator.allowOnly("DOCTOR");
-        profile.setAuthUserId(CurrentUserUtil.getUserId());
-        return profileService.updateDoctorProfile(profile);
-    }
-
-    @PutMapping("/hospital")
-    public HospitalProfile updateHospitalProfile(@RequestBody HospitalProfile profile) {
-        RoleValidator.allowOnly("HOSPITAL");
-        profile.setAuthUserId(CurrentUserUtil.getUserId());
-        return profileService.updateHospitalProfile(profile);
+    @GetMapping("/hospitals")
+    public List<HospitalProfile> getAllHospitals() {
+        return profileService.getAllHospitals();
     }
     
-    @PostMapping("/patient")
-    public PatientProfile createPatientProfile(@RequestBody PatientProfile profile) {
-        return profileService.createPatientProfile(profile);
-    }
-
-    @GetMapping("/me/patient")
-    public PatientProfile getMyPatientProfile() {
-        return profileService.getMyPatientProfile();
-    }
-
-    @PutMapping("/me/patient")
-    public PatientProfile updatePatientProfile(@RequestBody PatientProfile profile) {
-        return profileService.updatePatientProfile(profile);
-    }
+    
 }

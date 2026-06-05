@@ -158,4 +158,9 @@ public class PageController {
     public String myAppointmentsPage() {
         return "appointment/my-appointments";
     }
+    
+    @GetMapping("/hospital/doctors")
+    public String hospitalDoctorsPage() {
+        return "hospital/doctors";
+    }
 }

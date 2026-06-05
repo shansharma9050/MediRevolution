@@ -35,6 +35,8 @@ public class HospitalAppointment {
     private Long patientAuthUserId;
 
     private Long hospitalAuthUserId;
+    
+    private Long hospitalDoctorId;
 
     private String patientName;
 

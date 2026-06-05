@@ -15,9 +15,9 @@ public interface HospitalAppointmentRepository extends JpaRepository<HospitalApp
 
     List<HospitalAppointment> findByPatientAuthUserIdOrderByAppointmentDateDescAppointmentTimeDesc(Long patientAuthUserId);
 
-    boolean existsByHospitalAuthUserIdAndDoctorNameAndAppointmentDateAndAppointmentTimeAndStatusNot(
+    boolean existsByHospitalAuthUserIdAndHospitalDoctorIdAndAppointmentDateAndAppointmentTimeAndStatusNot(
             Long hospitalAuthUserId,
-            String doctorName,
+            Long hospitalDoctorId,
             LocalDate appointmentDate,
             LocalTime appointmentTime,
             HospitalAppointmentStatus status

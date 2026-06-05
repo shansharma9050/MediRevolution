@@ -13,6 +13,7 @@ import com.example.medi.hospital.dto.HospitalAvailableSlotResponse;
 import com.example.medi.hospital.dto.HospitalDashboardResponse;
 import com.example.medi.hospital.entity.HospitalAppointment;
 import com.example.medi.hospital.entity.HospitalBill;
+import com.example.medi.hospital.entity.HospitalDoctor;
 import com.example.medi.hospital.entity.HospitalDoctorAvailability;
 import com.example.medi.hospital.entity.HospitalInventory;
 import com.example.medi.hospital.entity.HospitalPatient;
@@ -22,6 +23,7 @@ import com.example.medi.hospital.enums.HospitalAppointmentStatus;
 import com.example.medi.hospital.repository.HospitalAppointmentRepository;
 import com.example.medi.hospital.repository.HospitalBillRepository;
 import com.example.medi.hospital.repository.HospitalDoctorAvailabilityRepository;
+import com.example.medi.hospital.repository.HospitalDoctorRepository;
 import com.example.medi.hospital.repository.HospitalInventoryRepository;
 import com.example.medi.hospital.repository.HospitalPatientRepository;
 import com.example.medi.hospital.repository.StaffRepository;
@@ -38,21 +40,24 @@ public class HospitalManagementService {
 
 	public final StaffRepository staffRepository;
 
+	private final HospitalDoctorRepository hospitalDoctorRepository;
+
 	private final HospitalDoctorAvailabilityRepository hospitalDoctorAvailabilityRepository;
 	private final HospitalAppointmentRepository hospitalAppointmentRepository;
 
 	public HospitalManagementService(HospitalPatientRepository patientRepository, StaffRepository staffRepository,
 			HospitalInventoryRepository inventoryRepository, HospitalBillRepository billRepository,
 			HospitalDoctorAvailabilityRepository hospitalDoctorAvailabilityRepository,
-			HospitalAppointmentRepository hospitalAppointmentRepository) {
+			HospitalAppointmentRepository hospitalAppointmentRepository,
+			HospitalDoctorRepository hospitalDoctorRepository) {
 
 		this.patientRepository = patientRepository;
 		this.staffRepository = staffRepository;
 		this.inventoryRepository = inventoryRepository;
 		this.billRepository = billRepository;
-		this.hospitalAppointmentRepository=hospitalAppointmentRepository;
-		this.hospitalDoctorAvailabilityRepository=hospitalDoctorAvailabilityRepository;
-
+		this.hospitalAppointmentRepository = hospitalAppointmentRepository;
+		this.hospitalDoctorAvailabilityRepository = hospitalDoctorAvailabilityRepository;
+		this.hospitalDoctorRepository = hospitalDoctorRepository;
 	}
 
 	private void validateHospitalRole() {
@@ -61,6 +66,73 @@ public class HospitalManagementService {
 
 			throw new AccessDeniedException("Only HOSPITAL role allowed");
 		}
+	}
+
+	public HospitalDoctor createHospitalDoctor(HospitalDoctor doctor) {
+
+		validateHospitalRole();
+
+		if (doctor.getDoctorName() == null || doctor.getDoctorName().isBlank()) {
+			throw new RuntimeException("Doctor name is required");
+		}
+
+		if (doctor.getDepartment() == null || doctor.getDepartment().isBlank()) {
+			throw new RuntimeException("Department is required");
+		}
+
+		doctor.setHospitalAuthUserId(CurrentUserUtil.getUserId());
+		doctor.setActive(true);
+
+		return hospitalDoctorRepository.save(doctor);
+	}
+
+	public List<HospitalDoctor> getMyHospitalDoctors() {
+
+		validateHospitalRole();
+
+		return hospitalDoctorRepository.findByHospitalAuthUserIdAndActiveTrue(CurrentUserUtil.getUserId());
+	}
+
+	public List<HospitalDoctor> getDoctorsByHospital(Long hospitalId) {
+		return hospitalDoctorRepository.findByHospitalAuthUserIdAndActiveTrue(hospitalId);
+	}
+
+	public HospitalDoctor updateHospitalDoctor(Long doctorId, HospitalDoctor request) {
+
+		validateHospitalRole();
+
+		HospitalDoctor doctor = hospitalDoctorRepository.findById(doctorId)
+				.orElseThrow(() -> new RuntimeException("Hospital doctor not found"));
+
+		if (!doctor.getHospitalAuthUserId().equals(CurrentUserUtil.getUserId())) {
+			throw new AccessDeniedException("You can update only your hospital doctors");
+		}
+
+		doctor.setDoctorName(request.getDoctorName());
+		doctor.setSpecialization(request.getSpecialization());
+		doctor.setDepartment(request.getDepartment());
+		doctor.setQualification(request.getQualification());
+		doctor.setExperienceYears(request.getExperienceYears());
+		doctor.setMobile(request.getMobile());
+		doctor.setEmail(request.getEmail());
+		doctor.setConsultationFee(request.getConsultationFee());
+
+		return hospitalDoctorRepository.save(doctor);
+	}
+
+	public void deleteHospitalDoctor(Long doctorId) {
+
+		validateHospitalRole();
+
+		HospitalDoctor doctor = hospitalDoctorRepository.findById(doctorId)
+				.orElseThrow(() -> new RuntimeException("Hospital doctor not found"));
+
+		if (!doctor.getHospitalAuthUserId().equals(CurrentUserUtil.getUserId())) {
+			throw new AccessDeniedException("You can delete only your hospital doctors");
+		}
+
+		doctor.setActive(false);
+		hospitalDoctorRepository.save(doctor);
 	}
 
 	public HospitalPatient createPatient(HospitalPatient patient) {
@@ -352,179 +424,171 @@ public class HospitalManagementService {
 
 		billRepository.delete(bill);
 	}
-	
+
 	public HospitalDoctorAvailability createDoctorAvailability(HospitalDoctorAvailability availability) {
 
-	    validateHospitalRole();
+		validateHospitalRole();
 
-	    if (availability.getDoctorName() == null || availability.getDoctorName().isBlank()) {
-	        throw new RuntimeException("Doctor name is required");
-	    }
+		if (availability.getHospitalDoctorId() == null) {
+			throw new RuntimeException("Hospital doctor is required");
+		}
 
-	    if (availability.getDepartment() == null || availability.getDepartment().isBlank()) {
-	        throw new RuntimeException("Department is required");
-	    }
+		HospitalDoctor doctor = hospitalDoctorRepository.findById(availability.getHospitalDoctorId())
+				.orElseThrow(() -> new RuntimeException("Hospital doctor not found"));
 
-	    if (availability.getAvailableDate() == null) {
-	        throw new RuntimeException("Available date is required");
-	    }
+		if (!doctor.getHospitalAuthUserId().equals(CurrentUserUtil.getUserId())) {
+			throw new AccessDeniedException("This doctor does not belong to your hospital");
+		}
 
-	    if (availability.getStartTime() == null || availability.getEndTime() == null) {
-	        throw new RuntimeException("Start and end time are required");
-	    }
+		if (availability.getAvailableDate() == null) {
+			throw new RuntimeException("Available date is required");
+		}
 
-	    if (availability.getSlotDuration() == null || availability.getSlotDuration() <= 0) {
-	        throw new RuntimeException("Slot duration must be greater than zero");
-	    }
+		if (availability.getStartTime() == null || availability.getEndTime() == null) {
+			throw new RuntimeException("Start and end time are required");
+		}
 
-	    availability.setHospitalAuthUserId(CurrentUserUtil.getUserId());
+		if (availability.getSlotDuration() == null || availability.getSlotDuration() <= 0) {
+			throw new RuntimeException("Slot duration must be greater than zero");
+		}
 
-	    return hospitalDoctorAvailabilityRepository.save(availability);
+		availability.setHospitalAuthUserId(CurrentUserUtil.getUserId());
+		availability.setDoctorName(doctor.getDoctorName());
+		availability.setDepartment(doctor.getDepartment());
+
+		return hospitalDoctorAvailabilityRepository.save(availability);
 	}
-	
+
 	public List<HospitalDoctorAvailability> getMyDoctorAvailability() {
 
-	    validateHospitalRole();
+		validateHospitalRole();
 
-	    return hospitalDoctorAvailabilityRepository.findByHospitalAuthUserId(
-	            CurrentUserUtil.getUserId()
-	    );
+		return hospitalDoctorAvailabilityRepository.findByHospitalAuthUserId(CurrentUserUtil.getUserId());
 	}
-	
-	public List<HospitalAvailableSlotResponse> getHospitalDoctorSlots(
-	        Long hospitalId,
-	        String doctorName,
-	        LocalDate date
-	) {
-	    List<HospitalDoctorAvailability> availabilityList =
-	            hospitalDoctorAvailabilityRepository
-	                    .findByHospitalAuthUserIdAndDoctorNameAndAvailableDate(
-	                            hospitalId,
-	                            doctorName,
-	                            date
-	                    );
 
-	    List<HospitalAvailableSlotResponse> slots = new ArrayList<>();
+	public List<HospitalAvailableSlotResponse> getHospitalDoctorSlots(Long hospitalId, Long hospitalDoctorId,
+			LocalDate date) {
+		List<HospitalDoctorAvailability> availabilityList = hospitalDoctorAvailabilityRepository
+				.findByHospitalAuthUserIdAndHospitalDoctorIdAndAvailableDate(hospitalId, hospitalDoctorId, date);
 
-	    for (HospitalDoctorAvailability availability : availabilityList) {
+		List<HospitalAvailableSlotResponse> slots = new ArrayList<>();
 
-	        LocalTime current = availability.getStartTime();
+		for (HospitalDoctorAvailability availability : availabilityList) {
 
-	        while (current.plusMinutes(availability.getSlotDuration()).compareTo(availability.getEndTime()) <= 0) {
+			LocalTime current = availability.getStartTime();
 
-	            boolean booked =
-	                    hospitalAppointmentRepository
-	                            .existsByHospitalAuthUserIdAndDoctorNameAndAppointmentDateAndAppointmentTimeAndStatusNot(
-	                                    hospitalId,
-	                                    doctorName,
-	                                    date,
-	                                    current,
-	                                    HospitalAppointmentStatus.CANCELLED
-	                            );
+			while (current.plusMinutes(availability.getSlotDuration()).compareTo(availability.getEndTime()) <= 0) {
 
-	            slots.add(new HospitalAvailableSlotResponse(current.toString(), booked));
+				boolean booked = hospitalAppointmentRepository
+						.existsByHospitalAuthUserIdAndHospitalDoctorIdAndAppointmentDateAndAppointmentTimeAndStatusNot(
+								hospitalId, hospitalDoctorId, date, current, HospitalAppointmentStatus.CANCELLED);
 
-	            current = current.plusMinutes(availability.getSlotDuration());
-	        }
-	    }
+				slots.add(new HospitalAvailableSlotResponse(current.toString(), booked));
 
-	    return slots;
+				current = current.plusMinutes(availability.getSlotDuration());
+			}
+		}
+
+		return slots;
 	}
-	
+
 	public HospitalAppointment bookHospitalAppointment(BookHospitalAppointmentRequest request) {
 
-	    if (request.getHospitalAuthUserId() == null) {
-	        throw new RuntimeException("Hospital id is required");
-	    }
+		if (!"PATIENT".equals(CurrentUserUtil.getRole())) {
+			throw new AccessDeniedException("Only PATIENT can book hospital appointment");
+		}
 
-	    if (request.getDoctorName() == null || request.getDoctorName().isBlank()) {
-	        throw new RuntimeException("Doctor name is required");
-	    }
+		if (request.getHospitalAuthUserId() == null) {
+			throw new RuntimeException("Hospital id is required");
+		}
 
-	    if (request.getAppointmentDate() == null || request.getAppointmentTime() == null) {
-	        throw new RuntimeException("Appointment date and time are required");
-	    }
+		if (request.getHospitalDoctorId() == null) {
+			throw new RuntimeException("Hospital doctor id is required");
+		}
 
-	    boolean booked =
-	            hospitalAppointmentRepository
-	                    .existsByHospitalAuthUserIdAndDoctorNameAndAppointmentDateAndAppointmentTimeAndStatusNot(
-	                            request.getHospitalAuthUserId(),
-	                            request.getDoctorName(),
-	                            request.getAppointmentDate(),
-	                            request.getAppointmentTime(),
-	                            HospitalAppointmentStatus.CANCELLED
-	                    );
+		HospitalDoctor doctor = hospitalDoctorRepository.findById(request.getHospitalDoctorId())
+				.orElseThrow(() -> new RuntimeException("Hospital doctor not found"));
 
-	    if (booked) {
-	        throw new RuntimeException("Selected slot is already booked");
-	    }
+		if (!doctor.getHospitalAuthUserId().equals(request.getHospitalAuthUserId())) {
+			throw new RuntimeException("Selected doctor does not belong to selected hospital");
+		}
 
-	    HospitalAppointment appointment = new HospitalAppointment();
-	    appointment.setHospitalAuthUserId(request.getHospitalAuthUserId());
-	    appointment.setPatientAuthUserId(CurrentUserUtil.getUserId());
-	    appointment.setDoctorName(request.getDoctorName());
-	    appointment.setDepartment(request.getDepartment());
-	    appointment.setPatientName(request.getPatientName());
-	    appointment.setPatientMobile(request.getPatientMobile());
-	    appointment.setAppointmentDate(request.getAppointmentDate());
-	    appointment.setAppointmentTime(request.getAppointmentTime());
-	    appointment.setSymptoms(request.getSymptoms());
-	    appointment.setStatus(HospitalAppointmentStatus.PENDING);
+		if (request.getAppointmentDate() == null || request.getAppointmentTime() == null) {
+			throw new RuntimeException("Appointment date and time are required");
+		}
 
-	    return hospitalAppointmentRepository.save(appointment);
+		boolean booked = hospitalAppointmentRepository
+				.existsByHospitalAuthUserIdAndHospitalDoctorIdAndAppointmentDateAndAppointmentTimeAndStatusNot(
+						request.getHospitalAuthUserId(), request.getHospitalDoctorId(), request.getAppointmentDate(),
+						request.getAppointmentTime(), HospitalAppointmentStatus.CANCELLED);
+
+		if (booked) {
+			throw new RuntimeException("Selected slot is already booked");
+		}
+
+		HospitalAppointment appointment = new HospitalAppointment();
+
+		appointment.setHospitalAuthUserId(request.getHospitalAuthUserId());
+		appointment.setHospitalDoctorId(request.getHospitalDoctorId());
+		appointment.setPatientAuthUserId(CurrentUserUtil.getUserId());
+
+		appointment.setDoctorName(doctor.getDoctorName());
+		appointment.setDepartment(doctor.getDepartment());
+
+		appointment.setPatientName(request.getPatientName());
+		appointment.setPatientMobile(request.getPatientMobile());
+		appointment.setAppointmentDate(request.getAppointmentDate());
+		appointment.setAppointmentTime(request.getAppointmentTime());
+		appointment.setSymptoms(request.getSymptoms());
+		appointment.setStatus(HospitalAppointmentStatus.PENDING);
+
+		return hospitalAppointmentRepository.save(appointment);
 	}
-	
+
 	public List<HospitalAppointment> getHospitalAppointments() {
 
-	    validateHospitalRole();
+		validateHospitalRole();
 
-	    return hospitalAppointmentRepository
-	            .findByHospitalAuthUserIdOrderByAppointmentDateDescAppointmentTimeDesc(
-	                    CurrentUserUtil.getUserId()
-	            );
+		return hospitalAppointmentRepository
+				.findByHospitalAuthUserIdOrderByAppointmentDateDescAppointmentTimeDesc(CurrentUserUtil.getUserId());
 	}
-	
+
 	public List<HospitalAppointment> getPatientHospitalAppointments() {
 
-	    return hospitalAppointmentRepository
-	            .findByPatientAuthUserIdOrderByAppointmentDateDescAppointmentTimeDesc(
-	                    CurrentUserUtil.getUserId()
-	            );
+		return hospitalAppointmentRepository
+				.findByPatientAuthUserIdOrderByAppointmentDateDescAppointmentTimeDesc(CurrentUserUtil.getUserId());
 	}
-	
-	public HospitalAppointment updateHospitalAppointmentStatus(
-	        Long appointmentId,
-	        HospitalAppointmentStatus status
-	) {
-	    validateHospitalRole();
 
-	    HospitalAppointment appointment = hospitalAppointmentRepository.findById(appointmentId)
-	            .orElseThrow(() -> new RuntimeException("Appointment not found"));
+	public HospitalAppointment updateHospitalAppointmentStatus(Long appointmentId, HospitalAppointmentStatus status) {
+		validateHospitalRole();
 
-	    if (!appointment.getHospitalAuthUserId().equals(CurrentUserUtil.getUserId())) {
-	        throw new AccessDeniedException("You can update only your hospital appointments");
-	    }
+		HospitalAppointment appointment = hospitalAppointmentRepository.findById(appointmentId)
+				.orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-	    appointment.setStatus(status);
+		if (!appointment.getHospitalAuthUserId().equals(CurrentUserUtil.getUserId())) {
+			throw new AccessDeniedException("You can update only your hospital appointments");
+		}
 
-	    return hospitalAppointmentRepository.save(appointment);
+		appointment.setStatus(status);
+
+		return hospitalAppointmentRepository.save(appointment);
 	}
 
 	public HospitalAppointment cancelPatientHospitalAppointment(Long appointmentId) {
 
-	    HospitalAppointment appointment = hospitalAppointmentRepository.findById(appointmentId)
-	            .orElseThrow(() -> new RuntimeException("Appointment not found"));
+		HospitalAppointment appointment = hospitalAppointmentRepository.findById(appointmentId)
+				.orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-	    if (!appointment.getPatientAuthUserId().equals(CurrentUserUtil.getUserId())) {
-	        throw new AccessDeniedException("You can cancel only your appointment");
-	    }
+		if (!appointment.getPatientAuthUserId().equals(CurrentUserUtil.getUserId())) {
+			throw new AccessDeniedException("You can cancel only your appointment");
+		}
 
-	    if (appointment.getStatus() == HospitalAppointmentStatus.COMPLETED) {
-	        throw new RuntimeException("Completed appointment cannot be cancelled");
-	    }
+		if (appointment.getStatus() == HospitalAppointmentStatus.COMPLETED) {
+			throw new RuntimeException("Completed appointment cannot be cancelled");
+		}
 
-	    appointment.setStatus(HospitalAppointmentStatus.CANCELLED);
+		appointment.setStatus(HospitalAppointmentStatus.CANCELLED);
 
-	    return hospitalAppointmentRepository.save(appointment);
+		return hospitalAppointmentRepository.save(appointment);
 	}
 }

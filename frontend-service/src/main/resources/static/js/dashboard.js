@@ -140,6 +140,22 @@ function loadDashboardByRole() {
             ]
         );
     }
+    
+    if (role === "PATIENT") {
+    setDashboard(
+        "Book doctor/hospital appointments and manage your health profile.",
+        "My Appointments", "0",
+        "Pending", "0",
+        "Confirmed", "0",
+        "Notifications", document.getElementById("card4Value").innerText,
+        [
+            ["Book Appointment", "/appointments/book"],
+            ["My Appointments", "/appointments/my"],
+            ["Profile", "/profile"],
+            ["Notifications", "/notifications"]
+        ]
+    );
+}
 }
 
 async function loadRealDashboardCounts() {
@@ -158,8 +174,40 @@ async function loadRealDashboardCounts() {
     if (role === "RETAILER") {
         await loadOrderCounts();
     }
+    if (role === "PATIENT") {
+    await loadPatientAppointmentCounts();
+}
 }
 
+
+async function loadPatientAppointmentCounts() {
+    const token = localStorage.getItem("token");
+
+    try {
+        const [doctorRes, hospitalRes] = await Promise.all([
+            fetch(`${API_BASE}/doctor/appointments/patient`, {
+                headers: {"Authorization": "Bearer " + token}
+            }),
+            fetch(`${API_BASE}/hospital/appointments/patient`, {
+                headers: {"Authorization": "Bearer " + token}
+            })
+        ]);
+
+        const doctorAppointments = doctorRes.ok ? await doctorRes.json() : [];
+        const hospitalAppointments = hospitalRes.ok ? await hospitalRes.json() : [];
+
+        const all = [...doctorAppointments, ...hospitalAppointments];
+
+        document.getElementById("card1Value").innerText = all.length;
+        document.getElementById("card2Value").innerText =
+            all.filter(a => a.status === "PENDING").length;
+        document.getElementById("card3Value").innerText =
+            all.filter(a => a.status === "CONFIRMED").length;
+
+    } catch (error) {
+        console.log("Patient appointment count unavailable");
+    }
+}
 async function loadAdminCounts() {
     const token = localStorage.getItem("token");
 

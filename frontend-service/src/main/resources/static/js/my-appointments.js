@@ -3,9 +3,16 @@ let myDoctorAppointments = [];
 let myHospitalAppointments = [];
 
 document.addEventListener("DOMContentLoaded", function () {
+    requirePatientRole();
     loadMyAppointments();
 });
 
+function requirePatientRole() {
+    if (localStorage.getItem("role") !== "PATIENT") {
+        alert("Only PATIENT can view patient appointments.");
+        window.location.href = "/dashboard";
+    }
+}
 function setType(type) {
     currentType = type;
 

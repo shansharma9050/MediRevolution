@@ -10,11 +10,11 @@ import java.util.List;
 
 public interface HospitalDoctorAvailabilityRepository extends JpaRepository<HospitalDoctorAvailability, Long> {
 
-    List<HospitalDoctorAvailability> findByHospitalAuthUserId(Long hospitalAuthUserId);
+	 List<HospitalDoctorAvailability> findByHospitalAuthUserId(Long hospitalAuthUserId);
 
-    List<HospitalDoctorAvailability> findByHospitalAuthUserIdAndDoctorNameAndAvailableDate(
-            Long hospitalAuthUserId,
-            String doctorName,
-            LocalDate availableDate
-    );
+	    List<HospitalDoctorAvailability> findByHospitalAuthUserIdAndHospitalDoctorIdAndAvailableDate(
+	            Long hospitalAuthUserId,
+	            Long hospitalDoctorId,
+	            LocalDate availableDate
+	    );
 }

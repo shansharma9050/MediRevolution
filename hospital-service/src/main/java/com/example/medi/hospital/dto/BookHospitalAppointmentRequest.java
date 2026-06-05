@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
 public class BookHospitalAppointmentRequest {
 
     private Long hospitalAuthUserId;
+    
+    private Long hospitalDoctorId;
 
     private String doctorName;
 

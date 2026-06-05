@@ -19,45 +19,123 @@ function applyRoleBasedMenuForProfile() {
 
 function setupProfileByRole() {
     const role = localStorage.getItem("role");
-    document.getElementById("profileRole").innerText = role;
 
-    if (!["WHOLESALER", "RETAILER", "DOCTOR", "HOSPITAL", "PATIENT"].includes(role)) {
+    const profileRole = document.getElementById("profileRole");
+    if (profileRole) {
+        profileRole.innerText = role || "-";
+    }
+
+    const allowed = ["WHOLESALER", "RETAILER", "DOCTOR", "HOSPITAL", "PATIENT"];
+
+    if (!allowed.includes(role)) {
         alert("Profile management is available for Wholesaler, Retailer, Doctor, Hospital and Patient only.");
         window.location.href = "/dashboard";
         return;
     }
 
+    // First hide all role based fields
+    hideAllRoleFields();
+
+    // Reset common blocks
+    showElement("businessNameBlock");
+    showElement("ownerNameBlock");
+    showElement("drugLicenseBlock");
+    showElement("gstBlock");
+    hideElement("registrationBlock");
+    hideElement("specializationBlock");
+    showElement("bankDetailsBlock");
+    showElement("documentBlock");
+
     if (role === "WHOLESALER") {
-        document.getElementById("businessNameLabel").innerText = "Wholesaler Business Name";
+        setText("businessNameLabel", "Wholesaler Business Name");
     }
 
     if (role === "RETAILER") {
-        document.getElementById("businessNameLabel").innerText = "Medical Store Name";
+        setText("businessNameLabel", "Medical Store Name");
     }
 
     if (role === "DOCTOR") {
-        document.getElementById("businessNameLabel").innerText = "Doctor / Clinic Name";
-        document.getElementById("drugLicenseBlock").style.display = "none";
-        document.getElementById("gstBlock").style.display = "none";
-        document.getElementById("registrationBlock").style.display = "block";
-        document.getElementById("specializationBlock").style.display = "block";
+        setText("businessNameLabel", "Doctor / Clinic Name");
+
+        hideElement("drugLicenseBlock");
+        hideElement("gstBlock");
+
+        showElement("registrationBlock");
+        showElement("specializationBlock");
+
+        const specializationLabel = document.querySelector("#specializationBlock label");
+        if (specializationLabel) {
+            specializationLabel.innerText = "Specialization";
+        }
     }
 
     if (role === "HOSPITAL") {
-        document.getElementById("businessNameLabel").innerText = "Hospital Name";
-        document.getElementById("drugLicenseBlock").style.display = "none";
-        document.getElementById("registrationBlock").style.display = "block";
-        document.getElementById("specializationBlock").style.display = "block";
-        document.getElementById("specializationBlock").querySelector("label").innerText = "Hospital Type";
+        setText("businessNameLabel", "Hospital Name");
+
+        hideElement("drugLicenseBlock");
+
+        showElement("registrationBlock");
+        showElement("specializationBlock");
+
+        const specializationLabel = document.querySelector("#specializationBlock label");
+        if (specializationLabel) {
+            specializationLabel.innerText = "Hospital Type";
+        }
     }
-    
+
     if (role === "PATIENT") {
-    showFields("field-patient");
-    document.getElementById("profileSubtitle").innerText =
-        "Manage your patient profile, medical history and emergency contact details.";
-}
+        showFields("field-patient");
+
+        hideElement("businessNameBlock");
+        hideElement("ownerNameBlock");
+        hideElement("drugLicenseBlock");
+        hideElement("gstBlock");
+        hideElement("registrationBlock");
+        hideElement("specializationBlock");
+        hideElement("bankDetailsBlock");
+        hideElement("documentBlock");
+
+        const pageSubtitle = document.querySelector(".mr-page-subtitle");
+        if (pageSubtitle) {
+            pageSubtitle.innerText = "Manage your patient profile, medical history and emergency contact details.";
+        }
+    }
 }
 
+function hideAllRoleFields() {
+    document
+        .querySelectorAll(".field-wholesaler, .field-retailer, .field-doctor, .field-hospital, .field-patient")
+        .forEach(field => {
+            field.style.display = "none";
+        });
+}
+
+function showFields(className) {
+    document.querySelectorAll("." + className).forEach(field => {
+        field.style.display = "block";
+    });
+}
+
+function showElement(id) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.style.display = "block";
+    }
+}
+
+function hideElement(id) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.style.display = "none";
+    }
+}
+
+function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.innerText = value;
+    }
+}
 function getProfileEndpoint(role) {
     if (role === "WHOLESALER") return "wholesaler";
     if (role === "RETAILER") return "retailer";
@@ -66,12 +144,16 @@ function getProfileEndpoint(role) {
 }
 
 async function loadMyProfile() {
-    const role = localStorage.getItem("role");
-    const endpoint = getProfileEndpoint(role);
     const token = localStorage.getItem("token");
+    const endpoint = getMyProfileEndpoint();
+
+    if (!endpoint) {
+        showProfileMessage("Invalid role. Unable to load profile.");
+        return;
+    }
 
     try {
-        const response = await fetch(`${API_BASE}/users/profiles/me/${endpoint}`, {
+        const response = await fetch(`${API_BASE}${endpoint}`, {
             headers: {
                 "Authorization": "Bearer " + token
             }
@@ -86,7 +168,7 @@ async function loadMyProfile() {
         }
 
         currentProfile = result;
-        fillForm(result);
+        fillProfile(result);
 
     } catch (error) {
         showProfileMessage("User service not reachable.");
@@ -107,8 +189,12 @@ function fillForm(profile) {
     }
 
     if (role === "DOCTOR") {
-        setValue("businessName", profile.doctorName || profile.clinicName);
+        // IMPORTANT FIX
+        // businessName field is used for clinic name
+        // ownerName field is used for doctor name
+        setValue("businessName", profile.clinicName);
         setValue("ownerName", profile.doctorName);
+
         setValue("registrationNumber", profile.registrationNumber);
         setValue("specialization", profile.specialization);
     }
@@ -118,6 +204,16 @@ function fillForm(profile) {
         setValue("ownerName", profile.contactPersonName);
         setValue("registrationNumber", profile.registrationNumber);
         setValue("specialization", profile.hospitalType);
+    }
+
+    if (role === "PATIENT") {
+        setValue("patientName", profile.patientName);
+        setValue("gender", profile.gender);
+        setValue("dateOfBirth", profile.dateOfBirth);
+        setValue("bloodGroup", profile.bloodGroup);
+        setValue("medicalHistory", profile.medicalHistory);
+        setValue("emergencyContactName", profile.emergencyContactName);
+        setValue("emergencyContactMobile", profile.emergencyContactMobile);
     }
 
     setValue("drugLicenseNumber", profile.drugLicenseNumber);
@@ -138,21 +234,95 @@ function fillForm(profile) {
     setValue("profileLogoUrl", profile.profileLogoUrl);
     setValue("documentUrl", profile.documentUrl);
 
-    document.getElementById("profileNamePreview").innerText =
-        getValue("businessName") || "MediRevolution Profile";
+    const profileNamePreview = document.getElementById("profileNamePreview");
+    if (profileNamePreview) {
+        profileNamePreview.innerText =
+            getValue("patientName") ||
+            getValue("businessName") ||
+            "MediRevolution Profile";
+    }
 
-    document.getElementById("profileEmailPreview").innerText =
-        getValue("email") || localStorage.getItem("email");
+    const profileEmailPreview = document.getElementById("profileEmailPreview");
+    if (profileEmailPreview) {
+        profileEmailPreview.innerText =
+            getValue("email") || localStorage.getItem("email") || "";
+    }
 
-    document.getElementById("verificationStatus").innerText =
-        profile.verificationStatus || "PENDING";
+    const verificationStatus = document.getElementById("verificationStatus");
+    if (verificationStatus) {
+        verificationStatus.innerText = profile.verificationStatus || "PENDING";
+    }
 
     updateLogoPreview();
     updateDocumentPreview();
 }
+function fillProfile(profile) {
+    fillForm(profile);
+}
 
-function buildPayload() {
+async function saveProfile() {
+    const token = localStorage.getItem("token");
+    const payload = buildProfilePayload();
+
+    if (!validateProfile()) {
+        return;
+    }
+
+    try {
+        const method = currentProfile ? "PUT" : "POST";
+        const endpoint = currentProfile ? getUpdateProfileEndpoint() : getCreateProfileEndpoint();
+
+        if (!endpoint) {
+            showProfileMessage("Invalid role. Unable to save profile.");
+            return;
+        }
+
+        const response = await fetch(`${API_BASE}${endpoint}`, {
+            method: method,
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            showProfileMessage(result.message || "Unable to save profile");
+            return;
+        }
+
+        currentProfile = result;
+        fillProfile(result);
+        showProfileMessage("Profile saved successfully", "success");
+
+    } catch (error) {
+        showProfileMessage("User service not reachable.");
+    }
+}
+
+
+function buildProfilePayload() {
     const role = localStorage.getItem("role");
+
+    if (role === "PATIENT") {
+        return {
+            patientName: getValue("patientName"),
+            email: getValue("email"),
+            mobile: getValue("mobile"),
+            gender: getValue("gender"),
+            dateOfBirth: getValue("dateOfBirth"),
+            bloodGroup: getValue("bloodGroup"),
+            address: getValue("address"),
+            state: getValue("state"),
+            district: getValue("district"),
+            pincode: getValue("pincode"),
+            medicalHistory: getValue("medicalHistory"),
+            emergencyContactName: getValue("emergencyContactName"),
+            emergencyContactMobile: getValue("emergencyContactMobile")
+        };
+    }
 
     let payload = {
         email: getValue("email"),
@@ -202,48 +372,84 @@ function buildPayload() {
     return payload;
 }
 
-async function saveProfile() {
+function validateProfile() {
     const role = localStorage.getItem("role");
-    const endpoint = getProfileEndpoint(role);
-    const token = localStorage.getItem("token");
-    const payload = buildPayload();
+
+    if (role === "PATIENT") {
+        if (!getValue("patientName")) {
+            showProfileMessage("Patient name is required");
+            return false;
+        }
+
+        if (!getValue("email")) {
+            showProfileMessage("Email is required");
+            return false;
+        }
+
+        if (!getValue("mobile")) {
+            showProfileMessage("Mobile number is required");
+            return false;
+        }
+
+        if (!getValue("gender")) {
+            showProfileMessage("Gender is required");
+            return false;
+        }
+
+        if (!getValue("dateOfBirth")) {
+            showProfileMessage("Date of birth is required");
+            return false;
+        }
+
+        return true;
+    }
 
     if (!getValue("businessName")) {
         showProfileMessage("Business/Profile name is required");
-        return;
+        return false;
     }
 
     if (!getValue("email")) {
         showProfileMessage("Email is required");
-        return;
+        return false;
     }
 
-    try {
-        let method = currentProfile ? "PUT" : "POST";
+    return true;
+}
+function getCreateProfileEndpoint() {
+    const role = localStorage.getItem("role");
 
-        const response = await fetch(`${API_BASE}/users/profiles/${endpoint}`, {
-            method: method,
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
-            },
-            body: JSON.stringify(payload)
-        });
+    if (role === "WHOLESALER") return "/users/profiles/wholesaler";
+    if (role === "RETAILER") return "/users/profiles/retailer";
+    if (role === "DOCTOR") return "/users/profiles/doctor";
+    if (role === "HOSPITAL") return "/users/profiles/hospital";
+    if (role === "PATIENT") return "/users/profiles/patient";
 
-        const result = await response.json();
+    return "";
+}
 
-        if (!response.ok) {
-            showProfileMessage(result.message || "Unable to save profile");
-            return;
-        }
+function getUpdateProfileEndpoint() {
+    const role = localStorage.getItem("role");
 
-        currentProfile = result;
-        fillForm(result);
-        showProfileMessage("Profile saved successfully", "success");
+    if (role === "WHOLESALER") return "/users/profiles/me/wholesaler";
+    if (role === "RETAILER") return "/users/profiles/me/retailer";
+    if (role === "DOCTOR") return "/users/profiles/me/doctor";
+    if (role === "HOSPITAL") return "/users/profiles/me/hospital";
+    if (role === "PATIENT") return "/users/profiles/me/patient";
 
-    } catch (error) {
-        showProfileMessage("User service not reachable.");
-    }
+    return "";
+}
+
+function getMyProfileEndpoint() {
+    const role = localStorage.getItem("role");
+
+    if (role === "WHOLESALER") return "/users/profiles/me/wholesaler";
+    if (role === "RETAILER") return "/users/profiles/me/retailer";
+    if (role === "DOCTOR") return "/users/profiles/me/doctor";
+    if (role === "HOSPITAL") return "/users/profiles/me/hospital";
+    if (role === "PATIENT") return "/users/profiles/me/patient";
+
+    return "";
 }
 
 function prefillBasicUser() {
@@ -270,7 +476,11 @@ async function updateLogoPreview() {
 }
 
 function getValue(id) {
-    return document.getElementById(id).value.trim();
+    const el = document.getElementById(id);
+    if (!el) {
+        return "";
+    }
+    return el.value ? el.value.trim() : "";
 }
 
 function setValue(id, value) {

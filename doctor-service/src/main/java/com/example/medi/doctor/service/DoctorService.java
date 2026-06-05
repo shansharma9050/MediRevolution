@@ -152,6 +152,10 @@ public class DoctorService {
     
     public Appointment bookAppointment(BookDoctorAppointmentRequest request) {
 
+    	if (!"PATIENT".equals(CurrentUserUtil.getRole())) {
+    	    throw new AccessDeniedException("Only PATIENT can book doctor appointment");
+    	}
+    	
         if (request.getDoctorAuthUserId() == null) {
             throw new RuntimeException("Doctor id is required");
         }
@@ -206,6 +210,10 @@ public class DoctorService {
     }
     
     public List<Appointment> getPatientAppointments() {
+    	
+    	if (!"PATIENT".equals(CurrentUserUtil.getRole())) {
+    	    throw new AccessDeniedException("Only PATIENT can view own appointment");
+    	}
 
         return appointmentRepository
                 .findByPatientAuthUserIdOrderByAppointmentDateDescAppointmentTimeDesc(CurrentUserUtil.getUserId());
@@ -234,6 +242,10 @@ public class DoctorService {
     }
     
     public Appointment cancelPatientAppointment(Long appointmentId) {
+    	
+    	if (!"PATIENT".equals(CurrentUserUtil.getRole())) {
+    	    throw new AccessDeniedException("Only PATIENT can cancel appointment");
+    	}
 
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));

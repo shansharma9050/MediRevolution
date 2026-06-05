@@ -19,6 +19,8 @@ public class HospitalDoctorAvailability {
 
     private Long hospitalAuthUserId;
 
+    private Long hospitalDoctorId;
+    
     private String doctorName;
 
     private String department;

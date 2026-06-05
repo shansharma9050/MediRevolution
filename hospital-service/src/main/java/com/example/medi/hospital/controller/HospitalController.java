@@ -3,6 +3,7 @@ package com.example.medi.hospital.controller;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,6 +19,7 @@ import com.example.medi.hospital.dto.HospitalAvailableSlotResponse;
 import com.example.medi.hospital.dto.HospitalDashboardResponse;
 import com.example.medi.hospital.entity.HospitalAppointment;
 import com.example.medi.hospital.entity.HospitalBill;
+import com.example.medi.hospital.entity.HospitalDoctor;
 import com.example.medi.hospital.entity.HospitalDoctorAvailability;
 import com.example.medi.hospital.entity.HospitalInventory;
 import com.example.medi.hospital.entity.HospitalPatient;
@@ -160,10 +162,13 @@ public class HospitalController {
 	}
 	
 	@PostMapping("/doctor-availability")
-	public HospitalDoctorAvailability createDoctorAvailability(
-	        @RequestBody HospitalDoctorAvailability availability
-	) {
-	    return service.createDoctorAvailability(availability);
+	public ResponseEntity<?> createDoctorAvailability(
+	        @RequestBody HospitalDoctorAvailability availability) {
+
+	    HospitalDoctorAvailability saved =
+	            service.createDoctorAvailability(availability);
+
+	    return ResponseEntity.ok(saved);
 	}
 
 	@GetMapping("/doctor-availability/my")
@@ -174,10 +179,10 @@ public class HospitalController {
 	@GetMapping("/available-slots")
 	public List<HospitalAvailableSlotResponse> getHospitalDoctorSlots(
 	        @RequestParam Long hospitalId,
-	        @RequestParam String doctorName,
+	        @RequestParam Long hospitalDoctorId,
 	        @RequestParam LocalDate date
 	) {
-	    return service.getHospitalDoctorSlots(hospitalId, doctorName, date);
+	    return service.getHospitalDoctorSlots(hospitalId, hospitalDoctorId, date);
 	}
 
 	@PostMapping("/appointments/book")
@@ -208,5 +213,34 @@ public class HospitalController {
 	@PutMapping("/appointments/{appointmentId}/cancel")
 	public HospitalAppointment cancelPatientHospitalAppointment(@PathVariable Long appointmentId) {
 	    return service.cancelPatientHospitalAppointment(appointmentId);
+	}
+	
+	@PostMapping("/doctors")
+	public HospitalDoctor createHospitalDoctor(@RequestBody HospitalDoctor doctor) {
+	    return service.createHospitalDoctor(doctor);
+	}
+
+	@GetMapping("/doctors/my")
+	public List<HospitalDoctor> getMyHospitalDoctors() {
+	    return service.getMyHospitalDoctors();
+	}
+
+	@GetMapping("/doctors/hospital/{hospitalId}")
+	public List<HospitalDoctor> getDoctorsByHospital(@PathVariable Long hospitalId) {
+	    return service.getDoctorsByHospital(hospitalId);
+	}
+
+	@PutMapping("/doctors/{doctorId}")
+	public HospitalDoctor updateHospitalDoctor(
+	        @PathVariable Long doctorId,
+	        @RequestBody HospitalDoctor doctor
+	) {
+	    return service.updateHospitalDoctor(doctorId, doctor);
+	}
+
+	@DeleteMapping("/doctors/{doctorId}")
+	public String deleteHospitalDoctor(@PathVariable Long doctorId) {
+	    service.deleteHospitalDoctor(doctorId);
+	    return "Hospital doctor deleted successfully";
 	}
 }

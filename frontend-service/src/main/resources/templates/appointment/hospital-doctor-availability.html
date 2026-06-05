@@ -62,12 +62,9 @@
 			<div class="row g-3">
 				<div class="col-md-4">
 					<label class="form-label">Doctor Name</label>
-					<input type="text" id="doctorName" class="form-control">
-				</div>
-
-				<div class="col-md-4">
-					<label class="form-label">Department</label>
-					<input type="text" id="department" class="form-control" placeholder="Cardiology">
+					<select id="hospitalDoctorId" class="form-select" onchange="fillDoctorDepartment()">
+					    <option value="">Loading doctors...</option>
+					</select>
 				</div>
 
 				<div class="col-md-4">

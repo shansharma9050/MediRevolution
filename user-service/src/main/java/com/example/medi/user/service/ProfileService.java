@@ -1,5 +1,7 @@
 package com.example.medi.user.service;
 
+import java.util.List;
+
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,8 @@ import com.example.medi.user.repository.PatientProfileRepository;
 import com.example.medi.user.repository.RetailerProfileRepository;
 import com.example.medi.user.repository.WholesalerProfileRepository;
 import com.example.medi.user.security.CurrentUserUtil;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class ProfileService {
@@ -65,14 +69,23 @@ public class ProfileService {
         return doctorRepository.save(profile);
     }
 
-    public HospitalProfile createHospitalProfile(HospitalProfile profile) {
+    public HospitalProfile createHospitalProfile(HospitalProfile request) {
 
-        if (hospitalRepository.findByAuthUserId(profile.getAuthUserId()).isPresent()) {
+        if (!"HOSPITAL".equals(CurrentUserUtil.getRole())) {
+            throw new AccessDeniedException("Only HOSPITAL can create hospital profile");
+        }
+
+        Long authUserId = CurrentUserUtil.getUserId();
+
+        if (hospitalRepository.existsByAuthUserId(authUserId)) {
             throw new RuntimeException("Hospital profile already exists");
         }
 
-        return hospitalRepository.save(profile);
+        request.setAuthUserId(authUserId);
+
+        return hospitalRepository.save(request);
     }
+    
 
     public WholesalerProfile getWholesalerProfile(Long authUserId) {
         return wholesalerRepository.findByAuthUserId(authUserId)
@@ -94,115 +107,174 @@ public class ProfileService {
                 .orElseThrow(() -> new RuntimeException("Hospital profile not found"));
     }
     
-    public WholesalerProfile updateWholesalerProfile(WholesalerProfile request) {
-        WholesalerProfile profile = wholesalerRepository.findByAuthUserId(request.getAuthUserId())
+    @Transactional
+    public PatientProfile updatePatientProfile(PatientProfile profile) {
+
+        Long authUserId = CurrentUserUtil.getUserId();
+
+        PatientProfile existing = patientProfileRepository
+                .findByAuthUserId(authUserId)
+                .orElseThrow(() -> new RuntimeException("Patient profile not found"));
+
+        existing.setPatientName(profile.getPatientName());
+        existing.setEmail(profile.getEmail());
+        existing.setMobile(profile.getMobile());
+        existing.setGender(profile.getGender());
+        existing.setDateOfBirth(profile.getDateOfBirth());
+        existing.setBloodGroup(profile.getBloodGroup());
+        existing.setAddress(profile.getAddress());
+        existing.setState(profile.getState());
+        existing.setDistrict(profile.getDistrict());
+        existing.setPincode(profile.getPincode());
+        existing.setMedicalHistory(profile.getMedicalHistory());
+        existing.setEmergencyContactName(profile.getEmergencyContactName());
+        existing.setEmergencyContactMobile(profile.getEmergencyContactMobile());
+
+        return patientProfileRepository.save(existing);
+    }
+    
+    @Transactional
+    public WholesalerProfile updateWholesalerProfile(WholesalerProfile profile) {
+
+        Long authUserId = CurrentUserUtil.getUserId();
+
+        WholesalerProfile existing = wholesalerRepository
+                .findByAuthUserId(authUserId)
                 .orElseThrow(() -> new RuntimeException("Wholesaler profile not found"));
 
-        profile.setBusinessName(request.getBusinessName());
-        profile.setOwnerName(request.getOwnerName());
-        profile.setDrugLicenseNumber(request.getDrugLicenseNumber());
-        profile.setGstNumber(request.getGstNumber());
-        profile.setEmail(request.getEmail());
-        profile.setMobile(request.getMobile());
-        profile.setAddress(request.getAddress());
-        profile.setState(request.getState());
-        profile.setDistrict(request.getDistrict());
-        profile.setPincode(request.getPincode());
-        profile.setContactPersonName(request.getContactPersonName());
-        profile.setContactPersonMobile(request.getContactPersonMobile());
-        profile.setBankName(request.getBankName());
-        profile.setAccountHolderName(request.getAccountHolderName());
-        profile.setAccountNumber(request.getAccountNumber());
-        profile.setIfscCode(request.getIfscCode());
-        profile.setBranchName(request.getBranchName());
-        profile.setProfileLogoUrl(request.getProfileLogoUrl());
-        profile.setDocumentUrl(request.getDocumentUrl());
+        existing.setBusinessName(profile.getBusinessName());
+        existing.setOwnerName(profile.getOwnerName());
+        existing.setDrugLicenseNumber(profile.getDrugLicenseNumber());
+        existing.setGstNumber(profile.getGstNumber());
 
-        return wholesalerRepository.save(profile);
+        existing.setEmail(profile.getEmail());
+        existing.setMobile(profile.getMobile());
+        existing.setAddress(profile.getAddress());
+        existing.setState(profile.getState());
+        existing.setDistrict(profile.getDistrict());
+        existing.setPincode(profile.getPincode());
+
+        existing.setContactPersonName(profile.getContactPersonName());
+        existing.setContactPersonMobile(profile.getContactPersonMobile());
+
+        existing.setBankName(profile.getBankName());
+        existing.setAccountHolderName(profile.getAccountHolderName());
+        existing.setAccountNumber(profile.getAccountNumber());
+        existing.setIfscCode(profile.getIfscCode());
+        existing.setBranchName(profile.getBranchName());
+
+        existing.setProfileLogoUrl(profile.getProfileLogoUrl());
+        existing.setDocumentUrl(profile.getDocumentUrl());
+
+        return wholesalerRepository.save(existing);
     }
     
-    public RetailerProfile updateRetailerProfile(RetailerProfile request) {
-        RetailerProfile profile = retailerRepository.findByAuthUserId(request.getAuthUserId())
+    @Transactional
+    public RetailerProfile updateRetailerProfile(RetailerProfile profile) {
+
+        Long authUserId = CurrentUserUtil.getUserId();
+
+        RetailerProfile existing = retailerRepository
+                .findByAuthUserId(authUserId)
                 .orElseThrow(() -> new RuntimeException("Retailer profile not found"));
 
-        profile.setStoreName(request.getStoreName());
-        profile.setOwnerName(request.getOwnerName());
-        profile.setDrugLicenseNumber(request.getDrugLicenseNumber());
-        profile.setGstNumber(request.getGstNumber());
-        profile.setEmail(request.getEmail());
-        profile.setMobile(request.getMobile());
-        profile.setAddress(request.getAddress());
-        profile.setState(request.getState());
-        profile.setDistrict(request.getDistrict());
-        profile.setPincode(request.getPincode());
-        profile.setContactPersonName(request.getContactPersonName());
-        profile.setContactPersonMobile(request.getContactPersonMobile());
-        profile.setBankName(request.getBankName());
-        profile.setAccountHolderName(request.getAccountHolderName());
-        profile.setAccountNumber(request.getAccountNumber());
-        profile.setIfscCode(request.getIfscCode());
-        profile.setBranchName(request.getBranchName());
-        profile.setProfileLogoUrl(request.getProfileLogoUrl());
-        profile.setDocumentUrl(request.getDocumentUrl());
+        existing.setStoreName(profile.getStoreName());
+        existing.setOwnerName(profile.getOwnerName());
+        existing.setDrugLicenseNumber(profile.getDrugLicenseNumber());
+        existing.setGstNumber(profile.getGstNumber());
 
-        return retailerRepository.save(profile);
+        existing.setEmail(profile.getEmail());
+        existing.setMobile(profile.getMobile());
+        existing.setAddress(profile.getAddress());
+        existing.setState(profile.getState());
+        existing.setDistrict(profile.getDistrict());
+        existing.setPincode(profile.getPincode());
+
+        existing.setContactPersonName(profile.getContactPersonName());
+        existing.setContactPersonMobile(profile.getContactPersonMobile());
+
+        existing.setBankName(profile.getBankName());
+        existing.setAccountHolderName(profile.getAccountHolderName());
+        existing.setAccountNumber(profile.getAccountNumber());
+        existing.setIfscCode(profile.getIfscCode());
+        existing.setBranchName(profile.getBranchName());
+
+        existing.setProfileLogoUrl(profile.getProfileLogoUrl());
+        existing.setDocumentUrl(profile.getDocumentUrl());
+
+        return retailerRepository.save(existing);
     }
     
-    public DoctorProfile updateDoctorProfile(DoctorProfile request) {
-        DoctorProfile profile = doctorRepository.findByAuthUserId(request.getAuthUserId())
-                .orElseThrow(() -> new RuntimeException("Retailer profile not found"));
+    @Transactional
+    public DoctorProfile updateDoctorProfile(DoctorProfile profile) {
 
-        profile.setDoctorName(request.getDoctorName());
-        profile.setHospitalName(request.getHospitalName());
-        profile.setSpecialization(request.getSpecialization());
-        profile.setExperienceYears(request.getExperienceYears());
-        profile.setRegistrationNumber(request.getRegistrationNumber());
-        profile.setEmail(request.getEmail());
-        profile.setMobile(request.getMobile());
-        profile.setAddress(request.getAddress());
-        profile.setState(request.getState());
-        profile.setDistrict(request.getDistrict());
-        profile.setPincode(request.getPincode());
-        profile.setContactPersonName(request.getContactPersonName());
-        profile.setContactPersonMobile(request.getContactPersonMobile());
-        profile.setBankName(request.getBankName());
-        profile.setAccountHolderName(request.getAccountHolderName());
-        profile.setAccountNumber(request.getAccountNumber());
-        profile.setIfscCode(request.getIfscCode());
-        profile.setBranchName(request.getBranchName());
-        profile.setProfileLogoUrl(request.getProfileLogoUrl());
-        profile.setDocumentUrl(request.getDocumentUrl());
+        Long authUserId = CurrentUserUtil.getUserId();
 
-        return doctorRepository.save(profile);
+        DoctorProfile existing = doctorRepository
+                .findByAuthUserId(authUserId)
+                .orElseThrow(() -> new RuntimeException("Doctor profile not found"));
+
+        existing.setDoctorName(profile.getDoctorName());
+        existing.setClinicName(profile.getClinicName());
+        existing.setRegistrationNumber(profile.getRegistrationNumber());
+        existing.setSpecialization(profile.getSpecialization());
+
+        existing.setEmail(profile.getEmail());
+        existing.setMobile(profile.getMobile());
+        existing.setAddress(profile.getAddress());
+        existing.setState(profile.getState());
+        existing.setDistrict(profile.getDistrict());
+        existing.setPincode(profile.getPincode());
+
+        existing.setContactPersonName(profile.getContactPersonName());
+        existing.setContactPersonMobile(profile.getContactPersonMobile());
+
+        existing.setBankName(profile.getBankName());
+        existing.setAccountHolderName(profile.getAccountHolderName());
+        existing.setAccountNumber(profile.getAccountNumber());
+        existing.setIfscCode(profile.getIfscCode());
+        existing.setBranchName(profile.getBranchName());
+
+        existing.setProfileLogoUrl(profile.getProfileLogoUrl());
+        existing.setDocumentUrl(profile.getDocumentUrl());
+
+        return doctorRepository.save(existing);
     }
     
-    public HospitalProfile updateHospitalProfile(HospitalProfile request) {
-    	HospitalProfile profile = hospitalRepository.findByAuthUserId(request.getAuthUserId())
+    @Transactional
+    public HospitalProfile updateHospitalProfile(HospitalProfile profile) {
+
+        Long authUserId = CurrentUserUtil.getUserId();
+
+        HospitalProfile existing = hospitalRepository
+                .findByAuthUserId(authUserId)
                 .orElseThrow(() -> new RuntimeException("Hospital profile not found"));
 
-        profile.setHospitalName(request.getHospitalName());
-        profile.setRegistrationNumber(request.getRegistrationNumber());
-        profile.setHospitalType(request.getHospitalType());
-        profile.setBedCapacity(request.getBedCapacity());
-        profile.setEmail(request.getEmail());
-        profile.setMobile(request.getMobile());
-        profile.setAddress(request.getAddress());
-        profile.setState(request.getState());
-        profile.setDistrict(request.getDistrict());
-        profile.setPincode(request.getPincode());
-        profile.setContactPersonName(request.getContactPersonName());
-        profile.setContactPersonMobile(request.getContactPersonMobile());
-        profile.setBankName(request.getBankName());
-        profile.setAccountHolderName(request.getAccountHolderName());
-        profile.setAccountNumber(request.getAccountNumber());
-        profile.setIfscCode(request.getIfscCode());
-        profile.setBranchName(request.getBranchName());
-        profile.setProfileLogoUrl(request.getProfileLogoUrl());
-        profile.setDocumentUrl(request.getDocumentUrl());
+        existing.setHospitalName(profile.getHospitalName());
+        existing.setRegistrationNumber(profile.getRegistrationNumber());
+        existing.setHospitalType(profile.getHospitalType());
 
-        return hospitalRepository.save(profile);
+        existing.setEmail(profile.getEmail());
+        existing.setMobile(profile.getMobile());
+        existing.setAddress(profile.getAddress());
+        existing.setState(profile.getState());
+        existing.setDistrict(profile.getDistrict());
+        existing.setPincode(profile.getPincode());
+
+        existing.setContactPersonName(profile.getContactPersonName());
+        existing.setContactPersonMobile(profile.getContactPersonMobile());
+
+        existing.setBankName(profile.getBankName());
+        existing.setAccountHolderName(profile.getAccountHolderName());
+        existing.setAccountNumber(profile.getAccountNumber());
+        existing.setIfscCode(profile.getIfscCode());
+        existing.setBranchName(profile.getBranchName());
+
+        existing.setProfileLogoUrl(profile.getProfileLogoUrl());
+        existing.setDocumentUrl(profile.getDocumentUrl());
+
+        return hospitalRepository.save(existing);
     }
-    
     public PatientProfile createPatientProfile(PatientProfile request) {
 
         if (!"PATIENT".equals(CurrentUserUtil.getRole())) {
@@ -230,29 +302,13 @@ public class ProfileService {
                 .orElseThrow(() -> new RuntimeException("Patient profile not found"));
     }
     
-    public PatientProfile updatePatientProfile(PatientProfile request) {
-
-        if (!"PATIENT".equals(CurrentUserUtil.getRole())) {
-            throw new AccessDeniedException("Only PATIENT can update patient profile");
-        }
-
-        PatientProfile profile = patientProfileRepository.findByAuthUserId(CurrentUserUtil.getUserId())
-                .orElseThrow(() -> new RuntimeException("Patient profile not found"));
-
-        profile.setPatientName(request.getPatientName());
-        profile.setMobile(request.getMobile());
-        profile.setEmail(request.getEmail());
-        profile.setGender(request.getGender());
-        profile.setDateOfBirth(request.getDateOfBirth());
-        profile.setBloodGroup(request.getBloodGroup());
-        profile.setAddress(request.getAddress());
-        profile.setState(request.getState());
-        profile.setDistrict(request.getDistrict());
-        profile.setPincode(request.getPincode());
-        profile.setMedicalHistory(request.getMedicalHistory());
-        profile.setEmergencyContactName(request.getEmergencyContactName());
-        profile.setEmergencyContactMobile(request.getEmergencyContactMobile());
-
-        return patientProfileRepository.save(profile);
+    public List<DoctorProfile> getAllDoctors() {
+        return doctorRepository.findAll();
     }
+
+    public List<HospitalProfile> getAllHospitals() {
+        return hospitalRepository.findAllByOrderByHospitalNameAsc();
+    }
+    
+    
 }

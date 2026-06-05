@@ -1,195 +1,569 @@
+let doctors = [];
+let hospitals = [];
+let hospitalDoctorsMap = {};
+
+let selectedType = "DOCTOR";
+let selectedDoctor = null;
+let selectedHospital = null;
+let selectedHospitalDoctor = null;
 let selectedSlot = null;
 
-document.addEventListener("DOMContentLoaded", function () {
-    switchBookingType();
+document.addEventListener("DOMContentLoaded", function() {
+	requirePatientRole();
+	loadPatientInfo();
+	loadDoctorsAndHospitals();
 });
 
+function requirePatientRole() {
+	if (localStorage.getItem("role") !== "PATIENT") {
+		alert("Only PATIENT can book appointment.");
+		window.location.href = "/dashboard";
+	}
+}
+
+function loadPatientInfo() {
+	document.getElementById("patientName").value =
+		localStorage.getItem("fullName") || "";
+
+	document.getElementById("patientMobile").value =
+		localStorage.getItem("mobile") || "";
+}
+
+async function loadDoctorsAndHospitals() {
+	const token = localStorage.getItem("token");
+
+	try {
+		const [doctorRes, hospitalRes] = await Promise.all([
+			fetch(`${API_BASE}/users/profiles/doctors`, {
+				headers: {
+					"Authorization": "Bearer " + token
+				}
+			}),
+			fetch(`${API_BASE}/users/profiles/hospitals`, {
+				headers: {
+					"Authorization": "Bearer " + token
+				}
+			})
+		]);
+
+		doctors = doctorRes.ok ? await doctorRes.json() : [];
+		hospitals = hospitalRes.ok ? await hospitalRes.json() : [];
+
+		renderProfileCards();
+
+	} catch (error) {
+		showMsg("Unable to load doctors/hospitals. Please check user-service.");
+	}
+}
+
 function switchBookingType() {
-    const type = document.getElementById("bookingType").value;
+	selectedType = document.getElementById("bookingType").value;
 
-    document.querySelectorAll(".doctor-field").forEach(el => {
-        el.style.display = type === "DOCTOR" ? "block" : "none";
-    });
+	selectedDoctor = null;
+	selectedHospital = null;
+	selectedHospitalDoctor = null;
+	selectedSlot = null;
 
-    document.querySelectorAll(".hospital-field").forEach(el => {
-        el.style.display = type === "HOSPITAL" ? "block" : "none";
-    });
+	document.getElementById("selectedTime").value = "";
+	document.getElementById("selectedInfo").style.display = "none";
 
-    selectedSlot = null;
-    document.getElementById("selectedTime").value = "";
-    document.getElementById("slotContainer").innerHTML =
-        `<span class="text-muted">Select date and click View Available Slots.</span>`;
+	document.getElementById("cardSectionTitle").innerText =
+		selectedType === "DOCTOR" ? "Select Doctor" : "Select Hospital";
+
+	document.getElementById("slotContainer").innerHTML =
+		`<span class="text-muted">Select doctor/hospital and date to view slots.</span>`;
+
+	renderProfileCards();
+}
+
+function filterCards() {
+	renderProfileCards();
+}
+
+function renderProfileCards() {
+	const container = document.getElementById("profileCards");
+	const keyword = document.getElementById("searchKeyword").value.toLowerCase();
+
+	let html = "";
+
+	if (selectedType === "DOCTOR") {
+
+		const filteredDoctors = doctors.filter(d =>
+			JSON.stringify(d).toLowerCase().includes(keyword)
+		);
+
+		if (!filteredDoctors.length) {
+			container.innerHTML =
+				`<div class="col-12 text-center text-muted py-4">No doctors found.</div>`;
+			return;
+		}
+
+		filteredDoctors.forEach(d => {
+
+			const doctorId = getAuthUserId(d);
+
+			const selectedClass =
+				selectedDoctor && getAuthUserId(selectedDoctor) === doctorId
+					? "selected"
+					: "";
+
+			html += `
+                <div class="col-xl-4 col-md-6">
+                    <div class="appointment-profile-card ${selectedClass}">
+                        <div class="d-flex gap-3 align-items-start">
+                            <div class="profile-avatar-circle">👨‍⚕️</div>
+
+                            <div>
+                                <h5 class="fw-bold text-primary mb-1">
+                                    ${safe(d.doctorName)}
+                                </h5>
+
+                                <div class="text-muted small">
+                                    ${safe(d.specialization)}
+                                </div>
+
+                                <div class="text-muted small">
+                                    ${safe(d.hospitalName)}
+                                </div>
+
+                                <div class="mt-2">
+                                    <span class="badge bg-info text-dark">
+                                        ${safe(d.experienceYears)} Years Exp.
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="small text-muted mb-2">
+                            ${safe(d.address)}, ${safe(d.district)}, ${safe(d.state)}
+                        </div>
+
+                        <button class="btn btn-medi"
+                                onclick="selectDoctor(${doctorId})">
+                            Select Doctor
+                        </button>
+                    </div>
+                </div>
+            `;
+		});
+
+		container.innerHTML = html;
+		return;
+	}
+
+	if (selectedType === "HOSPITAL") {
+
+		const filteredHospitals = hospitals.filter(h =>
+			JSON.stringify(h).toLowerCase().includes(keyword)
+		);
+
+		if (!filteredHospitals.length) {
+			container.innerHTML =
+				`<div class="col-12 text-center text-muted py-4">
+                    No hospitals found. Please create hospital profile first.
+                </div>`;
+			return;
+		}
+
+		filteredHospitals.forEach(h => {
+
+			const hospitalId = getAuthUserId(h);
+
+			if (!hospitalId) {
+				return;
+			}
+
+			const selectedClass =
+				selectedHospital && getAuthUserId(selectedHospital) === hospitalId
+					? "selected"
+					: "";
+
+			html += `
+                <div class="col-xl-4 col-md-6">
+                    <div class="appointment-profile-card ${selectedClass}">
+
+                        <div class="d-flex gap-3 align-items-start">
+                            <div class="profile-avatar-circle">🏥</div>
+
+                            <div>
+                                <h5 class="fw-bold text-primary mb-1">
+                                    ${safe(h.hospitalName)}
+                                </h5>
+
+                                <div class="text-muted small">
+                                    ${safe(h.hospitalType)}
+                                </div>
+
+                                <div class="mt-2">
+                                    <span class="badge bg-info text-dark">
+                                        Beds: ${safe(h.bedCapacity)}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="small text-muted mb-2">
+                            ${safe(h.address)}, ${safe(h.district)}, ${safe(h.state)}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small">Select Doctor</label>
+
+                            <select id="hospitalDoctor_${hospitalId}" class="form-select">
+                                <option value="">Loading doctors...</option>
+                            </select>
+                        </div>
+
+                        <button class="btn btn-medi"
+                                onclick="selectHospital(${hospitalId})">
+                            Select Hospital Doctor
+                        </button>
+
+                    </div>
+                </div>
+            `;
+		});
+
+		container.innerHTML = html;
+		loadDoctorsForVisibleHospitals();
+	}
+}
+
+async function loadDoctorsForVisibleHospitals() {
+	const token = localStorage.getItem("token");
+
+	for (const hospital of hospitals) {
+
+		const hospitalId = getAuthUserId(hospital);
+
+		if (!hospitalId) {
+			continue;
+		}
+
+		const dropdown = document.getElementById("hospitalDoctor_" + hospitalId);
+
+		if (!dropdown) {
+			continue;
+		}
+
+		try {
+			const response = await fetch(`${API_BASE}/hospital/doctors/hospital/${hospitalId}`, {
+				headers: {
+					"Authorization": "Bearer " + token
+				}
+			});
+
+			const hospitalDoctorList = response.ok ? await response.json() : [];
+
+			hospitalDoctorsMap[hospitalId] = hospitalDoctorList;
+
+			if (!hospitalDoctorList.length) {
+				dropdown.innerHTML =
+					`<option value="">No doctors added</option>`;
+				continue;
+			}
+
+			let options =
+				`<option value="">Select Doctor</option>`;
+
+			hospitalDoctorList.forEach(d => {
+				options += `
+                    <option value="${d.id}">
+                        ${safe(d.doctorName)} - ${safe(d.department)}
+                    </option>
+                `;
+			});
+
+			dropdown.innerHTML = options;
+
+		} catch (e) {
+			dropdown.innerHTML =
+				`<option value="">Unable to load doctors</option>`;
+		}
+	}
+}
+
+function selectDoctor(doctorId) {
+	selectedDoctor = doctors.find(d => getAuthUserId(d) === doctorId);
+
+	if (!selectedDoctor) {
+		showMsg("Selected doctor not found");
+		return;
+	}
+
+	selectedHospital = null;
+	selectedHospitalDoctor = null;
+	selectedSlot = null;
+
+	document.getElementById("selectedTime").value = "";
+
+	document.getElementById("selectedInfo").style.display = "block";
+	document.getElementById("selectedInfo").innerHTML =
+		`<strong>Selected Doctor:</strong> ${safe(selectedDoctor.doctorName)}
+         | ${safe(selectedDoctor.specialization)}`;
+
+	renderProfileCards();
+	loadSlots();
+}
+
+function selectHospital(hospitalId) {
+	const doctorSelect = document.getElementById("hospitalDoctor_" + hospitalId);
+
+	if (!doctorSelect || !doctorSelect.value) {
+		showMsg("Please select hospital doctor");
+		return;
+	}
+
+	const hospitalDoctorId = Number(doctorSelect.value);
+
+	const doctorList = hospitalDoctorsMap[hospitalId] || [];
+
+	const hospitalDoctor = doctorList.find(d => d.id === hospitalDoctorId);
+
+	if (!hospitalDoctor) {
+		showMsg("Selected hospital doctor not found");
+		return;
+	}
+
+	selectedHospital = hospitals.find(h => getAuthUserId(h) === hospitalId);
+
+	if (!selectedHospital) {
+		showMsg("Selected hospital not found");
+		return;
+	}
+
+	selectedHospitalDoctor = hospitalDoctor;
+	selectedDoctor = null;
+	selectedSlot = null;
+
+	document.getElementById("selectedTime").value = "";
+
+	document.getElementById("selectedInfo").style.display = "block";
+	document.getElementById("selectedInfo").innerHTML =
+		`<strong>Selected Hospital:</strong> ${safe(selectedHospital.hospitalName)}
+         | <strong>Doctor:</strong> ${safe(hospitalDoctor.doctorName)}
+         | <strong>Department:</strong> ${safe(hospitalDoctor.department)}`;
+
+	renderProfileCards();
+	loadSlots();
+}
+
+function reloadSlotsIfSelected() {
+	if (selectedType === "DOCTOR" && selectedDoctor) {
+		loadSlots();
+	}
+
+	if (selectedType === "HOSPITAL" && selectedHospital && selectedHospitalDoctor) {
+		loadSlots();
+	}
 }
 
 async function loadSlots() {
-    const type = document.getElementById("bookingType").value;
-    const date = document.getElementById("appointmentDate").value;
+	const date = document.getElementById("appointmentDate").value;
 
-    if (!date) {
-        showMsg("Please select appointment date");
-        return;
-    }
+	if (!date) {
+		showMsg("Please select appointment date");
+		return;
+	}
 
-    const token = localStorage.getItem("token");
+	const token = localStorage.getItem("token");
 
-    let url = "";
+	let url = "";
 
-    if (type === "DOCTOR") {
-        const doctorId = document.getElementById("doctorAuthUserId").value;
+	if (selectedType === "DOCTOR") {
 
-        if (!doctorId) {
-            showMsg("Doctor Auth User ID is required");
-            return;
-        }
+		if (!selectedDoctor) {
+			showMsg("Please select doctor");
+			return;
+		}
 
-        url = `${API_BASE}/doctor/available-slots/${doctorId}?date=${date}`;
-    }
+		const doctorId = getAuthUserId(selectedDoctor);
 
-    if (type === "HOSPITAL") {
-        const hospitalId = document.getElementById("hospitalAuthUserId").value;
-        const doctorName = document.getElementById("hospitalDoctorName").value.trim();
+		url =
+			`${API_BASE}/doctor/available-slots/${doctorId}` +
+			`?date=${date}`;
+	}
 
-        if (!hospitalId || !doctorName) {
-            showMsg("Hospital ID and doctor name are required");
-            return;
-        }
+	if (selectedType === "HOSPITAL") {
 
-        url = `${API_BASE}/hospital/available-slots?hospitalId=${hospitalId}&doctorName=${encodeURIComponent(doctorName)}&date=${date}`;
-    }
+		if (!selectedHospital || !selectedHospitalDoctor) {
+			showMsg("Please select hospital doctor");
+			return;
+		}
 
-    try {
-        const response = await fetch(url, {
-            headers: {"Authorization": "Bearer " + token}
-        });
+		const hospitalId = getAuthUserId(selectedHospital);
 
-        const result = await response.json();
+		url =
+			`${API_BASE}/hospital/available-slots` +
+			`?hospitalId=${hospitalId}` +
+			`&hospitalDoctorId=${selectedHospitalDoctor.id}` +
+			`&date=${date}`;
+	}
 
-        if (!response.ok) {
-            showMsg(result.message || "Unable to load slots");
-            return;
-        }
+	try {
+		const response = await fetch(url, {
+			headers: {
+				"Authorization": "Bearer " + token
+			}
+		});
 
-        renderSlots(result);
+		const result = await response.json();
 
-    } catch (e) {
-        showMsg("Appointment service not reachable.");
-    }
+		if (!response.ok) {
+			showMsg(result.message || "Unable to load slots");
+			return;
+		}
+
+		renderSlots(result);
+
+	} catch (error) {
+		showMsg("Appointment service not reachable.");
+	}
 }
 
 function renderSlots(slots) {
-    const container = document.getElementById("slotContainer");
+	const container = document.getElementById("slotContainer");
 
-    selectedSlot = null;
-    document.getElementById("selectedTime").value = "";
+	selectedSlot = null;
+	document.getElementById("selectedTime").value = "";
 
-    if (!slots || !slots.length) {
-        container.innerHTML = `<span class="text-muted">No slots available.</span>`;
-        return;
-    }
+	if (!slots || !slots.length) {
+		container.innerHTML =
+			`<span class="text-muted">No slots available for selected date.</span>`;
+		return;
+	}
 
-    let html = "";
+	let html = "";
 
-    slots.forEach(slot => {
-        html += `
+	slots.forEach(slot => {
+		html += `
             <button class="btn ${slot.booked ? 'btn-secondary' : 'btn-outline-primary'}"
                     ${slot.booked ? 'disabled' : ''}
                     onclick="selectSlot('${slot.time}', this)">
                 ${slot.time}
             </button>
         `;
-    });
+	});
 
-    container.innerHTML = html;
+	container.innerHTML = html;
 }
 
-function selectSlot(time, btn) {
-    selectedSlot = time;
-    document.getElementById("selectedTime").value = time;
+function selectSlot(time, button) {
+	selectedSlot = time;
+	document.getElementById("selectedTime").value = time;
 
-    document.querySelectorAll("#slotContainer button").forEach(b => {
-        b.classList.remove("btn-primary");
-        b.classList.add("btn-outline-primary");
-    });
+	document.querySelectorAll("#slotContainer button").forEach(btn => {
+		btn.classList.remove("slot-btn-selected");
+	});
 
-    btn.classList.remove("btn-outline-primary");
-    btn.classList.add("btn-primary");
+	button.classList.add("slot-btn-selected");
 }
 
 async function bookAppointment() {
-    const type = document.getElementById("bookingType").value;
-    const date = document.getElementById("appointmentDate").value;
+	const date = document.getElementById("appointmentDate").value;
 
-    if (!selectedSlot) {
-        showMsg("Please select a slot");
-        return;
-    }
+	if (!selectedSlot) {
+		showMsg("Please select available slot");
+		return;
+	}
 
-    const common = {
-        patientName: document.getElementById("patientName").value.trim(),
-        patientMobile: document.getElementById("patientMobile").value.trim(),
-        appointmentDate: date,
-        appointmentTime: selectedSlot,
-        symptoms: document.getElementById("symptoms").value.trim()
-    };
+	const patientName = document.getElementById("patientName").value.trim();
+	const patientMobile = document.getElementById("patientMobile").value.trim();
+	const symptoms = document.getElementById("symptoms").value.trim();
 
-    if (!common.patientName || !common.patientMobile || !common.symptoms) {
-        showMsg("Patient name, mobile and symptoms are required");
-        return;
-    }
+	if (!patientName || !patientMobile || !symptoms) {
+		showMsg("Patient name, mobile and symptoms are required");
+		return;
+	}
 
-    let url = "";
-    let payload = {};
+	let url = "";
+	let payload = {};
 
-    if (type === "DOCTOR") {
-        payload = {
-            ...common,
-            doctorAuthUserId: Number(document.getElementById("doctorAuthUserId").value)
-        };
+	if (selectedType === "DOCTOR") {
 
-        url = `${API_BASE}/doctor/appointments/book`;
-    }
+		payload = {
+			doctorAuthUserId: getAuthUserId(selectedDoctor),
+			patientName: patientName,
+			patientMobile: patientMobile,
+			appointmentDate: date,
+			appointmentTime: selectedSlot,
+			symptoms: symptoms
+		};
 
-    if (type === "HOSPITAL") {
-        payload = {
-            ...common,
-            hospitalAuthUserId: Number(document.getElementById("hospitalAuthUserId").value),
-            doctorName: document.getElementById("hospitalDoctorName").value.trim(),
-            department: document.getElementById("department").value.trim()
-        };
+		url = `${API_BASE}/doctor/appointments/book`;
+	}
 
-        url = `${API_BASE}/hospital/appointments/book`;
-    }
+	if (selectedType === "HOSPITAL") {
 
-    const token = localStorage.getItem("token");
+		payload = {
+			hospitalAuthUserId: getAuthUserId(selectedHospital),
+			hospitalDoctorId: selectedHospitalDoctor.id,
+			patientName: patientName,
+			patientMobile: patientMobile,
+			appointmentDate: date,
+			appointmentTime: selectedSlot,
+			symptoms: symptoms
+		};
 
-    try {
-        const response = await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
-            },
-            body: JSON.stringify(payload)
-        });
+		url = `${API_BASE}/hospital/appointments/book`;
+	}
 
-        const result = await response.json();
+	const token = localStorage.getItem("token");
 
-        if (!response.ok) {
-            showMsg(result.message || "Unable to book appointment");
-            return;
-        }
+	try {
+		const response = await fetch(url, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"Authorization": "Bearer " + token
+			},
+			body: JSON.stringify(payload)
+		});
 
-        showMsg("Appointment booked successfully. Status: PENDING", "success");
+		const result = await response.json();
 
-        setTimeout(() => {
-            window.location.href = "/appointments/my";
-        }, 1500);
+		if (!response.ok) {
+			showMsg(result.message || "Unable to book appointment");
+			return;
+		}
 
-    } catch (e) {
-        showMsg("Appointment service not reachable.");
-    }
+		showMsg("Appointment booked successfully. Status: PENDING", "success");
+
+		setTimeout(() => {
+			window.location.href = "/appointments/my";
+		}, 1500);
+
+	} catch (error) {
+		showMsg("Appointment service not reachable.");
+	}
+}
+
+function getAuthUserId(obj) {
+	if (!obj) {
+		return null;
+	}
+
+	return Number(
+		obj.authUserId ||
+		obj.hospitalAuthUserId ||
+		obj.doctorAuthUserId ||
+		obj.userId
+	);
 }
 
 function showMsg(message, type = "danger") {
-    document.getElementById("msg").innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+	document.getElementById("msg").innerHTML =
+		`<div class="alert alert-${type}">${message}</div>`;
+
+	setTimeout(() => {
+		document.getElementById("msg").innerHTML = "";
+	}, 4000);
+}
+
+function safe(value) {
+	return value === null || value === undefined || value === "" ? "-" : value;
 }
