@@ -3,6 +3,7 @@ package com.example.medi.auth.service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.example.medi.auth.constant.OtpType;
 import com.example.medi.auth.dto.AuthResponse;
 import com.example.medi.auth.dto.LoginRequest;
 import com.example.medi.auth.dto.RegisterRequest;
@@ -18,15 +19,17 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final OtpService otpService;
 
     public AuthService(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            JwtService jwtService
+            JwtService jwtService,OtpService otpService
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.otpService = otpService;
     }
 
     public AuthResponse register(RegisterRequest request) {
@@ -37,6 +40,10 @@ public class AuthService {
 
         if (request.getMobile() != null && userRepository.existsByMobile(request.getMobile())) {
             throw new ApiException("Mobile already registered");
+        }
+        
+        if (!otpService.isVerified(request.getEmail().trim().toLowerCase(), OtpType.EMAIL)) {
+            throw new ApiException("Email is not verified");
         }
 
         User user = new User();

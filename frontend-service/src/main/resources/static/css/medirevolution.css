@@ -941,6 +941,179 @@ body {
 }
 
 /*=================================end=======================================*/
+.registered-patient-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #ffffff;
+    border: 1px solid #d7dce5;
+    border-radius: 10px;
+    max-height: 260px;
+    overflow-y: auto;
+    z-index: 9999;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    margin-top: 4px;
+}
+
+.registered-patient-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #eef1f5;
+}
+
+.registered-patient-item:hover {
+    background: #f1f6ff;
+}
+
+.registered-patient-item strong {
+    display: block;
+    color: #05285f;
+    font-size: 14px;
+}
+
+.registered-patient-item span {
+    display: block;
+    font-size: 12px;
+    color: #6c757d;
+}
+.professional-register-card {
+    max-width: 560px;
+}
+
+.register-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.register-steps .step {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #e9f2ff;
+    color: #05285f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    border: 2px solid #d8e8ff;
+    transition: 0.3s ease;
+}
+
+.register-steps .step.active {
+    background: linear-gradient(135deg, #05285f, #03bfd7);
+    color: #ffffff;
+    border-color: #03bfd7;
+    box-shadow: 0 8px 22px rgba(3, 191, 215, 0.35);
+}
+
+.register-steps .step.completed {
+    background: #16a34a;
+    color: #ffffff;
+    border-color: #16a34a;
+}
+
+.register-steps .step.completed::after {
+    content: "✓";
+    font-size: 18px;
+}
+
+.register-steps .step.completed {
+    font-size: 0;
+}
+
+.step-line {
+    width: 70px;
+    height: 3px;
+    background: #d8e8ff;
+}
+
+.btn-medi-inline {
+    background: linear-gradient(135deg, #05285f, #03bfd7);
+    color: #ffffff;
+    border: none;
+    padding: 0 18px;
+    font-weight: 700;
+}
+
+.btn-medi-inline:hover {
+    color: #ffffff;
+    opacity: 0.95;
+}
+
+.verified-box {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #bbf7d0;
+    padding: 12px 15px;
+    border-radius: 14px;
+    font-weight: 700;
+}
+
+.password-strength {
+    width: 100%;
+    height: 8px;
+    border-radius: 20px;
+    background: #e5e7eb;
+    overflow: hidden;
+}
+
+.password-strength div {
+    height: 100%;
+    width: 0;
+    border-radius: 20px;
+    transition: 0.3s ease;
+}
+
+.password-strength div.weak {
+    background: #ef4444;
+}
+
+.password-strength div.medium {
+    background: #f59e0b;
+}
+
+.password-strength div.strong {
+    background: #16a34a;
+}
+
+.input-group .form-control {
+    border-right: none;
+}
+
+.input-group .btn {
+    border-top-right-radius: 14px;
+    border-bottom-right-radius: 14px;
+}
+
+@media (max-width: 576px) {
+    .step-line {
+        width: 45px;
+    }
+
+    .register-steps .step {
+        width: 34px;
+        height: 34px;
+    }
+
+    .input-group {
+        flex-direction: column;
+    }
+
+    .input-group .form-control {
+        width: 100%;
+        border-right: 1px solid #ced4da;
+        border-radius: 14px !important;
+        margin-bottom: 10px;
+    }
+
+    .input-group .btn {
+        width: 100%;
+        border-radius: 14px !important;
+        padding: 12px;
+    }
+}
 
 
 @media (max-width: 991px) {

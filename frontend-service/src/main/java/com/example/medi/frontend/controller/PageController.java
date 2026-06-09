@@ -163,4 +163,15 @@ public class PageController {
     public String hospitalDoctorsPage() {
         return "hospital/doctors";
     }
+    
+    @GetMapping("/forgot-password")
+    public String forgotPasswordPage() {
+        return "forgot-password";
+    }
+    
+    @GetMapping("/patient/prescriptions")
+    public String patientPrescriptionsPage() {
+        return "patient-prescriptions";
+    }
+
 }

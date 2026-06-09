@@ -32,8 +32,20 @@ public class SecurityConfig {
                  session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
          )
          .authorizeHttpRequests(auth -> auth
-        	        .requestMatchers(HttpMethod.POST, "/auth/register", "/auth/login").permitAll()
+        	        .requestMatchers(HttpMethod.POST, "/",
+        	                "/register",
+        	                "/forgot-password",
+        	                "/auth/register",
+        	                "/auth/login",
+        	                "/auth/send-email-otp",
+        	                "/auth/verify-email-otp",
+        	                "/auth/forgot-password/**",
+        	                "/css/**",
+        	                "/js/**",
+        	                "/images/**",
+        	                "/manifest.json").permitAll()
         	        .requestMatchers("/actuator/**").permitAll()
+        	        .requestMatchers("/auth/registered-patients").hasRole("DOCTOR")
         	        .requestMatchers("/auth/admin/users/**").hasAuthority("ROLE_SUPER_ADMIN")
         	        .anyRequest().authenticated()
         	)

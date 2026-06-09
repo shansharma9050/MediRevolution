@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.example.medi.auth.entity.User;
+import com.example.medi.auth.enums.RoleName;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
@@ -23,4 +24,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     long countByApprovedTrueAndActiveTrue();
 
     long countByActiveFalse();
+    
+    List<User> findByRole(RoleName role);
 }

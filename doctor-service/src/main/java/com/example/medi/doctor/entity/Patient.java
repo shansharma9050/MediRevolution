@@ -18,6 +18,8 @@ public class Patient {
     private Long id;
 
     private Long doctorAuthUserId;
+    
+    private Long patientAuthUserId;
 
     private String patientName;
     private String mobile;
@@ -33,5 +35,15 @@ public class Patient {
     private String medicalHistory;
 
     private LocalDateTime createdAt = LocalDateTime.now();
+    
+    private Boolean active = true;
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
 
 }

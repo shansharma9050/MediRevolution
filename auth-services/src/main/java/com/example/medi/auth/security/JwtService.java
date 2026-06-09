@@ -21,12 +21,14 @@ public class JwtService {
     private long expiration;
 
     public String generateToken(User user) {
-        return Jwts.builder()
-                .setSubject(user.getEmail())
+    	return Jwts.builder()
+                .subject(user.getEmail())
                 .claim("userId", user.getId())
+                .claim("userName", user.getFullName())
+                .claim("email", user.getEmail())
                 .claim("role", user.getRole().name())
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8)))
                 .compact();
     }

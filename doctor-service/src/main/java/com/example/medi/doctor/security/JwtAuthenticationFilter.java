@@ -4,6 +4,8 @@ package com.example.medi.doctor.security;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -21,6 +23,10 @@ import java.util.List;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+	
+	@Autowired
+	public JwtUtil jwtUtil;
+	
 	 @Value("${jwt.secret}")
 	    private String secret;
 
@@ -47,18 +53,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	                    .parseSignedClaims(token)
 	                    .getPayload();
 
-	            Long userId = claims.get("userId", Long.class);
-	            String email = claims.getSubject();
-	            String role = claims.get("role", String.class);
+	            Long userId = jwtUtil.extractUserId(token);
+	            String userName = jwtUtil.extractUserName(token);
+	            String email = jwtUtil.extractEmail(token);
+	            String role = jwtUtil.extractRole(token);
+
+	            List<SimpleGrantedAuthority> authorities = List.of(
+	                    new SimpleGrantedAuthority("ROLE_" + role)
+	            );
+
+	            AuthUser authUser = new AuthUser(userId, userName, email, role);
 
 	            UsernamePasswordAuthenticationToken authentication =
-	                    new UsernamePasswordAuthenticationToken(
-	                            email,
-	                            null,
-	                            List.of(new SimpleGrantedAuthority("ROLE_" + role))
-	                    );
+	                    new UsernamePasswordAuthenticationToken(authUser, null, authorities);
 
-	            authentication.setDetails(userId);
 	            SecurityContextHolder.getContext().setAuthentication(authentication);
 
 	        } catch (Exception e) {

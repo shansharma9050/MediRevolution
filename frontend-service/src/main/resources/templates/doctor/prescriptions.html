@@ -48,14 +48,15 @@
 				<p class="mr-page-subtitle">Create prescriptions with symptoms, diagnosis, medicines and advice.</p>
 			</div>
 
-			<button class="btn btn-medi" style="width:auto;" onclick="togglePrescriptionForm()">+ Create
-				Prescription</button>
+			<button class="btn btn-medi" style="width:auto;" onclick="openCreatePrescriptionForm()">
+				+ Create Prescription
+			</button>
 		</div>
 
 		<div id="msg"></div>
 
 		<div class="mr-card mb-4" id="prescriptionFormPanel" style="display:none;">
-			<h5 class="fw-bold text-primary mb-3">New Prescription</h5>
+			<h5 class="fw-bold text-primary mb-3" id="formTitle">New Prescription</h5>
 
 			<div class="row g-3">
 				<div class="col-md-6">
@@ -85,8 +86,15 @@
 				</div>
 
 				<div class="col-md-12 text-end">
-					<button class="btn btn-medi" style="width:auto;" onclick="createPrescription()">Save
-						Prescription</button>
+					<button id="savePrescriptionBtn" class="btn btn-medi" style="width:auto;"
+						onclick="savePrescription()">
+						Save Prescription
+					</button>
+
+					<button type="button" class="btn btn-secondary ms-2" style="width:auto;"
+						onclick="cancelEditPrescription(); document.getElementById('prescriptionFormPanel').style.display='none';">
+						Cancel
+					</button>
 				</div>
 			</div>
 		</div>
