@@ -3,15 +3,18 @@ let hospitals = [];
 let hospitalDoctorsMap = {};
 
 let selectedType = "DOCTOR";
+let consultationType = "OFFLINE";
+
 let selectedDoctor = null;
 let selectedHospital = null;
 let selectedHospitalDoctor = null;
 let selectedSlot = null;
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
 	requirePatientRole();
 	loadPatientInfo();
 	loadDoctorsAndHospitals();
+	switchConsultationType();
 });
 
 function requirePatientRole() {
@@ -52,6 +55,7 @@ async function loadDoctorsAndHospitals() {
 		renderProfileCards();
 
 	} catch (error) {
+		console.error(error);
 		showMsg("Unable to load doctors/hospitals. Please check user-service.");
 	}
 }
@@ -74,6 +78,22 @@ function switchBookingType() {
 		`<span class="text-muted">Select doctor/hospital and date to view slots.</span>`;
 
 	renderProfileCards();
+}
+
+function switchConsultationType() {
+	consultationType = document.getElementById("consultationType").value;
+
+	const button = document.getElementById("bookAppointmentBtn");
+
+	if (!button) {
+		return;
+	}
+
+	if (consultationType === "ONLINE") {
+		button.innerText = "Pay & Book Video Consultation";
+	} else {
+		button.innerText = "Book Offline Appointment";
+	}
 }
 
 function filterCards() {
@@ -383,9 +403,13 @@ async function loadSlots() {
 
 		const doctorId = getAuthUserId(selectedDoctor);
 
-		url =
-			`${API_BASE}/doctor/available-slots/${doctorId}` +
-			`?date=${date}`;
+		if (!doctorId || Number.isNaN(doctorId)) {
+			showMsg("Doctor ID not found. Please check doctor profile authUserId.");
+			console.log("Selected Doctor Object:", selectedDoctor);
+			return;
+		}
+
+		url = `${API_BASE}/doctor/available-slots/${doctorId}?date=${date}`;
 	}
 
 	if (selectedType === "HOSPITAL") {
@@ -397,6 +421,12 @@ async function loadSlots() {
 
 		const hospitalId = getAuthUserId(selectedHospital);
 
+		if (!hospitalId || Number.isNaN(hospitalId)) {
+			showMsg("Hospital ID not found. Please check hospital profile authUserId.");
+			console.log("Selected Hospital Object:", selectedHospital);
+			return;
+		}
+
 		url =
 			`${API_BASE}/hospital/available-slots` +
 			`?hospitalId=${hospitalId}` +
@@ -404,24 +434,39 @@ async function loadSlots() {
 			`&date=${date}`;
 	}
 
+	console.log("Loading slots URL:", url);
+
 	try {
 		const response = await fetch(url, {
+			method: "GET",
 			headers: {
 				"Authorization": "Bearer " + token
 			}
 		});
 
-		const result = await response.json();
+		let result = null;
+
+		try {
+			result = await response.json();
+		} catch (e) {
+			result = null;
+		}
 
 		if (!response.ok) {
-			showMsg(result.message || "Unable to load slots");
+			console.error("Slot API failed:", response.status, result);
+			showMsg(
+				(result && result.message)
+					? result.message
+					: `Unable to load slots. HTTP Status: ${response.status}`
+			);
 			return;
 		}
 
-		renderSlots(result);
+		renderSlots(result || []);
 
 	} catch (error) {
-		showMsg("Appointment service not reachable.");
+		console.error("Slot API network error:", error);
+		showMsg("Appointment service not reachable. Check backend service/API_BASE/CORS/security.");
 	}
 }
 
@@ -464,11 +509,28 @@ function selectSlot(time, button) {
 }
 
 async function bookAppointment() {
+	const payloadData = buildAppointmentPayload();
+
+	if (!payloadData) {
+		return;
+	}
+
+	if (consultationType === "OFFLINE") {
+		await bookOfflineAppointment(payloadData);
+		return;
+	}
+
+	if (consultationType === "ONLINE") {
+		await bookOnlineAppointmentWithPayment(payloadData);
+	}
+}
+
+function buildAppointmentPayload() {
 	const date = document.getElementById("appointmentDate").value;
 
 	if (!selectedSlot) {
 		showMsg("Please select available slot");
-		return;
+		return null;
 	}
 
 	const patientName = document.getElementById("patientName").value.trim();
@@ -477,51 +539,73 @@ async function bookAppointment() {
 
 	if (!patientName || !patientMobile || !symptoms) {
 		showMsg("Patient name, mobile and symptoms are required");
-		return;
+		return null;
 	}
-
-	let url = "";
-	let payload = {};
 
 	if (selectedType === "DOCTOR") {
 
-		payload = {
-			doctorAuthUserId: getAuthUserId(selectedDoctor),
-			patientName: patientName,
-			patientMobile: patientMobile,
-			appointmentDate: date,
-			appointmentTime: selectedSlot,
-			symptoms: symptoms
-		};
+		if (!selectedDoctor) {
+			showMsg("Please select doctor");
+			return null;
+		}
 
-		url = `${API_BASE}/doctor/appointments/book`;
+		return {
+			url: `${API_BASE}/doctor/appointments/book`,
+			paymentUrl: `${API_BASE}/doctor/payments/video-appointment`,
+			payload: {
+				bookingFor: "DOCTOR",
+				consultationType: consultationType,
+				doctorAuthUserId: getAuthUserId(selectedDoctor),
+				patientName: patientName,
+				patientMobile: patientMobile,
+				appointmentDate: date,
+				appointmentTime: selectedSlot,
+				symptoms: symptoms
+			}
+		};
 	}
 
 	if (selectedType === "HOSPITAL") {
 
-		payload = {
-			hospitalAuthUserId: getAuthUserId(selectedHospital),
-			hospitalDoctorId: selectedHospitalDoctor.id,
-			patientName: patientName,
-			patientMobile: patientMobile,
-			appointmentDate: date,
-			appointmentTime: selectedSlot,
-			symptoms: symptoms
-		};
+		if (!selectedHospital || !selectedHospitalDoctor) {
+			showMsg("Please select hospital doctor");
+			return null;
+		}
 
-		url = `${API_BASE}/hospital/appointments/book`;
+		return {
+			url: `${API_BASE}/hospital/appointments/book`,
+			paymentUrl: `${API_BASE}/hospital/payments/video-appointment`,
+			payload: {
+				bookingFor: "HOSPITAL",
+				consultationType: consultationType,
+				hospitalAuthUserId: getAuthUserId(selectedHospital),
+				hospitalDoctorId: selectedHospitalDoctor.id,
+				patientName: patientName,
+				patientMobile: patientMobile,
+				appointmentDate: date,
+				appointmentTime: selectedSlot,
+				symptoms: symptoms
+			}
+		};
 	}
 
+	showMsg("Invalid booking type");
+	return null;
+}
+
+async function bookOfflineAppointment(payloadData) {
 	const token = localStorage.getItem("token");
 
+	setButtonLoading("bookAppointmentBtn", "Booking...", true);
+
 	try {
-		const response = await fetch(url, {
+		const response = await fetch(payloadData.url, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 				"Authorization": "Bearer " + token
 			},
-			body: JSON.stringify(payload)
+			body: JSON.stringify(payloadData.payload)
 		});
 
 		const result = await response.json();
@@ -531,14 +615,54 @@ async function bookAppointment() {
 			return;
 		}
 
-		showMsg("Appointment booked successfully. Status: PENDING", "success");
+		showMsg("Offline appointment booked successfully. Status: PENDING", "success");
 
 		setTimeout(() => {
 			window.location.href = "/appointments/my";
 		}, 1500);
 
 	} catch (error) {
+		console.error(error);
 		showMsg("Appointment service not reachable.");
+	} finally {
+		setButtonLoading("bookAppointmentBtn", "Book Offline Appointment", false);
+	}
+}
+
+async function bookOnlineAppointmentWithPayment(payloadData) {
+	const token = localStorage.getItem("token");
+
+	setButtonLoading("bookAppointmentBtn", "Starting Payment...", true);
+
+	try {
+		const response = await fetch(payloadData.paymentUrl, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				"Authorization": "Bearer " + token
+			},
+			body: JSON.stringify(payloadData.payload)
+		});
+
+		const result = await response.json();
+
+		if (!response.ok) {
+			showMsg(result.message || "Unable to start payment");
+			return;
+		}
+
+		if (!result.redirectUrl) {
+			showMsg("Payment redirect URL not received");
+			return;
+		}
+
+		window.location.href = result.redirectUrl;
+
+	} catch (error) {
+		console.error(error);
+		showMsg("Payment service not reachable.");
+	} finally {
+		setButtonLoading("bookAppointmentBtn", "Pay & Book Video Consultation", false);
 	}
 }
 
@@ -547,12 +671,33 @@ function getAuthUserId(obj) {
 		return null;
 	}
 
-	return Number(
+	const id =
 		obj.authUserId ||
 		obj.hospitalAuthUserId ||
 		obj.doctorAuthUserId ||
-		obj.userId
-	);
+		obj.userId ||
+		obj.id;
+
+	const numberId = Number(id);
+
+	return Number.isNaN(numberId) ? null : numberId;
+}
+
+function setButtonLoading(buttonId, loadingText, isLoading) {
+	const button = document.getElementById(buttonId);
+
+	if (!button) {
+		return;
+	}
+
+	if (isLoading) {
+		button.dataset.originalText = button.innerHTML;
+		button.innerHTML = loadingText;
+		button.disabled = true;
+	} else {
+		button.innerHTML = button.dataset.originalText || button.innerHTML;
+		button.disabled = false;
+	}
 }
 
 function showMsg(message, type = "danger") {

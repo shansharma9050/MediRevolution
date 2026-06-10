@@ -150,18 +150,38 @@ function renderAppointments(appointments) {
 		html += `
             <div class="order-card mb-3">
                 <div class="d-flex justify-content-between flex-wrap gap-3">
+
                     <div>
-                        <h5 class="fw-bold text-primary">${safe(patient.patientName)}</h5>
+                        <h5 class="fw-bold text-primary">
+                            ${safe(patient.patientName || a.patientName)}
+                        </h5>
+
                         <div class="text-muted small">
                             ${formatDate(a.appointmentDate)} at ${safe(a.appointmentTime)}
                         </div>
-                        <div class="mt-2"><strong>Purpose:</strong> ${safe(a.purpose)}</div>
+
+                        <div class="text-muted small mt-1">
+                            Consultation Type: ${consultationBadge(a.consultationType)}
+                        </div>
+
+                        ${a.paymentStatus ? `
+                            <div class="text-muted small mt-1">
+                                Payment: ${paymentBadge(a.paymentStatus)}
+                            </div>
+                        ` : ""}
+
+                        <div class="mt-2">
+                            <strong>Purpose/Symptoms:</strong> ${safe(a.purpose || a.symptoms)}
+                        </div>
+
+                        ${videoStartButton(a)}
                     </div>
 
                     <div class="text-end">
                         ${appointmentBadge(a.status)}
                         ${actionButtons(a)}
                     </div>
+
                 </div>
             </div>
         `;
@@ -170,12 +190,106 @@ function renderAppointments(appointments) {
 	container.innerHTML = html;
 }
 
+function videoStartButton(a) {
+	if (
+		a.consultationType === "ONLINE" &&
+		a.status === "CONFIRMED" &&
+		a.meetingUrl
+	) {
+		return `
+			<div class="mt-3">
+				<button class="btn btn-success btn-sm"
+				        onclick="window.open('${a.meetingUrl}', '_blank')">
+					Start Video Consultation
+				</button>
+			</div>
+		`;
+	}
+
+	if (
+		a.consultationType === "ONLINE" &&
+		a.status === "PAYMENT_PENDING"
+	) {
+		return `
+			<div class="mt-3 text-warning small">
+				Waiting for patient payment. Video link will be available after payment success.
+			</div>
+		`;
+	}
+
+	if (
+		a.consultationType === "ONLINE" &&
+		a.status === "CONFIRMED" &&
+		!a.meetingUrl
+	) {
+		return `
+			<div class="mt-3 text-muted small">
+				Video link is not generated yet.
+			</div>
+		`;
+	}
+
+	return "";
+}
+
+function consultationBadge(type) {
+	if (type === "ONLINE") {
+		return `<span class="badge bg-success">ONLINE VIDEO</span>`;
+	}
+
+	if (type === "OFFLINE") {
+		return `<span class="badge bg-secondary">OFFLINE VISIT</span>`;
+	}
+
+	return `<span class="badge bg-light text-dark">-</span>`;
+}
+
+function paymentBadge(paymentStatus) {
+	if (paymentStatus === "SUCCESS") {
+		return `<span class="badge bg-success">SUCCESS</span>`;
+	}
+
+	if (paymentStatus === "INITIATED" || paymentStatus === "PENDING") {
+		return `<span class="badge bg-warning text-dark">PENDING</span>`;
+	}
+
+	if (paymentStatus === "FAILED") {
+		return `<span class="badge bg-danger">FAILED</span>`;
+	}
+
+	return `<span class="badge bg-secondary">${safe(paymentStatus)}</span>`;
+}
+
 function actionButtons(a) {
-	if (a.status === "REQUESTED") {
+
+	if (a.status === "PAYMENT_PENDING") {
+		return `
+			<div class="mt-2 text-warning small">
+				Payment pending
+			</div>
+		`;
+	}
+
+	if (a.status === "PAYMENT_FAILED") {
+		return `
+			<div class="mt-2 text-danger small">
+				Payment failed
+			</div>
+		`;
+	}
+
+	if (a.status === "REQUESTED" || a.status === "PENDING") {
 		return `
             <div class="mt-2">
-                <button class="btn btn-sm btn-success" onclick="updateAppointmentStatus(${a.id}, 'CONFIRMED')">Confirm</button>
-                <button class="btn btn-sm btn-danger" onclick="updateAppointmentStatus(${a.id}, 'CANCELLED')">Cancel</button>
+                <button class="btn btn-sm btn-success"
+                        onclick="updateAppointmentStatus(${a.id}, 'CONFIRMED')">
+                    Confirm
+                </button>
+
+                <button class="btn btn-sm btn-danger"
+                        onclick="updateAppointmentStatus(${a.id}, 'CANCELLED')">
+                    Cancel
+                </button>
             </div>
         `;
 	}
@@ -183,7 +297,11 @@ function actionButtons(a) {
 	if (a.status === "CONFIRMED") {
 		return `
             <div class="mt-2">
-                <button class="btn btn-sm btn-medi" style="width:auto;" onclick="updateAppointmentStatus(${a.id}, 'COMPLETED')">Complete</button>
+                <button class="btn btn-sm btn-medi"
+                        style="width:auto;"
+                        onclick="updateAppointmentStatus(${a.id}, 'COMPLETED')">
+                    Complete
+                </button>
             </div>
         `;
 	}
@@ -216,13 +334,36 @@ async function updateAppointmentStatus(id, status) {
 }
 
 function appointmentBadge(status) {
-	if (status === "REQUESTED") return `<span class="badge bg-warning text-dark">REQUESTED</span>`;
-	if (status === "CONFIRMED") return `<span class="badge bg-info text-dark">CONFIRMED</span>`;
-	if (status === "COMPLETED") return `<span class="badge bg-success">COMPLETED</span>`;
-	if (status === "CANCELLED") return `<span class="badge bg-danger">CANCELLED</span>`;
+	if (status === "PAYMENT_PENDING") {
+		return `<span class="badge bg-warning text-dark">PAYMENT PENDING</span>`;
+	}
+
+	if (status === "PAYMENT_FAILED") {
+		return `<span class="badge bg-danger">PAYMENT FAILED</span>`;
+	}
+
+	if (status === "REQUESTED") {
+		return `<span class="badge bg-warning text-dark">REQUESTED</span>`;
+	}
+
+	if (status === "PENDING") {
+		return `<span class="badge bg-warning text-dark">PENDING</span>`;
+	}
+
+	if (status === "CONFIRMED") {
+		return `<span class="badge bg-info text-dark">CONFIRMED</span>`;
+	}
+
+	if (status === "COMPLETED") {
+		return `<span class="badge bg-success">COMPLETED</span>`;
+	}
+
+	if (status === "CANCELLED") {
+		return `<span class="badge bg-danger">CANCELLED</span>`;
+	}
+
 	return `<span class="badge bg-secondary">${safe(status)}</span>`;
 }
-
 function clearAppointmentForm() {
 	["patientId", "appointmentDate", "appointmentTime", "purpose"]
 		.forEach(id => document.getElementById(id).value = "");

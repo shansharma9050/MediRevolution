@@ -18,6 +18,9 @@ public class Prescription {
 	    private Long id;
 
 	    private Long doctorAuthUserId;
+	    
+	    @Column(name = "doctor_name")
+	    private String doctorName;
 
 	    @ManyToOne
 	    @JoinColumn(name = "patient_id")

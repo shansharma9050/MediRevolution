@@ -173,5 +173,10 @@ public class PageController {
     public String patientPrescriptionsPage() {
         return "patient-prescriptions";
     }
+    
+    @GetMapping("/payment-success")
+    public String paymentSuccessPage() {
+        return "payment-success";
+    }
 
 }

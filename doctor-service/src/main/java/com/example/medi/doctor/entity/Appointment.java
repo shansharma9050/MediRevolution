@@ -9,6 +9,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 import com.example.medi.doctor.enums.AppointmentStatus;
+import com.example.medi.doctor.enums.ConsultationType;
+import com.example.medi.doctor.enums.PaymentStatus;
 
 @Entity
 @Table(name = "appointments",
@@ -44,10 +46,29 @@ public class Appointment {
 
     @Column(length = 2000)
     private String symptoms;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AppointmentStatus status;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "consultation_type")
+    private ConsultationType consultationType;
+
+    @Column(name = "consultation_fee")
+    private Long consultationFee;
+
+    @Column(name = "payment_order_id")
+    private String paymentOrderId;
+
+    @Column(name = "payment_transaction_id")
+    private String paymentTransactionId;
 
     @Enumerated(EnumType.STRING)
-    private AppointmentStatus status = AppointmentStatus.PENDING;
+    @Column(name = "payment_status")
+    private PaymentStatus paymentStatus;
 
+    @Column(name = "meeting_url")
     private String meetingUrl;
 
     private LocalDateTime createdAt = LocalDateTime.now();

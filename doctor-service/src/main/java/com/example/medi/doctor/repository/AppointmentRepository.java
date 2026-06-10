@@ -8,6 +8,7 @@ import com.example.medi.doctor.enums.AppointmentStatus;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
     List<Appointment> findByDoctorAuthUserId(Long doctorAuthUserId);
@@ -24,4 +25,10 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             AppointmentStatus status
     );
 
+    
+    Optional<Appointment> findByPaymentOrderId(String paymentOrderId);
+
+    Optional<Appointment> findByIdAndPatientAuthUserId(Long id, Long patientAuthUserId);
+
+    Optional<Appointment> findByIdAndDoctorAuthUserId(Long id, Long doctorAuthUserId);
 }

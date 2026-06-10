@@ -3,8 +3,6 @@ package com.example.medi.doctor.dto;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-import com.example.medi.doctor.enums.ConsultationType;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,20 +10,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class BookDoctorAppointmentRequest {
+public class BookVideoAppointmentRequest {
 
     private Long doctorAuthUserId;
-    
-    private ConsultationType consultationType;
-
-    private String patientName;
-
-    private String patientMobile;
-
     private LocalDate appointmentDate;
-
     private LocalTime appointmentTime;
-
+    private String patientName;
+    private String patientMobile;
     private String symptoms;
-
 }

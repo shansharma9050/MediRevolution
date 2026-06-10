@@ -25,12 +25,35 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                .cors(cors -> {})
                 .authorizeHttpRequests(auth -> auth
-                		.requestMatchers("/doctor/**").authenticated()
-                        .anyRequest().authenticated()
+
+                        .requestMatchers("/doctor/available-slots/**")
+                        .hasAnyRole("PATIENT", "DOCTOR")
+
+                        .requestMatchers("/doctor/appointments/book")
+                        .hasRole("PATIENT")
+
+                        .requestMatchers("/doctor/appointments/patient")
+                        .hasRole("PATIENT")
+
+                        .requestMatchers("/doctor/appointments/*/cancel")
+                        .hasRole("PATIENT")
+
+                        .requestMatchers("/doctor/payments/video-appointment")
+                        .hasRole("PATIENT")
+
+                        .requestMatchers("/doctor/patient/**")
+                        .hasRole("PATIENT")
+
+                        .requestMatchers("/doctor/prescriptions/*/download")
+                        .hasAnyRole("DOCTOR", "PATIENT")
+
+                        .requestMatchers("/doctor/**")
+                        .hasRole("DOCTOR")
+
+                        .anyRequest()
+                        .authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

@@ -119,8 +119,8 @@ function loadDashboardByRole() {
             "Appointments", "0",
             "Notifications", document.getElementById("card4Value").innerText,
             [
-                ["Create Prescription", "#"],
-                ["Patient Records", "#"],
+                ["Create Prescription", "/doctor/prescriptions"],
+                ["Patient Records", "/doctor/patients"],
                 ["Profile", "/profile"]
             ]
         );
@@ -134,8 +134,8 @@ function loadDashboardByRole() {
             "Procurements", "0",
             "Notifications", document.getElementById("card4Value").innerText,
             [
-                ["Hospital Procurement", "#"],
-                ["Pharmacy Inventory", "#"],
+                ["Hospital Procurement", "/hospital/inventory"],
+                ["Pharmacy Inventory", "/hospital/inventory"],
                 ["Profile", "/profile"]
             ]
         );

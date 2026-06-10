@@ -57,16 +57,23 @@ function renderAppointments() {
     let html = "";
 
     list.forEach(a => {
+
         html += `
             <div class="order-card mb-3">
                 <div class="d-flex justify-content-between flex-wrap gap-3">
+
                     <div>
                         <h5 class="fw-bold text-primary">
-                            ${currentType === "DOCTOR" ? "Doctor ID: " + safe(a.doctorAuthUserId) : safe(a.doctorName)}
+                            ${currentType === "DOCTOR"
+                                ? "Doctor ID: " + safe(a.doctorAuthUserId)
+                                : safe(a.doctorName)
+                            }
                         </h5>
 
                         ${currentType === "HOSPITAL"
-                            ? `<div class="text-muted small">Hospital ID: ${safe(a.hospitalAuthUserId)} | ${safe(a.department)}</div>`
+                            ? `<div class="text-muted small">
+                                    Hospital ID: ${safe(a.hospitalAuthUserId)} | ${safe(a.department)}
+                               </div>`
                             : ""
                         }
 
@@ -74,15 +81,23 @@ function renderAppointments() {
                             Date: ${formatDate(a.appointmentDate)} | Time: ${safe(a.appointmentTime)}
                         </div>
 
-                        <div class="mt-2"><strong>Symptoms:</strong> ${safe(a.symptoms)}</div>
+                        <div class="text-muted small mt-1">
+                            Consultation Type: ${consultationBadge(a.consultationType)}
+                        </div>
 
-                        ${a.meetingUrl ? `<div class="mt-2"><strong>Meeting:</strong> ${safe(a.meetingUrl)}</div>` : ""}
+                        <div class="mt-2">
+                            <strong>Symptoms:</strong> ${safe(a.symptoms)}
+                        </div>
+
+                        ${videoJoinButton(a)}
                     </div>
 
                     <div class="text-end">
                         ${statusBadge(a.status)}
+                        ${paymentBadge(a.paymentStatus)}
                         ${cancelButton(a)}
                     </div>
+
                 </div>
             </div>
         `;
@@ -91,17 +106,139 @@ function renderAppointments() {
     container.innerHTML = html;
 }
 
+function videoJoinButton(a) {
+    if (
+        a.consultationType === "ONLINE" &&
+        a.status === "CONFIRMED" &&
+        a.meetingUrl
+    ) {
+        return `
+            <div class="mt-3">
+                <button class="btn btn-success btn-sm"
+                        onclick="window.open('${a.meetingUrl}', '_blank')">
+                    Join Video Consultation
+                </button>
+            </div>
+        `;
+    }
+
+    if (
+        a.consultationType === "ONLINE" &&
+        a.status === "PAYMENT_PENDING"
+    ) {
+        return `
+            <div class="mt-3 text-warning small">
+                Payment pending. Video link will be available after payment confirmation.
+            </div>
+        `;
+    }
+
+    if (
+        a.consultationType === "ONLINE" &&
+        a.status === "CONFIRMED" &&
+        !a.meetingUrl
+    ) {
+        return `
+            <div class="mt-3 text-muted small">
+                Video link is not generated yet.
+            </div>
+        `;
+    }
+
+    return "";
+}
+
+function consultationBadge(type) {
+    if (type === "ONLINE") {
+        return `<span class="badge bg-success">ONLINE VIDEO</span>`;
+    }
+
+    if (type === "OFFLINE") {
+        return `<span class="badge bg-secondary">OFFLINE VISIT</span>`;
+    }
+
+    return `<span class="badge bg-light text-dark">-</span>`;
+}
+
+
+
+function paymentBadge(paymentStatus) {
+    if (!paymentStatus) {
+        return "";
+    }
+
+    if (paymentStatus === "SUCCESS") {
+        return `<div class="mt-2"><span class="badge bg-success">PAYMENT SUCCESS</span></div>`;
+    }
+
+    if (paymentStatus === "INITIATED" || paymentStatus === "PENDING") {
+        return `<div class="mt-2"><span class="badge bg-warning text-dark">PAYMENT PENDING</span></div>`;
+    }
+
+    if (paymentStatus === "FAILED") {
+        return `<div class="mt-2"><span class="badge bg-danger">PAYMENT FAILED</span></div>`;
+    }
+
+    return `<div class="mt-2"><span class="badge bg-secondary">${safe(paymentStatus)}</span></div>`;
+}
+
+function statusBadge(status) {
+    if (status === "PAYMENT_PENDING") {
+        return `<span class="badge bg-warning text-dark">PAYMENT PENDING</span>`;
+    }
+
+    if (status === "PAYMENT_FAILED") {
+        return `<span class="badge bg-danger">PAYMENT FAILED</span>`;
+    }
+
+    if (status === "PENDING") {
+        return `<span class="badge bg-warning text-dark">PENDING</span>`;
+    }
+
+    if (status === "CONFIRMED") {
+        return `<span class="badge bg-info text-dark">CONFIRMED</span>`;
+    }
+
+    if (status === "REJECTED") {
+        return `<span class="badge bg-danger">REJECTED</span>`;
+    }
+
+    if (status === "COMPLETED") {
+        return `<span class="badge bg-success">COMPLETED</span>`;
+    }
+
+    if (status === "CANCELLED") {
+        return `<span class="badge bg-secondary">CANCELLED</span>`;
+    }
+
+    return `<span class="badge bg-secondary">${safe(status)}</span>`;
+}
+
 function cancelButton(a) {
-    if (a.status === "PENDING" || a.status === "CONFIRMED") {
+    if (
+        a.status === "PENDING" ||
+        a.status === "CONFIRMED" ||
+        a.status === "PAYMENT_PENDING"
+    ) {
         if (currentType === "DOCTOR") {
             return `
                 <div class="mt-2">
-                    <button class="btn btn-sm btn-outline-danger" onclick="cancelDoctorAppointment(${a.id})">Cancel</button>
+                    <button class="btn btn-sm btn-outline-danger"
+                            onclick="cancelDoctorAppointment(${a.id})">
+                        Cancel
+                    </button>
                 </div>
             `;
         }
 
-        return `<button class="btn btn-sm btn-outline-danger" onclick="cancelHospitalAppointment(${a.id})">Cancel</button>`;
+        return `
+            <div class="mt-2">
+                <button class="btn btn-sm btn-outline-danger"
+                        onclick="cancelHospitalAppointment(${a.id})">
+                    Cancel
+                </button>
+            </div>
+        `;
     }
 
     return "";

@@ -11,6 +11,7 @@ import com.example.medi.doctor.entity.DoctorAvailability;
 import com.example.medi.doctor.entity.Patient;
 import com.example.medi.doctor.entity.Prescription;
 import com.example.medi.doctor.enums.AppointmentStatus;
+import com.example.medi.doctor.enums.ConsultationType;
 import com.example.medi.doctor.repository.AppointmentRepository;
 import com.example.medi.doctor.repository.DoctorAvailabilityRepository;
 import com.example.medi.doctor.repository.PatientRepository;
@@ -24,6 +25,7 @@ import com.lowagie.text.Font;
 import com.lowagie.text.FontFactory;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.Phrase;
+import com.lowagie.text.Rectangle;
 import com.lowagie.text.Element;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
@@ -33,6 +35,9 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.awt.Color;
+import com.lowagie.text.Chunk;
+import com.lowagie.text.PageSize;
 
 @Service
 public class DoctorService {
@@ -114,6 +119,7 @@ public class DoctorService {
 		}
 
 		prescription.setDoctorAuthUserId(CurrentUserUtil.getUserId());
+		prescription.setDoctorName(CurrentUserUtil.getUserName());
 		prescription.setPatient(patient);
 		prescription.setPrescriptionDate(LocalDateTime.now());
 
@@ -232,6 +238,11 @@ public class DoctorService {
 		appointment.setAppointmentDate(request.getAppointmentDate());
 		appointment.setAppointmentTime(request.getAppointmentTime());
 		appointment.setSymptoms(request.getSymptoms());
+		appointment.setConsultationType(
+		        request.getConsultationType() == null
+		                ? ConsultationType.OFFLINE
+		                : request.getConsultationType()
+		);
 		appointment.setStatus(AppointmentStatus.PENDING);
 
 		return appointmentRepository.save(appointment);
@@ -302,87 +313,278 @@ public class DoctorService {
 	}
 
 	public byte[] downloadPrescriptionPdf(Long prescriptionId) {
-		allowDoctorOnly();
 
-		Prescription prescription = prescriptionRepository
-				.findByIdAndDoctorAuthUserId(prescriptionId, CurrentUserUtil.getUserId())
-				.orElseThrow(() -> new RuntimeException("Prescription not found"));
+		Long loggedInUserId = CurrentUserUtil.getUserId();
+		String loggedInRole = CurrentUserUtil.getRole();
+
+		Prescription prescription;
+
+		if ("DOCTOR".equals(loggedInRole)) {
+
+			prescription = prescriptionRepository.findByIdAndDoctorAuthUserId(prescriptionId, loggedInUserId)
+					.orElseThrow(() -> new RuntimeException("Prescription not found"));
+
+		} else if ("PATIENT".equals(loggedInRole)) {
+
+			prescription = prescriptionRepository.findByIdAndPatientPatientAuthUserId(prescriptionId, loggedInUserId)
+					.orElseThrow(() -> new RuntimeException("Prescription not found"));
+
+		} else {
+			throw new RuntimeException("Only DOCTOR or PATIENT can download prescription");
+		}
 
 		Patient patient = prescription.getPatient();
+
+		if (patient == null) {
+			throw new RuntimeException("Patient details not found for prescription");
+		}
 
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-			Document document = new Document();
+			Document document = new Document(PageSize.A4, 50, 50, 35, 35);
 			PdfWriter.getInstance(document, out);
 
 			document.open();
 
-			Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 20);
-			Font headingFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12);
-			Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 11);
+			Color blueColor = new Color(45, 117, 181);
+			Color lightBlueColor = new Color(235, 244, 255);
+			Color borderColor = new Color(210, 220, 230);
 
-			String doctorName = CurrentUserUtil.getUserName();
-			String clinicName = "MediRevolution Clinic";
-			String clinicAddress = "Noida, Uttar Pradesh";
+			Font clinicFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, Color.WHITE);
+			Font clinicSmallFont = FontFactory.getFont(FontFactory.HELVETICA, 9, Color.WHITE);
+			Font whiteIconFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 34, Color.WHITE);
 
-			Paragraph clinicTitle = new Paragraph(clinicName, titleFont);
-			clinicTitle.setAlignment(Element.ALIGN_CENTER);
-			document.add(clinicTitle);
+			Font headingFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11, blueColor);
+			Font labelFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9, Color.DARK_GRAY);
+			Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 9, Color.BLACK);
+			Font medicineFont = FontFactory.getFont(FontFactory.HELVETICA, 10, Color.BLACK);
+			Font footerFont = FontFactory.getFont(FontFactory.HELVETICA, 9, Color.WHITE);
 
-			Paragraph doctorTitle = new Paragraph("Dr. " + nullSafe(doctorName), headingFont);
-			doctorTitle.setAlignment(Element.ALIGN_CENTER);
-			document.add(doctorTitle);
+			String doctorName = nullSafe(prescription.getDoctorName());
 
-			Paragraph addressTitle = new Paragraph(clinicAddress, normalFont);
-			addressTitle.setAlignment(Element.ALIGN_CENTER);
-			addressTitle.setSpacingAfter(10);
-			document.add(addressTitle);
+			if ("-".equals(doctorName)) {
+				doctorName = nullSafe(CurrentUserUtil.getUserName());
+			}
 
-			Paragraph subTitle = new Paragraph("Medical Prescription", headingFont);
-			subTitle.setAlignment(Element.ALIGN_CENTER);
-			subTitle.setSpacingAfter(20);
-			document.add(subTitle);
-
-			PdfPTable patientTable = new PdfPTable(2);
-			patientTable.setWidthPercentage(100);
-			patientTable.setSpacingAfter(15);
-
-			addRow(patientTable, "Doctor Name", "Dr. " + nullSafe(doctorName));
-			addRow(patientTable, "Patient Name", patient != null ? patient.getPatientName() : "-");
-			addRow(patientTable, "Mobile", patient != null ? patient.getMobile() : "-");
-			addRow(patientTable, "Gender", patient != null ? patient.getGender() : "-");
-			addRow(patientTable, "Blood Group", patient != null ? patient.getBloodGroup() : "-");
+			String clinicName = "MEDIREVOLUTION CLINIC";
+			String clinicAddress = "Noida, Uttar Pradesh, India";
+			String clinicContact = "Email: support@medirevolution.com | Phone: +91-9876543210";
 
 			String prescriptionDate = "-";
+
 			if (prescription.getPrescriptionDate() != null) {
 				prescriptionDate = prescription.getPrescriptionDate()
 						.format(DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm a"));
 			}
 
-			addRow(patientTable, "Prescription Date", prescriptionDate);
+			// ================= HEADER =================
+
+			PdfPTable headerTable = new PdfPTable(2);
+			headerTable.setWidthPercentage(100);
+			headerTable.setWidths(new float[] { 70, 30 });
+			headerTable.setSpacingAfter(25);
+
+			PdfPCell headerLeft = new PdfPCell();
+			headerLeft.setBackgroundColor(blueColor);
+			headerLeft.setBorder(Rectangle.NO_BORDER);
+			headerLeft.setPaddingTop(18);
+			headerLeft.setPaddingBottom(18);
+			headerLeft.setPaddingLeft(25);
+
+			Paragraph clinicTitle = new Paragraph(clinicName, clinicFont);
+			headerLeft.addElement(clinicTitle);
+
+			Paragraph clinicInfo = new Paragraph(clinicAddress + "\n" + clinicContact, clinicSmallFont);
+			clinicInfo.setLeading(12);
+			headerLeft.addElement(clinicInfo);
+
+			PdfPCell headerRight = new PdfPCell();
+			headerRight.setBackgroundColor(blueColor);
+			headerRight.setBorder(Rectangle.NO_BORDER);
+			headerRight.setPaddingTop(12);
+			headerRight.setPaddingRight(25);
+			headerRight.setHorizontalAlignment(Element.ALIGN_RIGHT);
+
+			Paragraph icon = new Paragraph("⚕", whiteIconFont);
+			icon.setAlignment(Element.ALIGN_RIGHT);
+			headerRight.addElement(icon);
+
+			headerTable.addCell(headerLeft);
+			headerTable.addCell(headerRight);
+
+			document.add(headerTable);
+
+			// ================= DOCTOR + PRESCRIPTION INFO =================
+
+			PdfPTable topInfoTable = new PdfPTable(2);
+			topInfoTable.setWidthPercentage(100);
+			topInfoTable.setWidths(new float[] { 60, 40 });
+			topInfoTable.setSpacingAfter(22);
+
+			PdfPCell doctorCell = new PdfPCell();
+			doctorCell.setBorder(Rectangle.BOTTOM);
+			doctorCell.setBorderColor(borderColor);
+			doctorCell.setPaddingBottom(10);
+
+			doctorCell.addElement(new Paragraph("Dr. " + doctorName, headingFont));
+			doctorCell.addElement(new Paragraph("Medical Physician", normalFont));
+			doctorCell.addElement(new Paragraph("Contact: +91-9876543210", normalFont));
+
+			PdfPCell prescriptionInfoCell = new PdfPCell();
+			prescriptionInfoCell.setBorder(Rectangle.BOTTOM);
+			prescriptionInfoCell.setBorderColor(borderColor);
+			prescriptionInfoCell.setPaddingBottom(10);
+
+			Paragraph prescriptionNo = new Paragraph("Prescription No:  RX-" + prescription.getId(), normalFont);
+			prescriptionNo.setAlignment(Element.ALIGN_RIGHT);
+
+			Paragraph datePara = new Paragraph("Date:  " + prescriptionDate, normalFont);
+			datePara.setAlignment(Element.ALIGN_RIGHT);
+
+			prescriptionInfoCell.addElement(prescriptionNo);
+			prescriptionInfoCell.addElement(datePara);
+
+			topInfoTable.addCell(doctorCell);
+			topInfoTable.addCell(prescriptionInfoCell);
+
+			document.add(topInfoTable);
+
+			// ================= MEDICAL PRESCRIPTION TITLE =================
+
+			Paragraph prescriptionTitle = new Paragraph("MEDICAL PRESCRIPTION", headingFont);
+			prescriptionTitle.setAlignment(Element.ALIGN_CENTER);
+			prescriptionTitle.setSpacingAfter(18);
+			document.add(prescriptionTitle);
+
+			// ================= SYMPTOMS / DIAGNOSIS =================
+
+			PdfPTable diagnosisTable = new PdfPTable(2);
+			diagnosisTable.setWidthPercentage(100);
+			diagnosisTable.setWidths(new float[] { 20, 80 });
+			diagnosisTable.setSpacingAfter(15);
+
+			addCleanRow(diagnosisTable, "Symptoms", nullSafe(prescription.getSymptoms()), labelFont, normalFont);
+			addCleanRow(diagnosisTable, "Diagnosis", nullSafe(prescription.getDiagnosis()), labelFont, normalFont);
+
+			document.add(diagnosisTable);
+
+			// ================= MEDICINES =================
+
+			PdfPCell medicineBox = new PdfPCell();
+			medicineBox.setBorder(Rectangle.BOX);
+			medicineBox.setBorderColor(borderColor);
+			medicineBox.setBackgroundColor(lightBlueColor);
+			medicineBox.setPadding(15);
+
+			Paragraph medicineHeading = new Paragraph("Medicines", headingFont);
+			medicineHeading.setSpacingAfter(8);
+			medicineBox.addElement(medicineHeading);
+
+			Paragraph medicineText = new Paragraph(nullSafe(prescription.getMedicines()), medicineFont);
+			medicineText.setLeading(16);
+			medicineBox.addElement(medicineText);
+
+			PdfPTable medicineOuterTable = new PdfPTable(1);
+			medicineOuterTable.setWidthPercentage(100);
+			medicineOuterTable.setSpacingAfter(18);
+			medicineOuterTable.addCell(medicineBox);
+
+			document.add(medicineOuterTable);
+
+			// ================= ADVICE =================
+
+			PdfPCell adviceBox = new PdfPCell();
+			adviceBox.setBorder(Rectangle.BOX);
+			adviceBox.setBorderColor(borderColor);
+			adviceBox.setPadding(15);
+
+			Paragraph adviceHeading = new Paragraph("Advice", headingFont);
+			adviceHeading.setSpacingAfter(8);
+			adviceBox.addElement(adviceHeading);
+
+			Paragraph adviceText = new Paragraph(nullSafe(prescription.getAdvice()), normalFont);
+			adviceText.setLeading(15);
+			adviceBox.addElement(adviceText);
+
+			PdfPTable adviceOuterTable = new PdfPTable(1);
+			adviceOuterTable.setWidthPercentage(100);
+			adviceOuterTable.setSpacingAfter(20);
+			adviceOuterTable.addCell(adviceBox);
+
+			document.add(adviceOuterTable);
+
+			// ================= PATIENT DETAILS =================
+
+			Paragraph patientHeading = new Paragraph("Patient Details", headingFont);
+			patientHeading.setSpacingAfter(8);
+			document.add(patientHeading);
+
+			PdfPTable patientTable = new PdfPTable(2);
+			patientTable.setWidthPercentage(100);
+			patientTable.setWidths(new float[] { 50, 50 });
+			patientTable.setSpacingAfter(30);
+
+			addPatientInfoCell(patientTable, "Name", nullSafe(patient.getPatientName()), labelFont, normalFont);
+			addPatientInfoCell(patientTable, "Age / DOB",
+					patient.getDateOfBirth() != null ? patient.getDateOfBirth().toString() : "-", labelFont,
+					normalFont);
+			addPatientInfoCell(patientTable, "Gender", nullSafe(patient.getGender()), labelFont, normalFont);
+			addPatientInfoCell(patientTable, "Blood Group", nullSafe(patient.getBloodGroup()), labelFont, normalFont);
+			addPatientInfoCell(patientTable, "Mobile", nullSafe(patient.getMobile()), labelFont, normalFont);
+			addPatientInfoCell(patientTable, "Email", nullSafe(patient.getEmail()), labelFont, normalFont);
 
 			document.add(patientTable);
 
-			document.add(new Paragraph("Symptoms:", headingFont));
-			document.add(new Paragraph(nullSafe(prescription.getSymptoms()), normalFont));
-			document.add(new Paragraph(" "));
+			// ================= SIGNATURE =================
 
-			document.add(new Paragraph("Diagnosis:", headingFont));
-			document.add(new Paragraph(nullSafe(prescription.getDiagnosis()), normalFont));
-			document.add(new Paragraph(" "));
+			PdfPTable signatureTable = new PdfPTable(2);
+			signatureTable.setWidthPercentage(100);
+			signatureTable.setWidths(new float[] { 60, 40 });
+			signatureTable.setSpacingAfter(25);
 
-			document.add(new Paragraph("Medicines:", headingFont));
-			document.add(new Paragraph(nullSafe(prescription.getMedicines()), normalFont));
-			document.add(new Paragraph(" "));
+			PdfPCell emptySignatureCell = new PdfPCell(new Phrase(""));
+			emptySignatureCell.setBorder(Rectangle.NO_BORDER);
 
-			document.add(new Paragraph("Advice:", headingFont));
-			document.add(new Paragraph(nullSafe(prescription.getAdvice()), normalFont));
-			document.add(new Paragraph(" "));
+			PdfPCell signatureCell = new PdfPCell();
+			signatureCell.setBorder(Rectangle.NO_BORDER);
+			signatureCell.setHorizontalAlignment(Element.ALIGN_CENTER);
 
-			Paragraph footer = new Paragraph("\nDoctor Signature\n\n________________________", normalFont);
-			footer.setAlignment(Element.ALIGN_RIGHT);
-			document.add(footer);
+			Paragraph line = new Paragraph("________________________", normalFont);
+			line.setAlignment(Element.ALIGN_CENTER);
+
+			Paragraph signText = new Paragraph("Doctor Signature", normalFont);
+			signText.setAlignment(Element.ALIGN_CENTER);
+
+			signatureCell.addElement(line);
+			signatureCell.addElement(signText);
+
+			signatureTable.addCell(emptySignatureCell);
+			signatureTable.addCell(signatureCell);
+
+			document.add(signatureTable);
+
+			// ================= FOOTER =================
+
+			PdfPTable footerTable = new PdfPTable(2);
+			footerTable.setWidthPercentage(100);
+			footerTable.setWidths(new float[] { 50, 50 });
+
+			PdfPCell footerLeft = new PdfPCell(new Phrase("☎ +91-9876543210", footerFont));
+			footerLeft.setBackgroundColor(blueColor);
+			footerLeft.setBorder(Rectangle.NO_BORDER);
+			footerLeft.setPadding(10);
+
+			PdfPCell footerRight = new PdfPCell(new Phrase("✉ support@medirevolution.com", footerFont));
+			footerRight.setBackgroundColor(blueColor);
+			footerRight.setBorder(Rectangle.NO_BORDER);
+			footerRight.setPadding(10);
+			footerRight.setHorizontalAlignment(Element.ALIGN_RIGHT);
+
+			footerTable.addCell(footerLeft);
+			footerTable.addCell(footerRight);
+
+			document.add(footerTable);
 
 			document.close();
 
@@ -393,18 +595,31 @@ public class DoctorService {
 		}
 	}
 
-	private void addRow(PdfPTable table, String label, String value) {
-		Font labelFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11);
-		Font valueFont = FontFactory.getFont(FontFactory.HELVETICA, 11);
+	private void addCleanRow(PdfPTable table, String label, String value, Font labelFont, Font valueFont) {
 
-		PdfPCell labelCell = new PdfPCell(new Phrase(label, labelFont));
-		labelCell.setPadding(8);
+		PdfPCell labelCell = new PdfPCell(new Phrase(label + ":", labelFont));
+		labelCell.setBorder(Rectangle.NO_BORDER);
+		labelCell.setPaddingBottom(8);
 
 		PdfPCell valueCell = new PdfPCell(new Phrase(nullSafe(value), valueFont));
-		valueCell.setPadding(8);
+		valueCell.setBorder(Rectangle.NO_BORDER);
+		valueCell.setPaddingBottom(8);
 
 		table.addCell(labelCell);
 		table.addCell(valueCell);
+	}
+
+	private void addPatientInfoCell(PdfPTable table, String label, String value, Font labelFont, Font valueFont) {
+
+		Phrase phrase = new Phrase();
+		phrase.add(new Chunk(label + ": ", labelFont));
+		phrase.add(new Chunk(nullSafe(value), valueFont));
+
+		PdfPCell cell = new PdfPCell(phrase);
+		cell.setBorder(Rectangle.NO_BORDER);
+		cell.setPaddingBottom(8);
+
+		table.addCell(cell);
 	}
 
 	private String nullSafe(String value) {
@@ -435,10 +650,9 @@ public class DoctorService {
 
 		return prescriptionRepository.save(prescription);
 	}
-	
+
 	public List<Prescription> getPrescriptionsForPatient(Long patientAuthUserId) {
 
-	    return prescriptionRepository
-	            .findByPatientPatientAuthUserIdOrderByPrescriptionDateDesc(patientAuthUserId);
+		return prescriptionRepository.findByPatientPatientAuthUserIdOrderByPrescriptionDateDesc(patientAuthUserId);
 	}
 }
