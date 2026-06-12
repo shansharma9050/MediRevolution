@@ -1357,3 +1357,99 @@ body {
         grid-template-columns: 1fr !important;
     }
 }
+
+/* ===================== MOBILE CENTER ALIGNMENT ===================== */
+
+@media (max-width: 768px) {
+
+    .mr-main {
+        text-align: center !important;
+    }
+
+    .mr-card,
+    .mr-stat-card,
+    .order-card,
+    .stock-card,
+    .appointment-profile-card {
+        margin-left: auto !important;
+        margin-right: auto !important;
+        text-align: center !important;
+    }
+
+    .mr-card .row,
+    .mr-card .row > *,
+    .appointment-profile-card,
+    .stock-card,
+    .order-card {
+        justify-content: center !important;
+        align-items: center !important;
+    }
+
+    .d-flex {
+        justify-content: center !important;
+        align-items: center !important;
+    }
+
+    .form-label {
+        text-align: center !important;
+        display: block !important;
+    }
+
+    .form-control,
+    .form-select,
+    textarea {
+        text-align: center !important;
+    }
+
+    .text-end,
+    .text-start {
+        text-align: center !important;
+    }
+
+    .text-end .btn,
+    .text-end .btn-medi,
+    .btn-medi {
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    #profileCards {
+        text-align: center !important;
+    }
+
+    #profileCards > div {
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    .appointment-profile-card .d-flex {
+        justify-content: center !important;
+        text-align: center !important;
+    }
+
+    .profile-avatar-circle {
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    #slotContainer {
+        justify-content: center !important;
+    }
+
+    .table-responsive {
+        text-align: left !important;
+    }
+
+    .mr-sidebar {
+        text-align: left !important;
+    }
+
+    .mr-sidebar a {
+        justify-content: flex-start !important;
+        text-align: left !important;
+    }
+
+    .mr-navbar {
+        text-align: center !important;
+    }
+}
