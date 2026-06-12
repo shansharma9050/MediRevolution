@@ -1427,3 +1427,97 @@ body {
         text-align:left;
     }
 }
+
+/* ================= LOGIN MOBILE FINAL FIX ================= */
+
+@media (max-width: 768px) {
+
+    .login-body {
+        background: linear-gradient(135deg, #05285f, #0577b8, #08c7d4) !important;
+        min-height: 100vh !important;
+    }
+
+    .login-page {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: 100vh !important;
+        width: 100% !important;
+        padding: 18px !important;
+        background: linear-gradient(135deg, #05285f, #0577b8, #08c7d4) !important;
+    }
+
+    .login-page .auth-left {
+        display: none !important;
+    }
+
+    .login-page .auth-right {
+        width: 100% !important;
+        min-height: auto !important;
+        padding: 0 !important;
+        background: transparent !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+
+    .login-page .auth-card {
+        width: 100% !important;
+        max-width: 420px !important;
+        padding: 30px 24px !important;
+        border-radius: 28px !important;
+        background: rgba(255,255,255,0.96) !important;
+        box-shadow: 0 25px 70px rgba(5,40,95,0.30) !important;
+    }
+
+    .login-page .auth-logo-small {
+        width: 95px !important;
+        margin-bottom: 18px !important;
+    }
+
+    .login-page .login-header h2 {
+        font-size: 28px !important;
+        line-height: 1.2 !important;
+    }
+
+    .login-page .login-header p {
+        font-size: 15px !important;
+        line-height: 1.5 !important;
+    }
+
+    .login-page .form-label {
+        text-align: left !important;
+        font-size: 15px !important;
+        margin-bottom: 7px !important;
+    }
+
+    .login-page .form-control,
+    .login-page .form-select {
+        height: 54px !important;
+        border-radius: 16px !important;
+        font-size: 16px !important;
+        text-align: left !important;
+    }
+
+    .login-page .input-group {
+        flex-direction: row !important;
+    }
+
+    .login-page .input-group .form-control {
+        margin-bottom: 0 !important;
+        border-radius: 16px 0 0 16px !important;
+    }
+
+    .login-page .input-group .btn {
+        width: 54px !important;
+        border-radius: 0 16px 16px 0 !important;
+    }
+
+    .login-page .btn-login,
+    .login-page .btn-medi {
+        height: 56px !important;
+        border-radius: 17px !important;
+        font-size: 16px !important;
+    }
+}
