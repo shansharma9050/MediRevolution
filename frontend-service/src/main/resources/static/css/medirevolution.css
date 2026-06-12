@@ -1168,3 +1168,277 @@ body {
         padding: 25px;
     }
 }
+
+/* ===================== FULL RESPONSIVE FIX - MEDIREVOLUTION ===================== */
+
+html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+img {
+    max-width: 100%;
+}
+
+/* Tablet + Mobile */
+@media (max-width: 991px) {
+
+    .mr-navbar {
+        height: 64px;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+
+    .mr-nav-logo {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+    }
+
+    .mr-navbar-brand {
+        font-size: 18px;
+        white-space: nowrap;
+    }
+
+    .mobile-menu-btn {
+        display: inline-block;
+    }
+
+    .mr-sidebar {
+        width: 260px;
+        left: -280px;
+        top: 64px;
+        min-height: calc(100vh - 64px);
+        transition: 0.3s ease;
+        z-index: 1200;
+    }
+
+    .mr-sidebar.show {
+        left: 0;
+    }
+
+    .mr-main {
+        margin-left: 0;
+        padding: 84px 14px 22px;
+        width: 100%;
+    }
+
+    .mr-card,
+    .mr-stat-card,
+    .order-card,
+    .stock-card,
+    .appointment-profile-card {
+        border-radius: 18px;
+        padding: 18px;
+    }
+
+    .mr-page-title {
+        font-size: 24px;
+        line-height: 1.25;
+    }
+
+    .mr-page-subtitle {
+        font-size: 14px;
+    }
+
+    .mr-user-pill {
+        display: none;
+    }
+
+    .navbar .btn-outline-light {
+        padding: 7px 10px;
+        font-size: 13px;
+    }
+
+    .navbar .btn-light {
+        padding: 7px 10px;
+    }
+
+    .row.g-3,
+    .row.g-4 {
+        --bs-gutter-x: 0.8rem;
+        --bs-gutter-y: 0.8rem;
+    }
+
+    .form-control,
+    .form-select {
+        font-size: 14px;
+        padding: 11px 12px;
+    }
+
+    .btn-medi {
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        min-width: 760px;
+    }
+
+    .order-timeline {
+        overflow-x: auto;
+        gap: 20px;
+        padding-bottom: 8px;
+    }
+
+    .timeline-step {
+        min-width: 90px;
+    }
+}
+
+/* Small Android / iPhone */
+@media (max-width: 576px) {
+
+    .mr-main {
+        padding: 78px 10px 18px;
+    }
+
+    .mr-navbar {
+        height: 60px;
+    }
+
+    .mr-sidebar {
+        top: 60px;
+        width: 245px;
+        left: -260px;
+        padding: 18px 10px;
+    }
+
+    .mr-sidebar a {
+        padding: 12px 14px;
+        font-size: 14px;
+    }
+
+    .mr-navbar-brand {
+        font-size: 16px;
+    }
+
+    .mr-navbar-brand span {
+        display: inline;
+    }
+
+    .mr-nav-logo {
+        width: 34px;
+        height: 34px;
+    }
+
+    .mobile-menu-btn {
+        padding: 6px 9px;
+    }
+
+    .mr-page-title {
+        font-size: 22px;
+    }
+
+    .mr-card,
+    .mr-stat-card,
+    .order-card,
+    .stock-card,
+    .appointment-profile-card {
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    .mr-stat-value {
+        font-size: 28px;
+    }
+
+    .profile-avatar-circle {
+        width: 48px;
+        height: 48px;
+        font-size: 22px;
+        flex: 0 0 auto;
+    }
+
+    .appointment-profile-card .d-flex {
+        align-items: flex-start !important;
+    }
+
+    .appointment-profile-card h5 {
+        font-size: 17px;
+    }
+
+    .appointment-profile-card .btn-medi {
+        margin-top: 8px;
+    }
+
+    #slotContainer {
+        gap: 8px !important;
+    }
+
+    #slotContainer button {
+        flex: 1 1 calc(50% - 8px);
+        min-width: 110px;
+        padding: 10px;
+    }
+
+    .col-md-3,
+    .col-md-4,
+    .col-md-6,
+    .col-md-8,
+    .col-md-12,
+    .col-lg-4,
+    .col-lg-8,
+    .col-xl-4 {
+        width: 100%;
+    }
+
+    .d-flex.justify-content-between {
+        align-items: flex-start !important;
+    }
+
+    .text-end {
+        text-align: left !important;
+    }
+
+    .text-end .btn,
+    .text-end .btn-medi {
+        width: 100% !important;
+        margin-top: 8px;
+    }
+
+    .notification-drawer {
+        width: 100%;
+        right: -100%;
+    }
+
+    .live-toast {
+        left: 12px;
+        right: 12px;
+        width: auto;
+    }
+}
+
+/* Extra small phones */
+@media (max-width: 380px) {
+
+    .mr-navbar-brand {
+        font-size: 14px;
+    }
+
+    .mr-nav-logo {
+        width: 30px;
+        height: 30px;
+    }
+
+    .navbar .btn-outline-light {
+        font-size: 12px;
+        padding: 6px 8px;
+    }
+
+    .mr-main {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    #slotContainer button {
+        flex: 1 1 100%;
+    }
+}
