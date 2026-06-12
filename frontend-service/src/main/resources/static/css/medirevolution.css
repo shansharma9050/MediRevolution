@@ -1169,59 +1169,87 @@ body {
     }
 }
 
-/* ===================== FULL RESPONSIVE FIX - MEDIREVOLUTION ===================== */
+/* ===================== STRONG MOBILE RESPONSIVE OVERRIDE ===================== */
 
-html, body {
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
-}
+@media (max-width: 768px) {
 
-img {
-    max-width: 100%;
-}
-
-/* Tablet + Mobile */
-@media (max-width: 991px) {
-
-    .mr-navbar {
-        height: 64px;
-        padding-left: 10px !important;
-        padding-right: 10px !important;
+    body,
+    html {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
     }
 
-    .mr-nav-logo {
-        width: 38px;
-        height: 38px;
-        border-radius: 10px;
+    .mr-navbar {
+        height: auto !important;
+        min-height: 60px !important;
+        padding: 8px 10px !important;
+    }
+
+    .mr-navbar > div {
+        max-width: 100% !important;
+        overflow: hidden !important;
     }
 
     .mr-navbar-brand {
-        font-size: 18px;
-        white-space: nowrap;
+        font-size: 15px !important;
+        max-width: 170px !important;
+        overflow: hidden !important;
+        white-space: nowrap !important;
+    }
+
+    .mr-nav-logo {
+        width: 34px !important;
+        height: 34px !important;
+    }
+
+    .mr-user-pill {
+        display: none !important;
+    }
+
+    .navbar .btn-outline-light {
+        font-size: 12px !important;
+        padding: 6px 8px !important;
+    }
+
+    .navbar .btn-light {
+        padding: 6px 8px !important;
     }
 
     .mobile-menu-btn {
-        display: inline-block;
+        display: inline-block !important;
     }
 
     .mr-sidebar {
-        width: 260px;
-        left: -280px;
-        top: 64px;
-        min-height: calc(100vh - 64px);
-        transition: 0.3s ease;
-        z-index: 1200;
+        position: fixed !important;
+        top: 60px !important;
+        left: -270px !important;
+        width: 250px !important;
+        height: calc(100vh - 60px) !important;
+        min-height: calc(100vh - 60px) !important;
+        overflow-y: auto !important;
+        z-index: 9999 !important;
+        transition: 0.3s ease !important;
     }
 
     .mr-sidebar.show {
-        left: 0;
+        left: 0 !important;
     }
 
     .mr-main {
-        margin-left: 0;
-        padding: 84px 14px 22px;
-        width: 100%;
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 82px 10px 20px !important;
+    }
+
+    .mr-page-title {
+        font-size: 22px !important;
+        line-height: 1.25 !important;
+    }
+
+    .mr-page-subtitle {
+        font-size: 14px !important;
     }
 
     .mr-card,
@@ -1229,169 +1257,44 @@ img {
     .order-card,
     .stock-card,
     .appointment-profile-card {
-        border-radius: 18px;
-        padding: 18px;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 15px !important;
+        border-radius: 16px !important;
     }
 
-    .mr-page-title {
-        font-size: 24px;
-        line-height: 1.25;
+    .row {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
     }
 
-    .mr-page-subtitle {
-        font-size: 14px;
+    .row > * {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        flex: 0 0 100% !important;
     }
 
-    .mr-user-pill {
-        display: none;
+    .d-flex {
+        flex-wrap: wrap !important;
     }
 
-    .navbar .btn-outline-light {
-        padding: 7px 10px;
-        font-size: 13px;
-    }
-
-    .navbar .btn-light {
-        padding: 7px 10px;
-    }
-
-    .row.g-3,
-    .row.g-4 {
-        --bs-gutter-x: 0.8rem;
-        --bs-gutter-y: 0.8rem;
+    .justify-content-between {
+        justify-content: flex-start !important;
     }
 
     .form-control,
     .form-select {
-        font-size: 14px;
-        padding: 11px 12px;
+        width: 100% !important;
+        font-size: 14px !important;
+        padding: 11px 12px !important;
     }
 
     .btn-medi {
-        padding: 12px;
-        font-size: 14px;
-    }
-
-    .table-responsive {
-        width: 100%;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    table {
-        min-width: 760px;
-    }
-
-    .order-timeline {
-        overflow-x: auto;
-        gap: 20px;
-        padding-bottom: 8px;
-    }
-
-    .timeline-step {
-        min-width: 90px;
-    }
-}
-
-/* Small Android / iPhone */
-@media (max-width: 576px) {
-
-    .mr-main {
-        padding: 78px 10px 18px;
-    }
-
-    .mr-navbar {
-        height: 60px;
-    }
-
-    .mr-sidebar {
-        top: 60px;
-        width: 245px;
-        left: -260px;
-        padding: 18px 10px;
-    }
-
-    .mr-sidebar a {
-        padding: 12px 14px;
-        font-size: 14px;
-    }
-
-    .mr-navbar-brand {
-        font-size: 16px;
-    }
-
-    .mr-navbar-brand span {
-        display: inline;
-    }
-
-    .mr-nav-logo {
-        width: 34px;
-        height: 34px;
-    }
-
-    .mobile-menu-btn {
-        padding: 6px 9px;
-    }
-
-    .mr-page-title {
-        font-size: 22px;
-    }
-
-    .mr-card,
-    .mr-stat-card,
-    .order-card,
-    .stock-card,
-    .appointment-profile-card {
-        padding: 16px;
-        border-radius: 16px;
-    }
-
-    .mr-stat-value {
-        font-size: 28px;
-    }
-
-    .profile-avatar-circle {
-        width: 48px;
-        height: 48px;
-        font-size: 22px;
-        flex: 0 0 auto;
-    }
-
-    .appointment-profile-card .d-flex {
-        align-items: flex-start !important;
-    }
-
-    .appointment-profile-card h5 {
-        font-size: 17px;
-    }
-
-    .appointment-profile-card .btn-medi {
-        margin-top: 8px;
-    }
-
-    #slotContainer {
-        gap: 8px !important;
-    }
-
-    #slotContainer button {
-        flex: 1 1 calc(50% - 8px);
-        min-width: 110px;
-        padding: 10px;
-    }
-
-    .col-md-3,
-    .col-md-4,
-    .col-md-6,
-    .col-md-8,
-    .col-md-12,
-    .col-lg-4,
-    .col-lg-8,
-    .col-xl-4 {
-        width: 100%;
-    }
-
-    .d-flex.justify-content-between {
-        align-items: flex-start !important;
+        width: 100% !important;
+        font-size: 14px !important;
+        padding: 12px !important;
     }
 
     .text-end {
@@ -1401,44 +1304,56 @@ img {
     .text-end .btn,
     .text-end .btn-medi {
         width: 100% !important;
-        margin-top: 8px;
     }
 
-    .notification-drawer {
-        width: 100%;
-        right: -100%;
+    #profileCards {
+        display: block !important;
     }
 
-    .live-toast {
-        left: 12px;
-        right: 12px;
-        width: auto;
-    }
-}
-
-/* Extra small phones */
-@media (max-width: 380px) {
-
-    .mr-navbar-brand {
-        font-size: 14px;
+    #profileCards > div {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-bottom: 12px !important;
     }
 
-    .mr-nav-logo {
-        width: 30px;
-        height: 30px;
-    }
-
-    .navbar .btn-outline-light {
-        font-size: 12px;
-        padding: 6px 8px;
-    }
-
-    .mr-main {
-        padding-left: 8px;
-        padding-right: 8px;
+    #slotContainer {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
     }
 
     #slotContainer button {
-        flex: 1 1 100%;
+        width: 100% !important;
+        min-width: 0 !important;
+        padding: 10px !important;
+    }
+
+    .table-responsive {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    table {
+        min-width: 700px !important;
+    }
+
+    .notification-drawer {
+        width: 100% !important;
+        right: -100% !important;
+    }
+
+    .notification-drawer.show {
+        right: 0 !important;
+    }
+}
+
+@media (max-width: 380px) {
+    .mr-navbar-brand {
+        max-width: 135px !important;
+        font-size: 13px !important;
+    }
+
+    #slotContainer {
+        grid-template-columns: 1fr !important;
     }
 }
