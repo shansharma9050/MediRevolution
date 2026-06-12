@@ -1268,14 +1268,6 @@ body {
         margin-right: 0 !important;
     }
 
-    .row > * {
-        padding-left: 0 !important;
-        padding-right: 0 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        flex: 0 0 100% !important;
-    }
-
     .d-flex {
         flex-wrap: wrap !important;
     }
@@ -1358,98 +1350,80 @@ body {
     }
 }
 
-/* ===================== MOBILE CENTER ALIGNMENT ===================== */
+@media (max-width:768px){
 
-@media (max-width: 768px) {
-
-    .mr-main {
-        text-align: center !important;
+    .login-page{
+        display:flex !important;
+        flex-direction:column !important;
+        min-height:100vh;
     }
 
-    .mr-card,
-    .mr-stat-card,
-    .order-card,
-    .stock-card,
-    .appointment-profile-card {
-        margin-left: auto !important;
-        margin-right: auto !important;
-        text-align: center !important;
+    .login-page .auth-left{
+        width:100% !important;
+        padding:35px 20px !important;
+        text-align:center;
     }
 
-    .mr-card .row,
-    .mr-card .row > *,
-    .appointment-profile-card,
-    .stock-card,
-    .order-card {
-        justify-content: center !important;
-        align-items: center !important;
+    .login-page .auth-right{
+        width:100% !important;
+        padding:25px 18px 40px !important;
     }
 
-    .d-flex {
-        justify-content: center !important;
-        align-items: center !important;
+    .login-page .hero-logo{
+        width:120px !important;
+        margin:auto auto 20px;
     }
 
-    .form-label {
-        text-align: center !important;
-        display: block !important;
+    .login-page .hero-title{
+        font-size:30px !important;
+        line-height:1.2;
     }
 
-    .form-control,
-    .form-select,
-    textarea {
-        text-align: center !important;
+    .login-page .hero-description{
+        font-size:15px !important;
+        max-width:100%;
     }
 
-    .text-end,
-    .text-start {
-        text-align: center !important;
+    .login-page .auth-card{
+        width:100% !important;
+        max-width:450px;
+        margin:auto;
+        padding:24px !important;
+        border-radius:24px;
     }
 
-    .text-end .btn,
-    .text-end .btn-medi,
-    .btn-medi {
-        margin-left: auto !important;
-        margin-right: auto !important;
+    .login-page .auth-logo-small{
+        width:75px !important;
     }
 
-    #profileCards {
-        text-align: center !important;
+    .login-page .login-header h2{
+        font-size:24px !important;
     }
 
-    #profileCards > div {
-        margin-left: auto !important;
-        margin-right: auto !important;
+    .login-page .form-control,
+    .login-page .form-select{
+        height:52px;
+        font-size:16px;
     }
 
-    .appointment-profile-card .d-flex {
-        justify-content: center !important;
-        text-align: center !important;
+    .login-page .btn-login{
+        height:54px;
+        font-size:16px;
     }
 
-    .profile-avatar-circle {
-        margin-left: auto !important;
-        margin-right: auto !important;
+    .login-page .hero-stats{
+        display:grid !important;
+        grid-template-columns:1fr 1fr;
+        gap:10px;
     }
 
-    #slotContainer {
-        justify-content: center !important;
+    .login-page .stat-card{
+        width:100% !important;
+        min-width:auto !important;
     }
 
-    .table-responsive {
-        text-align: left !important;
-    }
-
-    .mr-sidebar {
-        text-align: left !important;
-    }
-
-    .mr-sidebar a {
-        justify-content: flex-start !important;
-        text-align: left !important;
-    }
-
-    .mr-navbar {
-        text-align: center !important;
+    .login-page .feature-list{
+        grid-template-columns:1fr !important;
+        text-align:left;
     }
 }
