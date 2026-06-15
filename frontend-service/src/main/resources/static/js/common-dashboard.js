@@ -1,4 +1,4 @@
-const API_BASE = "";
+const API_BASE = "https://medirevolution-api-gateway.onrender.com";
 
 document.addEventListener("DOMContentLoaded", function () {
     protectDashboardPage();
