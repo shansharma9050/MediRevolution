@@ -178,4 +178,12 @@ public class DoctorController {
                     .body(Map.of("message", e.getMessage()));
         }
     }
+    
+    @PostMapping("/payments/verify")
+    public Appointment verifyPayment(
+            @RequestParam Long appointmentId,
+            @RequestParam String merchantOrderId
+    ) {
+        return doctorService.verifyAppointmentPayment(appointmentId, merchantOrderId);
+    }
 }

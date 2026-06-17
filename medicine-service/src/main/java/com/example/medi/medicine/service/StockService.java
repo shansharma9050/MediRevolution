@@ -1,5 +1,7 @@
 package com.example.medi.medicine.service;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +28,15 @@ public class StockService {
         this.medicineRepository = medicineRepository;
     }
 
+    @CacheEvict(
+            value = {
+                    "myStock",
+                    "stockSearch",
+                    "stockById",
+                    "wholesalerDashboard"
+            },
+            allEntries = true
+    )
     public WholesalerMedicineStock addStock(Long medicineId, WholesalerMedicineStock stock) {
 
         if (!CurrentUserUtil.getRole().equals("WHOLESALER")) {
@@ -41,20 +52,29 @@ public class StockService {
         return stockRepository.save(stock);
     }
 
+    @Cacheable(
+            value = "myStock",
+            key = "T(com.example.medi.medicine.security.CurrentUserUtil).getUserId()"
+    )
     public List<WholesalerMedicineStock> getMyStock() {
 
         if (!CurrentUserUtil.getRole().equals("WHOLESALER")) {
             throw new AccessDeniedException("Only WHOLESALER can view own stock");
         }
 
+        System.out.println("DB HIT: Loading wholesaler stock userId = " + CurrentUserUtil.getUserId());
+
         return stockRepository.findByWholesalerAuthUserId(CurrentUserUtil.getUserId());
     }
 
+    @Cacheable(value = "stockSearch", key = "#keyword")
     public List<WholesalerMedicineStock> searchStockForRetailer(String keyword) {
 
         if (!CurrentUserUtil.getRole().equals("RETAILER")) {
             throw new AccessDeniedException("Only RETAILER can search wholesaler stock");
         }
+
+        System.out.println("DB HIT: Searching stock keyword = " + keyword);
 
         return stockRepository
                 .findByMedicine_MedicineNameContainingIgnoreCaseOrMedicine_BrandNameContainingIgnoreCase(
@@ -62,12 +82,24 @@ public class StockService {
                         keyword
                 );
     }
-    
+
+    @Cacheable(value = "stockById", key = "#stockId")
     public WholesalerMedicineStock getStockById(Long stockId) {
+        System.out.println("DB HIT: Loading stock id = " + stockId);
+
         return stockRepository.findById(stockId)
                 .orElseThrow(() -> new RuntimeException("Stock not found"));
     }
-    
+
+    @CacheEvict(
+            value = {
+                    "myStock",
+                    "stockSearch",
+                    "stockById",
+                    "wholesalerDashboard"
+            },
+            allEntries = true
+    )
     public WholesalerMedicineStock reduceStock(Long stockId, Integer quantity) {
 
         WholesalerMedicineStock stock = stockRepository.findById(stockId)
@@ -85,7 +117,11 @@ public class StockService {
 
         return stockRepository.save(stock);
     }
-    
+
+    @Cacheable(
+            value = "wholesalerDashboard",
+            key = "T(com.example.medi.medicine.security.CurrentUserUtil).getUserId()"
+    )
     public WholesalerMedicineDashboardResponse getWholesalerDashboardCounts() {
 
         if (!CurrentUserUtil.getRole().equals("WHOLESALER")) {
@@ -93,6 +129,8 @@ public class StockService {
         }
 
         Long wholesalerId = CurrentUserUtil.getUserId();
+
+        System.out.println("DB HIT: Loading wholesaler medicine dashboard userId = " + wholesalerId);
 
         List<WholesalerMedicineStock> stocks =
                 stockRepository.findByWholesalerAuthUserId(wholesalerId);

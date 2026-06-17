@@ -16,6 +16,7 @@ public class BookVideoAppointmentRequest {
     private LocalDate appointmentDate;
     private LocalTime appointmentTime;
     private String patientName;
+    private String patientEmail;
     private String patientMobile;
     private String symptoms;
 }

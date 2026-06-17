@@ -10,7 +10,7 @@ let selectedHospital = null;
 let selectedHospitalDoctor = null;
 let selectedSlot = null;
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function() {
 	requirePatientRole();
 	loadPatientInfo();
 	loadDoctorsAndHospitals();
@@ -30,6 +30,17 @@ function loadPatientInfo() {
 
 	document.getElementById("patientMobile").value =
 		localStorage.getItem("mobile") || "";
+
+	const emailInput = document.getElementById("patientEmail");
+
+	if (emailInput) {
+		emailInput.value =
+			localStorage.getItem("email") ||
+			localStorage.getItem("userEmail") ||
+			localStorage.getItem("username") ||
+			localStorage.getItem("loginEmail") ||
+			"";
+	}
 }
 
 async function loadDoctorsAndHospitals() {
@@ -535,10 +546,19 @@ function buildAppointmentPayload() {
 
 	const patientName = document.getElementById("patientName").value.trim();
 	const patientMobile = document.getElementById("patientMobile").value.trim();
+
+	const patientEmail =
+		document.getElementById("patientEmail")?.value.trim() ||
+		localStorage.getItem("email") ||
+		localStorage.getItem("userEmail") ||
+		localStorage.getItem("username") ||
+		localStorage.getItem("loginEmail") ||
+		"";
+
 	const symptoms = document.getElementById("symptoms").value.trim();
 
-	if (!patientName || !patientMobile || !symptoms) {
-		showMsg("Patient name, mobile and symptoms are required");
+	if (!patientName || !patientMobile || !patientEmail || !symptoms) {
+		showMsg("Patient name, mobile, email and symptoms are required. Please login again or update your profile email.");
 		return null;
 	}
 
@@ -558,6 +578,7 @@ function buildAppointmentPayload() {
 				doctorAuthUserId: getAuthUserId(selectedDoctor),
 				patientName: patientName,
 				patientMobile: patientMobile,
+				patientEmail: patientEmail,
 				appointmentDate: date,
 				appointmentTime: selectedSlot,
 				symptoms: symptoms
@@ -582,6 +603,7 @@ function buildAppointmentPayload() {
 				hospitalDoctorId: selectedHospitalDoctor.id,
 				patientName: patientName,
 				patientMobile: patientMobile,
+				patientEmail: patientEmail,
 				appointmentDate: date,
 				appointmentTime: selectedSlot,
 				symptoms: symptoms
@@ -592,7 +614,6 @@ function buildAppointmentPayload() {
 	showMsg("Invalid booking type");
 	return null;
 }
-
 async function bookOfflineAppointment(payloadData) {
 	const token = localStorage.getItem("token");
 
@@ -711,4 +732,13 @@ function showMsg(message, type = "danger") {
 
 function safe(value) {
 	return value === null || value === undefined || value === "" ? "-" : value;
+}
+
+function escapeHtml(value) {
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/'/g, "&#39;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
 }

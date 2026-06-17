@@ -43,6 +43,9 @@ public class Appointment {
     private LocalDate appointmentDate;
 
     private LocalTime appointmentTime;
+    
+    @Column(name = "patient_email")
+    private String patientEmail;
 
     @Column(length = 2000)
     private String symptoms;

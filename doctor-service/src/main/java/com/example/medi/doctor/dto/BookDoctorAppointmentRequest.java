@@ -19,6 +19,8 @@ public class BookDoctorAppointmentRequest {
     private ConsultationType consultationType;
 
     private String patientName;
+    
+    private String patientEmail;
 
     private String patientMobile;
 

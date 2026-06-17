@@ -2,6 +2,8 @@ package com.example.medi.user.service;
 
 import java.util.List;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -42,6 +44,11 @@ public class ProfileService {
         this.patientProfileRepository = patientProfileRepository;
     }
 
+    public Long currentUserId() {
+        return CurrentUserUtil.getUserId();
+    }
+
+    @CacheEvict(value = "wholesalerProfile", allEntries = true)
     public WholesalerProfile createWholesalerProfile(WholesalerProfile profile) {
 
         if (wholesalerRepository.findByAuthUserId(profile.getAuthUserId()).isPresent()) {
@@ -50,7 +57,8 @@ public class ProfileService {
 
         return wholesalerRepository.save(profile);
     }
-    
+
+    @CacheEvict(value = "retailerProfile", allEntries = true)
     public RetailerProfile createRetailerProfile(RetailerProfile profile) {
 
         if (retailerRepository.findByAuthUserId(profile.getAuthUserId()).isPresent()) {
@@ -60,6 +68,7 @@ public class ProfileService {
         return retailerRepository.save(profile);
     }
 
+    @CacheEvict(value = {"doctorProfile", "doctors"}, allEntries = true)
     public DoctorProfile createDoctorProfile(DoctorProfile profile) {
 
         if (doctorRepository.findByAuthUserId(profile.getAuthUserId()).isPresent()) {
@@ -69,6 +78,7 @@ public class ProfileService {
         return doctorRepository.save(profile);
     }
 
+    @CacheEvict(value = {"hospitalProfile", "hospitals"}, allEntries = true)
     public HospitalProfile createHospitalProfile(HospitalProfile request) {
 
         if (!"HOSPITAL".equals(CurrentUserUtil.getRole())) {
@@ -85,29 +95,41 @@ public class ProfileService {
 
         return hospitalRepository.save(request);
     }
-    
 
+    @Cacheable(value = "wholesalerProfile", key = "#authUserId")
     public WholesalerProfile getWholesalerProfile(Long authUserId) {
+        System.out.println("DB HIT: Loading wholesaler profile authUserId = " + authUserId);
+
         return wholesalerRepository.findByAuthUserId(authUserId)
                 .orElseThrow(() -> new RuntimeException("Wholesaler profile not found"));
     }
 
+    @Cacheable(value = "retailerProfile", key = "#authUserId")
     public RetailerProfile getRetailerProfile(Long authUserId) {
+        System.out.println("DB HIT: Loading retailer profile authUserId = " + authUserId);
+
         return retailerRepository.findByAuthUserId(authUserId)
                 .orElseThrow(() -> new RuntimeException("Retailer profile not found"));
     }
 
+    @Cacheable(value = "doctorProfile", key = "#authUserId")
     public DoctorProfile getDoctorProfile(Long authUserId) {
+        System.out.println("DB HIT: Loading doctor profile authUserId = " + authUserId);
+
         return doctorRepository.findByAuthUserId(authUserId)
                 .orElseThrow(() -> new RuntimeException("Doctor profile not found"));
     }
 
+    @Cacheable(value = "hospitalProfile", key = "#authUserId")
     public HospitalProfile getHospitalProfile(Long authUserId) {
+        System.out.println("DB HIT: Loading hospital profile authUserId = " + authUserId);
+
         return hospitalRepository.findByAuthUserId(authUserId)
                 .orElseThrow(() -> new RuntimeException("Hospital profile not found"));
     }
-    
+
     @Transactional
+    @CacheEvict(value = "patientProfile", allEntries = true)
     public PatientProfile updatePatientProfile(PatientProfile profile) {
 
         Long authUserId = CurrentUserUtil.getUserId();
@@ -132,8 +154,9 @@ public class ProfileService {
 
         return patientProfileRepository.save(existing);
     }
-    
+
     @Transactional
+    @CacheEvict(value = "wholesalerProfile", allEntries = true)
     public WholesalerProfile updateWholesalerProfile(WholesalerProfile profile) {
 
         Long authUserId = CurrentUserUtil.getUserId();
@@ -168,8 +191,9 @@ public class ProfileService {
 
         return wholesalerRepository.save(existing);
     }
-    
+
     @Transactional
+    @CacheEvict(value = "retailerProfile", allEntries = true)
     public RetailerProfile updateRetailerProfile(RetailerProfile profile) {
 
         Long authUserId = CurrentUserUtil.getUserId();
@@ -204,8 +228,9 @@ public class ProfileService {
 
         return retailerRepository.save(existing);
     }
-    
+
     @Transactional
+    @CacheEvict(value = {"doctorProfile", "doctors"}, allEntries = true)
     public DoctorProfile updateDoctorProfile(DoctorProfile profile) {
 
         Long authUserId = CurrentUserUtil.getUserId();
@@ -240,8 +265,9 @@ public class ProfileService {
 
         return doctorRepository.save(existing);
     }
-    
+
     @Transactional
+    @CacheEvict(value = {"hospitalProfile", "hospitals"}, allEntries = true)
     public HospitalProfile updateHospitalProfile(HospitalProfile profile) {
 
         Long authUserId = CurrentUserUtil.getUserId();
@@ -275,6 +301,8 @@ public class ProfileService {
 
         return hospitalRepository.save(existing);
     }
+
+    @CacheEvict(value = "patientProfile", allEntries = true)
     public PatientProfile createPatientProfile(PatientProfile request) {
 
         if (!"PATIENT".equals(CurrentUserUtil.getRole())) {
@@ -291,24 +319,31 @@ public class ProfileService {
 
         return patientProfileRepository.save(request);
     }
-    
+
+    @Cacheable(value = "patientProfile", key = "#root.target.currentUserId()")
     public PatientProfile getMyPatientProfile() {
 
         if (!"PATIENT".equals(CurrentUserUtil.getRole())) {
             throw new AccessDeniedException("Only PATIENT can view patient profile");
         }
 
-        return patientProfileRepository.findByAuthUserId(CurrentUserUtil.getUserId())
+        Long authUserId = CurrentUserUtil.getUserId();
+
+        System.out.println("DB HIT: Loading patient profile authUserId = " + authUserId);
+
+        return patientProfileRepository.findByAuthUserId(authUserId)
                 .orElseThrow(() -> new RuntimeException("Patient profile not found"));
     }
-    
+
+    @Cacheable(value = "doctors")
     public List<DoctorProfile> getAllDoctors() {
+        System.out.println("DB HIT: Loading all doctors");
         return doctorRepository.findAll();
     }
 
+    @Cacheable(value = "hospitals")
     public List<HospitalProfile> getAllHospitals() {
+        System.out.println("DB HIT: Loading all hospitals");
         return hospitalRepository.findAllByOrderByHospitalNameAsc();
     }
-    
-    
 }

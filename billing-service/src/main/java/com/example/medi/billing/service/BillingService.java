@@ -1,5 +1,7 @@
 package com.example.medi.billing.service;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +32,7 @@ public class BillingService {
         this.orderClient = orderClient;
     }
 
+    @CacheEvict(value = {"invoiceByOrderNo", "invoiceResponseById"}, allEntries = true)
     public Invoice generateInvoice(String orderNo) {
 
         invoiceRepository.findByOrderNumber(orderNo).ifPresent(invoice -> {
@@ -104,11 +107,15 @@ public class BillingService {
         return invoiceRepository.save(invoice);
     }
 
+    @Cacheable(value = "invoiceByOrderNo", key = "#orderNo")
     public Invoice getInvoiceByOrderId(String orderNo) {
+        System.out.println("DB HIT: Loading invoice orderNo = " + orderNo);
+
         return invoiceRepository.findByOrderNumber(orderNo)
                 .orElseThrow(() -> new RuntimeException("Invoice not found"));
     }
-    
+
+    @Cacheable(value = "invoiceResponseById", key = "#invoice.id")
     public InvoiceResponse mapToInvoiceResponse(Invoice invoice) {
 
         return new InvoiceResponse(

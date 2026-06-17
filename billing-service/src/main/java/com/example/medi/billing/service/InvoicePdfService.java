@@ -1,10 +1,10 @@
 package com.example.medi.billing.service;
 
-
 import com.example.medi.billing.entity.Invoice;
 import com.example.medi.billing.entity.InvoiceItem;
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 @Service
 public class InvoicePdfService {
 
+    @Cacheable(value = "invoicePdf", key = "#invoice.id")
     public byte[] generateInvoicePdf(Invoice invoice) {
 
         try {

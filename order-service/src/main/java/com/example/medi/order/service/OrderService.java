@@ -1,5 +1,7 @@
 package com.example.medi.order.service;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +41,14 @@ public class OrderService {
 		this.notificationClient = notificationClient;
 	}
 
+	@CacheEvict(
+			value = {
+					"myOrders",
+					"orderByNo",
+					"orderDashboard"
+			},
+			allEntries = true
+	)
 	public MedicineOrder placeOrder(PlaceOrderRequest request) {
 
 		if (!CurrentUserUtil.getRole().equals("RETAILER")) {
@@ -123,6 +133,14 @@ public class OrderService {
 		return savedOrder;
 	}
 
+	@CacheEvict(
+			value = {
+					"myOrders",
+					"orderByNo",
+					"orderDashboard"
+			},
+			allEntries = true
+	)
 	public MedicineOrder updateOrderStatus(Long orderId, OrderStatus status) {
 
 		MedicineOrder order = orderRepository.findById(orderId)
@@ -190,6 +208,10 @@ public class OrderService {
 		return savedOrder;
 	}
 
+	@Cacheable(
+			value = "myOrders",
+			key = "T(com.example.medi.order.security.CurrentUserUtil).getRole() + '-' + T(com.example.medi.order.security.CurrentUserUtil).getUserId()"
+	)
 	public List<OrderListResponse> getMyOrders() {
 
 		String role = CurrentUserUtil.getRole();
@@ -221,6 +243,7 @@ public class OrderService {
 						.toList());
 	}
 
+	@Cacheable(value = "orderByNo", key = "#orderNo")
 	public OrderListResponse getOrderByOrderNo(String orderNo) {
 
 	    MedicineOrder order = orderRepository.findByOrderNumber(orderNo);
@@ -248,7 +271,11 @@ public class OrderService {
 
 	    return mapToOrderListResponse(order);
 	}
-	
+
+	@Cacheable(
+			value = "orderDashboard",
+			key = "T(com.example.medi.order.security.CurrentUserUtil).getRole() + '-' + T(com.example.medi.order.security.CurrentUserUtil).getUserId()"
+	)
 	public OrderDashboardCountResponse getOrderDashboardCounts() {
 
 	    String role = CurrentUserUtil.getRole();

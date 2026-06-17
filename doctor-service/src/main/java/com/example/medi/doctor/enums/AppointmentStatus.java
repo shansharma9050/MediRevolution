@@ -1,10 +1,16 @@
 package com.example.medi.doctor.enums;
 
 public enum AppointmentStatus {
-	PAYMENT_PENDING,
-    CONFIRMED,
+	REQUESTED,
+    PENDING,
+
+    PAYMENT_PENDING,
     PAYMENT_FAILED,
-    CANCELLED,
+
+    CONFIRMED,
+    IN_CONSULTATION,
     COMPLETED,
-    PENDING
+
+    CANCELLED,
+    REJECTED
 }

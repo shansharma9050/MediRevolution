@@ -9,7 +9,10 @@ public class VideoMeetingService {
 
     public String generateMeetingUrl(Long appointmentId) {
 
-        String roomName = "MediRevolution-" + appointmentId + "-" + UUID.randomUUID();
+        String roomName = "medirevolution-appointment-"
+                + appointmentId
+                + "-"
+                + UUID.randomUUID();
 
         return "https://meet.jit.si/" + roomName;
     }
