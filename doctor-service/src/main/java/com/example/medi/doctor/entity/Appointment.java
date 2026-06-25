@@ -13,17 +13,7 @@ import com.example.medi.doctor.enums.ConsultationType;
 import com.example.medi.doctor.enums.PaymentStatus;
 
 @Entity
-@Table(name = "appointments",
-
-uniqueConstraints = {
-        @UniqueConstraint(
-                columnNames = {
-                        "doctorAuthUserId",
-                        "appointmentDate",
-                        "appointmentTime"
-                }
-        )
-})
+@Table(name = "appointments")
 @Data
 @NoArgsConstructor
 public class Appointment {

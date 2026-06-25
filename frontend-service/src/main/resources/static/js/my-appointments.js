@@ -1,8 +1,13 @@
+console.log("MY APPOINTMENTS JS LOADED - DOCTOR + HOSPITAL FIX");
+
 let currentType = "DOCTOR";
 let myDoctorAppointments = [];
 let myHospitalAppointments = [];
 
-document.addEventListener("DOMContentLoaded", function() {
+let doctorLoadError = "";
+let hospitalLoadError = "";
+
+document.addEventListener("DOMContentLoaded", function () {
 	requirePatientRole();
 	loadMyAppointments();
 });
@@ -13,6 +18,7 @@ function requirePatientRole() {
 		window.location.href = "/dashboard";
 	}
 }
+
 function setType(type) {
 	currentType = type;
 
@@ -28,16 +34,23 @@ async function loadMyAppointments() {
 	myDoctorAppointments = [];
 	myHospitalAppointments = [];
 
+	doctorLoadError = "";
+	hospitalLoadError = "";
+
 	try {
-		const doctorPromise = fetch(`${API_BASE}/doctor/appointments/patient`, {
+		const doctorPromise = fetch(`${API_BASE}/doctor/appointments/patient?t=${Date.now()}`, {
+			method: "GET",
 			headers: {
-				"Authorization": "Bearer " + token
+				"Authorization": "Bearer " + token,
+				"Cache-Control": "no-cache"
 			}
 		});
 
-		const hospitalPromise = fetch(`${API_BASE}/hospital/appointments/patient`, {
+		const hospitalPromise = fetch(`${API_BASE}/hospital/appointments/patient?t=${Date.now()}`, {
+			method: "GET",
 			headers: {
-				"Authorization": "Bearer " + token
+				"Authorization": "Bearer " + token,
+				"Cache-Control": "no-cache"
 			}
 		});
 
@@ -48,32 +61,47 @@ async function loadMyAppointments() {
 
 		if (doctorResult.status === "fulfilled") {
 			const doctorRes = doctorResult.value;
+			const doctorData = await readJsonSafely(doctorRes);
 
 			if (doctorRes.ok) {
-				myDoctorAppointments = await doctorRes.json();
+				myDoctorAppointments = normalizeList(doctorData).map(normalizeAppointment);
 			} else {
-				console.error("Doctor appointment API failed:", doctorRes.status);
+				doctorLoadError = getErrorMessage(doctorData, `Doctor appointment API failed. Status: ${doctorRes.status}`);
+				console.error("Doctor appointment API failed:", doctorRes.status, doctorData);
 			}
 		} else {
+			doctorLoadError = "Doctor appointment service not reachable.";
 			console.error("Doctor appointment service error:", doctorResult.reason);
 		}
 
 		if (hospitalResult.status === "fulfilled") {
 			const hospitalRes = hospitalResult.value;
+			const hospitalData = await readJsonSafely(hospitalRes);
 
 			if (hospitalRes.ok) {
-				myHospitalAppointments = await hospitalRes.json();
+				myHospitalAppointments = normalizeList(hospitalData).map(normalizeAppointment);
 			} else {
-				console.error("Hospital appointment API failed:", hospitalRes.status);
+				hospitalLoadError = getErrorMessage(hospitalData, `Hospital appointment API failed. Status: ${hospitalRes.status}`);
+				console.error("Hospital appointment API failed:", hospitalRes.status, hospitalData);
 			}
 		} else {
+			hospitalLoadError = "Hospital appointment service not reachable.";
 			console.error("Hospital appointment service error:", hospitalResult.reason);
 		}
+
+		console.log("Doctor appointments:", myDoctorAppointments);
+		console.log("Hospital appointments:", myHospitalAppointments);
 
 		renderAppointments();
 
 		if (!myDoctorAppointments.length && !myHospitalAppointments.length) {
-			showMsg("No appointments found or appointment services are not responding.", "warning");
+			if (currentType === "DOCTOR" && doctorLoadError) {
+				showMsg(doctorLoadError, "danger");
+			} else if (currentType === "HOSPITAL" && hospitalLoadError) {
+				showMsg(hospitalLoadError, "danger");
+			} else {
+				showMsg("No appointments found.", "warning");
+			}
 		} else {
 			clearMsg();
 		}
@@ -86,7 +114,22 @@ async function loadMyAppointments() {
 
 function renderAppointments() {
 	const container = document.getElementById("appointmentList");
+
+	if (!container) {
+		return;
+	}
+
 	const list = currentType === "DOCTOR" ? myDoctorAppointments : myHospitalAppointments;
+	const error = currentType === "DOCTOR" ? doctorLoadError : hospitalLoadError;
+
+	if (error && !list.length) {
+		container.innerHTML = `
+			<div class="text-center text-danger py-5">
+				${escapeHtml(error)}
+			</div>
+		`;
+		return;
+	}
 
 	if (!list.length) {
 		container.innerHTML = `<div class="text-center text-muted py-5">No appointments found</div>`;
@@ -96,25 +139,16 @@ function renderAppointments() {
 	let html = "";
 
 	list.forEach(a => {
-
 		html += `
             <div class="order-card mb-3">
                 <div class="d-flex justify-content-between flex-wrap gap-3">
 
                     <div>
                         <h5 class="fw-bold text-primary">
-                            ${currentType === "DOCTOR"
-				? "Doctor ID: " + safe(a.doctorAuthUserId)
-				: safe(a.doctorName)
-			}
+                            ${appointmentTitle(a)}
                         </h5>
 
-                        ${currentType === "HOSPITAL"
-				? `<div class="text-muted small">
-                                    Hospital ID: ${safe(a.hospitalAuthUserId)} | ${safe(a.department)}
-                               </div>`
-				: ""
-			}
+                        ${appointmentSubTitle(a)}
 
                         <div class="text-muted small">
                             Date: ${formatDate(a.appointmentDate)} | Time: ${safe(a.appointmentTime)}
@@ -124,8 +158,20 @@ function renderAppointments() {
                             Consultation Type: ${consultationBadge(a.consultationType)}
                         </div>
 
+                        ${a.paymentStatus ? `
+                            <div class="text-muted small mt-1">
+                                Payment: ${paymentBadge(a.paymentStatus)}
+                            </div>
+                        ` : ""}
+
+                        ${a.consultationFee !== null && a.consultationFee !== undefined ? `
+                            <div class="text-muted small mt-1">
+                                Fee: ₹${safe(a.consultationFee)}
+                            </div>
+                        ` : ""}
+
                         <div class="mt-2">
-                            <strong>Symptoms:</strong> ${safe(a.symptoms)}
+                            <strong>Symptoms:</strong> ${safe(a.symptoms || a.purpose)}
                         </div>
 
                         ${videoJoinButton(a)}
@@ -144,41 +190,55 @@ function renderAppointments() {
 	container.innerHTML = html;
 }
 
+function appointmentTitle(a) {
+	if (currentType === "DOCTOR") {
+		if (a.doctorName) {
+			return safe(a.doctorName);
+		}
+
+		return "Doctor ID: " + safe(a.doctorAuthUserId);
+	}
+
+	return safe(a.doctorName || "Hospital Doctor");
+}
+
+function appointmentSubTitle(a) {
+	if (currentType === "DOCTOR") {
+		return `
+			<div class="text-muted small">
+				Doctor ID: ${safe(a.doctorAuthUserId)}
+			</div>
+		`;
+	}
+
+	return `
+		<div class="text-muted small">
+			Hospital ID: ${safe(a.hospitalAuthUserId)}
+			${a.hospitalDoctorId ? ` | Hospital Doctor ID: ${safe(a.hospitalDoctorId)}` : ""}
+			${a.department ? ` | ${safe(a.department)}` : ""}
+		</div>
+	`;
+}
+
 function combinedStatusBadge(a) {
-    if (a.status === "PAYMENT_PENDING") {
-        return `<span class="badge bg-warning text-dark">PAYMENT PENDING</span>`;
-    }
+	if (a.status === "PAYMENT_PENDING") {
+		return `<span class="badge bg-warning text-dark">PAYMENT PENDING</span>`;
+	}
 
-    if (a.status === "PAYMENT_FAILED") {
-        return `<span class="badge bg-danger">PAYMENT FAILED</span>`;
-    }
+	if (a.status === "PAYMENT_FAILED") {
+		return `<span class="badge bg-danger">PAYMENT FAILED</span>`;
+	}
 
-    if (a.paymentStatus === "SUCCESS" && a.status === "CONFIRMED") {
-        return `
-            <span class="badge bg-info text-dark">CONFIRMED</span>
-            <div class="mt-2">
-                <span class="badge bg-success">PAYMENT SUCCESS</span>
-            </div>
-        `;
-    }
+	let html = statusBadge(a.status);
 
-    if (a.paymentStatus === "SUCCESS" && a.status === "COMPLETED") {
-        return `
-            <span class="badge bg-success">COMPLETED</span>
-            <div class="mt-2">
-                <span class="badge bg-success">PAYMENT SUCCESS</span>
-            </div>
-        `;
-    }
+	if (a.paymentStatus) {
+		html += paymentBadge(a.paymentStatus);
+	}
 
-    return statusBadge(a.status);
+	return html;
 }
 
 function videoJoinButton(a) {
-	if (currentType !== "DOCTOR") {
-		return "";
-	}
-
 	if (a.consultationType !== "ONLINE") {
 		return "";
 	}
@@ -214,10 +274,10 @@ function videoJoinButton(a) {
         `;
 	}
 
-	if (a.status === "CONFIRMED" && !isValidMeetingUrl(a.meetingUrl)) {
+	if ((a.status === "CONFIRMED" || a.status === "PENDING") && !isValidMeetingUrl(a.meetingUrl)) {
 		return `
             <div class="mt-3 text-muted small">
-                Video link is not generated yet. Please refresh this page after payment success.
+                Video link is not generated yet. Please refresh this page after payment success/confirmation.
             </div>
         `;
 	}
@@ -256,12 +316,6 @@ function isValidMeetingUrl(url) {
 		&& (url.startsWith("http://") || url.startsWith("https://"));
 }
 
-function escapeJs(value) {
-	return String(value || "")
-		.replace(/\\/g, "\\\\")
-		.replace(/'/g, "\\'")
-		.replace(/"/g, "&quot;");
-}
 function consultationBadge(type) {
 	if (type === "ONLINE") {
 		return `<span class="badge bg-success">ONLINE VIDEO</span>`;
@@ -274,11 +328,13 @@ function consultationBadge(type) {
 	return `<span class="badge bg-light text-dark">-</span>`;
 }
 
-
-
 function paymentBadge(paymentStatus) {
 	if (!paymentStatus) {
 		return "";
+	}
+
+	if (paymentStatus === "NOT_REQUIRED") {
+		return `<div class="mt-2"><span class="badge bg-secondary">PAYMENT NOT REQUIRED</span></div>`;
 	}
 
 	if (paymentStatus === "SUCCESS") {
@@ -376,13 +432,15 @@ async function cancelDoctorAppointment(id) {
 	try {
 		const response = await fetch(`${API_BASE}/doctor/appointments/${id}/cancel`, {
 			method: "PUT",
-			headers: { "Authorization": "Bearer " + token }
+			headers: {
+				"Authorization": "Bearer " + token
+			}
 		});
 
-		const result = await response.json();
+		const result = await readJsonSafely(response);
 
 		if (!response.ok) {
-			showMsg(result.message || "Unable to cancel appointment");
+			showMsg(getErrorMessage(result, "Unable to cancel appointment"));
 			return;
 		}
 
@@ -390,6 +448,7 @@ async function cancelDoctorAppointment(id) {
 		loadMyAppointments();
 
 	} catch (e) {
+		console.error(e);
 		showMsg("Doctor service not reachable.");
 	}
 }
@@ -404,13 +463,15 @@ async function cancelHospitalAppointment(id) {
 	try {
 		const response = await fetch(`${API_BASE}/hospital/appointments/${id}/cancel`, {
 			method: "PUT",
-			headers: { "Authorization": "Bearer " + token }
+			headers: {
+				"Authorization": "Bearer " + token
+			}
 		});
 
-		const result = await response.json();
+		const result = await readJsonSafely(response);
 
 		if (!response.ok) {
-			showMsg(result.message || "Unable to cancel hospital appointment");
+			showMsg(getErrorMessage(result, "Unable to cancel hospital appointment"));
 			return;
 		}
 
@@ -418,12 +479,128 @@ async function cancelHospitalAppointment(id) {
 		loadMyAppointments();
 
 	} catch (e) {
+		console.error(e);
 		showMsg("Hospital service not reachable.");
 	}
 }
 
+function normalizeList(data) {
+	if (!data) {
+		return [];
+	}
+
+	if (Array.isArray(data)) {
+		return data;
+	}
+
+	if (Array.isArray(data.data)) {
+		return data.data;
+	}
+
+	if (Array.isArray(data.content)) {
+		return data.content;
+	}
+
+	return [];
+}
+
+function normalizeAppointment(a) {
+	if (!a) {
+		return {};
+	}
+
+	return {
+		...a,
+		status: normalizeStatus(a.status),
+		consultationType: normalizeConsultationType(a.consultationType),
+		paymentStatus: normalizePaymentStatus(a.paymentStatus)
+	};
+}
+
+function normalizeStatus(status) {
+	if (status === null || status === undefined) {
+		return "";
+	}
+
+	const value = String(status);
+
+	if (value === "0") return "PENDING";
+	if (value === "1") return "PAYMENT_PENDING";
+	if (value === "2") return "PAYMENT_FAILED";
+	if (value === "3") return "CONFIRMED";
+	if (value === "4") return "REJECTED";
+	if (value === "5") return "COMPLETED";
+	if (value === "6") return "CANCELLED";
+	if (value === "7") return "IN_CONSULTATION";
+
+	return value;
+}
+
+function normalizeConsultationType(type) {
+	if (type === null || type === undefined) {
+		return "";
+	}
+
+	const value = String(type);
+
+	if (value === "0") return "ONLINE";
+	if (value === "1") return "OFFLINE";
+
+	return value;
+}
+
+function normalizePaymentStatus(status) {
+	if (status === null || status === undefined) {
+		return "";
+	}
+
+	const value = String(status);
+
+	if (value === "0") return "NOT_REQUIRED";
+	if (value === "1") return "INITIATED";
+	if (value === "2") return "PENDING";
+	if (value === "3") return "SUCCESS";
+	if (value === "4") return "FAILED";
+
+	return value;
+}
+
+async function readJsonSafely(response) {
+	try {
+		return await response.json();
+	} catch (e) {
+		return null;
+	}
+}
+
+function getErrorMessage(data, fallback) {
+	if (!data) {
+		return fallback;
+	}
+
+	if (data.message) {
+		return data.message;
+	}
+
+	if (data.error) {
+		return data.error;
+	}
+
+	if (typeof data === "string") {
+		return data;
+	}
+
+	return fallback;
+}
+
 function showMsg(message, type = "danger") {
-	document.getElementById("msg").innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+	const msgBox = document.getElementById("msg");
+
+	if (!msgBox) {
+		return;
+	}
+
+	msgBox.innerHTML = `<div class="alert alert-${type}">${escapeHtml(message)}</div>`;
 }
 
 function clearMsg() {
@@ -433,10 +610,27 @@ function clearMsg() {
 		msgBox.innerHTML = "";
 	}
 }
+
 function formatDate(value) {
 	return value ? new Date(value).toLocaleDateString() : "-";
 }
 
 function safe(value) {
-	return value === null || value === undefined || value === "" ? "-" : value;
+	return value === null || value === undefined || value === "" ? "-" : escapeHtml(value);
+}
+
+function escapeHtml(value) {
+	return String(value || "")
+		.replace(/&/g, "&amp;")
+		.replace(/'/g, "&#39;")
+		.replace(/"/g, "&quot;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;");
+}
+
+function escapeJs(value) {
+	return String(value || "")
+		.replace(/\\/g, "\\\\")
+		.replace(/'/g, "\\'")
+		.replace(/"/g, "&quot;");
 }

@@ -6,8 +6,10 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.medi.doctor.client.BillingClient;
 import com.example.medi.doctor.dto.AvailableSlotResponse;
 import com.example.medi.doctor.dto.BookDoctorAppointmentRequest;
+import com.example.medi.doctor.dto.SubscriptionCheckResponse;
 import com.example.medi.doctor.dto.UpdatePrescriptionRequest;
 import com.example.medi.doctor.entity.Appointment;
 import com.example.medi.doctor.entity.DoctorAvailability;
@@ -39,6 +41,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.awt.Color;
 import com.lowagie.text.Chunk;
 import com.lowagie.text.PageSize;
@@ -52,10 +56,12 @@ public class DoctorService {
 	private final DoctorAvailabilityRepository availabilityRepository;
 	private final VideoMeetingService videoMeetingService;
 	private final AppointmentNotificationService appointmentNotificationService;
+	private final BillingClient billingClient;
 
 	public DoctorService(PatientRepository patientRepository, PrescriptionRepository prescriptionRepository,
 			AppointmentRepository appointmentRepository, DoctorAvailabilityRepository availabilityRepository,
-			VideoMeetingService videoMeetingService, AppointmentNotificationService appointmentNotificationService) {
+			VideoMeetingService videoMeetingService, AppointmentNotificationService appointmentNotificationService,
+			BillingClient billingClient) {
 
 		this.patientRepository = patientRepository;
 		this.prescriptionRepository = prescriptionRepository;
@@ -63,6 +69,7 @@ public class DoctorService {
 		this.availabilityRepository = availabilityRepository;
 		this.videoMeetingService = videoMeetingService;
 		this.appointmentNotificationService = appointmentNotificationService;
+		this.billingClient = billingClient;
 	}
 
 	private void allowDoctorOnly() {
@@ -71,7 +78,7 @@ public class DoctorService {
 		}
 	}
 
-	@CacheEvict(value = {"doctorPatients"}, allEntries = true)
+	@CacheEvict(value = { "doctorPatients" }, allEntries = true)
 	public Patient createPatient(Patient patient) {
 		allowDoctorOnly();
 		patient.setDoctorAuthUserId(CurrentUserUtil.getUserId());
@@ -84,7 +91,7 @@ public class DoctorService {
 		return patientRepository.findByDoctorAuthUserIdAndActiveTrue(CurrentUserUtil.getUserId());
 	}
 
-	@CacheEvict(value = {"doctorPatients"}, allEntries = true)
+	@CacheEvict(value = { "doctorPatients" }, allEntries = true)
 	public Patient updatePatient(Long patientId, Patient updatedPatient) {
 		allowDoctorOnly();
 
@@ -107,7 +114,7 @@ public class DoctorService {
 		return patientRepository.save(existingPatient);
 	}
 
-	@CacheEvict(value = {"doctorPatients"}, allEntries = true)
+	@CacheEvict(value = { "doctorPatients" }, allEntries = true)
 	public void deletePatient(Long patientId) {
 		allowDoctorOnly();
 
@@ -122,7 +129,7 @@ public class DoctorService {
 		patientRepository.save(existingPatient);
 	}
 
-	@CacheEvict(value = {"doctorPrescriptions", "patientPrescriptions"}, allEntries = true)
+	@CacheEvict(value = { "doctorPrescriptions", "patientPrescriptions" }, allEntries = true)
 	public Prescription createPrescription(Long patientId, Prescription prescription) {
 		allowDoctorOnly();
 
@@ -153,7 +160,7 @@ public class DoctorService {
 		return appointmentRepository.findByDoctorAuthUserId(CurrentUserUtil.getUserId());
 	}
 
-	@CacheEvict(value = {"doctorSlots", "doctorAvailability"}, allEntries = true)
+	@CacheEvict(value = { "doctorSlots", "doctorAvailability" }, allEntries = true)
 	public DoctorAvailability createAvailability(DoctorAvailability availability) {
 
 		if (!"DOCTOR".equals(CurrentUserUtil.getRole())) {
@@ -197,6 +204,12 @@ public class DoctorService {
 		List<DoctorAvailability> availabilityList = availabilityRepository
 				.findByDoctorAuthUserIdAndAvailableDate(doctorId, date);
 
+		List<Appointment> bookedAppointments = appointmentRepository
+				.findByDoctorAuthUserIdAndAppointmentDateAndStatusNotIn(doctorId, date, freeSlotStatuses());
+
+		Set<LocalTime> bookedTimes = bookedAppointments.stream().map(Appointment::getAppointmentTime)
+				.collect(Collectors.toSet());
+
 		List<AvailableSlotResponse> slots = new ArrayList<>();
 
 		for (DoctorAvailability availability : availabilityList) {
@@ -205,9 +218,7 @@ public class DoctorService {
 
 			while (current.plusMinutes(availability.getSlotDuration()).compareTo(availability.getEndTime()) <= 0) {
 
-				boolean booked = appointmentRepository
-						.existsByDoctorAuthUserIdAndAppointmentDateAndAppointmentTimeAndStatusNot(doctorId, date,
-								current, AppointmentStatus.CANCELLED);
+				boolean booked = bookedTimes.contains(current);
 
 				slots.add(new AvailableSlotResponse(current.toString(), booked));
 
@@ -218,71 +229,71 @@ public class DoctorService {
 		return slots;
 	}
 
-	@CacheEvict(value = {"doctorSlots", "doctorAppointments", "patientAppointments"}, allEntries = true)
+	@CacheEvict(value = { "doctorSlots", "doctorAppointments", "patientAppointments" }, allEntries = true)
 	public Appointment bookAppointment(BookDoctorAppointmentRequest request) {
 
-	    if (!"PATIENT".equals(CurrentUserUtil.getRole())) {
-	        throw new AccessDeniedException("Only PATIENT can book doctor appointment");
-	    }
+		if (request.getConsultationType() == ConsultationType.ONLINE) {
+			validateDoctorSubscriptionForOnlineConsultation(request.getDoctorAuthUserId());
+		}
 
-	    if (request.getDoctorAuthUserId() == null) {
-	        throw new RuntimeException("Doctor id is required");
-	    }
+		if (!"PATIENT".equals(CurrentUserUtil.getRole())) {
+			throw new AccessDeniedException("Only PATIENT can book doctor appointment");
+		}
 
-	    if (request.getAppointmentDate() == null || request.getAppointmentTime() == null) {
-	        throw new RuntimeException("Appointment date and time are required");
-	    }
+		if (request.getDoctorAuthUserId() == null) {
+			throw new RuntimeException("Doctor id is required");
+		}
 
-	    boolean booked = appointmentRepository.existsByDoctorAuthUserIdAndAppointmentDateAndAppointmentTimeAndStatusNot(
-	            request.getDoctorAuthUserId(),
-	            request.getAppointmentDate(),
-	            request.getAppointmentTime(),
-	            AppointmentStatus.CANCELLED
-	    );
+		if (request.getAppointmentDate() == null || request.getAppointmentTime() == null) {
+			throw new RuntimeException("Appointment date and time are required");
+		}
 
-	    if (booked) {
-	        throw new RuntimeException("Selected slot is already booked");
-	    }
+		boolean booked = appointmentRepository
+				.existsByDoctorAuthUserIdAndAppointmentDateAndAppointmentTimeAndStatusNotIn(
+						request.getDoctorAuthUserId(), request.getAppointmentDate(), request.getAppointmentTime(),
+						freeSlotStatuses());
 
-	    List<AvailableSlotResponse> slots = getAvailableSlots(
-	            request.getDoctorAuthUserId(),
-	            request.getAppointmentDate()
-	    );
+		if (booked) {
+			throw new RuntimeException("Selected slot is already booked");
+		}
 
-	    boolean validSlot = slots.stream()
-	            .anyMatch(slot -> slot.getTime().equals(request.getAppointmentTime().toString()) && !slot.isBooked());
+		List<AvailableSlotResponse> slots = getAvailableSlots(request.getDoctorAuthUserId(),
+				request.getAppointmentDate());
 
-	    if (!validSlot) {
-	        throw new RuntimeException("Selected slot is not available");
-	    }
+		boolean validSlot = slots.stream()
+				.anyMatch(slot -> slot.getTime().equals(request.getAppointmentTime().toString()) && !slot.isBooked());
 
-	    ConsultationType consultationType =
-	            request.getConsultationType() == null ? ConsultationType.OFFLINE : request.getConsultationType();
+		if (!validSlot) {
+			throw new RuntimeException("Selected slot is not available");
+		}
 
-	    Appointment appointment = new Appointment();
+		ConsultationType consultationType = request.getConsultationType() == null ? ConsultationType.OFFLINE
+				: request.getConsultationType();
 
-	    appointment.setDoctorAuthUserId(request.getDoctorAuthUserId());
-	    appointment.setPatientAuthUserId(CurrentUserUtil.getUserId());
+		Appointment appointment = new Appointment();
 
-	    appointment.setPatientName(request.getPatientName());
-	    appointment.setPatientMobile(request.getPatientMobile());
-	    appointment.setPatientEmail(request.getPatientEmail());
+		appointment.setDoctorAuthUserId(request.getDoctorAuthUserId());
+		appointment.setPatientAuthUserId(CurrentUserUtil.getUserId());
 
-	    appointment.setAppointmentDate(request.getAppointmentDate());
-	    appointment.setAppointmentTime(request.getAppointmentTime());
-	    appointment.setSymptoms(request.getSymptoms());
+		appointment.setPatientName(request.getPatientName());
+		appointment.setPatientMobile(request.getPatientMobile());
+		appointment.setPatientEmail(request.getPatientEmail());
 
-	    appointment.setConsultationType(consultationType);
-	    appointment.setCreatedAt(LocalDateTime.now());
+		appointment.setAppointmentDate(request.getAppointmentDate());
+		appointment.setAppointmentTime(request.getAppointmentTime());
+		appointment.setSymptoms(request.getSymptoms());
 
-	    if (consultationType == ConsultationType.ONLINE) {
-	        appointment.setStatus(AppointmentStatus.PAYMENT_PENDING);
-	        appointment.setPaymentStatus(PaymentStatus.INITIATED);
-	    } else {
-	        appointment.setStatus(AppointmentStatus.PENDING);
-	    }
+		appointment.setConsultationType(consultationType);
+		appointment.setCreatedAt(LocalDateTime.now());
 
-	    return appointmentRepository.save(appointment);
+		if (consultationType == ConsultationType.ONLINE) {
+			appointment.setStatus(AppointmentStatus.PAYMENT_PENDING);
+			appointment.setPaymentStatus(PaymentStatus.INITIATED);
+		} else {
+			appointment.setStatus(AppointmentStatus.PENDING);
+		}
+
+		return appointmentRepository.save(appointment);
 	}
 
 	@Cacheable(value = "doctorAppointments", key = "T(com.example.medi.doctor.security.CurrentUserUtil).getUserId()")
@@ -307,7 +318,7 @@ public class DoctorService {
 				.findByPatientAuthUserIdOrderByAppointmentDateDescAppointmentTimeDesc(CurrentUserUtil.getUserId());
 	}
 
-	@CacheEvict(value = {"doctorSlots", "doctorAppointments", "patientAppointments"}, allEntries = true)
+	@CacheEvict(value = { "doctorSlots", "doctorAppointments", "patientAppointments" }, allEntries = true)
 	@Transactional
 	public Appointment updateAppointmentStatus(Long appointmentId, AppointmentStatus newStatus) {
 
@@ -318,15 +329,15 @@ public class DoctorService {
 
 		if (newStatus == AppointmentStatus.IN_CONSULTATION) {
 
-		    if (currentStatus != AppointmentStatus.CONFIRMED) {
-		        throw new RuntimeException("Consultation can start only after appointment is confirmed.");
-		    }
+			if (currentStatus != AppointmentStatus.CONFIRMED) {
+				throw new RuntimeException("Consultation can start only after appointment is confirmed.");
+			}
 
-		    if (appointment.getConsultationType() == ConsultationType.ONLINE) {
-		        if (!isValidMeetingUrl(appointment.getMeetingUrl())) {
-		            throw new RuntimeException("Meeting link is not generated yet.");
-		        }
-		    }
+			if (appointment.getConsultationType() == ConsultationType.ONLINE) {
+				if (!isValidMeetingUrl(appointment.getMeetingUrl())) {
+					throw new RuntimeException("Meeting link is not generated yet.");
+				}
+			}
 		}
 
 		if (newStatus == AppointmentStatus.COMPLETED) {
@@ -362,7 +373,7 @@ public class DoctorService {
 		return appointmentRepository.save(appointment);
 	}
 
-	@CacheEvict(value = {"doctorSlots", "doctorAppointments", "patientAppointments"}, allEntries = true)
+	@CacheEvict(value = { "doctorSlots", "doctorAppointments", "patientAppointments" }, allEntries = true)
 	public Appointment cancelPatientAppointment(Long appointmentId) {
 
 		if (!"PATIENT".equals(CurrentUserUtil.getRole())) {
@@ -699,7 +710,7 @@ public class DoctorService {
 		return value == null || value.trim().isEmpty() ? "-" : value;
 	}
 
-	@CacheEvict(value = {"doctorPrescriptions", "patientPrescriptions"}, allEntries = true)
+	@CacheEvict(value = { "doctorPrescriptions", "patientPrescriptions" }, allEntries = true)
 	public Prescription updatePrescription(Long prescriptionId, UpdatePrescriptionRequest request) {
 
 		Prescription prescription = prescriptionRepository.findById(prescriptionId)
@@ -730,70 +741,95 @@ public class DoctorService {
 
 		return prescriptionRepository.findByPatientPatientAuthUserIdOrderByPrescriptionDateDesc(patientAuthUserId);
 	}
-	
+
 	private boolean isValidMeetingUrl(String meetingUrl) {
-	    return meetingUrl != null
-	            && !meetingUrl.isBlank()
-	            && (meetingUrl.startsWith("http://") || meetingUrl.startsWith("https://"));
+		return meetingUrl != null && !meetingUrl.isBlank()
+				&& (meetingUrl.startsWith("http://") || meetingUrl.startsWith("https://"));
 	}
 
-	@CacheEvict(value = {"doctorSlots", "doctorAppointments", "patientAppointments"}, allEntries = true)
+	@CacheEvict(value = { "doctorSlots", "doctorAppointments", "patientAppointments" }, allEntries = true)
 	@Transactional
 	public Appointment verifyAppointmentPayment(Long appointmentId, String merchantOrderId) {
 
-	    System.out.println("VERIFY appointmentId = " + appointmentId);
-	    System.out.println("VERIFY merchantOrderId from URL = " + merchantOrderId);
+		System.out.println("VERIFY appointmentId = " + appointmentId);
+		System.out.println("VERIFY merchantOrderId from URL = " + merchantOrderId);
 
-	    Appointment appointment = appointmentRepository.findById(appointmentId)
-	            .orElseThrow(() -> new RuntimeException("Appointment not found"));
+		Appointment appointment = appointmentRepository.findById(appointmentId)
+				.orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-	    System.out.println("DB paymentOrderId = " + appointment.getPaymentOrderId());
-	    System.out.println("DB paymentStatus = " + appointment.getPaymentStatus());
+		System.out.println("DB paymentOrderId = " + appointment.getPaymentOrderId());
+		System.out.println("DB paymentStatus = " + appointment.getPaymentStatus());
 
-	    if (appointment.getPaymentOrderId() == null || appointment.getPaymentOrderId().isBlank()) {
-	        throw new RuntimeException("Payment order id not found in appointment");
-	    }
+		if (appointment.getPaymentOrderId() == null || appointment.getPaymentOrderId().isBlank()) {
+			throw new RuntimeException("Payment order id not found in appointment");
+		}
 
-	    if (merchantOrderId == null || merchantOrderId.isBlank()) {
-	        throw new RuntimeException("Merchant order id is required");
-	    }
+		if (merchantOrderId == null || merchantOrderId.isBlank()) {
+			throw new RuntimeException("Merchant order id is required");
+		}
 
-	    if (!appointment.getPaymentOrderId().trim().equals(merchantOrderId.trim())) {
-	        throw new RuntimeException(
-	                "Invalid payment order id. DB=" + appointment.getPaymentOrderId()
-	                        + ", URL=" + merchantOrderId
-	        );
-	    }
+		if (!appointment.getPaymentOrderId().trim().equals(merchantOrderId.trim())) {
+			throw new RuntimeException(
+					"Invalid payment order id. DB=" + appointment.getPaymentOrderId() + ", URL=" + merchantOrderId);
+		}
 
-	    boolean alreadySuccess = appointment.getPaymentStatus() == PaymentStatus.SUCCESS;
-	    boolean hadValidMeetingUrl = isValidMeetingUrl(appointment.getMeetingUrl());
+		boolean alreadySuccess = appointment.getPaymentStatus() == PaymentStatus.SUCCESS;
+		boolean hadValidMeetingUrl = isValidMeetingUrl(appointment.getMeetingUrl());
 
-	    appointment.setPaymentStatus(PaymentStatus.SUCCESS);
-	    appointment.setStatus(AppointmentStatus.CONFIRMED);
-	    appointment.setPaymentTransactionId(merchantOrderId);
+		appointment.setPaymentStatus(PaymentStatus.SUCCESS);
+		appointment.setStatus(AppointmentStatus.CONFIRMED);
+		appointment.setPaymentTransactionId(merchantOrderId);
 
-	    if (appointment.getConsultationType() == null) {
-	        appointment.setConsultationType(ConsultationType.ONLINE);
-	    }
+		if (appointment.getConsultationType() == null) {
+			appointment.setConsultationType(ConsultationType.ONLINE);
+		}
 
-	    if (appointment.getConsultationType() == ConsultationType.ONLINE) {
-	        if (!isValidMeetingUrl(appointment.getMeetingUrl())) {
-	            appointment.setMeetingUrl(
-	                    videoMeetingService.generateMeetingUrl(appointment.getId())
-	            );
-	        }
-	    }
+		if (appointment.getConsultationType() == ConsultationType.ONLINE) {
+			if (!isValidMeetingUrl(appointment.getMeetingUrl())) {
+				appointment.setMeetingUrl(videoMeetingService.generateMeetingUrl(appointment.getId()));
+			}
+		}
 
-	    Appointment savedAppointment = appointmentRepository.save(appointment);
+		Appointment savedAppointment = appointmentRepository.save(appointment);
 
-	    /*
-	     * Send email when payment becomes success first time,
-	     * or when meeting link was newly generated.
-	     */
-	    if (!alreadySuccess || !hadValidMeetingUrl) {
-	        appointmentNotificationService.sendMeetingLinkToPatient(savedAppointment);
-	    }
+		/*
+		 * Send email when payment becomes success first time, or when meeting link was
+		 * newly generated.
+		 */
+		if (!alreadySuccess || !hadValidMeetingUrl) {
+			appointmentNotificationService.sendMeetingLinkToPatient(savedAppointment);
+		}
 
-	    return savedAppointment;
+		return savedAppointment;
 	}
+
+	private List<AppointmentStatus> freeSlotStatuses() {
+		return List.of(AppointmentStatus.CANCELLED, AppointmentStatus.REJECTED, AppointmentStatus.PAYMENT_FAILED);
+	}
+
+	private void validateDoctorSubscriptionForOnlineConsultation(Long doctorAuthUserId) {
+
+		SubscriptionCheckResponse subscription = billingClient.checkSubscription(doctorAuthUserId);
+
+		if (subscription == null || !subscription.isActive()) {
+			throw new RuntimeException("Doctor subscription is not active. Please activate a plan.");
+		}
+
+		if (!Boolean.TRUE.equals(subscription.getOnlineConsultationEnabled())) {
+			throw new RuntimeException("Online consultation is not available in current plan. Please upgrade.");
+		}
+	}
+
+	private void validateDoctorReports(Long doctorAuthUserId) {
+		SubscriptionCheckResponse subscription = billingClient.checkSubscription(doctorAuthUserId);
+
+		if (subscription == null || !subscription.isActive()) {
+			throw new RuntimeException("Subscription is not active.");
+		}
+
+		if (!Boolean.TRUE.equals(subscription.getReportsEnabled())) {
+			throw new RuntimeException("Reports are not available in current plan. Please upgrade.");
+		}
+	}
+
 }

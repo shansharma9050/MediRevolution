@@ -4,7 +4,7 @@
 <head>
 	<title>MediRevolution | Profile</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	
+
 	<link rel="manifest" href="/manifest.json">
 
 	<meta name="theme-color" content="#05285f">
@@ -61,39 +61,29 @@
 
 					<label class="form-label text-start w-100">Profile Logo</label>
 
-					<input type="file"
-					       id="profileLogoFile"
-					       class="form-control"
-					       accept="image/png,image/jpeg,image/jpg,image/webp">
+					<input type="file" id="profileLogoFile" class="form-control"
+						accept="image/png,image/jpeg,image/jpg,image/webp">
 
-					<button class="btn btn-medi mt-2"
-					        style="width:100%;"
-					        onclick="uploadProfileLogo()">
-					    Upload Logo
+					<button class="btn btn-medi mt-2" style="width:100%;" onclick="uploadProfileLogo()">
+						Upload Logo
 					</button>
 
 					<input type="hidden" id="profileLogoUrl">
 
 					<label class="form-label text-start w-100 mt-3">Verification Document</label>
 
-					<input type="file"
-					       id="documentFile"
-					       class="form-control"
-					       accept="application/pdf,image/png,image/jpeg,image/jpg,image/webp">
+					<input type="file" id="documentFile" class="form-control"
+						accept="application/pdf,image/png,image/jpeg,image/jpg,image/webp">
 
-					<button class="btn btn-outline-primary mt-2 w-100"
-					        onclick="uploadDocument()">
-					    Upload Document
+					<button class="btn btn-outline-primary mt-2 w-100" onclick="uploadDocument()">
+						Upload Document
 					</button>
 
 					<input type="hidden" id="documentUrl">
 
-					<a href="javascript:void(0)"
-					   id="documentPreviewLink"
-					   onclick="viewUploadedDocument()"
-					   class="d-block mt-2"
-					   style="display:none;">
-					    View Uploaded Document
+					<a href="javascript:void(0)" id="documentPreviewLink" onclick="viewUploadedDocument()"
+						class="d-block mt-2" style="display:none;">
+						View Uploaded Document
 					</a>
 
 					<small class="text-muted d-block mt-2">
@@ -109,45 +99,46 @@
 
 					<div class="row g-3">
 
-					    <div class="col-md-6 field-patient">
-					        <label class="form-label">Patient Name</label>
-					        <input type="text" id="patientName" class="form-control" placeholder="Amit Sharma">
-					    </div>
+						<div class="col-md-6 field-patient">
+							<label class="form-label">Patient Name</label>
+							<input type="text" id="patientName" class="form-control" placeholder="Amit Sharma">
+						</div>
 
-					    <div class="col-md-6 field-patient">
-					        <label class="form-label">Gender</label>
-					        <select id="gender" class="form-select">
-					            <option value="">Select Gender</option>
-					            <option value="Male">Male</option>
-					            <option value="Female">Female</option>
-					            <option value="Other">Other</option>
-					        </select>
-					    </div>
+						<div class="col-md-6 field-patient">
+							<label class="form-label">Gender</label>
+							<select id="gender" class="form-select">
+								<option value="">Select Gender</option>
+								<option value="Male">Male</option>
+								<option value="Female">Female</option>
+								<option value="Other">Other</option>
+							</select>
+						</div>
 
-					    <div class="col-md-6 field-patient">
-					        <label class="form-label">Date of Birth</label>
-					        <input type="date" id="dateOfBirth" class="form-control">
-					    </div>
+						<div class="col-md-6 field-patient">
+							<label class="form-label">Date of Birth</label>
+							<input type="date" id="dateOfBirth" class="form-control">
+						</div>
 
-					    <div class="col-md-6 field-patient">
-					        <label class="form-label">Blood Group</label>
-					        <input type="text" id="bloodGroup" class="form-control" placeholder="B+">
-					    </div>
+						<div class="col-md-6 field-patient">
+							<label class="form-label">Blood Group</label>
+							<input type="text" id="bloodGroup" class="form-control" placeholder="B+">
+						</div>
 
-					    <div class="col-md-12 field-patient">
-					        <label class="form-label">Medical History</label>
-					        <textarea id="medicalHistory" class="form-control" rows="3" placeholder="Diabetes, BP, allergies etc."></textarea>
-					    </div>
+						<div class="col-md-12 field-patient">
+							<label class="form-label">Medical History</label>
+							<textarea id="medicalHistory" class="form-control" rows="3"
+								placeholder="Diabetes, BP, allergies etc."></textarea>
+						</div>
 
-					    <div class="col-md-6 field-patient">
-					        <label class="form-label">Emergency Contact Name</label>
-					        <input type="text" id="emergencyContactName" class="form-control">
-					    </div>
+						<div class="col-md-6 field-patient">
+							<label class="form-label">Emergency Contact Name</label>
+							<input type="text" id="emergencyContactName" class="form-control">
+						</div>
 
-					    <div class="col-md-6 field-patient">
-					        <label class="form-label">Emergency Contact Mobile</label>
-					        <input type="text" id="emergencyContactMobile" class="form-control">
-					    </div>
+						<div class="col-md-6 field-patient">
+							<label class="form-label">Emergency Contact Mobile</label>
+							<input type="text" id="emergencyContactMobile" class="form-control">
+						</div>
 
 
 						<div class="col-md-6" id="businessNameBlock">
@@ -156,7 +147,7 @@
 						</div>
 
 						<div class="col-md-6">
-							<label class="form-label">Owner / Contact Name</label>
+							<label class="form-label">Doctor / Owner Name</label>
 							<input type="text" id="ownerName" class="form-control">
 						</div>
 
@@ -189,7 +180,10 @@
 							<label class="form-label">Mobile</label>
 							<input type="text" id="mobile" class="form-control">
 						</div>
-
+						<div class="col-md-6">
+							<label class="form-label">Year's Of Experience</label>
+							<input type="number" id="experienceYears" class="form-control">
+						</div>
 					</div>
 				</div>
 

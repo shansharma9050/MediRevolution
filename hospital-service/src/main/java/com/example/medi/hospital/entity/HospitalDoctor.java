@@ -25,7 +25,7 @@ public class HospitalDoctor {
     private Integer experienceYears;
     private String mobile;
     private String email;
-    private Double consultationFee;
+    private Long consultationFee;
     private Boolean active = true;
 
     private LocalDateTime createdAt = LocalDateTime.now();

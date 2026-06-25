@@ -15,28 +15,34 @@
 	<a th:href="@{/orders}" data-role="SUPER_ADMIN WHOLESALER RETAILER">📋 Orders</a>
 	<a th:href="@{/invoices}" data-role="SUPER_ADMIN WHOLESALER RETAILER">🧾 Invoices</a>
 	<a th:href="@{/reports}" data-role="SUPER_ADMIN WHOLESALER RETAILER">📊 Reports</a>
-	
+
+	<a th:href="@{/appointments/book}" data-role="PATIENT">📅 Book Appointment</a>
+	<a th:href="@{/appointments/my}" data-role="PATIENT">📋 My Appointments</a>
+	<a th:href="@{/patient/prescriptions}" data-role="PATIENT">💊 My Prescriptions</a>
+
 	<a th:href="@{/doctor/dashboard}" data-role="DOCTOR">🩺 Doctor Dashboard</a>
 	<a th:href="@{/doctor/patients}" data-role="DOCTOR">👨‍⚕️ Patients</a>
 	<a th:href="@{/doctor/prescriptions}" data-role="DOCTOR">💊 Prescriptions</a>
 	<a th:href="@{/doctor/appointments}" data-role="DOCTOR">📅 Appointments</a>
 	<a th:href="@{/doctor/reports}" data-role="DOCTOR">📊 Doctor Reports</a>
-	
+	<a th:href="@{/doctor/availability}" data-role="DOCTOR">🕒 Doctor Availability</a>
+	<a th:href="@{/doctor/appointment-requests}" data-role="DOCTOR">📅 Appointment Requests</a>
+
 	<a th:href="@{/hospital/dashboard}" data-role="HOSPITAL">🏥 Hospital Dashboard</a>
 	<a th:href="@{/hospital/patients}" data-role="HOSPITAL">🧑‍⚕️ OPD / IPD</a>
 	<a th:href="@{/hospital/staff}" data-role="HOSPITAL">👥 Staff</a>
 	<a th:href="@{/hospital/inventory}" data-role="HOSPITAL">📦 Hospital Inventory</a>
 	<a th:href="@{/hospital/billing}" data-role="HOSPITAL">💳 Hospital Billing</a>
 	<a th:href="@{/hospital/reports}" data-role="HOSPITAL">📊 Hospital Reports</a>
-	
-	<a th:href="@{/appointments/book}" data-role="PATIENT">📅 Book Appointment</a>
-	<a th:href="@{/appointments/my}" data-role="PATIENT">📋 My Appointments</a>
-	<a th:href="@{/patient/prescriptions}" data-role="PATIENT">💊 My Prescriptions</a>
-	<a th:href="@{/doctor/availability}" data-role="DOCTOR">🕒 Doctor Availability</a>
-	<a th:href="@{/doctor/appointment-requests}" data-role="DOCTOR">📅 Appointment Requests</a>
+
+
+
 	<a th:href="@{/hospital/doctors}" data-role="HOSPITAL">👨‍⚕️ Hospital Doctors</a>
 	<a th:href="@{/hospital/doctor-availability}" data-role="HOSPITAL">🕒 Doctor Availability</a>
 	<a th:href="@{/hospital/appointment-requests}" data-role="HOSPITAL">📅 Appointment Requests</a>
+
+	<a th:href="@{/subscription/current}" data-role="WHOLESALER DOCTOR HOSPITAL">Subscription</a>
+	<a th:href="@{/subscription/plans}" data-role="WHOLESALER DOCTOR HOSPITAL">Plans</a>
 
 	<a th:href="@{/notifications}" data-role="SUPER_ADMIN WHOLESALER RETAILER DOCTOR HOSPITAL">🔔 Notifications</a>
 	<a th:href="@{/profile}" data-role="SUPER_ADMIN WHOLESALER RETAILER DOCTOR HOSPITAL PATIENT">👤 Profile</a>

@@ -1,6 +1,9 @@
+console.log("NEW BOOK APPOINTMENT JS LOADED - HOSPITAL DOCTOR FIX");
+
 let doctors = [];
 let hospitals = [];
 let hospitalDoctorsMap = {};
+let publicHospitalDoctors = [];
 
 let selectedType = "DOCTOR";
 let consultationType = "OFFLINE";
@@ -12,6 +15,7 @@ let selectedSlot = null;
 
 document.addEventListener("DOMContentLoaded", function() {
 	requirePatientRole();
+	syncPageStateFromControls();
 	loadPatientInfo();
 	loadDoctorsAndHospitals();
 	switchConsultationType();
@@ -47,7 +51,7 @@ async function loadDoctorsAndHospitals() {
 	const token = localStorage.getItem("token");
 
 	try {
-		const [doctorRes, hospitalRes] = await Promise.all([
+		const [doctorRes, hospitalRes, hospitalDoctorRes] = await Promise.all([
 			fetch(`${API_BASE}/users/profiles/doctors`, {
 				headers: {
 					"Authorization": "Bearer " + token
@@ -57,17 +61,24 @@ async function loadDoctorsAndHospitals() {
 				headers: {
 					"Authorization": "Bearer " + token
 				}
+			}),
+			fetch(`${API_BASE}/hospital/hospital-doctors-public-list`, {
+				headers: {
+					"Authorization": "Bearer " + token
+				}
 			})
 		]);
 
 		doctors = doctorRes.ok ? await doctorRes.json() : [];
 		hospitals = hospitalRes.ok ? await hospitalRes.json() : [];
+		publicHospitalDoctors = hospitalDoctorRes.ok ? await hospitalDoctorRes.json() : [];
 
+		syncPageStateFromControls();
 		renderProfileCards();
 
 	} catch (error) {
 		console.error(error);
-		showMsg("Unable to load doctors/hospitals. Please check user-service.");
+		showMsg("Unable to load doctors/hospital doctors. Please check user-service/hospital-service.");
 	}
 }
 
@@ -83,7 +94,7 @@ function switchBookingType() {
 	document.getElementById("selectedInfo").style.display = "none";
 
 	document.getElementById("cardSectionTitle").innerText =
-		selectedType === "DOCTOR" ? "Select Doctor" : "Select Hospital";
+		selectedType === "DOCTOR" ? "Select Doctor" : "Select Hospital Doctor";
 
 	document.getElementById("slotContainer").innerHTML =
 		`<span class="text-muted">Select doctor/hospital and date to view slots.</span>`;
@@ -154,7 +165,7 @@ function renderProfileCards() {
                                 </div>
 
                                 <div class="text-muted small">
-                                    ${safe(d.hospitalName)}
+                                    ${safe(d.clinicName)}
                                 </div>
 
                                 <div class="mt-2">
@@ -186,28 +197,29 @@ function renderProfileCards() {
 
 	if (selectedType === "HOSPITAL") {
 
-		const filteredHospitals = hospitals.filter(h =>
-			JSON.stringify(h).toLowerCase().includes(keyword)
+		const filteredHospitalDoctors = publicHospitalDoctors.filter(d =>
+			JSON.stringify(d).toLowerCase().includes(keyword)
 		);
 
-		if (!filteredHospitals.length) {
+		if (!filteredHospitalDoctors.length) {
 			container.innerHTML =
 				`<div class="col-12 text-center text-muted py-4">
-                    No hospitals found. Please create hospital profile first.
+                    No hospital doctors found. Please add hospital doctors first.
                 </div>`;
 			return;
 		}
 
-		filteredHospitals.forEach(h => {
+		filteredHospitalDoctors.forEach(d => {
 
-			const hospitalId = getAuthUserId(h);
+			const hospitalId = Number(d.hospitalAuthUserId);
+			const hospitalDoctorId = Number(d.id);
 
-			if (!hospitalId) {
+			if (!hospitalId || Number.isNaN(hospitalId) || !hospitalDoctorId || Number.isNaN(hospitalDoctorId)) {
 				return;
 			}
 
 			const selectedClass =
-				selectedHospital && getAuthUserId(selectedHospital) === hospitalId
+				selectedHospitalDoctor && Number(selectedHospitalDoctor.id) === hospitalDoctorId
 					? "selected"
 					: "";
 
@@ -220,16 +232,20 @@ function renderProfileCards() {
 
                             <div>
                                 <h5 class="fw-bold text-primary mb-1">
-                                    ${safe(h.hospitalName)}
+                                    ${safe(d.doctorName)}
                                 </h5>
 
                                 <div class="text-muted small">
-                                    ${safe(h.hospitalType)}
+                                    ${safe(d.department)}
+                                </div>
+
+                                <div class="text-muted small">
+                                    ${safe(d.specialization)}
                                 </div>
 
                                 <div class="mt-2">
                                     <span class="badge bg-info text-dark">
-                                        Beds: ${safe(h.bedCapacity)}
+                                        Fee: ₹${safe(d.consultationFee)}
                                     </span>
                                 </div>
                             </div>
@@ -238,19 +254,15 @@ function renderProfileCards() {
                         <hr>
 
                         <div class="small text-muted mb-2">
-                            ${safe(h.address)}, ${safe(h.district)}, ${safe(h.state)}
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label small">Select Doctor</label>
-
-                            <select id="hospitalDoctor_${hospitalId}" class="form-select">
-                                <option value="">Loading doctors...</option>
-                            </select>
+                            <strong>Qualification:</strong> ${safe(d.qualification)}
+                            <br>
+                            <strong>Experience:</strong> ${safe(d.experienceYears)} Years
+                            <br>
+                            <strong>Hospital ID:</strong> ${hospitalId}
                         </div>
 
                         <button class="btn btn-medi"
-                                onclick="selectHospital(${hospitalId})">
+                                onclick="selectHospitalDoctorDirect(${hospitalId}, ${hospitalDoctorId})">
                             Select Hospital Doctor
                         </button>
 
@@ -260,7 +272,6 @@ function renderProfileCards() {
 		});
 
 		container.innerHTML = html;
-		loadDoctorsForVisibleHospitals();
 	}
 }
 
@@ -378,6 +389,39 @@ function selectHospital(hospitalId) {
 		`<strong>Selected Hospital:</strong> ${safe(selectedHospital.hospitalName)}
          | <strong>Doctor:</strong> ${safe(hospitalDoctor.doctorName)}
          | <strong>Department:</strong> ${safe(hospitalDoctor.department)}`;
+
+	renderProfileCards();
+	loadSlots();
+}
+
+function selectHospitalDoctorDirect(hospitalId, hospitalDoctorId) {
+	const hospitalDoctor = publicHospitalDoctors.find(d =>
+		Number(d.id) === Number(hospitalDoctorId)
+	);
+
+	if (!hospitalDoctor) {
+		showMsg("Selected hospital doctor not found");
+		return;
+	}
+
+	selectedHospital = {
+		id: Number(hospitalId),
+		authUserId: Number(hospitalId),
+		hospitalAuthUserId: Number(hospitalId),
+		hospitalName: hospitalDoctor.hospitalName || "Hospital"
+	};
+
+	selectedHospitalDoctor = hospitalDoctor;
+	selectedDoctor = null;
+	selectedSlot = null;
+
+	document.getElementById("selectedTime").value = "";
+
+	document.getElementById("selectedInfo").style.display = "block";
+	document.getElementById("selectedInfo").innerHTML =
+		`<strong>Selected Hospital Doctor:</strong> ${safe(hospitalDoctor.doctorName)}
+         | <strong>Department:</strong> ${safe(hospitalDoctor.department)}
+         | <strong>Specialization:</strong> ${safe(hospitalDoctor.specialization)}`;
 
 	renderProfileCards();
 	loadSlots();
@@ -614,6 +658,7 @@ function buildAppointmentPayload() {
 	showMsg("Invalid booking type");
 	return null;
 }
+
 async function bookOfflineAppointment(payloadData) {
 	const token = localStorage.getItem("token");
 
@@ -684,6 +729,26 @@ async function bookOnlineAppointmentWithPayment(payloadData) {
 		showMsg("Payment service not reachable.");
 	} finally {
 		setButtonLoading("bookAppointmentBtn", "Pay & Book Video Consultation", false);
+	}
+}
+
+function syncPageStateFromControls() {
+	const bookingTypeElement = document.getElementById("bookingType");
+	const consultationTypeElement = document.getElementById("consultationType");
+
+	selectedType = bookingTypeElement && bookingTypeElement.value
+		? bookingTypeElement.value
+		: "DOCTOR";
+
+	consultationType = consultationTypeElement && consultationTypeElement.value
+		? consultationTypeElement.value
+		: "OFFLINE";
+
+	const title = document.getElementById("cardSectionTitle");
+
+	if (title) {
+		title.innerText =
+			selectedType === "DOCTOR" ? "Select Doctor" : "Select Hospital Doctor";
 	}
 }
 

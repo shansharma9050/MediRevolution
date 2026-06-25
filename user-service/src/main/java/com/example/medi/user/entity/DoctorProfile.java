@@ -28,7 +28,7 @@ public class DoctorProfile {
 
     private String specialization;
 
-    private Integer experienceYears;
+    private Double experienceYears;
 
     private String hospitalName;
 

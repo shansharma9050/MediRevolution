@@ -60,8 +60,11 @@
 
 				<select id="statusFilter" class="form-select" style="max-width:220px;" onchange="filterAppointments()">
 					<option value="">All Status</option>
+					<option value="PAYMENT_PENDING">Payment Pending</option>
+					<option value="PAYMENT_FAILED">Payment Failed</option>
 					<option value="PENDING">Pending</option>
 					<option value="CONFIRMED">Confirmed</option>
+					<option value="IN_CONSULTATION">In Consultation</option>
 					<option value="REJECTED">Rejected</option>
 					<option value="COMPLETED">Completed</option>
 					<option value="CANCELLED">Cancelled</option>
@@ -73,7 +76,7 @@
 
 	</main>
 	<script th:src="@{/js/common-dashboard.js}"></script>
-	<script th:src="@{/js/hospital-appointment-requests.js}"></script>
+	<script th:src="@{/js/hospital-appointment-requests.js?v=2}"></script>
 	<script th:src="@{/js/pwa.js}"></script>
 
 </body>

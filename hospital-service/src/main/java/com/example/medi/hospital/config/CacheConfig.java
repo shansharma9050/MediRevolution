@@ -34,7 +34,8 @@ public class CacheConfig {
                         "hospitalAppointments",
                         "patientHospitalAppointments",
 
-                        "hospitalDashboard"
+                        "hospitalDashboard",
+                        "publicHospitalDoctors"
                 );
 
         manager.setCaffeine(

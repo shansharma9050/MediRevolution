@@ -291,6 +291,12 @@
         </p>
 
         <div class="payment-info-card">
+
+            <div class="info-row">
+                <span class="info-label">Booking For</span>
+                <span class="info-value" id="bookingForText">-</span>
+            </div>
+
             <div class="info-row">
                 <span class="info-label">Appointment ID</span>
                 <span class="info-value" id="appointmentIdText">-</span>
@@ -320,11 +326,23 @@
 <script>
     document.addEventListener("DOMContentLoaded", verifyPayment);
 
+    function getApiBase() {
+        if (typeof API_BASE !== "undefined" && API_BASE) {
+            return API_BASE;
+        }
+
+        return "http://localhost:8080";
+    }
+
     async function verifyPayment() {
         const params = new URLSearchParams(window.location.search);
 
+        const bookingFor = (params.get("bookingFor") || "DOCTOR").toUpperCase();
         const appointmentId = params.get("appointmentId");
         const merchantOrderId = params.get("merchantOrderId");
+
+        document.getElementById("bookingForText").innerText =
+            bookingFor === "HOSPITAL" ? "Hospital Doctor" : "Independent Doctor";
 
         document.getElementById("appointmentIdText").innerText = appointmentId || "-";
         document.getElementById("merchantOrderIdText").innerText = merchantOrderId || "-";
@@ -334,29 +352,155 @@
             return;
         }
 
+        if (bookingFor !== "DOCTOR" && bookingFor !== "HOSPITAL") {
+            showFailed("Invalid booking type received from payment response.");
+            return;
+        }
+
         try {
-            const response = await fetch(
-                `${API_BASE}/doctor/payments/verify?appointmentId=${appointmentId}&merchantOrderId=${encodeURIComponent(merchantOrderId)}`,
-                {
-                    method: "POST"
-                }
-            );
+            let result;
 
-            const result = await response.json();
+            if (bookingFor === "HOSPITAL") {
+                result = await verifyHospitalPayment(appointmentId, merchantOrderId);
+            } else {
+                result = await verifyDoctorPayment(appointmentId, merchantOrderId);
+            }
 
-            if (!response.ok) {
+            if (!result.success) {
                 showFailed(result.message || "Payment verification failed.");
                 return;
             }
 
-            showSuccess();
+            showSuccess(bookingFor);
 
         } catch (e) {
+            console.error(e);
             showFailed("Unable to verify payment. Please refresh this page or check My Appointments.");
         }
     }
 
-    function showSuccess() {
+    async function verifyDoctorPayment(appointmentId, merchantOrderId) {
+        const baseUrl = getApiBase();
+        const token = localStorage.getItem("token");
+
+        const response = await fetch(
+            `${baseUrl}/doctor/payments/verify?appointmentId=${appointmentId}&merchantOrderId=${encodeURIComponent(merchantOrderId)}`,
+            {
+                method: "POST",
+                headers: buildHeaders(token)
+            }
+        );
+
+        let data = await readJsonSafely(response);
+
+        if (!response.ok) {
+            return {
+                success: false,
+                message: getErrorMessage(data, "Doctor payment verification failed.")
+            };
+        }
+
+        return {
+            success: true,
+            data: data
+        };
+    }
+
+    async function verifyHospitalPayment(appointmentId, merchantOrderId) {
+        const baseUrl = getApiBase();
+        const token = localStorage.getItem("token");
+
+        /*
+            Primary hospital API.
+            Use this if you created:
+            POST /hospital/payments/verify?appointmentId=&merchantOrderId=
+        */
+        let response = await fetch(
+            `${baseUrl}/hospital/payments/verify?appointmentId=${appointmentId}&merchantOrderId=${encodeURIComponent(merchantOrderId)}`,
+            {
+                method: "POST",
+                headers: buildHeaders(token)
+            }
+        );
+
+        let data = await readJsonSafely(response);
+
+        if (response.ok) {
+            return {
+                success: true,
+                data: data
+            };
+        }
+
+        /*
+            Fallback hospital API.
+            Use this if you created:
+            PUT /hospital/payments/success?merchantOrderId=&transactionId=
+        */
+        if (response.status === 404 || response.status === 405) {
+            response = await fetch(
+                `${baseUrl}/hospital/payments/success?merchantOrderId=${encodeURIComponent(merchantOrderId)}&transactionId=${encodeURIComponent(merchantOrderId)}`,
+                {
+                    method: "PUT",
+                    headers: buildHeaders(token)
+                }
+            );
+
+            data = await readJsonSafely(response);
+
+            if (response.ok) {
+                return {
+                    success: true,
+                    data: data
+                };
+            }
+        }
+
+        return {
+            success: false,
+            message: getErrorMessage(data, "Hospital payment verification failed.")
+        };
+    }
+
+    function buildHeaders(token) {
+        const headers = {};
+
+        if (token) {
+            headers["Authorization"] = "Bearer " + token;
+        }
+
+        return headers;
+    }
+
+    async function readJsonSafely(response) {
+        try {
+            return await response.json();
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function getErrorMessage(data, fallbackMessage) {
+        if (!data) {
+            return fallbackMessage;
+        }
+
+        if (data.message) {
+            return data.message;
+        }
+
+        if (data.error) {
+            return data.error;
+        }
+
+        if (typeof data === "string") {
+            return data;
+        }
+
+        return fallbackMessage;
+    }
+
+    function showSuccess(bookingFor) {
         document.getElementById("loaderBox").classList.add("d-none");
 
         const iconBox = document.getElementById("statusIconBox");
@@ -367,13 +511,24 @@
         icon.innerText = "✓";
 
         document.getElementById("paymentTitle").innerText = "Payment Successful";
-        document.getElementById("paymentMessage").innerText =
-            "Your payment has been verified successfully. Your appointment is now confirmed.";
 
-        document.getElementById("resultBox").innerHTML =
-            `<div class="alert alert-success">
-                Appointment confirmed successfully.
-            </div>`;
+        if (bookingFor === "HOSPITAL") {
+            document.getElementById("paymentMessage").innerText =
+                "Your hospital video consultation payment has been verified successfully. Your appointment is now confirmed.";
+
+            document.getElementById("resultBox").innerHTML =
+                `<div class="alert alert-success">
+                    Hospital appointment confirmed successfully.
+                </div>`;
+        } else {
+            document.getElementById("paymentMessage").innerText =
+                "Your doctor video consultation payment has been verified successfully. Your appointment is now confirmed.";
+
+            document.getElementById("resultBox").innerHTML =
+                `<div class="alert alert-success">
+                    Doctor appointment confirmed successfully.
+                </div>`;
+        }
     }
 
     function showFailed(message) {
@@ -392,8 +547,17 @@
 
         document.getElementById("resultBox").innerHTML =
             `<div class="alert alert-danger">
-                ${message}
+                ${escapeHtml(message)}
             </div>`;
+    }
+
+    function escapeHtml(value) {
+        return String(value || "")
+            .replace(/&/g, "&amp;")
+            .replace(/'/g, "&#39;")
+            .replace(/"/g, "&quot;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
     }
 </script>
 

@@ -5,6 +5,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import com.example.medi.medicine.client.BillingClient;
+import com.example.medi.medicine.dto.SubscriptionCheckResponse;
 import com.example.medi.medicine.entity.Medicine;
 import com.example.medi.medicine.repository.MedicineRepository;
 import com.example.medi.medicine.security.CurrentUserUtil;
@@ -14,10 +16,14 @@ import java.util.List;
 @Service
 public class MedicineService {
 
+	
     private final MedicineRepository medicineRepository;
-
-    public MedicineService(MedicineRepository medicineRepository) {
+    private final BillingClient billingClient; 
+    private final CurrentUserUtil currentUserUtil;
+    public MedicineService(MedicineRepository medicineRepository,BillingClient billingClient,CurrentUserUtil currentUserUtil) {
         this.medicineRepository = medicineRepository;
+        this.billingClient=billingClient;
+        this.currentUserUtil=currentUserUtil;
     }
 
     @CacheEvict(
@@ -30,7 +36,9 @@ public class MedicineService {
             allEntries = true
     )
     public Medicine addMedicine(Medicine medicine) {
-
+    	Long wholesalerAuthUserId = currentUserUtil.getUserId();
+    	validateWholesalerSubscription(wholesalerAuthUserId);
+    	
         String role = CurrentUserUtil.getRole();
 
         if (!role.equals("SUPER_ADMIN") && !role.equals("WHOLESALER")) {
@@ -61,5 +69,13 @@ public class MedicineService {
 
         return medicineRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Medicine not found"));
+    }
+    
+    private void validateWholesalerSubscription(Long wholesalerAuthUserId) {
+        SubscriptionCheckResponse subscription = billingClient.checkSubscription(wholesalerAuthUserId);
+
+        if (subscription == null || !subscription.isActive()) {
+            throw new RuntimeException("Wholesaler subscription is not active. Please activate a plan.");
+        }
     }
 }

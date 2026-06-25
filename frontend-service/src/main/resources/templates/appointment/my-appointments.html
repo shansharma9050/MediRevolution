@@ -30,10 +30,11 @@
 </nav>
 
 <aside class="mr-sidebar" id="sidebar">
-    <a href="/dashboard">🏠 Dashboard</a>
-    <a href="/appointments/book">📅 Book Appointment</a>
-    <a href="/appointments/my" class="active">📋 My Appointments</a>
-    <a href="/profile">👤 Profile</a>
+    <a th:href="@{/dashboard}">🏠 Dashboard</a>
+	<a th:href="@{/appointments/book}" data-role="PATIENT">📅 Book Appointment</a>
+	<a th:href="@{/appointments/my}" data-role="PATIENT">📋 My Appointments</a>
+	<a th:href="@{/patient/prescriptions}" data-role="PATIENT">💊 My Prescriptions</a>
+    <a th:href="@{/profile}">👤 Profile</a>
 </aside>
 
 <main class="mr-main">
@@ -64,7 +65,7 @@
 </main>
 
 <script th:src="@{/js/common-dashboard.js}"></script>
-<script th:src="@{/js/my-appointments.js}"></script>
+<script th:src="@{/js/my-appointments.js?v=4}"></script>
 <script th:src="@{/js/pwa.js}"></script>
 
 </body>

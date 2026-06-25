@@ -28,6 +28,10 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
+                		 .requestMatchers("/actuator/**").permitAll()
+                         .requestMatchers("/billing/subscriptions/check/**").permitAll()
+                         .requestMatchers("/billing/subscriptions/payment/success").permitAll()
+                         .requestMatchers("/billing/subscriptions/**").authenticated()
                         .requestMatchers("/billing/**").authenticated()
                         .anyRequest().authenticated()
                 )

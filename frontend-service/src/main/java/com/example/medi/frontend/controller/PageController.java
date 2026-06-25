@@ -178,5 +178,20 @@ public class PageController {
     public String paymentSuccessPage() {
         return "payment-success";
     }
+    
+    @GetMapping("/subscription/plans")
+    public String subscriptionPlansPage() {
+        return "subscription-plans";
+    }
 
+    @GetMapping("/subscription/current")
+    public String subscriptionCurrentPage() {
+        return "subscription-current";
+    }
+
+    @GetMapping("/subscription/payment-success")
+    public String subscriptionPaymentSuccessPage() {
+        return "subscription-payment-success";
+    }
+    
 }

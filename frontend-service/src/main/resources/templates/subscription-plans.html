@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>MediRevolution | Subscription Plans</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#05285f">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+</head>
+
+<body class="dashboard-body">
+
+<div th:replace="~{layout/topnavbar :: topnavbar}"></div>
+<div th:replace="~{layout/sidebar :: sidebar}"></div>
+
+<main class="mr-main">
+
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+        <div>
+            <h1 class="mr-page-title">Subscription Plans</h1>
+            <p class="mr-page-subtitle">
+                Choose a plan to unlock MediRevolution features for your role.
+            </p>
+        </div>
+
+        <a href="/subscription/current" class="btn btn-outline-primary">
+            Current Subscription
+        </a>
+    </div>
+
+    <div id="msg"></div>
+
+    <div class="mb-3">
+        <label class="form-label">Billing Cycle</label>
+        <select id="billingCycle" class="form-select" style="max-width:250px;" onchange="renderPlans()">
+            <option value="MONTHLY">Monthly</option>
+            <option value="YEARLY">Yearly</option>
+        </select>
+    </div>
+
+    <div class="row g-4" id="plansContainer"></div>
+
+    <div th:replace="~{layout/footer :: footer}"></div>
+</main>
+
+<script th:src="@{/js/common-dashboard.js}"></script>
+<script th:src="@{/js/subscription-plans.js}"></script>
+
+</body>
+</html>

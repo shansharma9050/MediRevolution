@@ -259,6 +259,7 @@ public class ProfileService {
         existing.setAccountNumber(profile.getAccountNumber());
         existing.setIfscCode(profile.getIfscCode());
         existing.setBranchName(profile.getBranchName());
+        existing.setExperienceYears(profile.getExperienceYears());
 
         existing.setProfileLogoUrl(profile.getProfileLogoUrl());
         existing.setDocumentUrl(profile.getDocumentUrl());

@@ -55,7 +55,7 @@ function setupProfileByRole() {
     }
 
     if (role === "DOCTOR") {
-        setText("businessNameLabel", "Doctor / Clinic Name");
+        setText("businessNameLabel", "Hospital / Clinic Name");
 
         hideElement("drugLicenseBlock");
         hideElement("gstBlock");
@@ -194,6 +194,7 @@ function fillForm(profile) {
         // ownerName field is used for doctor name
         setValue("businessName", profile.clinicName);
         setValue("ownerName", profile.doctorName);
+        setValue("experienceYears", profile.experienceYears);
 
         setValue("registrationNumber", profile.registrationNumber);
         setValue("specialization", profile.specialization);
@@ -361,6 +362,7 @@ function buildProfilePayload() {
         payload.clinicName = getValue("businessName");
         payload.registrationNumber = getValue("registrationNumber");
         payload.specialization = getValue("specialization");
+        payload.experienceYears = getValue("experienceYears");
     }
 
     if (role === "HOSPITAL") {

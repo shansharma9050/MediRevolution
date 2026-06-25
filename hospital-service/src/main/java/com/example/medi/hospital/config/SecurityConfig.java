@@ -28,7 +28,57 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                		.requestMatchers("/hospital/**").authenticated()
+
+                        // ================================
+                        // PUBLIC / PATIENT ACCESS
+                        // ================================
+
+                        .requestMatchers("/hospital/hospital-doctors-public-list")
+                        .hasAnyRole("PATIENT", "HOSPITAL", "ADMIN", "SUPER_ADMIN")
+
+                        .requestMatchers("/hospital/available-slots")
+                        .hasAnyRole("PATIENT", "HOSPITAL", "ADMIN", "SUPER_ADMIN")
+
+                        // Patient books offline hospital appointment
+                        .requestMatchers("/hospital/appointments/book")
+                        .hasRole("PATIENT")
+
+                        // Patient views own hospital appointments
+                        .requestMatchers("/hospital/appointments/patient")
+                        .hasRole("PATIENT")
+
+                        // Patient cancels own hospital appointment
+                        .requestMatchers("/hospital/appointments/*/cancel")
+                        .hasRole("PATIENT")
+
+                        // Patient starts hospital video consultation payment
+                        .requestMatchers("/hospital/payments/video-appointment")
+                        .hasRole("PATIENT")
+
+                        // Patient verifies hospital payment, if you are using verify API
+                        .requestMatchers("/hospital/payments/verify")
+                        .hasRole("PATIENT")
+
+                        // Patient payment success/fail APIs
+                        .requestMatchers("/hospital/payments/success")
+                        .hasRole("PATIENT")
+
+                        .requestMatchers("/hospital/payments/failed")
+                        .hasRole("PATIENT")
+
+
+                        // ================================
+                        // HOSPITAL / ADMIN ACCESS
+                        // ================================
+
+                        .requestMatchers("/hospital/**")
+                        .hasAnyRole("HOSPITAL", "ADMIN", "SUPER_ADMIN")
+
+
+                        // ================================
+                        // DEFAULT
+                        // ================================
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

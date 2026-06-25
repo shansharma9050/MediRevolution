@@ -10,9 +10,11 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import com.example.medi.hospital.client.BillingClient;
 import com.example.medi.hospital.dto.BookHospitalAppointmentRequest;
 import com.example.medi.hospital.dto.HospitalAvailableSlotResponse;
 import com.example.medi.hospital.dto.HospitalDashboardResponse;
+import com.example.medi.hospital.dto.SubscriptionCheckResponse;
 import com.example.medi.hospital.entity.HospitalAppointment;
 import com.example.medi.hospital.entity.HospitalBill;
 import com.example.medi.hospital.entity.HospitalDoctor;
@@ -22,6 +24,8 @@ import com.example.medi.hospital.entity.HospitalPatient;
 import com.example.medi.hospital.entity.Staff;
 import com.example.medi.hospital.enums.BillingStatus;
 import com.example.medi.hospital.enums.HospitalAppointmentStatus;
+import com.example.medi.hospital.enums.HospitalConsultationType;
+import com.example.medi.hospital.enums.HospitalPaymentStatus;
 import com.example.medi.hospital.repository.HospitalAppointmentRepository;
 import com.example.medi.hospital.repository.HospitalBillRepository;
 import com.example.medi.hospital.repository.HospitalDoctorAvailabilityRepository;
@@ -38,6 +42,7 @@ public class HospitalManagementService {
 	public final HospitalInventoryRepository inventoryRepository;
 	public final HospitalBillRepository billRepository;
 	public final StaffRepository staffRepository;
+	public final BillingClient billingClient;
 
 	private final HospitalDoctorRepository hospitalDoctorRepository;
 	private final HospitalDoctorAvailabilityRepository hospitalDoctorAvailabilityRepository;
@@ -47,7 +52,7 @@ public class HospitalManagementService {
 			HospitalInventoryRepository inventoryRepository, HospitalBillRepository billRepository,
 			HospitalDoctorAvailabilityRepository hospitalDoctorAvailabilityRepository,
 			HospitalAppointmentRepository hospitalAppointmentRepository,
-			HospitalDoctorRepository hospitalDoctorRepository) {
+			HospitalDoctorRepository hospitalDoctorRepository, BillingClient billingClient) {
 
 		this.patientRepository = patientRepository;
 		this.staffRepository = staffRepository;
@@ -56,6 +61,7 @@ public class HospitalManagementService {
 		this.hospitalAppointmentRepository = hospitalAppointmentRepository;
 		this.hospitalDoctorAvailabilityRepository = hospitalDoctorAvailabilityRepository;
 		this.hospitalDoctorRepository = hospitalDoctorRepository;
+		this.billingClient = billingClient;
 	}
 
 	private void validateHospitalRole() {
@@ -64,7 +70,10 @@ public class HospitalManagementService {
 		}
 	}
 
-	@CacheEvict(value = {"hospitalDoctors", "hospitalDashboard"}, allEntries = true)
+	public List<HospitalDoctor> getPublicHospitalDoctors() {
+	    return hospitalDoctorRepository.findByActiveTrue();
+	}
+	@CacheEvict(value = { "hospitalDoctors", "hospitalDashboard" }, allEntries = true)
 	public HospitalDoctor createHospitalDoctor(HospitalDoctor doctor) {
 
 		validateHospitalRole();
@@ -97,7 +106,7 @@ public class HospitalManagementService {
 		return hospitalDoctorRepository.findByHospitalAuthUserIdAndActiveTrue(hospitalId);
 	}
 
-	@CacheEvict(value = {"hospitalDoctors", "myHospitalDoctors", "hospitalDashboard"}, allEntries = true)
+	@CacheEvict(value = { "hospitalDoctors", "myHospitalDoctors", "hospitalDashboard" }, allEntries = true)
 	public HospitalDoctor updateHospitalDoctor(Long doctorId, HospitalDoctor request) {
 
 		validateHospitalRole();
@@ -121,7 +130,7 @@ public class HospitalManagementService {
 		return hospitalDoctorRepository.save(doctor);
 	}
 
-	@CacheEvict(value = {"hospitalDoctors", "myHospitalDoctors", "hospitalDashboard"}, allEntries = true)
+	@CacheEvict(value = { "hospitalDoctors", "myHospitalDoctors", "hospitalDashboard" }, allEntries = true)
 	public void deleteHospitalDoctor(Long doctorId) {
 
 		validateHospitalRole();
@@ -137,7 +146,7 @@ public class HospitalManagementService {
 		hospitalDoctorRepository.save(doctor);
 	}
 
-	@CacheEvict(value = {"hospitalPatients", "hospitalDashboard"}, allEntries = true)
+	@CacheEvict(value = { "hospitalPatients", "hospitalDashboard" }, allEntries = true)
 	public HospitalPatient createPatient(HospitalPatient patient) {
 
 		validateHospitalRole();
@@ -147,7 +156,7 @@ public class HospitalManagementService {
 		return patientRepository.save(patient);
 	}
 
-	@CacheEvict(value = {"hospitalStaff", "hospitalDashboard"}, allEntries = true)
+	@CacheEvict(value = { "hospitalStaff", "hospitalDashboard" }, allEntries = true)
 	public Staff createStaff(Staff staff) {
 
 		validateHospitalRole();
@@ -157,7 +166,7 @@ public class HospitalManagementService {
 		return staffRepository.save(staff);
 	}
 
-	@CacheEvict(value = {"hospitalInventory", "hospitalDashboard"}, allEntries = true)
+	@CacheEvict(value = { "hospitalInventory", "hospitalDashboard" }, allEntries = true)
 	public HospitalInventory createInventory(HospitalInventory inventory) {
 
 		validateHospitalRole();
@@ -167,7 +176,7 @@ public class HospitalManagementService {
 		return inventoryRepository.save(inventory);
 	}
 
-	@CacheEvict(value = {"hospitalBills", "hospitalDashboard"}, allEntries = true)
+	@CacheEvict(value = { "hospitalBills", "hospitalDashboard" }, allEntries = true)
 	public HospitalBill createBill(Long patientId, HospitalBill bill) {
 
 		validateHospitalRole();
@@ -195,8 +204,7 @@ public class HospitalManagementService {
 
 		Long hospitalId = CurrentUserUtil.getUserId();
 
-		return new HospitalDashboardResponse(
-				patientRepository.countByHospitalAuthUserId(hospitalId),
+		return new HospitalDashboardResponse(patientRepository.countByHospitalAuthUserId(hospitalId),
 				staffRepository.countByHospitalAuthUserId(hospitalId),
 				inventoryRepository.countByHospitalAuthUserId(hospitalId),
 				billRepository.countByHospitalAuthUserId(hospitalId));
@@ -242,7 +250,7 @@ public class HospitalManagementService {
 		return billRepository.findByHospitalAuthUserId(hospitalId);
 	}
 
-	@CacheEvict(value = {"hospitalInventory", "hospitalDashboard"}, allEntries = true)
+	@CacheEvict(value = { "hospitalInventory", "hospitalDashboard" }, allEntries = true)
 	public HospitalInventory updateInventory(Long id, HospitalInventory request) {
 
 		validateHospitalRole();
@@ -263,7 +271,7 @@ public class HospitalManagementService {
 		return inventoryRepository.save(inventory);
 	}
 
-	@CacheEvict(value = {"hospitalInventory", "hospitalDashboard"}, allEntries = true)
+	@CacheEvict(value = { "hospitalInventory", "hospitalDashboard" }, allEntries = true)
 	public HospitalInventory useInventoryItem(Long id, Integer quantity) {
 
 		validateHospitalRole();
@@ -288,7 +296,7 @@ public class HospitalManagementService {
 		return inventoryRepository.save(inventory);
 	}
 
-	@CacheEvict(value = {"hospitalBills", "hospitalDashboard"}, allEntries = true)
+	@CacheEvict(value = { "hospitalBills", "hospitalDashboard" }, allEntries = true)
 	public HospitalBill markBillPaid(Long billId) {
 
 		validateHospitalRole();
@@ -304,7 +312,7 @@ public class HospitalManagementService {
 		return billRepository.save(bill);
 	}
 
-	@CacheEvict(value = {"hospitalPatients", "hospitalDashboard"}, allEntries = true)
+	@CacheEvict(value = { "hospitalPatients", "hospitalDashboard" }, allEntries = true)
 	public HospitalPatient updatePatient(Long id, HospitalPatient request) {
 
 		validateHospitalRole();
@@ -330,7 +338,7 @@ public class HospitalManagementService {
 		return patientRepository.save(patient);
 	}
 
-	@CacheEvict(value = {"hospitalPatients", "hospitalDashboard"}, allEntries = true)
+	@CacheEvict(value = { "hospitalPatients", "hospitalDashboard" }, allEntries = true)
 	public void deletePatient(Long id) {
 
 		validateHospitalRole();
@@ -345,7 +353,7 @@ public class HospitalManagementService {
 		patientRepository.delete(patient);
 	}
 
-	@CacheEvict(value = {"hospitalStaff", "hospitalDashboard"}, allEntries = true)
+	@CacheEvict(value = { "hospitalStaff", "hospitalDashboard" }, allEntries = true)
 	public Staff updateStaff(Long id, Staff request) {
 
 		validateHospitalRole();
@@ -366,7 +374,7 @@ public class HospitalManagementService {
 		return staffRepository.save(staff);
 	}
 
-	@CacheEvict(value = {"hospitalStaff", "hospitalDashboard"}, allEntries = true)
+	@CacheEvict(value = { "hospitalStaff", "hospitalDashboard" }, allEntries = true)
 	public void deleteStaff(Long id) {
 
 		validateHospitalRole();
@@ -380,7 +388,7 @@ public class HospitalManagementService {
 		staffRepository.delete(staff);
 	}
 
-	@CacheEvict(value = {"hospitalInventory", "hospitalDashboard"}, allEntries = true)
+	@CacheEvict(value = { "hospitalInventory", "hospitalDashboard" }, allEntries = true)
 	public void deleteInventory(Long id) {
 
 		validateHospitalRole();
@@ -395,7 +403,7 @@ public class HospitalManagementService {
 		inventoryRepository.delete(inventory);
 	}
 
-	@CacheEvict(value = {"hospitalBills", "hospitalDashboard"}, allEntries = true)
+	@CacheEvict(value = { "hospitalBills", "hospitalDashboard" }, allEntries = true)
 	public HospitalBill updateBill(Long id, HospitalBill request) {
 
 		validateHospitalRole();
@@ -422,7 +430,7 @@ public class HospitalManagementService {
 		return billRepository.save(bill);
 	}
 
-	@CacheEvict(value = {"hospitalBills", "hospitalDashboard"}, allEntries = true)
+	@CacheEvict(value = { "hospitalBills", "hospitalDashboard" }, allEntries = true)
 	public void deleteBill(Long id) {
 
 		validateHospitalRole();
@@ -435,14 +443,8 @@ public class HospitalManagementService {
 
 		billRepository.delete(bill);
 	}
-	
-	@CacheEvict(
-			value = {
-					"doctorAvailability",
-					"hospitalSlots"
-			},
-			allEntries = true
-	)
+
+	@CacheEvict(value = { "doctorAvailability", "hospitalSlots" }, allEntries = true)
 	public HospitalDoctorAvailability createDoctorAvailability(HospitalDoctorAvailability availability) {
 
 		validateHospitalRole();
@@ -477,45 +479,23 @@ public class HospitalManagementService {
 		return hospitalDoctorAvailabilityRepository.save(availability);
 	}
 
-	@Cacheable(
-			value = "doctorAvailability",
-			key = "T(com.example.medi.hospital.security.CurrentUserUtil).getUserId()"
-	)
+	@Cacheable(value = "doctorAvailability", key = "T(com.example.medi.hospital.security.CurrentUserUtil).getUserId()")
 	public List<HospitalDoctorAvailability> getMyDoctorAvailability() {
 
 		validateHospitalRole();
 
-		return hospitalDoctorAvailabilityRepository.findByHospitalAuthUserId(
-				CurrentUserUtil.getUserId()
-		);
+		return hospitalDoctorAvailabilityRepository.findByHospitalAuthUserId(CurrentUserUtil.getUserId());
 	}
 
-	@Cacheable(
-			value = "hospitalSlots",
-			key = "#hospitalId + '-' + #hospitalDoctorId + '-' + #date"
-	)
-	public List<HospitalAvailableSlotResponse> getHospitalDoctorSlots(
-			Long hospitalId,
-			Long hospitalDoctorId,
-			LocalDate date
-	) {
+	@Cacheable(value = "hospitalSlots", key = "#hospitalId + '-' + #hospitalDoctorId + '-' + #date")
+	public List<HospitalAvailableSlotResponse> getHospitalDoctorSlots(Long hospitalId, Long hospitalDoctorId,
+			LocalDate date) {
 
-		System.out.println(
-				"DB HIT: Loading hospital slots for hospitalId="
-						+ hospitalId
-						+ ", doctorId="
-						+ hospitalDoctorId
-						+ ", date="
-						+ date
-		);
+		System.out.println("DB HIT: Loading hospital slots for hospitalId=" + hospitalId + ", doctorId="
+				+ hospitalDoctorId + ", date=" + date);
 
-		List<HospitalDoctorAvailability> availabilityList =
-				hospitalDoctorAvailabilityRepository
-						.findByHospitalAuthUserIdAndHospitalDoctorIdAndAvailableDate(
-								hospitalId,
-								hospitalDoctorId,
-								date
-						);
+		List<HospitalDoctorAvailability> availabilityList = hospitalDoctorAvailabilityRepository
+				.findByHospitalAuthUserIdAndHospitalDoctorIdAndAvailableDate(hospitalId, hospitalDoctorId, date);
 
 		List<HospitalAvailableSlotResponse> slots = new ArrayList<>();
 
@@ -523,259 +503,194 @@ public class HospitalManagementService {
 
 			LocalTime current = availability.getStartTime();
 
-			while (current.plusMinutes(
-					availability.getSlotDuration()
-			).compareTo(availability.getEndTime()) <= 0) {
+			while (current.plusMinutes(availability.getSlotDuration()).compareTo(availability.getEndTime()) <= 0) {
 
-				boolean booked =
-						hospitalAppointmentRepository
-								.existsByHospitalAuthUserIdAndHospitalDoctorIdAndAppointmentDateAndAppointmentTimeAndStatusNot(
-										hospitalId,
-										hospitalDoctorId,
-										date,
-										current,
-										HospitalAppointmentStatus.CANCELLED
-								);
+				boolean booked = hospitalAppointmentRepository
+						.existsByHospitalAuthUserIdAndHospitalDoctorIdAndAppointmentDateAndAppointmentTimeAndStatusNot(
+								hospitalId, hospitalDoctorId, date, current, HospitalAppointmentStatus.CANCELLED);
 
-				slots.add(
-						new HospitalAvailableSlotResponse(
-								current.toString(),
-								booked
-						)
-				);
+				slots.add(new HospitalAvailableSlotResponse(current.toString(), booked));
 
-				current =
-						current.plusMinutes(
-								availability.getSlotDuration()
-						);
+				current = current.plusMinutes(availability.getSlotDuration());
 			}
 		}
 
 		return slots;
 	}
 
-	@CacheEvict(
-			value = {
-					"hospitalAppointments",
-					"patientHospitalAppointments",
-					"hospitalSlots",
-					"hospitalDashboard"
-			},
-			allEntries = true
-	)
-	public HospitalAppointment bookHospitalAppointment(
-			BookHospitalAppointmentRequest request
-	) {
+	@CacheEvict(value = {
+	        "hospitalAppointments",
+	        "patientHospitalAppointments",
+	        "hospitalSlots",
+	        "hospitalDashboard"
+	}, allEntries = true)
+	public HospitalAppointment bookHospitalAppointment(BookHospitalAppointmentRequest request) {
 
-		if (!"PATIENT".equals(CurrentUserUtil.getRole())) {
-			throw new AccessDeniedException(
-					"Only PATIENT can book hospital appointment"
-			);
-		}
+	    if (!"PATIENT".equals(CurrentUserUtil.getRole())) {
+	        throw new AccessDeniedException("Only PATIENT can book hospital appointment");
+	    }
 
-		if (request.getHospitalAuthUserId() == null) {
-			throw new RuntimeException("Hospital id is required");
-		}
+	    if (request == null) {
+	        throw new RuntimeException("Appointment request is required");
+	    }
 
-		if (request.getHospitalDoctorId() == null) {
-			throw new RuntimeException("Hospital doctor id is required");
-		}
+	    if (request.getHospitalAuthUserId() == null) {
+	        throw new RuntimeException("Hospital id is required");
+	    }
 
-		HospitalDoctor doctor =
-				hospitalDoctorRepository.findById(
-						request.getHospitalDoctorId()
-				).orElseThrow(
-						() -> new RuntimeException("Hospital doctor not found")
-				);
+	    if (request.getHospitalDoctorId() == null) {
+	        throw new RuntimeException("Hospital doctor id is required");
+	    }
 
-		if (!doctor.getHospitalAuthUserId().equals(
-				request.getHospitalAuthUserId()
-		)) {
-			throw new RuntimeException(
-					"Selected doctor does not belong to selected hospital"
-			);
-		}
+	    if (request.getPatientName() == null || request.getPatientName().isBlank()) {
+	        throw new RuntimeException("Patient name is required");
+	    }
 
-		if (request.getAppointmentDate() == null ||
-				request.getAppointmentTime() == null) {
-			throw new RuntimeException(
-					"Appointment date and time are required"
-			);
-		}
+	    if (request.getPatientMobile() == null || request.getPatientMobile().isBlank()) {
+	        throw new RuntimeException("Patient mobile is required");
+	    }
 
-		boolean booked =
-				hospitalAppointmentRepository
-						.existsByHospitalAuthUserIdAndHospitalDoctorIdAndAppointmentDateAndAppointmentTimeAndStatusNot(
-								request.getHospitalAuthUserId(),
-								request.getHospitalDoctorId(),
-								request.getAppointmentDate(),
-								request.getAppointmentTime(),
-								HospitalAppointmentStatus.CANCELLED
-						);
+	    if (request.getPatientEmail() == null || request.getPatientEmail().isBlank()) {
+	        throw new RuntimeException("Patient email is required");
+	    }
 
-		if (booked) {
-			throw new RuntimeException(
-					"Selected slot is already booked"
-			);
-		}
+	    if (request.getAppointmentDate() == null || request.getAppointmentTime() == null) {
+	        throw new RuntimeException("Appointment date and time are required");
+	    }
 
-		HospitalAppointment appointment =
-				new HospitalAppointment();
+	    HospitalConsultationType consultationType =
+	            request.getConsultationType() == null
+	                    ? HospitalConsultationType.OFFLINE
+	                    : request.getConsultationType();
 
-		appointment.setHospitalAuthUserId(
-				request.getHospitalAuthUserId()
-		);
+	    if (consultationType == HospitalConsultationType.ONLINE) {
+	        validateHospitalOnlineConsultation(request.getHospitalAuthUserId());
+	    }
 
-		appointment.setHospitalDoctorId(
-				request.getHospitalDoctorId()
-		);
+	    HospitalDoctor doctor = hospitalDoctorRepository.findById(request.getHospitalDoctorId())
+	            .orElseThrow(() -> new RuntimeException("Hospital doctor not found"));
 
-		appointment.setPatientAuthUserId(
-				CurrentUserUtil.getUserId()
-		);
+	    if (!doctor.getHospitalAuthUserId().equals(request.getHospitalAuthUserId())) {
+	        throw new RuntimeException("Selected doctor does not belong to selected hospital");
+	    }
 
-		appointment.setDoctorName(
-				doctor.getDoctorName()
-		);
+	    boolean booked = hospitalAppointmentRepository
+	            .existsByHospitalAuthUserIdAndHospitalDoctorIdAndAppointmentDateAndAppointmentTimeAndStatusNot(
+	                    request.getHospitalAuthUserId(),
+	                    request.getHospitalDoctorId(),
+	                    request.getAppointmentDate(),
+	                    request.getAppointmentTime(),
+	                    HospitalAppointmentStatus.CANCELLED
+	            );
 
-		appointment.setDepartment(
-				doctor.getDepartment()
-		);
+	    if (booked) {
+	        throw new RuntimeException("Selected slot is already booked");
+	    }
 
-		appointment.setPatientName(
-				request.getPatientName()
-		);
+	    HospitalAppointment appointment = new HospitalAppointment();
 
-		appointment.setPatientMobile(
-				request.getPatientMobile()
-		);
+	    appointment.setHospitalAuthUserId(request.getHospitalAuthUserId());
+	    appointment.setHospitalDoctorId(request.getHospitalDoctorId());
+	    appointment.setPatientAuthUserId(CurrentUserUtil.getUserId());
 
-		appointment.setAppointmentDate(
-				request.getAppointmentDate()
-		);
+	    appointment.setDoctorName(doctor.getDoctorName());
+	    appointment.setDepartment(doctor.getDepartment());
 
-		appointment.setAppointmentTime(
-				request.getAppointmentTime()
-		);
+	    appointment.setPatientName(request.getPatientName());
+	    appointment.setPatientMobile(request.getPatientMobile());
+	    appointment.setPatientEmail(request.getPatientEmail());
 
-		appointment.setSymptoms(
-				request.getSymptoms()
-		);
+	    appointment.setAppointmentDate(request.getAppointmentDate());
+	    appointment.setAppointmentTime(request.getAppointmentTime());
+	    appointment.setSymptoms(request.getSymptoms());
 
-		appointment.setStatus(
-				HospitalAppointmentStatus.PENDING
-		);
+	    appointment.setConsultationType(consultationType);
 
-		return hospitalAppointmentRepository.save(
-				appointment
-		);
+	    appointment.setConsultationFee(
+	            doctor.getConsultationFee() == null ? 0 : doctor.getConsultationFee()
+	    );
+
+	    if (consultationType == HospitalConsultationType.ONLINE) {
+	        appointment.setStatus(HospitalAppointmentStatus.PENDING);
+	        appointment.setPaymentStatus(HospitalPaymentStatus.PENDING);
+
+	        String meetingUrl = "https://meet.jit.si/medirevolution-hospital-"
+	                + request.getHospitalAuthUserId()
+	                + "-"
+	                + request.getHospitalDoctorId()
+	                + "-"
+	                + System.currentTimeMillis();
+
+	        appointment.setMeetingUrl(meetingUrl);
+	    } else {
+	        appointment.setStatus(HospitalAppointmentStatus.PENDING);
+	        appointment.setPaymentStatus(HospitalPaymentStatus.NOT_REQUIRED);
+	        appointment.setMeetingUrl(null);
+	    }
+
+	    return hospitalAppointmentRepository.save(appointment);
 	}
-
-	@Cacheable(
-			value = "hospitalAppointments",
-			key = "T(com.example.medi.hospital.security.CurrentUserUtil).getUserId()"
-	)
 	public List<HospitalAppointment> getHospitalAppointments() {
 
-		validateHospitalRole();
+	    validateHospitalRole();
 
-		return hospitalAppointmentRepository
-				.findByHospitalAuthUserIdOrderByAppointmentDateDescAppointmentTimeDesc(
-						CurrentUserUtil.getUserId()
-				);
+	    return hospitalAppointmentRepository
+	            .findByHospitalAuthUserIdOrderByAppointmentDateDescAppointmentTimeDesc(CurrentUserUtil.getUserId());
 	}
 
-	@Cacheable(
-			value = "patientHospitalAppointments",
-			key = "T(com.example.medi.hospital.security.CurrentUserUtil).getUserId()"
-	)
 	public List<HospitalAppointment> getPatientHospitalAppointments() {
 
-		return hospitalAppointmentRepository
-				.findByPatientAuthUserIdOrderByAppointmentDateDescAppointmentTimeDesc(
-						CurrentUserUtil.getUserId()
-				);
+	    return hospitalAppointmentRepository
+	            .findByPatientAuthUserIdOrderByAppointmentDateDescAppointmentTimeDesc(CurrentUserUtil.getUserId());
 	}
 
-	@CacheEvict(
-			value = {
-					"hospitalAppointments",
-					"patientHospitalAppointments",
-					"hospitalSlots",
-					"hospitalDashboard"
-			},
-			allEntries = true
-	)
-	public HospitalAppointment updateHospitalAppointmentStatus(
-			Long appointmentId,
-			HospitalAppointmentStatus status
-	) {
+	@CacheEvict(value = { "hospitalAppointments", "patientHospitalAppointments", "hospitalSlots",
+			"hospitalDashboard" }, allEntries = true)
+	public HospitalAppointment updateHospitalAppointmentStatus(Long appointmentId, HospitalAppointmentStatus status) {
 
 		validateHospitalRole();
 
-		HospitalAppointment appointment =
-				hospitalAppointmentRepository.findById(
-						appointmentId
-				).orElseThrow(
-						() -> new RuntimeException("Appointment not found")
-				);
+		HospitalAppointment appointment = hospitalAppointmentRepository.findById(appointmentId)
+				.orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-		if (!appointment.getHospitalAuthUserId().equals(
-				CurrentUserUtil.getUserId()
-		)) {
-			throw new AccessDeniedException(
-					"You can update only your hospital appointments"
-			);
+		if (!appointment.getHospitalAuthUserId().equals(CurrentUserUtil.getUserId())) {
+			throw new AccessDeniedException("You can update only your hospital appointments");
 		}
 
 		appointment.setStatus(status);
 
-		return hospitalAppointmentRepository.save(
-				appointment
-		);
+		return hospitalAppointmentRepository.save(appointment);
 	}
 
-	@CacheEvict(
-			value = {
-					"hospitalAppointments",
-					"patientHospitalAppointments",
-					"hospitalSlots",
-					"hospitalDashboard"
-			},
-			allEntries = true
-	)
-	public HospitalAppointment cancelPatientHospitalAppointment(
-			Long appointmentId
-	) {
+	@CacheEvict(value = { "hospitalAppointments", "patientHospitalAppointments", "hospitalSlots",
+			"hospitalDashboard" }, allEntries = true)
+	public HospitalAppointment cancelPatientHospitalAppointment(Long appointmentId) {
 
-		HospitalAppointment appointment =
-				hospitalAppointmentRepository.findById(
-						appointmentId
-				).orElseThrow(
-						() -> new RuntimeException("Appointment not found")
-				);
+		HospitalAppointment appointment = hospitalAppointmentRepository.findById(appointmentId)
+				.orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-		if (!appointment.getPatientAuthUserId().equals(
-				CurrentUserUtil.getUserId()
-		)) {
-			throw new AccessDeniedException(
-					"You can cancel only your appointment"
-			);
+		if (!appointment.getPatientAuthUserId().equals(CurrentUserUtil.getUserId())) {
+			throw new AccessDeniedException("You can cancel only your appointment");
 		}
 
-		if (appointment.getStatus() ==
-				HospitalAppointmentStatus.COMPLETED) {
-			throw new RuntimeException(
-					"Completed appointment cannot be cancelled"
-			);
+		if (appointment.getStatus() == HospitalAppointmentStatus.COMPLETED) {
+			throw new RuntimeException("Completed appointment cannot be cancelled");
 		}
 
-		appointment.setStatus(
-				HospitalAppointmentStatus.CANCELLED
-		);
+		appointment.setStatus(HospitalAppointmentStatus.CANCELLED);
 
-		return hospitalAppointmentRepository.save(
-				appointment
-		);
+		return hospitalAppointmentRepository.save(appointment);
+	}
+
+	private void validateHospitalOnlineConsultation(Long hospitalAuthUserId) {
+		SubscriptionCheckResponse subscription = billingClient.checkSubscription(hospitalAuthUserId);
+
+		if (subscription == null || !subscription.isActive()) {
+			throw new RuntimeException("Hospital subscription is not active. Please activate a plan.");
+		}
+
+		if (!Boolean.TRUE.equals(subscription.getOnlineConsultationEnabled())) {
+			throw new RuntimeException("Online consultation is not available in current hospital plan.");
+		}
 	}
 }
