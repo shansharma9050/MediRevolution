@@ -45,6 +45,18 @@ public class WholesalerMedicineStock {
     private boolean active = true;
 
     private LocalDateTime createdAt = LocalDateTime.now();
+    
+    @Transient
+    private String wholesalerName;
+
+    @Transient
+    private String wholesalerCompanyName;
+
+    @Transient
+    private String wholesalerMobile;
+
+    @Transient
+    private String wholesalerAddress;
 
     
 }

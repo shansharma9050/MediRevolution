@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.*;
 
+import com.example.medi.user.dto.WholesalerProfileResponse;
 import com.example.medi.user.entity.DoctorProfile;
 import com.example.medi.user.entity.HospitalProfile;
 import com.example.medi.user.entity.PatientProfile;
@@ -163,6 +164,14 @@ public class ProfileController {
     @GetMapping("/hospitals")
     public List<HospitalProfile> getAllHospitals() {
         return profileService.getAllHospitals();
+    }
+    
+    @GetMapping("/wholesaler/public/{authUserId}")
+    public WholesalerProfileResponse getWholesalerProfileByAuthUserId(
+            @PathVariable Long authUserId
+    ) {
+        RoleValidator.allowAny("SUPER_ADMIN", "ADMIN", "WHOLESALER", "RETAILER");
+        return profileService.getWholesalerProfileByAuthUserId(authUserId);
     }
     
     

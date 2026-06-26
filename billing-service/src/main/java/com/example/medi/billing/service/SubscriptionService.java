@@ -1,212 +1,220 @@
 package com.example.medi.billing.service;
 
-import com.example.medi.billing.dto.*;
-import com.example.medi.billing.entity.SubscriptionPayment;
-import com.example.medi.billing.entity.SubscriptionPlan;
-import com.example.medi.billing.entity.UserSubscription;
-import com.example.medi.billing.enums.*;
-import com.example.medi.billing.repository.SubscriptionPaymentRepository;
-import com.example.medi.billing.repository.SubscriptionPlanRepository;
-import com.example.medi.billing.repository.UserSubscriptionRepository;
-import com.example.medi.billing.security.CurrentUser;
-import jakarta.transaction.Transactional;
-import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
+import com.example.medi.billing.dto.ActivateSubscriptionRequest;
+import com.example.medi.billing.dto.SubscribePlanRequest;
+import com.example.medi.billing.dto.SubscribePlanResponse;
+import com.example.medi.billing.dto.SubscriptionCheckResponse;
+import com.example.medi.billing.entity.SubscriptionPlan;
+import com.example.medi.billing.entity.UserSubscription;
+import com.example.medi.billing.enums.BillingCycle;
+import com.example.medi.billing.enums.SubscriptionRole;
+import com.example.medi.billing.enums.SubscriptionStatus;
+import com.example.medi.billing.repository.SubscriptionPlanRepository;
+import com.example.medi.billing.repository.UserSubscriptionRepository;
+import com.example.medi.billing.security.CurrentUserUtil;
 
 @Service
 public class SubscriptionService {
 
     private final SubscriptionPlanRepository planRepository;
     private final UserSubscriptionRepository subscriptionRepository;
-    private final SubscriptionPaymentRepository paymentRepository;
 
     public SubscriptionService(
             SubscriptionPlanRepository planRepository,
-            UserSubscriptionRepository subscriptionRepository,
-            SubscriptionPaymentRepository paymentRepository
+            UserSubscriptionRepository subscriptionRepository
     ) {
         this.planRepository = planRepository;
         this.subscriptionRepository = subscriptionRepository;
-        this.paymentRepository = paymentRepository;
     }
 
-    public List<PlanResponse> getPlansForCurrentRole(CurrentUser user) {
-        validateSubscriptionAllowedRole(user.getRole());
+    public SubscriptionPlan createPlan(SubscriptionPlan plan) {
 
-        return planRepository
-                .findByTargetRoleAndActiveTrueOrderByMonthlyPriceAsc(user.getRole())
-                .stream()
-                .map(PlanResponse::new)
-                .collect(Collectors.toList());
+        if (plan.getDurationDays() == null || plan.getDurationDays() <= 0) {
+            throw new RuntimeException("Plan duration days is required");
+        }
+
+        if (plan.getActive() == null) {
+            plan.setActive(true);
+        }
+
+        return planRepository.save(plan);
     }
 
-    public SubscriptionResponse getCurrentSubscription(CurrentUser user) {
-        return subscriptionRepository
-                .findFirstByAuthUserIdAndStatusOrderByEndDateDesc(
-                        user.getUserId(),
-                        SubscriptionStatus.ACTIVE
-                )
-                .filter(subscription -> !subscription.getEndDate().isBefore(LocalDate.now()))
-                .map(SubscriptionResponse::new)
-                .orElseThrow(() -> new RuntimeException("No active subscription found"));
+    public List<SubscriptionPlan> getAllActivePlans() {
+        return planRepository.findByActiveTrue();
+    }
+
+    public List<SubscriptionPlan> getPlansByRole(String role) {
+
+        if (role == null || role.isBlank()) {
+            throw new RuntimeException("Role is required");
+        }
+
+        String cleanRole = role.trim().toUpperCase();
+
+        System.out.println("Loading subscription plans for role = " + cleanRole);
+
+        SubscriptionRole subscriptionRole;
+
+        try {
+            subscriptionRole = SubscriptionRole.valueOf(cleanRole);
+        } catch (Exception e) {
+            throw new RuntimeException("Invalid subscription role: " + cleanRole);
+        }
+
+        return planRepository.findByRoleAndActiveTrue(subscriptionRole);
+    }
+
+    public UserSubscription activateSubscription(ActivateSubscriptionRequest request) {
+
+        if (request.getAuthUserId() == null) {
+            throw new RuntimeException("authUserId is required");
+        }
+
+        if (request.getRole() == null || request.getRole().isBlank()) {
+            throw new RuntimeException("role is required");
+        }
+
+        if (request.getPlanId() == null) {
+            throw new RuntimeException("planId is required");
+        }
+
+        SubscriptionPlan plan = planRepository.findById(request.getPlanId())
+                .orElseThrow(() -> new RuntimeException("Plan not found"));
+
+        SubscriptionRole role = SubscriptionRole.valueOf(request.getRole().toUpperCase());
+
+        if (plan.getRole() != role) {
+            throw new RuntimeException("Selected plan does not belong to user role");
+        }
+
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = startDate.plusDays(plan.getDurationDays());
+
+        UserSubscription subscription = new UserSubscription();
+        subscription.setAuthUserId(request.getAuthUserId());
+        subscription.setRole(role);
+        subscription.setPlan(plan);
+        subscription.setStartDate(startDate);
+        subscription.setEndDate(endDate);
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+
+        return subscriptionRepository.save(subscription);
+    }
+    
+    public SubscribePlanResponse subscribePlan(SubscribePlanRequest request) {
+
+        if (request.getPlanCode() == null || request.getPlanCode().isBlank()) {
+            throw new RuntimeException("Invalid plan selected");
+        }
+
+        if (request.getBillingCycle() == null || request.getBillingCycle().isBlank()) {
+            throw new RuntimeException("Billing cycle is required");
+        }
+
+        Long authUserId = CurrentUserUtil.getUserId();
+        String currentRole = CurrentUserUtil.getRole();
+
+        if (authUserId == null) {
+            throw new RuntimeException("User not found from token");
+        }
+
+        if (!"WHOLESALER".equals(currentRole)
+                && !"DOCTOR".equals(currentRole)
+                && !"HOSPITAL".equals(currentRole)) {
+            throw new RuntimeException("Subscription is available only for Wholesaler, Doctor and Hospital");
+        }
+
+        BillingCycle billingCycle = BillingCycle.valueOf(request.getBillingCycle().toUpperCase());
+
+        SubscriptionPlan plan = planRepository.findByPlanCodeAndActiveTrue(request.getPlanCode())
+                .orElseThrow(() -> new RuntimeException("Invalid plan selected"));
+
+        SubscriptionRole userRole = SubscriptionRole.valueOf(currentRole);
+
+        if (plan.getRole() != userRole) {
+            throw new RuntimeException("Selected plan does not belong to your role");
+        }
+
+        LocalDate startDate = LocalDate.now();
+
+        Integer durationDays = plan.getDurationDays();
+        if (durationDays == null || durationDays <= 0) {
+            durationDays = billingCycle == BillingCycle.YEARLY ? 365 : 30;
+        }
+
+        LocalDate endDate = startDate.plusDays(durationDays);
+
+        UserSubscription subscription = new UserSubscription();
+        subscription.setAuthUserId(authUserId);
+        subscription.setRole(userRole);
+        subscription.setPlan(plan);
+        subscription.setStartDate(startDate);
+        subscription.setEndDate(endDate);
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+
+        UserSubscription saved = subscriptionRepository.save(subscription);
+
+        return new SubscribePlanResponse(
+                true,
+                "Subscription activated successfully",
+                saved.getId(),
+                plan.getPlanCode(),
+                plan.getPlanName(),
+                saved.getStartDate(),
+                saved.getEndDate(),
+                null
+        );
     }
 
     public SubscriptionCheckResponse checkSubscription(Long authUserId) {
+
         return subscriptionRepository
-                .findFirstByAuthUserIdAndStatusOrderByEndDateDesc(
+                .findTopByAuthUserIdAndStatusAndEndDateGreaterThanEqualOrderByEndDateDesc(
                         authUserId,
-                        SubscriptionStatus.ACTIVE
+                        SubscriptionStatus.ACTIVE,
+                        LocalDate.now()
                 )
-                .filter(subscription -> !subscription.getEndDate().isBefore(LocalDate.now()))
-                .map(subscription -> new SubscriptionCheckResponse(
-                        true,
-                        "Subscription active",
-                        subscription.getPlanCode(),
-                        subscription.getStatus().name(),
-                        subscription.getEndDate(),
-                        subscription.getPlan().getOnlineConsultationEnabled(),
-                        subscription.getPlan().getReportsEnabled()
-                ))
-                .orElse(new SubscriptionCheckResponse(
+                .map(subscription -> {
+
+                    SubscriptionPlan plan = subscription.getPlan();
+
+                    return new SubscriptionCheckResponse(
+                            true,
+                            subscription.getAuthUserId(),
+                            subscription.getRole().name(),
+                            plan.getId(),
+                            plan.getPlanName(),
+                            subscription.getStartDate(),
+                            subscription.getEndDate(),
+                            plan.getMaxMedicines(),
+                            plan.getMaxAppointments(),
+                            plan.getMaxStaff(),
+                            plan.getVideoConsultationAllowed()
+                    );
+                })
+                .orElseGet(() -> new SubscriptionCheckResponse(
                         false,
-                        "No active subscription",
+                        authUserId,
                         null,
                         null,
                         null,
-                        false,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
                         false
                 ));
     }
 
-    @Transactional
-    public SubscriptionPaymentResponse initiateSubscription(CurrentUser user, SubscribeRequest request) {
-        validateSubscriptionAllowedRole(user.getRole());
-
-        if (request.getPlanCode() == null || request.getPlanCode().isBlank()) {
-            throw new RuntimeException("Plan code is required");
-        }
-
-        BillingCycle billingCycle =
-                request.getBillingCycle() == null ? BillingCycle.MONTHLY : request.getBillingCycle();
-
-        SubscriptionPlan plan = planRepository
-                .findByPlanCodeAndActiveTrue(request.getPlanCode())
-                .orElseThrow(() -> new RuntimeException("Plan not found"));
-
-        if (!plan.getTargetRole().equalsIgnoreCase(user.getRole())) {
-            throw new RuntimeException("This plan is not allowed for your role");
-        }
-
-        BigDecimal amount = billingCycle == BillingCycle.YEARLY
-                ? plan.getYearlyPrice()
-                : plan.getMonthlyPrice();
-
-        String merchantOrderId = "MR-SUB-" + UUID.randomUUID();
-
-        SubscriptionPayment payment = new SubscriptionPayment();
-        payment.setAuthUserId(user.getUserId());
-        payment.setUserRole(user.getRole());
-        payment.setPlanId(plan.getId());
-        payment.setPlanCode(plan.getPlanCode());
-        payment.setAmount(amount);
-        payment.setBillingCycle(billingCycle);
-        payment.setMerchantOrderId(merchantOrderId);
-        payment.setPaymentStatus(SubscriptionPaymentStatus.INITIATED);
-        payment.setPaymentGateway(PaymentGateway.MANUAL);
-
-        paymentRepository.save(payment);
-
-        /*
-         * IMPORTANT:
-         * Abhi local testing ke liye MANUAL payment flow diya hai.
-         * PhonePe subscription payment connect karna ho to yahan redirectUrl PhonePe se generate karna.
-         */
-        String redirectUrl = "/subscription/payment-success?merchantOrderId=" + merchantOrderId;
-
-        return new SubscriptionPaymentResponse(
-                "Subscription payment initiated",
-                merchantOrderId,
-                amount,
-                payment.getPaymentStatus().name(),
-                redirectUrl
-        );
-    }
-
-    @Transactional
-    public SubscriptionResponse markSubscriptionPaymentSuccess(String merchantOrderId) {
-        SubscriptionPayment payment = paymentRepository
-                .findByMerchantOrderId(merchantOrderId)
-                .orElseThrow(() -> new RuntimeException("Subscription payment not found"));
-
-        if (payment.getPaymentStatus() == SubscriptionPaymentStatus.SUCCESS) {
-            UserSubscription existing = subscriptionRepository
-                    .findFirstByAuthUserIdOrderByIdDesc(payment.getAuthUserId())
-                    .orElseThrow(() -> new RuntimeException("Subscription not found"));
-
-            return new SubscriptionResponse(existing);
-        }
-
-        SubscriptionPlan plan = planRepository
-                .findByPlanCodeAndActiveTrue(payment.getPlanCode())
-                .orElseThrow(() -> new RuntimeException("Plan not found"));
-
-        LocalDate startDate = LocalDate.now();
-        LocalDate endDate = payment.getBillingCycle() == BillingCycle.YEARLY
-                ? startDate.plusYears(1)
-                : startDate.plusMonths(1);
-
-        UserSubscription subscription = new UserSubscription();
-        subscription.setAuthUserId(payment.getAuthUserId());
-        subscription.setUserRole(payment.getUserRole());
-        subscription.setPlan(plan);
-        subscription.setPlanCode(plan.getPlanCode());
-        subscription.setBillingCycle(payment.getBillingCycle());
-        subscription.setStatus(SubscriptionStatus.ACTIVE);
-        subscription.setStartDate(startDate);
-        subscription.setEndDate(endDate);
-        subscription.setAutoRenew(false);
-
-        UserSubscription savedSubscription = subscriptionRepository.save(subscription);
-
-        payment.setSubscriptionId(savedSubscription.getId());
-        payment.setPaymentStatus(SubscriptionPaymentStatus.SUCCESS);
-        payment.setTransactionId(merchantOrderId);
-        payment.touch();
-
-        paymentRepository.save(payment);
-
-        return new SubscriptionResponse(savedSubscription);
-    }
-
-    @Transactional
-    public void cancelCurrentSubscription(CurrentUser user) {
-        UserSubscription subscription = subscriptionRepository
-                .findFirstByAuthUserIdAndStatusOrderByEndDateDesc(
-                        user.getUserId(),
-                        SubscriptionStatus.ACTIVE
-                )
-                .orElseThrow(() -> new RuntimeException("No active subscription found"));
-
-        subscription.setStatus(SubscriptionStatus.CANCELLED);
-        subscription.touch();
-
-        subscriptionRepository.save(subscription);
-    }
-
-    public List<SubscriptionPayment> myPayments(CurrentUser user) {
-        return paymentRepository.findByAuthUserIdOrderByIdDesc(user.getUserId());
-    }
-
-    private void validateSubscriptionAllowedRole(String role) {
-        if (!"WHOLESALER".equalsIgnoreCase(role)
-                && !"DOCTOR".equalsIgnoreCase(role)
-                && !"HOSPITAL".equalsIgnoreCase(role)) {
-            throw new RuntimeException("Subscription is available only for WHOLESALER, DOCTOR and HOSPITAL");
-        }
+    public UserSubscription getLatestSubscription(Long authUserId) {
+        return subscriptionRepository.findTopByAuthUserIdOrderByCreatedAtDesc(authUserId)
+                .orElseThrow(() -> new RuntimeException("No subscription found"));
     }
 }

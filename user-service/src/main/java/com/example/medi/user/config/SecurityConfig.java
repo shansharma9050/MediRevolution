@@ -29,6 +29,8 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                 		.requestMatchers("/users/profiles/**").authenticated()
+                		.requestMatchers("/users/profiles/wholesaler/public/**")
+                		.hasAnyRole("RETAILER", "WHOLESALER", "ADMIN", "SUPER_ADMIN")
                         .requestMatchers("/users/files/**").authenticated()
                         .anyRequest().authenticated()
                 )

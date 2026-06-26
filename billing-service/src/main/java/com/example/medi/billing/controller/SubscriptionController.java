@@ -1,71 +1,59 @@
 package com.example.medi.billing.controller;
 
-import com.example.medi.billing.dto.*;
-import com.example.medi.billing.entity.SubscriptionPayment;
-import com.example.medi.billing.security.CurrentUser;
-import com.example.medi.billing.security.CurrentUserUtil;
-import com.example.medi.billing.service.SubscriptionService;
-import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
+
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import com.example.medi.billing.dto.ActivateSubscriptionRequest;
+import com.example.medi.billing.dto.SubscribePlanRequest;
+import com.example.medi.billing.dto.SubscribePlanResponse;
+import com.example.medi.billing.dto.SubscriptionCheckResponse;
+import com.example.medi.billing.entity.SubscriptionPlan;
+import com.example.medi.billing.entity.UserSubscription;
+import com.example.medi.billing.service.SubscriptionService;
 
 @RestController
 @RequestMapping("/billing/subscriptions")
 public class SubscriptionController {
 
     private final SubscriptionService subscriptionService;
-    private final CurrentUserUtil currentUserUtil;
 
-    public SubscriptionController(
-            SubscriptionService subscriptionService,
-            CurrentUserUtil currentUserUtil
-    ) {
+    public SubscriptionController(SubscriptionService subscriptionService) {
         this.subscriptionService = subscriptionService;
-        this.currentUserUtil = currentUserUtil;
+    }
+
+    @PostMapping("/plans")
+    public SubscriptionPlan createPlan(@RequestBody SubscriptionPlan plan) {
+        return subscriptionService.createPlan(plan);
     }
 
     @GetMapping("/plans")
-    public List<PlanResponse> plans(HttpServletRequest request) {
-        CurrentUser user = currentUserUtil.getCurrentUser(request);
-        return subscriptionService.getPlansForCurrentRole(user);
+    public List<SubscriptionPlan> getAllActivePlans() {
+        return subscriptionService.getAllActivePlans();
     }
 
-    @GetMapping("/current")
-    public SubscriptionResponse current(HttpServletRequest request) {
-        CurrentUser user = currentUserUtil.getCurrentUser(request);
-        return subscriptionService.getCurrentSubscription(user);
+    @GetMapping("/plans/{role}")
+    public List<SubscriptionPlan> getPlansByRole(@PathVariable String role) {
+        return subscriptionService.getPlansByRole(role);
+    }
+
+    @PostMapping("/activate")
+    public UserSubscription activateSubscription(@RequestBody ActivateSubscriptionRequest request) {
+        return subscriptionService.activateSubscription(request);
     }
 
     @GetMapping("/check/{authUserId}")
-    public SubscriptionCheckResponse check(@PathVariable Long authUserId) {
+    public SubscriptionCheckResponse checkSubscription(@PathVariable Long authUserId) {
         return subscriptionService.checkSubscription(authUserId);
     }
 
+    @GetMapping("/latest/{authUserId}")
+    public UserSubscription getLatestSubscription(@PathVariable Long authUserId) {
+        return subscriptionService.getLatestSubscription(authUserId);
+    }
+    
     @PostMapping("/subscribe")
-    public SubscriptionPaymentResponse subscribe(
-            @RequestBody SubscribeRequest subscribeRequest,
-            HttpServletRequest request
-    ) {
-        CurrentUser user = currentUserUtil.getCurrentUser(request);
-        return subscriptionService.initiateSubscription(user, subscribeRequest);
-    }
-
-    @PostMapping("/payment/success")
-    public SubscriptionResponse paymentSuccess(@RequestParam String merchantOrderId) {
-        return subscriptionService.markSubscriptionPaymentSuccess(merchantOrderId);
-    }
-
-    @PutMapping("/cancel")
-    public String cancel(HttpServletRequest request) {
-        CurrentUser user = currentUserUtil.getCurrentUser(request);
-        subscriptionService.cancelCurrentSubscription(user);
-        return "Subscription cancelled successfully";
-    }
-
-    @GetMapping("/payments/my")
-    public List<SubscriptionPayment> myPayments(HttpServletRequest request) {
-        CurrentUser user = currentUserUtil.getCurrentUser(request);
-        return subscriptionService.myPayments(user);
+    public SubscribePlanResponse subscribePlan(@RequestBody SubscribePlanRequest request) {
+        return subscriptionService.subscribePlan(request);
     }
 }

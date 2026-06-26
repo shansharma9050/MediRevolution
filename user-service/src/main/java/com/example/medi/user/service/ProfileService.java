@@ -7,6 +7,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
+import com.example.medi.user.dto.WholesalerProfileResponse;
 import com.example.medi.user.entity.DoctorProfile;
 import com.example.medi.user.entity.HospitalProfile;
 import com.example.medi.user.entity.PatientProfile;
@@ -346,5 +347,23 @@ public class ProfileService {
     public List<HospitalProfile> getAllHospitals() {
         System.out.println("DB HIT: Loading all hospitals");
         return hospitalRepository.findAllByOrderByHospitalNameAsc();
+    }
+    
+    public WholesalerProfileResponse getWholesalerProfileByAuthUserId(Long authUserId) {
+
+        WholesalerProfile profile = wholesalerRepository.findByAuthUserId(authUserId)
+                .orElseThrow(() -> new RuntimeException("Wholesaler profile not found"));
+
+        return new WholesalerProfileResponse(
+                profile.getAuthUserId(),
+                profile.getBusinessName(),
+                profile.getBusinessName(),
+                profile.getContactPersonName(),
+                profile.getMobile(),
+                profile.getEmail(),
+                profile.getAddress(),
+                profile.getDistrict(),
+                profile.getState()
+        );
     }
 }

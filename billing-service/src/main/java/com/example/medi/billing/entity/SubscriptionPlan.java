@@ -7,55 +7,50 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.example.medi.billing.enums.BillingCycle;
+import com.example.medi.billing.enums.SubscriptionRole;
+
 @Entity
 @Table(name = "subscription_plans")
 @Data
 @NoArgsConstructor
 public class SubscriptionPlan {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name="plan_code", nullable = false, unique = true)
-    private String planCode;
-
-    @Column(name="plan_name", nullable = false)
     private String planName;
 
-    @Column(name="target_role", nullable = false)
-    private String targetRole;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private SubscriptionRole role;
 
-    @Column(name="monthly_price", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private BillingCycle billingCycle;
+    
+    @Column(name = "plan_code", nullable = false, unique = true)
+    private String planCode;
+    
+    @Column(name = "monthly_price")
     private BigDecimal monthlyPrice;
 
-    @Column(name="yearly_price", nullable = false)
-    private BigDecimal yearlyPrice;
+    private BigDecimal price;
 
-    @Column(name="max_products")
-    private Integer maxProducts;
+    private Integer durationDays;
 
-    @Column(name="max_patients")
-    private Integer maxPatients;
+    private Integer maxMedicines;
 
-    @Column(name="max_appointments")
     private Integer maxAppointments;
 
-    @Column(name="max_doctors")
-    private Integer maxDoctors;
+    private Integer maxStaff;
 
-    @Column(name="online_consultation_enabled")
-    private Boolean onlineConsultationEnabled = false;
-
-    @Column(name="reports_enabled")
-    private Boolean reportsEnabled = false;
-
-    @Column(name="priority_support_enabled")
-    private Boolean prioritySupportEnabled = false;
+    private Boolean videoConsultationAllowed = false;
 
     private Boolean active = true;
 
-    @Column(name="created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
 }

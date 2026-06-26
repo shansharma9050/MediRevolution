@@ -37,7 +37,7 @@ public class MedicineService {
     )
     public Medicine addMedicine(Medicine medicine) {
     	Long wholesalerAuthUserId = currentUserUtil.getUserId();
-    	validateWholesalerSubscription(wholesalerAuthUserId);
+		/* validateWholesalerSubscription(wholesalerAuthUserId); */
     	
         String role = CurrentUserUtil.getRole();
 
