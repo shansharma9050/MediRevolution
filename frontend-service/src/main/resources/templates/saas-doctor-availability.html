@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+
+	<title>MediRevolution | Doctor Availability</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link rel="manifest" href="/manifest.json">
+
+	<meta name="theme-color" content="#05285f">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
+
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.saas-availability-page {
+			position: relative;
+		}
+
+		.saas-availability-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 235px;
+			margin-bottom: 28px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg, #05285f 0%, #08739f 48%, #08c7d4 100%);
+			box-shadow: 0 25px 65px rgba(5, 40, 95, .22);
+			animation: availabilityHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.saas-availability-hero::before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation: availabilityHeroFloat 9s ease-in-out infinite;
+		}
+
+		.saas-availability-hero::after {
+			position: absolute;
+			bottom: -180px;
+			left: 28%;
+			width: 360px;
+			height: 360px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(123, 214, 0, .23), transparent 68%);
+		}
+
+		.saas-availability-hero-content,
+		.saas-availability-hero-action {
+			position: relative;
+			z-index: 2;
+		}
+
+		.saas-availability-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.saas-availability-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px;
+		}
+
+		.saas-availability-hero h1 span {
+			color: #b8f267;
+		}
+
+		.saas-availability-hero p {
+			max-width: 760px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .8);
+			line-height: 1.75;
+		}
+
+		.saas-availability-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px;
+		}
+
+		.saas-availability-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.saas-availability-hero-action {
+			display: flex;
+			min-width: 220px;
+			flex-direction: column;
+			align-items: center;
+			padding: 22px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px);
+		}
+
+		.saas-availability-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 68px;
+			height: 68px;
+			margin-bottom: 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 28px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+			animation: availabilityIconFloat 3s ease-in-out infinite;
+		}
+
+		.saas-availability-create-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 46px;
+			margin-top: 13px;
+			padding: 0 18px;
+			border: none;
+			border-radius: 15px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 12px;
+			font-weight: 800;
+			transition: transform .3s ease, box-shadow .3s ease;
+		}
+
+		.saas-availability-create-button:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 14px 30px rgba(0, 0, 0, .18);
+		}
+
+		.saas-availability-summary-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px;
+		}
+
+		.saas-availability-summary-card {
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .96);
+			box-shadow: 0 14px 35px rgba(5, 40, 95, .08);
+			transition: transform .35s ease, box-shadow .35s ease;
+		}
+
+		.saas-availability-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 22px 48px rgba(5, 40, 95, .14);
+		}
+
+		.saas-availability-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+		}
+
+		.saas-availability-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700;
+		}
+
+		.saas-availability-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 29px;
+			font-weight: 900;
+		}
+
+		.saas-availability-card {
+			position: relative;
+			overflow: hidden;
+		}
+
+		.saas-availability-card::after {
+			position: absolute;
+			top: -90px;
+			right: -90px;
+			width: 190px;
+			height: 190px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(8, 199, 212, .1), transparent 68%);
+			pointer-events: none;
+		}
+
+		.saas-availability-section-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5;
+		}
+
+		.saas-availability-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px;
+		}
+
+		.saas-availability-title-icon {
+			display: flex;
+			flex: 0 0 46px;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+			box-shadow: 0 12px 26px rgba(5, 40, 95, .16);
+		}
+
+		.saas-availability-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		.saas-availability-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.saas-availability-control-wrap {
+			position: relative;
+			z-index: 2;
+		}
+
+		.saas-availability-control-wrap>i {
+			position: absolute;
+			top: 39px;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			pointer-events: none;
+		}
+
+		.saas-availability-control-wrap .form-control,
+		.saas-availability-control-wrap .form-select {
+			padding-left: 41px;
+		}
+
+		.saas-slots-preview-box {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			min-height: 88px;
+			align-items: center;
+			padding: 18px;
+			border: 1px dashed #bdd8e4;
+			border-radius: 18px;
+			background: #f8fcfd;
+		}
+
+		.slot-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 9px 12px;
+			border-radius: 999px;
+			font-size: 11px;
+			font-weight: 900;
+		}
+
+		.slot-chip.available {
+			color: #0f5132;
+			background: #d1e7dd;
+		}
+
+		.slot-chip.booked {
+			color: #842029;
+			background: #f8d7da;
+		}
+
+		.saas-availability-table-wrap {
+			position: relative;
+			z-index: 2;
+			overflow: hidden;
+			border: 1px solid #e6eef4;
+			border-radius: 18px;
+		}
+
+		.saas-availability-table-wrap table {
+			margin-bottom: 0;
+		}
+
+		.saas-availability-table-wrap thead th {
+			padding: 15px 16px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 12px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.saas-availability-table-wrap tbody td {
+			padding: 15px 16px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 13px;
+			vertical-align: middle;
+		}
+
+		.saas-availability-table-wrap tbody tr {
+			opacity: 0;
+			transform: translateY(12px);
+			animation: availabilityRowReveal .45s var(--row-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards;
+		}
+
+		.saas-availability-doctor {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+
+		.saas-availability-doctor-icon {
+			display: flex;
+			flex: 0 0 40px;
+			align-items: center;
+			justify-content: center;
+			width: 40px;
+			height: 40px;
+			border-radius: 13px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 16px;
+		}
+
+		.saas-availability-status {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			font-size: 10px;
+			font-weight: 900;
+		}
+
+		.saas-availability-status.active {
+			color: #0f5132;
+			background: #d1e7dd;
+		}
+
+		.saas-availability-status.inactive {
+			color: #41464b;
+			background: #e2e3e5;
+		}
+
+		.saas-availability-state {
+			padding: 54px 20px;
+			text-align: center;
+		}
+
+		.saas-availability-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 72px;
+			height: 72px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 28px;
+			box-shadow: 0 15px 32px rgba(5, 40, 95, .17);
+		}
+
+		.saas-availability-loading {
+			animation: availabilityLoadingPulse 1.3s ease-in-out infinite;
+		}
+
+		.saas-availability-modal .modal-content {
+			overflow: hidden;
+			border: none;
+			border-radius: 26px;
+			box-shadow: 0 28px 75px rgba(5, 40, 95, .22);
+		}
+
+		.saas-availability-modal .modal-header {
+			padding: 21px 24px;
+			color: #ffffff;
+			border-bottom: none;
+			background: linear-gradient(135deg, #05285f, #087aa3);
+		}
+
+		.saas-availability-modal .modal-title {
+			font-weight: 900;
+		}
+
+		.saas-availability-modal .btn-close {
+			filter: invert(1);
+		}
+
+		.saas-availability-modal .modal-body {
+			padding: 25px;
+		}
+
+		.saas-availability-modal .modal-footer {
+			padding: 18px 24px;
+			border-top: 1px solid #e8f1f5;
+			background: #f8fbfc;
+		}
+
+		.saas-availability-form-note {
+			display: flex;
+			align-items: flex-start;
+			gap: 10px;
+			margin-top: 18px;
+			padding: 14px 16px;
+			border: 1px solid #cfe7ef;
+			border-radius: 15px;
+			color: #526f80;
+			background: #f2fbfd;
+			font-size: 12px;
+			line-height: 1.6;
+		}
+
+		@keyframes availabilityHeroReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes availabilityHeroFloat {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(25px) rotate(8deg);
+			}
+		}
+
+		@keyframes availabilityIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-7px);
+			}
+		}
+
+		@keyframes availabilityRowReveal {
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes availabilityLoadingPulse {
+
+			0%,
+			100% {
+				transform: scale(.94);
+				opacity: .72;
+			}
+
+			50% {
+				transform: scale(1.06);
+				opacity: 1;
+			}
+		}
+
+		@media (max-width: 1150px) {
+			.saas-availability-summary-grid {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+		}
+
+		@media (max-width: 992px) {
+			.saas-availability-hero {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.saas-availability-hero-action {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 768px) {
+			.saas-availability-section-header {
+				align-items: stretch;
+				flex-direction: column;
+			}
+		}
+
+		@media (max-width: 576px) {
+			.saas-availability-hero {
+				padding: 26px 21px;
+				border-radius: 24px;
+			}
+
+			.saas-availability-summary-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.saas-availability-modal .modal-body {
+				padding: 20px 16px;
+			}
+
+			.saas-availability-modal .modal-footer {
+				align-items: stretch;
+				flex-direction: column-reverse;
+			}
+
+			.saas-availability-modal .modal-footer .btn {
+				width: 100% !important;
+			}
+		}
+	</style>
+</head>
+
+<body class="dashboard-body saas-dashboard-body">
+
+	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
+	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
+
+	<main class="mr-main saas-main saas-availability-page">
+
+		<section class="saas-availability-hero">
+
+			<div class="saas-availability-hero-content">
+
+				<span class="saas-availability-kicker">
+					<i class="bi bi-clock-history"></i>
+					SaaS Clinical Scheduling
+				</span>
+
+				<h1>
+					Doctor
+					<span>availability</span>
+				</h1>
+
+				<p>
+					Manage doctor availability for
+					<strong id="tenantNameText">your workspace</strong>.
+				</p>
+
+				<div class="saas-availability-meta">
+
+					<span>
+						<i class="bi bi-person-badge-fill"></i>
+						Doctor schedules
+					</span>
+
+					<span>
+						<i class="bi bi-calendar2-week-fill"></i>
+						Date-wise availability
+					</span>
+
+					<span>
+						<i class="bi bi-clock-fill"></i>
+						Automatic slot generation
+					</span>
+
+				</div>
+
+			</div>
+
+			<div class="saas-availability-hero-action">
+
+				<div class="saas-availability-hero-icon">
+					<i class="bi bi-calendar-plus-fill"></i>
+				</div>
+
+				<strong>Create Schedule</strong>
+
+				<button type="button" id="addAvailabilityBtn" class="saas-availability-create-button"
+					onclick="openCreateAvailabilityModal()">
+
+					<i class="bi bi-plus-circle-fill"></i>
+					Add Availability
+				</button>
+
+			</div>
+
+		</section>
+
+		<div id="msg"></div>
+
+		<section class="saas-availability-summary-grid">
+
+			<article class="saas-availability-summary-card">
+
+				<div class="saas-availability-summary-icon">
+					<i class="bi bi-calendar3"></i>
+				</div>
+
+				<small>Total Schedules</small>
+				<strong id="totalAvailabilityCount">0</strong>
+
+			</article>
+
+			<article class="saas-availability-summary-card">
+
+				<div class="saas-availability-summary-icon">
+					<i class="bi bi-person-badge-fill"></i>
+				</div>
+
+				<small>Doctors Loaded</small>
+				<strong id="doctorCount">0</strong>
+
+			</article>
+
+			<article class="saas-availability-summary-card">
+
+				<div class="saas-availability-summary-icon">
+					<i class="bi bi-clock-fill"></i>
+				</div>
+
+				<small>Preview Slots</small>
+				<strong id="slotPreviewCount">0</strong>
+
+			</article>
+
+			<article class="saas-availability-summary-card">
+
+				<div class="saas-availability-summary-icon">
+					<i class="bi bi-check-circle-fill"></i>
+				</div>
+
+				<small>Scheduling Status</small>
+				<strong>Active</strong>
+
+			</article>
+
+		</section>
+
+		<section class="mr-card saas-availability-card mb-4">
+
+			<div class="saas-availability-section-header">
+
+				<div class="saas-availability-title-wrap">
+
+					<div class="saas-availability-title-icon">
+						<i class="bi bi-funnel-fill"></i>
+					</div>
+
+					<div>
+						<small>Schedule Search</small>
+						<h5>Doctor & Date Filters</h5>
+					</div>
+
+				</div>
+
+			</div>
+
+			<div class="row g-3 align-items-end">
+
+				<div class="col-lg-5 saas-availability-control-wrap">
+
+					<label for="filterDoctorAuthUserId" class="form-label">
+						Doctor
+					</label>
+
+					<i class="bi bi-person-badge-fill"></i>
+
+					<select id="filterDoctorAuthUserId" class="form-select">
+
+						<option value="">Select Doctor</option>
+					</select>
+
+				</div>
+
+				<div class="col-lg-3 saas-availability-control-wrap">
+
+					<label for="filterDate" class="form-label">
+						Date
+					</label>
+
+					<i class="bi bi-calendar-event-fill"></i>
+
+					<input type="date" id="filterDate" class="form-control">
+
+				</div>
+
+				<div class="col-lg-2">
+
+					<button type="button" id="searchAvailabilityBtn" class="btn btn-medi w-100"
+						onclick="loadAvailability()">
+
+						<i class="bi bi-search me-1"></i>
+						Search
+					</button>
+
+				</div>
+
+				<div class="col-lg-2">
+
+					<button type="button" id="previewSlotsBtn" class="btn btn-outline-primary w-100"
+						onclick="previewSlots()">
+
+						<i class="bi bi-clock-history me-1"></i>
+						Preview Slots
+					</button>
+
+				</div>
+
+				<div class="col-12 text-end">
+
+					<button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearFilters()">
+
+						<i class="bi bi-arrow-counterclockwise me-1"></i>
+						Reset Filters
+					</button>
+
+				</div>
+
+			</div>
+
+		</section>
+
+		<section class="mr-card saas-availability-card mb-4">
+
+			<div class="saas-availability-section-header">
+
+				<div class="saas-availability-title-wrap">
+
+					<div class="saas-availability-title-icon">
+						<i class="bi bi-clock-fill"></i>
+					</div>
+
+					<div>
+						<small>Generated Schedule</small>
+						<h5>Slot Preview</h5>
+					</div>
+
+				</div>
+
+			</div>
+
+			<div id="slotsPreviewBox" class="saas-slots-preview-box">
+
+				<p class="text-muted mb-0">
+					Select doctor and date, then click Preview Slots.
+				</p>
+
+			</div>
+
+		</section>
+
+		<section class="mr-card saas-availability-card">
+
+			<div class="saas-availability-section-header">
+
+				<div class="saas-availability-title-wrap">
+
+					<div class="saas-availability-title-icon">
+						<i class="bi bi-calendar-week-fill"></i>
+					</div>
+
+					<div>
+						<small>Workspace Availability</small>
+						<h5>Doctor Schedule Register</h5>
+					</div>
+
+				</div>
+
+			</div>
+
+			<div class="table-responsive saas-availability-table-wrap">
+
+				<table class="table table-hover align-middle">
+
+					<thead>
+						<tr>
+							<th>Doctor</th>
+							<th>Date</th>
+							<th>Start</th>
+							<th>End</th>
+							<th>Duration</th>
+							<th>Status</th>
+							<th>Action</th>
+						</tr>
+					</thead>
+
+					<tbody id="availabilityTableBody">
+
+						<tr>
+							<td colspan="7">
+
+								<div class="saas-availability-state">
+
+									<div class="saas-availability-state-icon saas-availability-loading">
+										<i class="bi bi-calendar2-week-fill"></i>
+									</div>
+
+									<h5 class="fw-bold text-primary">
+										Loading availability
+									</h5>
+
+									<p class="text-muted mb-0">
+										Please wait while we prepare doctor schedules.
+									</p>
+
+								</div>
+
+							</td>
+						</tr>
+
+					</tbody>
+
+				</table>
+
+			</div>
+
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
+
+	</main>
+
+	<div class="modal fade saas-availability-modal" id="availabilityModal" tabindex="-1"
+		aria-labelledby="availabilityModalTitle" aria-hidden="true">
+
+		<div class="modal-dialog modal-lg modal-dialog-centered">
+
+			<div class="modal-content">
+
+				<div class="modal-header">
+
+					<div>
+
+						<div class="small text-white-50 fw-bold text-uppercase mb-1">
+							Doctor Schedule Form
+						</div>
+
+						<h5 class="modal-title" id="availabilityModalTitle">
+							Add Doctor Availability
+						</h5>
+
+					</div>
+
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+				</div>
+
+				<div class="modal-body">
+
+					<input type="hidden" id="availabilityId">
+
+					<div class="row g-3">
+
+						<div class="col-lg-6 saas-availability-control-wrap">
+
+							<label for="doctorAuthUserId" class="form-label">
+								Doctor *
+							</label>
+
+							<i class="bi bi-person-badge-fill"></i>
+
+							<select id="doctorAuthUserId" class="form-select">
+
+								<option value="">Select Doctor</option>
+							</select>
+
+						</div>
+
+						<div class="col-lg-6 saas-availability-control-wrap">
+
+							<label for="availableDate" class="form-label">
+								Available Date *
+							</label>
+
+							<i class="bi bi-calendar-event-fill"></i>
+
+							<input type="date" id="availableDate" class="form-control">
+
+						</div>
+
+						<div class="col-lg-4 saas-availability-control-wrap">
+
+							<label for="startTime" class="form-label">
+								Start Time *
+							</label>
+
+							<i class="bi bi-clock-fill"></i>
+
+							<input type="time" id="startTime" class="form-control">
+
+						</div>
+
+						<div class="col-lg-4 saas-availability-control-wrap">
+
+							<label for="endTime" class="form-label">
+								End Time *
+							</label>
+
+							<i class="bi bi-clock-history"></i>
+
+							<input type="time" id="endTime" class="form-control">
+
+						</div>
+
+						<div class="col-lg-4 saas-availability-control-wrap">
+
+							<label for="slotDurationMinutes" class="form-label">
+								Slot Duration *
+							</label>
+
+							<i class="bi bi-stopwatch-fill"></i>
+
+							<select id="slotDurationMinutes" class="form-select">
+
+								<option value="5">5 Minutes</option>
+								<option value="10">10 Minutes</option>
+								<option value="15" selected>15 Minutes</option>
+								<option value="20">20 Minutes</option>
+								<option value="30">30 Minutes</option>
+								<option value="45">45 Minutes</option>
+								<option value="60">60 Minutes</option>
+							</select>
+
+						</div>
+
+					</div>
+
+					<div class="saas-availability-form-note">
+
+						<i class="bi bi-info-circle-fill text-primary"></i>
+
+						<div>
+							Appointment slots are generated automatically from
+							start time, end time and selected slot duration.
+						</div>
+
+					</div>
+
+				</div>
+
+				<div class="modal-footer">
+
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+
+						Close
+					</button>
+
+					<button type="button" id="saveAvailabilityBtn" class="btn btn-medi" style="width:auto;"
+						onclick="saveAvailability()">
+
+						<i class="bi bi-check2-circle me-1"></i>
+						Save Availability
+					</button>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+	<div class="module-exit-overlay" id="moduleExitOverlay">
+
+		<div class="module-exit-content">
+
+			<div class="module-exit-icon">
+				<i class="bi bi-arrow-left-right"></i>
+			</div>
+
+			<h2>Switching Experience</h2>
+
+			<p>
+				Returning to MediRevolution module selection...
+			</p>
+
+			<div class="module-exit-progress">
+				<span></span>
+			</div>
+
+		</div>
+
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script th:src="@{/js/common-dashboard.js?v=20260710_1}"></script>
+	<script th:src="@{/js/module-switch.js}"></script>
+	<script th:src="@{/js/saas-auth-guard.js}"></script>
+	<script th:src="@{/js/saas-doctor-availability.js?v=20260713_1}"></script>
+	<script th:src="@{/js/pwa.js}"></script>
+
+</body>
+
+</html>

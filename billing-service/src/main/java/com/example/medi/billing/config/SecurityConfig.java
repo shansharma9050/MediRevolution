@@ -32,6 +32,8 @@ public class SecurityConfig {
                          .requestMatchers("/billing/subscriptions/check/**").permitAll()
                          .requestMatchers("/billing/subscriptions/payment/success").permitAll()
                          .requestMatchers("/billing/subscriptions/**").authenticated()
+                         .requestMatchers("/billing/subscriptions/payments/verify")
+                         .hasAnyRole("WHOLESALER", "DOCTOR", "HOSPITAL")
                         .requestMatchers("/billing/**").authenticated()
                         .anyRequest().authenticated()
                 )

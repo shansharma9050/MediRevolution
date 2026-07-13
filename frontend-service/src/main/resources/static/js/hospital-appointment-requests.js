@@ -15,6 +15,8 @@ function requireHospitalRole() {
 async function loadHospitalAppointments() {
 	const token = localStorage.getItem("token");
 
+	showAppointmentLoadingState();
+
 	try {
 		const response = await fetch(`${API_BASE}/hospital/appointments/hospital?t=${Date.now()}`, {
 			method: "GET",
@@ -34,6 +36,8 @@ async function loadHospitalAppointments() {
 
 		if (!response.ok) {
 			showMsg(result.message || "Unable to load appointments");
+			renderAppointments([]);
+			updateAppointmentSummary([]);
 			return;
 		}
 
@@ -41,11 +45,14 @@ async function loadHospitalAppointments() {
 			? result.map(normalizeAppointment)
 			: [];
 
+		updateAppointmentSummary(hospitalAppointmentsOnline);
 		renderAppointments(hospitalAppointmentsOnline);
 
 	} catch (e) {
 		console.error("Hospital appointments load error:", e);
 		showMsg("Hospital service not reachable.");
+		renderAppointments([]);
+		updateAppointmentSummary([]);
 	}
 }
 
@@ -70,70 +77,198 @@ function renderAppointments(list) {
 	}
 
 	if (!list || !list.length) {
-		container.innerHTML = `<div class="text-center text-muted py-5">No appointments found</div>`;
+		container.innerHTML = `
+			<div class="appointment-empty-state">
+				<div class="appointment-empty-icon">
+					<i class="bi bi-calendar-x"></i>
+				</div>
+				<h5 class="fw-bold text-primary">No appointments found</h5>
+				<p class="text-muted mb-0">
+					No hospital appointments match the selected status.
+				</p>
+			</div>
+		`;
 		return;
 	}
 
 	let html = "";
 
-	list.forEach(a => {
+	list.forEach((a, index) => {
 		html += `
-            <div class="order-card mb-3">
-                <div class="d-flex justify-content-between flex-wrap gap-3">
+			<article class="order-card hospital-appointment-card mb-3"
+					 style="--card-delay:${Math.min(index * 65, 390)}ms">
 
-                    <div>
-                        <h5 class="fw-bold text-primary">
-                            ${safe(a.patientName)}
-                        </h5>
+				<div class="d-flex justify-content-between flex-wrap gap-4">
 
-                        <div class="text-muted small">
-                            Mobile: ${safe(a.patientMobile)}
-                        </div>
+					<div class="flex-grow-1">
 
-                        <div class="text-muted small">
-                            Doctor: ${safe(a.doctorName)} | ${safe(a.department)}
-                        </div>
+						<div class="appointment-primary-info">
 
-                        <div class="text-muted small">
-                            Date: ${formatDate(a.appointmentDate)} | Time: ${safe(a.appointmentTime)}
-                        </div>
+							<div class="appointment-patient-avatar">
+								<i class="bi bi-person-fill"></i>
+							</div>
 
-                        <div class="text-muted small mt-1">
-                            Consultation Type: ${consultationBadge(a.consultationType)}
-                        </div>
+							<div>
+								<h5 class="fw-bold text-primary mb-1">
+									${safe(a.patientName)}
+								</h5>
 
-                        ${a.paymentStatus ? `
-                            <div class="text-muted small mt-1">
-                                Payment: ${paymentBadge(a.paymentStatus)}
-                            </div>
-                        ` : ""}
+								<div class="text-muted small">
+									Patient appointment #${safe(a.id)}
+								</div>
+							</div>
 
-                        ${a.consultationFee !== null && a.consultationFee !== undefined ? `
-                            <div class="text-muted small mt-1">
-                                Fee: ₹${safe(a.consultationFee)}
-                            </div>
-                        ` : ""}
+						</div>
 
-                        <div class="mt-2">
-                            <strong>Symptoms:</strong> ${safe(a.symptoms)}
-                        </div>
+						<div class="appointment-detail-grid">
 
-                        ${meetingInfo(a)}
-                    </div>
+							<div class="appointment-detail-item">
+								<i class="bi bi-telephone-fill"></i>
+								<span>Mobile: ${safe(a.patientMobile)}</span>
+							</div>
 
-                    <div class="text-end">
-                        ${statusBadge(a.status)}
-                        <div class="mt-2">
-                            ${actionButtons(a)}
-                        </div>
-                    </div>
+							<div class="appointment-detail-item">
+								<i class="bi bi-person-badge-fill"></i>
+								<span>Doctor: ${safe(a.doctorName)}</span>
+							</div>
 
-                </div>
-            </div>
-        `;
+							<div class="appointment-detail-item">
+								<i class="bi bi-building"></i>
+								<span>Department: ${safe(a.department)}</span>
+							</div>
+
+							<div class="appointment-detail-item">
+								<i class="bi bi-calendar-event-fill"></i>
+								<span>${formatDate(a.appointmentDate)} at ${safe(a.appointmentTime)}</span>
+							</div>
+
+							<div class="appointment-detail-item">
+								<i class="bi bi-camera-video-fill"></i>
+								<span>Consultation: ${consultationBadge(a.consultationType)}</span>
+							</div>
+
+							${a.paymentStatus ? `
+								<div class="appointment-detail-item">
+									<i class="bi bi-credit-card-fill"></i>
+									<span>Payment: ${paymentBadge(a.paymentStatus)}</span>
+								</div>
+							` : ""}
+
+							${a.consultationFee !== null && a.consultationFee !== undefined ? `
+								<div class="appointment-detail-item">
+									<i class="bi bi-currency-rupee"></i>
+									<span>Fee: ₹${safe(a.consultationFee)}</span>
+								</div>
+							` : ""}
+
+						</div>
+
+						<div class="appointment-symptoms-box">
+							<strong>Symptoms:</strong>
+							${safe(a.symptoms)}
+						</div>
+
+						${meetingInfo(a)}
+
+					</div>
+
+					<div class="appointment-action-column">
+
+						${statusBadge(a.status)}
+
+						<div class="mt-3">
+							${actionButtons(a)}
+						</div>
+
+					</div>
+
+				</div>
+
+			</article>
+		`;
 	});
 
 	container.innerHTML = html;
+}
+
+function showAppointmentLoadingState() {
+	const container = document.getElementById("appointmentList");
+
+	if (!container) {
+		return;
+	}
+
+	container.innerHTML = `
+		<div class="appointment-loading-state">
+			<div class="appointment-loading-orb">
+				<i class="bi bi-calendar2-heart-fill"></i>
+			</div>
+			<h5 class="fw-bold text-primary">Loading appointments</h5>
+			<p class="text-muted mb-0">
+				Please wait while we prepare hospital appointment requests.
+			</p>
+		</div>
+	`;
+}
+
+function updateAppointmentSummary(list) {
+	const appointments = Array.isArray(list) ? list : [];
+
+	setSummaryValue("totalAppointmentCount", appointments.length);
+
+	setSummaryValue(
+		"pendingAppointmentCount",
+		appointments.filter(a =>
+			a.status === "PENDING" ||
+			a.status === "REQUESTED" ||
+			a.status === "PAYMENT_PENDING"
+		).length
+	);
+
+	setSummaryValue(
+		"onlineAppointmentCount",
+		appointments.filter(a => a.consultationType === "ONLINE").length
+	);
+
+	setSummaryValue(
+		"completedAppointmentCount",
+		appointments.filter(a => a.status === "COMPLETED").length
+	);
+}
+
+function setSummaryValue(id, value) {
+	const element = document.getElementById(id);
+
+	if (!element) {
+		return;
+	}
+
+	const target = Number(value) || 0;
+	const start = Number(element.textContent) || 0;
+	const difference = target - start;
+	const duration = 500;
+	const startTime = performance.now();
+
+	if (
+		window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+		difference === 0
+	) {
+		element.textContent = target;
+		return;
+	}
+
+	function update(currentTime) {
+		const progress = Math.min((currentTime - startTime) / duration, 1);
+		const eased = 1 - Math.pow(1 - progress, 3);
+
+		element.textContent = Math.round(start + difference * eased);
+
+		if (progress < 1) {
+			requestAnimationFrame(update);
+		}
+	}
+
+	requestAnimationFrame(update);
 }
 
 function meetingInfo(a) {
@@ -143,58 +278,65 @@ function meetingInfo(a) {
 
 	if (a.status === "PAYMENT_PENDING") {
 		return `
-            <div class="mt-3 text-warning small">
-                Waiting for patient payment. Video link will be available after payment success.
-            </div>
-        `;
+			<div class="appointment-status-message text-warning">
+				<i class="bi bi-hourglass-split me-1"></i>
+				Waiting for patient payment. Video link will be available after payment success.
+			</div>
+		`;
 	}
 
 	if (a.status === "PAYMENT_FAILED") {
 		return `
-            <div class="mt-3 text-danger small">
-                Payment failed. Meeting link is not available.
-            </div>
-        `;
+			<div class="appointment-status-message text-danger">
+				<i class="bi bi-exclamation-triangle-fill me-1"></i>
+				Payment failed. Meeting link is not available.
+			</div>
+		`;
 	}
 
 	if (a.status === "CONFIRMED" && isValidMeetingUrl(a.meetingUrl)) {
 		return `
-            <div class="mt-3 text-success small">
-                <strong>Meeting:</strong> Link generated. Click Join Meeting to start consultation.
-            </div>
-        `;
+			<div class="appointment-status-message text-success">
+				<i class="bi bi-camera-video-fill me-1"></i>
+				<strong>Meeting:</strong> Link generated. Click Join Meeting to start consultation.
+			</div>
+		`;
 	}
 
 	if (a.status === "CONFIRMED" && !isValidMeetingUrl(a.meetingUrl)) {
 		return `
-            <div class="mt-3 text-muted small">
-                Meeting link is not generated yet. Please refresh after payment verification.
-            </div>
-        `;
+			<div class="appointment-status-message text-muted">
+				<i class="bi bi-link-45deg me-1"></i>
+				Meeting link is not generated yet. Please refresh after payment verification.
+			</div>
+		`;
 	}
 
 	if (a.status === "IN_CONSULTATION") {
 		return `
-            <div class="mt-3 text-primary small">
-                Consultation is in progress.
-            </div>
-        `;
+			<div class="appointment-status-message text-primary">
+				<i class="bi bi-broadcast me-1"></i>
+				Consultation is in progress.
+			</div>
+		`;
 	}
 
 	if (a.status === "COMPLETED") {
 		return `
-            <div class="mt-3 text-success small">
-                Consultation completed.
-            </div>
-        `;
+			<div class="appointment-status-message text-success">
+				<i class="bi bi-check2-circle me-1"></i>
+				Consultation completed.
+			</div>
+		`;
 	}
 
 	if (a.status === "CANCELLED") {
 		return `
-            <div class="mt-3 text-muted small">
-                Appointment cancelled.
-            </div>
-        `;
+			<div class="appointment-status-message text-muted">
+				<i class="bi bi-x-circle me-1"></i>
+				Appointment cancelled.
+			</div>
+		`;
 	}
 
 	return "";
@@ -204,32 +346,36 @@ function actionButtons(a) {
 
 	if (a.status === "PAYMENT_PENDING") {
 		return `
-            <div class="text-warning small">
-                Payment pending
-            </div>
-        `;
+			<div class="text-warning small fw-bold">
+				<i class="bi bi-hourglass-split me-1"></i>
+				Payment pending
+			</div>
+		`;
 	}
 
 	if (a.status === "PAYMENT_FAILED") {
 		return `
-            <div class="text-danger small">
-                Payment failed
-            </div>
-        `;
+			<div class="text-danger small fw-bold">
+				<i class="bi bi-exclamation-circle me-1"></i>
+				Payment failed
+			</div>
+		`;
 	}
 
 	if (a.status === "PENDING" || a.status === "REQUESTED") {
 		return `
-            <button class="btn btn-sm btn-success me-1"
-                    onclick="updateStatus(${a.id}, 'CONFIRMED')">
-                Confirm
-            </button>
+			<button class="btn btn-sm btn-success me-1"
+					onclick="updateStatus(${a.id}, 'CONFIRMED')">
+				<i class="bi bi-check2-circle me-1"></i>
+				Confirm
+			</button>
 
-            <button class="btn btn-sm btn-danger"
-                    onclick="updateStatus(${a.id}, 'REJECTED')">
-                Reject
-            </button>
-        `;
+			<button class="btn btn-sm btn-danger"
+					onclick="updateStatus(${a.id}, 'REJECTED')">
+				<i class="bi bi-x-circle me-1"></i>
+				Reject
+			</button>
+		`;
 	}
 
 	if (a.status === "CONFIRMED") {
@@ -238,63 +384,67 @@ function actionButtons(a) {
 
 			if (isValidMeetingUrl(a.meetingUrl)) {
 				return `
-                    <button class="btn btn-sm btn-success me-1"
-                            onclick="startConsultation(${a.id}, '${escapeJs(a.meetingUrl)}')">
-                        Join Meeting
-                    </button>
+					<button class="btn btn-sm btn-success me-1"
+							onclick="startConsultation(${a.id}, '${escapeJs(a.meetingUrl)}')">
+						<i class="bi bi-camera-video-fill me-1"></i>
+						Join Meeting
+					</button>
 
-                    <button class="btn btn-sm btn-outline-danger"
-                            onclick="updateStatus(${a.id}, 'CANCELLED')">
-                        Cancel
-                    </button>
-                `;
+					<button class="btn btn-sm btn-outline-danger"
+							onclick="updateStatus(${a.id}, 'CANCELLED')">
+						Cancel
+					</button>
+				`;
 			}
 
 			return `
-                <div class="text-muted small">
-                    Waiting for valid meeting link
-                </div>
-            `;
+				<div class="text-muted small">
+					<i class="bi bi-link-45deg me-1"></i>
+					Waiting for valid meeting link
+				</div>
+			`;
 		}
 
 		return `
-            <button class="btn btn-sm btn-medi me-1"
-                    style="width:auto;"
-                    onclick="updateStatus(${a.id}, 'COMPLETED')">
-                Complete
-            </button>
+			<button class="btn btn-sm btn-medi me-1"
+					style="width:auto;"
+					onclick="updateStatus(${a.id}, 'COMPLETED')">
+				<i class="bi bi-check2-circle me-1"></i>
+				Complete
+			</button>
 
-            <button class="btn btn-sm btn-outline-danger"
-                    onclick="updateStatus(${a.id}, 'CANCELLED')">
-                Cancel
-            </button>
-        `;
+			<button class="btn btn-sm btn-outline-danger"
+					onclick="updateStatus(${a.id}, 'CANCELLED')">
+				Cancel
+			</button>
+		`;
 	}
 
 	if (a.status === "IN_CONSULTATION") {
 
 		if (a.consultationType === "ONLINE" && isValidMeetingUrl(a.meetingUrl)) {
 			return `
-                <button class="btn btn-sm btn-primary me-1"
-                        onclick="openMeeting('${escapeJs(a.meetingUrl)}')">
-                    Rejoin Meeting
-                </button>
+				<button class="btn btn-sm btn-primary me-1"
+						onclick="openMeeting('${escapeJs(a.meetingUrl)}')">
+					<i class="bi bi-camera-video-fill me-1"></i>
+					Rejoin Meeting
+				</button>
 
-                <button class="btn btn-sm btn-medi"
-                        style="width:auto;"
-                        onclick="updateStatus(${a.id}, 'COMPLETED')">
-                    Mark Completed
-                </button>
-            `;
+				<button class="btn btn-sm btn-medi"
+						style="width:auto;"
+						onclick="updateStatus(${a.id}, 'COMPLETED')">
+					Mark Completed
+				</button>
+			`;
 		}
 
 		return `
-            <button class="btn btn-sm btn-medi"
-                    style="width:auto;"
-                    onclick="updateStatus(${a.id}, 'COMPLETED')">
-                Mark Completed
-            </button>
-        `;
+			<button class="btn btn-sm btn-medi"
+					style="width:auto;"
+					onclick="updateStatus(${a.id}, 'COMPLETED')">
+				Mark Completed
+			</button>
+		`;
 	}
 
 	return "";
@@ -549,7 +699,11 @@ function showMsg(message, type = "danger") {
 }
 
 function formatDate(value) {
-	return value ? new Date(value).toLocaleDateString() : "-";
+	return value ? new Date(value).toLocaleDateString("en-IN", {
+		day: "2-digit",
+		month: "short",
+		year: "numeric"
+	}) : "-";
 }
 
 function safe(value) {

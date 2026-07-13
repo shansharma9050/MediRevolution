@@ -1,0 +1,1369 @@
+:root {
+    --shell-primary: #05285f;
+    --shell-primary-light: #0a4b99;
+    --shell-cyan: #08b8cf;
+    --shell-green: #75c900;
+    --shell-white: #ffffff;
+    --shell-muted: #6b8196;
+    --shell-dark: #10253a;
+}
+
+body.module-page-loading {
+    overflow: hidden;
+}
+
+.platform-dashboard-body {
+    background:
+        radial-gradient(
+            circle at 10% 10%,
+            rgba(8, 184, 207, 0.1),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 90% 80%,
+            rgba(5, 40, 95, 0.08),
+            transparent 35%
+        ),
+        #f5f9fd;
+}
+
+.saas-dashboard-body {
+    background:
+        radial-gradient(
+            circle at 15% 15%,
+            rgba(117, 201, 0, 0.1),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 88% 82%,
+            rgba(8, 184, 207, 0.09),
+            transparent 35%
+        ),
+        #f4faf8;
+}
+
+/* Navbar */
+
+.platform-navbar {
+    border-bottom:
+        1px solid rgba(8, 184, 207, 0.18);
+}
+
+.saas-navbar {
+    border-bottom:
+        1px solid rgba(117, 201, 0, 0.2);
+}
+
+.module-navbar-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 25px;
+    padding: 0 10px;
+    margin-left: 5px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.platform-badge {
+    color: #047c91;
+    background: rgba(8, 184, 207, 0.13);
+}
+
+.saas-badge {
+    color: #518d00;
+    background: rgba(117, 201, 0, 0.14);
+}
+
+.module-switch-navbar-button,
+.navbar-icon-button,
+.navbar-logout-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 43px;
+    padding: 0 15px;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        color 0.25s ease,
+        background 0.25s ease;
+}
+
+.module-switch-navbar-button {
+    border: 1px solid rgba(5, 40, 95, 0.12);
+    color: var(--shell-primary);
+    background: rgba(255, 255, 255, 0.85);
+}
+
+.platform-module-switch:hover {
+    color: var(--shell-white);
+    background:
+        linear-gradient(
+            135deg,
+            var(--shell-primary),
+            var(--shell-cyan)
+        );
+    box-shadow:
+        0 12px 28px rgba(5, 40, 95, 0.2);
+    transform: translateY(-2px);
+}
+
+.saas-module-switch:hover {
+    color: var(--shell-white);
+    background:
+        linear-gradient(
+            135deg,
+            var(--shell-primary),
+            #609f0b
+        );
+    box-shadow:
+        0 12px 28px rgba(72, 130, 7, 0.2);
+    transform: translateY(-2px);
+}
+
+.module-switch-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.navbar-icon-button {
+    width: 43px;
+    padding: 0;
+    border: 1px solid rgba(5, 40, 95, 0.1);
+    color: var(--shell-primary);
+    background: rgba(255, 255, 255, 0.86);
+    text-decoration: none;
+}
+
+.navbar-icon-button:hover {
+    color: var(--shell-white);
+    background: var(--shell-primary);
+    transform: translateY(-2px);
+}
+
+.navbar-logout-button {
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    color: var(--shell-white);
+    background: rgba(255, 255, 255, 0.11);
+}
+
+.navbar-logout-button:hover {
+    color: var(--shell-primary);
+    background: var(--shell-white);
+    transform: translateY(-2px);
+}
+
+.saas-workspace-pill {
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 5px 14px;
+    border: 1px solid rgba(117, 201, 0, 0.15);
+    border-radius: 15px;
+    color: var(--shell-primary);
+    background: rgba(255, 255, 255, 0.84);
+}
+
+.saas-workspace-pill div {
+    display: flex;
+    flex-direction: column;
+}
+
+.saas-workspace-pill small {
+    color: var(--shell-muted);
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.saas-workspace-pill strong {
+    max-width: 160px;
+    overflow: hidden;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.workspace-status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--shell-green);
+    box-shadow:
+        0 0 0 0 rgba(117, 201, 0, 0.5);
+    animation:
+        workspacePulse
+        1.8s
+        infinite;
+}
+
+/* Sidebar */
+
+.sidebar-module-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 5px 10px 22px;
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.sidebar-module-icon {
+    display: flex;
+    flex: 0 0 46px;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 15px;
+    color: var(--shell-white);
+    font-size: 20px;
+}
+
+.platform-sidebar-icon {
+    background:
+        linear-gradient(
+            135deg,
+            #087fbb,
+            var(--shell-cyan)
+        );
+}
+
+.saas-sidebar-icon {
+    background:
+        linear-gradient(
+            135deg,
+            #4e9300,
+            var(--shell-green)
+        );
+}
+
+.sidebar-module-header div:last-child {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+}
+
+.sidebar-module-header strong {
+    color: var(--shell-white);
+    font-size: 13px;
+}
+
+.sidebar-module-header small {
+    overflow: hidden;
+    color: rgba(255, 255, 255, 0.57);
+    font-size: 9px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar-section-title {
+    margin: 22px 17px 8px;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+}
+
+.mr-sidebar a {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+.mr-sidebar a i {
+    width: 20px;
+    font-size: 15px;
+    text-align: center;
+}
+
+.platform-sidebar a.active {
+    border-left-color: var(--shell-cyan);
+    background:
+        linear-gradient(
+            90deg,
+            rgba(8, 184, 207, 0.2),
+            transparent
+        );
+}
+
+.saas-sidebar a.active {
+    border-left-color: var(--shell-green);
+    background:
+        linear-gradient(
+            90deg,
+            rgba(117, 201, 0, 0.19),
+            transparent
+        );
+}
+
+.sidebar-switch-button,
+.sidebar-workspace-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    width: calc(100% - 22px);
+    min-height: 46px;
+    margin: 16px 11px 0;
+    border-radius: 14px;
+    color: var(--shell-white);
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.sidebar-switch-button {
+    border: 1px solid rgba(8, 184, 207, 0.33);
+    background:
+        linear-gradient(
+            135deg,
+            rgba(8, 184, 207, 0.27),
+            rgba(5, 40, 95, 0.25)
+        );
+}
+
+.sidebar-workspace-button {
+    border: 1px solid rgba(117, 201, 0, 0.34);
+    background:
+        linear-gradient(
+            135deg,
+            rgba(117, 201, 0, 0.25),
+            rgba(5, 40, 95, 0.24)
+        );
+}
+
+.sidebar-switch-button:hover,
+.sidebar-workspace-button:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 12px 26px rgba(0, 0, 0, 0.2);
+}
+
+/* Dashboard banner */
+
+.dashboard-welcome-banner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 220px;
+    margin-bottom: 30px;
+    padding: clamp(28px, 4vw, 50px);
+    overflow: hidden;
+    border-radius: 30px;
+    color: var(--shell-white);
+    box-shadow:
+        0 25px 65px rgba(5, 40, 95, 0.2);
+    animation:
+        dashboardBannerReveal
+        0.8s
+        ease
+        forwards;
+}
+
+.dashboard-welcome-banner::before,
+.dashboard-welcome-banner::after {
+    position: absolute;
+    content: "";
+    border-radius: 50%;
+}
+
+.dashboard-welcome-banner::before {
+    top: -120px;
+    right: -70px;
+    width: 300px;
+    height: 300px;
+    border: 55px solid rgba(255, 255, 255, 0.07);
+    animation:
+        bannerCircleFloat
+        8s
+        ease-in-out
+        infinite;
+}
+
+.dashboard-welcome-banner::after {
+    bottom: -130px;
+    left: 38%;
+    width: 260px;
+    height: 260px;
+    background:
+        radial-gradient(
+            circle,
+            rgba(255, 255, 255, 0.16),
+            transparent 68%
+        );
+}
+
+.platform-welcome-banner {
+    background:
+        linear-gradient(
+            135deg,
+            #05285f,
+            #056f99,
+            #08a9bd
+        );
+}
+
+.saas-welcome-banner {
+    background:
+        linear-gradient(
+            135deg,
+            #05285f,
+            #166c68,
+            #5b9d0a
+        );
+}
+
+.welcome-banner-content {
+    position: relative;
+    z-index: 2;
+    max-width: 760px;
+}
+
+.welcome-banner-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+    padding: 8px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.17);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.welcome-banner-content h1 {
+    margin: 0;
+    font-size: clamp(31px, 4vw, 53px);
+    font-weight: 800;
+    letter-spacing: -1.8px;
+}
+
+.welcome-banner-content h1 span {
+    color: #8feaff;
+}
+
+.saas-welcome-banner
+.welcome-banner-content h1 span {
+    color: #b9f36f;
+}
+
+.welcome-banner-content p {
+    max-width: 620px;
+    margin: 15px 0 0;
+    color: rgba(255, 255, 255, 0.74);
+    font-size: 14px;
+    line-height: 1.8;
+}
+
+.welcome-role-card {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    min-width: 150px;
+    flex-direction: column;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.11);
+    backdrop-filter: blur(15px);
+}
+
+.welcome-role-card small {
+    color: rgba(255, 255, 255, 0.58);
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.welcome-role-card strong {
+    margin-top: 5px;
+    font-size: 17px;
+}
+
+.welcome-role-card i {
+    margin-top: 12px;
+    color: #9eefff;
+    font-size: 24px;
+}
+
+.workspace-switch-large-button {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-height: 54px;
+    padding: 0 20px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 17px;
+    color: var(--shell-primary);
+    background: var(--shell-white);
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.workspace-switch-large-button:hover {
+    transform: translateY(-4px);
+    box-shadow:
+        0 16px 35px rgba(0, 0, 0, 0.18);
+}
+
+/* Cards */
+
+.animated-stat-card {
+    position: relative;
+    overflow: hidden;
+    transition:
+        transform 0.35s ease,
+        box-shadow 0.35s ease;
+    animation:
+        statCardReveal
+        0.7s
+        ease
+        both;
+}
+
+.animated-stat-card:hover {
+    transform: translateY(-8px);
+    box-shadow:
+        0 25px 50px rgba(5, 40, 95, 0.15);
+}
+
+.stat-card-glow {
+    position: absolute;
+    top: -80px;
+    right: -80px;
+    width: 170px;
+    height: 170px;
+    border-radius: 50%;
+    background:
+        radial-gradient(
+            circle,
+            rgba(8, 184, 207, 0.18),
+            transparent 65%
+        );
+    transition:
+        transform 0.5s ease;
+}
+
+.animated-stat-card:hover
+.stat-card-glow {
+    transform: scale(1.4);
+}
+
+.section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.section-heading h5 {
+    margin: 3px 0 0;
+    color: var(--shell-primary);
+    font-weight: 800;
+}
+
+.section-heading > i {
+    color: var(--shell-cyan);
+    font-size: 27px;
+}
+
+.section-eyebrow {
+    color: var(--shell-muted);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+.workflow-card {
+    position: relative;
+    min-height: 190px;
+    padding: 23px;
+    overflow: hidden;
+    border: 1px solid rgba(5, 40, 95, 0.07);
+    border-radius: 21px;
+    background:
+        linear-gradient(
+            145deg,
+            #f8fbff,
+            #eff8fb
+        );
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.workflow-card:hover {
+    transform: translateY(-7px);
+    box-shadow:
+        0 18px 38px rgba(5, 40, 95, 0.12);
+}
+
+.workflow-number {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    color: rgba(5, 40, 95, 0.07);
+    font-size: 42px;
+    font-weight: 800;
+}
+
+.workflow-card > i {
+    color: var(--shell-cyan);
+    font-size: 27px;
+}
+
+.workflow-card h6 {
+    margin-top: 18px;
+    color: var(--shell-primary);
+    font-weight: 800;
+}
+
+.workflow-card p {
+    margin: 7px 0 0;
+    color: var(--shell-muted);
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.quick-action-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.dashboard-quick-action {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 54px;
+    padding: 7px 10px;
+    border: 1px solid rgba(5, 40, 95, 0.07);
+    border-radius: 16px;
+    color: var(--shell-primary);
+    background: #f7fbfe;
+    font-size: 12px;
+    font-weight: 800;
+    text-decoration: none;
+    transition:
+        transform 0.3s ease,
+        background 0.3s ease,
+        color 0.3s ease;
+}
+
+.dashboard-quick-action:hover {
+    color: var(--shell-white);
+    background:
+        linear-gradient(
+            135deg,
+            var(--shell-primary),
+            var(--shell-cyan)
+        );
+    transform: translateX(5px);
+}
+
+.quick-action-icon {
+    display: flex;
+    flex: 0 0 39px;
+    align-items: center;
+    justify-content: center;
+    width: 39px;
+    height: 39px;
+    border-radius: 12px;
+    color: var(--shell-cyan);
+    background: rgba(8, 184, 207, 0.1);
+}
+
+.dashboard-quick-action:hover
+.quick-action-icon {
+    color: var(--shell-primary);
+    background: var(--shell-white);
+}
+
+.dashboard-quick-action
+> i:last-child {
+    margin-left: auto;
+}
+
+/* SaaS module cards */
+
+.saas-module-section {
+    margin-top: 15px;
+}
+
+.saas-module-card {
+    position: relative;
+    display: flex;
+    min-height: 280px;
+    height: 100%;
+    flex-direction: column;
+    padding: 25px;
+    overflow: hidden;
+    border: 1px solid rgba(5, 40, 95, 0.07);
+    border-radius: 25px;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow:
+        0 16px 36px rgba(5, 40, 95, 0.08);
+    opacity: 0;
+    transform: translateY(25px);
+    animation:
+        saasModuleReveal
+        0.65s
+        var(--module-delay)
+        ease
+        forwards;
+    transition:
+        transform 0.4s ease,
+        box-shadow 0.4s ease;
+}
+
+.saas-module-card:hover {
+    transform: translateY(-10px);
+    box-shadow:
+        0 27px 58px rgba(5, 40, 95, 0.16);
+}
+
+.saas-module-card-glow {
+    position: absolute;
+    top: -100px;
+    right: -100px;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background:
+        radial-gradient(
+            circle,
+            rgba(117, 201, 0, 0.19),
+            transparent 65%
+        );
+    transition:
+        transform 0.6s ease;
+}
+
+.saas-module-card:hover
+.saas-module-card-glow {
+    transform: translate(-30px, 35px) scale(1.3);
+}
+
+.saas-module-top {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.saas-module-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    color: var(--shell-white);
+    background:
+        linear-gradient(
+            135deg,
+            var(--shell-primary),
+            #60a50c
+        );
+    box-shadow:
+        0 14px 28px rgba(69, 126, 5, 0.2);
+    font-size: 26px;
+    transition:
+        transform 0.4s ease;
+}
+
+.saas-module-card:hover
+.saas-module-icon {
+    transform:
+        translateY(-5px)
+        rotate(-5deg)
+        scale(1.08);
+}
+
+.saas-module-status {
+    padding: 6px 10px;
+    border-radius: 999px;
+    color: #4d8700;
+    background: rgba(117, 201, 0, 0.12);
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.saas-module-card h5 {
+    position: relative;
+    z-index: 2;
+    margin: 24px 0 0;
+    color: var(--shell-primary);
+    font-size: 19px;
+    font-weight: 800;
+}
+
+.saas-module-card p {
+    position: relative;
+    z-index: 2;
+    margin: 10px 0 20px;
+    color: var(--shell-muted);
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.saas-module-open-button {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 48px;
+    margin-top: auto;
+    padding: 0 16px;
+    border-radius: 14px;
+    color: var(--shell-white);
+    background:
+        linear-gradient(
+            135deg,
+            var(--shell-primary),
+            #5d9d0c
+        );
+    font-size: 11px;
+    font-weight: 800;
+    text-decoration: none;
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.saas-module-open-button:hover {
+    color: var(--shell-white);
+    transform: translateY(-2px);
+    box-shadow:
+        0 14px 28px rgba(54, 105, 3, 0.2);
+}
+
+.empty-saas-modules-card {
+    padding: 55px 25px;
+    border: 1px dashed rgba(5, 40, 95, 0.18);
+    border-radius: 25px;
+    background: rgba(255, 255, 255, 0.8);
+    text-align: center;
+}
+
+.empty-module-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 75px;
+    height: 75px;
+    margin: 0 auto 20px;
+    border-radius: 24px;
+    color: var(--shell-primary);
+    background: rgba(117, 201, 0, 0.13);
+    font-size: 29px;
+}
+
+/* Entry overlay */
+
+.module-page-entry-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: var(--shell-white);
+    background:
+        linear-gradient(
+            145deg,
+            #031a3d,
+            #05285f,
+            #058aa0
+        );
+    opacity: 1;
+    visibility: visible;
+    transition:
+        opacity 0.55s ease,
+        visibility 0.55s ease;
+}
+
+.saas-entry-overlay {
+    background:
+        linear-gradient(
+            145deg,
+            #031a3d,
+            #07555b,
+            #559500
+        );
+}
+
+.module-page-entry-overlay.hide {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.module-entry-logo {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.module-entry-logo::before {
+    position: absolute;
+    content: "";
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.14);
+    filter: blur(15px);
+    animation:
+        entryLogoGlow
+        1.5s
+        ease-in-out
+        infinite;
+}
+
+.module-entry-logo img {
+    position: relative;
+    z-index: 2;
+    width: 210px;
+    max-height: 110px;
+    object-fit: contain;
+}
+
+.module-entry-text {
+    margin-top: 20px;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+}
+
+.module-entry-loader {
+    width: 220px;
+    height: 4px;
+    margin-top: 24px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.13);
+}
+
+.module-entry-loader::after {
+    display: block;
+    content: "";
+    width: 40%;
+    height: 100%;
+    border-radius: inherit;
+    background:
+        linear-gradient(
+            90deg,
+            #69e7f5,
+            #a9f75a
+        );
+    animation:
+        entryLoaderMove
+        0.9s
+        ease-in-out
+        infinite;
+}
+
+/* Exit overlay */
+
+.module-exit-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    visibility: hidden;
+    color: var(--shell-white);
+    background:
+        linear-gradient(
+            145deg,
+            #031a3d,
+            #05285f,
+            #087b91
+        );
+    opacity: 0;
+    transition:
+        opacity 0.4s ease,
+        visibility 0.4s ease;
+}
+
+.saas-exit-overlay {
+    background:
+        linear-gradient(
+            145deg,
+            #031a3d,
+            #075159,
+            #548f08
+        );
+}
+
+.module-exit-overlay.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+.module-exit-content {
+    width: min(88%, 480px);
+    text-align: center;
+    opacity: 0;
+    transform:
+        translateY(20px)
+        scale(0.96);
+}
+
+.module-exit-overlay.active
+.module-exit-content {
+    animation:
+        exitContentReveal
+        0.5s
+        0.12s
+        ease
+        forwards;
+}
+
+.module-exit-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 78px;
+    height: 78px;
+    margin: 0 auto 21px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 25px;
+    background: rgba(255, 255, 255, 0.12);
+    font-size: 29px;
+    animation:
+        exitIconFloat
+        1.4s
+        ease-in-out
+        infinite;
+}
+
+.module-exit-content h2 {
+    margin: 0;
+    font-size: clamp(27px, 4vw, 40px);
+    font-weight: 800;
+}
+
+.module-exit-content p {
+    margin: 11px 0 0;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 13px;
+}
+
+.module-exit-progress {
+    width: min(100%, 330px);
+    height: 5px;
+    margin: 25px auto 0;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.13);
+}
+
+.module-exit-progress span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background:
+        linear-gradient(
+            90deg,
+            #61e6f5,
+            #a5f251
+        );
+}
+
+.module-exit-overlay.active
+.module-exit-progress span {
+    animation:
+        exitProgressLoad
+        1s
+        0.12s
+        ease
+        forwards;
+}
+
+/* Toast */
+
+.live-toast {
+    position: fixed;
+    right: 25px;
+    bottom: 25px;
+    z-index: 99999;
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    width: min(380px, calc(100% - 40px));
+    padding: 17px;
+    border-radius: 18px;
+    color: var(--shell-dark);
+    background: var(--shell-white);
+    box-shadow:
+        0 24px 60px rgba(5, 40, 95, 0.24);
+    opacity: 0;
+    transform: translateY(30px);
+    transition:
+        opacity 0.35s ease,
+        transform 0.35s ease;
+}
+
+.live-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.live-toast-icon {
+    display: flex;
+    flex: 0 0 42px;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    color: var(--shell-white);
+    background:
+        linear-gradient(
+            135deg,
+            var(--shell-primary),
+            var(--shell-cyan)
+        );
+}
+
+.live-toast strong {
+    color: var(--shell-primary);
+    font-size: 13px;
+}
+
+.live-toast p {
+    margin: 4px 0 0;
+    color: var(--shell-muted);
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+/* Locked module-selection card */
+
+.module-card.module-locked {
+    cursor: not-allowed;
+    filter: grayscale(0.45);
+}
+
+.module-card.module-locked::after {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    content: "\F47A";
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    color: var(--shell-primary);
+    background: rgba(255, 255, 255, 0.93);
+    font-family: "bootstrap-icons";
+    font-size: 18px;
+    box-shadow:
+        0 10px 25px rgba(5, 40, 95, 0.13);
+}
+
+.module-card.module-locked:hover {
+    transform: none;
+}
+
+.module-card.module-locked
+.module-enter-button {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+/* Animations */
+
+@keyframes workspacePulse {
+    0% {
+        box-shadow:
+            0 0 0 0
+            rgba(117, 201, 0, 0.48);
+    }
+
+    70% {
+        box-shadow:
+            0 0 0 8px
+            rgba(117, 201, 0, 0);
+    }
+
+    100% {
+        box-shadow:
+            0 0 0 0
+            rgba(117, 201, 0, 0);
+    }
+}
+
+@keyframes dashboardBannerReveal {
+    from {
+        opacity: 0;
+        transform: translateY(25px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes bannerCircleFloat {
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    50% {
+        transform:
+            translateY(25px)
+            rotate(10deg);
+    }
+}
+
+@keyframes statCardReveal {
+    from {
+        opacity: 0;
+        transform: translateY(22px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes saasModuleReveal {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes entryLogoGlow {
+    0%,
+    100% {
+        transform: scale(0.85);
+        opacity: 0.35;
+    }
+
+    50% {
+        transform: scale(1.15);
+        opacity: 0.75;
+    }
+}
+
+@keyframes entryLoaderMove {
+    0% {
+        transform: translateX(-110%);
+    }
+
+    100% {
+        transform: translateX(360%);
+    }
+}
+
+@keyframes exitContentReveal {
+    to {
+        opacity: 1;
+        transform:
+            translateY(0)
+            scale(1);
+    }
+}
+
+@keyframes exitIconFloat {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+@keyframes exitProgressLoad {
+    to {
+        width: 100%;
+    }
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+
+    .dashboard-welcome-banner {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 25px;
+    }
+
+    .welcome-role-card,
+    .workspace-switch-large-button {
+        width: 100%;
+    }
+
+    .workspace-switch-large-button {
+        justify-content: center;
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .platform-brand-text,
+    .module-navbar-badge {
+        display: none;
+    }
+
+    .module-switch-navbar-button {
+        width: 43px;
+        padding: 0;
+    }
+
+    .dashboard-welcome-banner {
+        padding: 28px 23px;
+        border-radius: 23px;
+    }
+
+    .welcome-banner-content h1 {
+        letter-spacing: -1.1px;
+    }
+
+}

@@ -1,185 +1,731 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
+	<meta charset="UTF-8">
+
 	<title>MediRevolution | Cart</title>
 
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	
+
 	<link rel="manifest" href="/manifest.json">
 
 	<meta name="theme-color" content="#05285f">
-
 	<meta name="mobile-web-app-capable" content="yes">
-
 	<meta name="apple-mobile-web-app-capable" content="yes">
-
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
 	<meta name="apple-mobile-web-app-title" content="MediRevolution">
 
 	<link rel="apple-touch-icon" href="/images/icon-192.png">
 
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
 	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.cart-page {
+			position: relative;
+		}
+
+		.cart-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 230px;
+			margin-bottom: 28px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg, #05285f 0%, #076a9c 52%, #08c7d4 100%);
+			box-shadow: 0 25px 65px rgba(5, 40, 95, .22);
+			animation: cartHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.cart-hero::before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation: cartHeroFloat 9s ease-in-out infinite;
+		}
+
+		.cart-hero::after {
+			position: absolute;
+			bottom: -175px;
+			left: 28%;
+			width: 350px;
+			height: 350px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(123, 214, 0, .23), transparent 68%);
+		}
+
+		.cart-hero-content,
+		.cart-hero-action {
+			position: relative;
+			z-index: 2;
+		}
+
+		.cart-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.cart-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px;
+		}
+
+		.cart-hero h1 span {
+			color: #b8f267;
+		}
+
+		.cart-hero p {
+			max-width: 720px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .78);
+			line-height: 1.75;
+		}
+
+		.cart-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px;
+		}
+
+		.cart-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.cart-hero-action {
+			display: flex;
+			min-width: 210px;
+			flex-direction: column;
+			align-items: center;
+			padding: 22px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px);
+		}
+
+		.cart-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 68px;
+			height: 68px;
+			margin-bottom: 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 28px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+			animation: cartIconFloat 3s ease-in-out infinite;
+		}
+
+		.cart-layout-grid {
+			display: grid;
+			grid-template-columns: minmax(0, 1.55fr) minmax(320px, .72fr);
+			gap: 24px;
+		}
+
+		.cart-list-card,
+		.cart-summary-card {
+			position: relative;
+			overflow: hidden;
+		}
+
+		.cart-summary-card {
+			position: sticky;
+			top: 95px;
+			align-self: start;
+		}
+
+		.cart-list-card::after,
+		.cart-summary-card::after {
+			position: absolute;
+			top: -90px;
+			right: -90px;
+			width: 190px;
+			height: 190px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(8, 199, 212, .1), transparent 68%);
+			pointer-events: none;
+		}
+
+		.cart-card-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5;
+		}
+
+		.cart-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px;
+		}
+
+		.cart-title-icon {
+			display: flex;
+			flex: 0 0 46px;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+			box-shadow: 0 12px 26px rgba(5, 40, 95, .16);
+		}
+
+		.cart-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		.cart-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.cart-table-wrap {
+			position: relative;
+			z-index: 2;
+			overflow: hidden;
+			border: 1px solid #e6eef4;
+			border-radius: 18px;
+		}
+
+		.cart-table-wrap table {
+			margin-bottom: 0;
+		}
+
+		.cart-table-wrap thead th {
+			padding: 15px 16px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 12px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.cart-table-wrap tbody td {
+			padding: 16px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 13px;
+			vertical-align: middle;
+		}
+
+		.cart-table-wrap tbody tr {
+			opacity: 0;
+			transform: translateY(12px);
+			animation: cartRowReveal .45s var(--row-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards;
+		}
+
+		.cart-medicine {
+			display: flex;
+			align-items: center;
+			gap: 11px;
+		}
+
+		.cart-medicine-icon {
+			display: flex;
+			flex: 0 0 42px;
+			align-items: center;
+			justify-content: center;
+			width: 42px;
+			height: 42px;
+			border-radius: 14px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 17px;
+		}
+
+		.cart-quantity-control {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			padding: 5px;
+			border: 1px solid #dbe7ed;
+			border-radius: 13px;
+			background: #f8fbfc;
+		}
+
+		.cart-quantity-control button {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 29px;
+			height: 29px;
+			border: none;
+			border-radius: 9px;
+			color: #05285f;
+			background: #ffffff;
+			box-shadow: 0 5px 12px rgba(5, 40, 95, .08);
+		}
+
+		.cart-quantity-control strong {
+			min-width: 24px;
+			text-align: center;
+		}
+
+		.cart-line-total {
+			color: #0f6f62;
+			font-weight: 900;
+		}
+
+		.cart-summary-row {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			padding: 13px 0;
+			border-bottom: 1px dashed #dbe5ea;
+			color: #62768a;
+			font-size: 13px;
+		}
+
+		.cart-summary-row:last-of-type {
+			border-bottom: none;
+		}
+
+		.cart-summary-row strong {
+			color: #05285f;
+			font-size: 15px;
+		}
+
+		.cart-grand-total {
+			position: relative;
+			z-index: 2;
+			margin-top: 18px;
+			padding: 18px;
+			border: 1px solid rgba(8, 199, 212, .25);
+			border-radius: 18px;
+			background: linear-gradient(135deg, #effbfc, #f8fff2);
+		}
+
+		.cart-grand-total small {
+			display: block;
+			color: #617589;
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: .8px;
+			text-transform: uppercase;
+		}
+
+		.cart-grand-total strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 31px;
+			font-weight: 900;
+		}
+
+		.cart-place-button {
+			position: relative;
+			z-index: 2;
+			width: 100%;
+			margin-top: 16px;
+		}
+
+		.cart-note {
+			position: relative;
+			z-index: 2;
+			margin-top: 14px;
+			padding: 13px;
+			border-radius: 14px;
+			color: #60748a;
+			background: #f6fbfd;
+			font-size: 11px;
+			line-height: 1.6;
+		}
+
+		.cart-state {
+			padding: 52px 20px;
+			text-align: center;
+		}
+
+		.cart-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 72px;
+			height: 72px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 28px;
+			box-shadow: 0 15px 32px rgba(5, 40, 95, .17);
+		}
+
+		@keyframes cartHeroReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes cartHeroFloat {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(25px) rotate(8deg);
+			}
+		}
+
+		@keyframes cartIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-7px);
+			}
+		}
+
+		@keyframes cartRowReveal {
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@media (max-width: 1100px) {
+			.cart-layout-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.cart-summary-card {
+				position: relative;
+				top: auto;
+			}
+		}
+
+		@media (max-width: 992px) {
+			.cart-hero {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.cart-hero-action {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 576px) {
+			.cart-hero {
+				padding: 26px 21px;
+				border-radius: 24px;
+			}
+
+			.cart-card-header {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+		}
+	</style>
 </head>
 
-<body class="dashboard-body">
+<body class="dashboard-body platform-dashboard-body">
 
-	<nav class="navbar fixed-top mr-navbar px-3 px-lg-4">
+	<div th:replace="~{layout/platform-topnavbar :: platformTopnavbar}"></div>
+	<div th:replace="~{layout/platform-sidebar :: platformSidebar}"></div>
 
-		<div class="d-flex align-items-center gap-3">
+	<main class="mr-main platform-main cart-page">
 
-			<button class="mobile-menu-btn" onclick="toggleSidebar()">
-				☰
-			</button>
+		<section class="cart-hero">
 
-			<a href="/dashboard" class="mr-navbar-brand d-flex align-items-center gap-2">
+			<div class="cart-hero-content">
 
-				<img th:src="@{/images/logo.png}" class="mr-nav-logo">
+				<span class="cart-kicker">
+					<i class="bi bi-cart-check-fill"></i>
+					Medicine Purchase Cart
+				</span>
 
-				Medi<span>Revolution</span>
-
-			</a>
-
-		</div>
-
-		<div class="d-flex align-items-center gap-3">
-
-			<div class="mr-user-pill">
-				<span id="userEmail"></span>
-			</div>
-
-			<button class="btn btn-outline-light" onclick="logout()">
-				Logout
-			</button>
-
-		</div>
-
-	</nav>
-
-	<aside class="mr-sidebar" id="sidebar">
-
-		<a th:href="@{/dashboard}">🏠 Dashboard</a>
-
-		<a th:href="@{/retailer/search-medicines}">🔍 Search Medicines</a>
-
-		<a th:href="@{/retailer/cart}" class="active">
-			🛒 Cart
-		</a>
-
-		<a th:href="@{/orders}">📋 Orders</a>
-
-		<a href="#">🧾 Invoices</a>
-
-	</aside>
-
-	<main class="mr-main">
-
-		<div class="d-flex justify-content-between align-items-center mb-4">
-
-			<div>
-
-				<h1 class="mr-page-title">
-					Shopping Cart
+				<h1>
+					Shopping
+					<span>cart</span>
 				</h1>
 
-				<p class="mr-page-subtitle">
-					Review medicines before placing order.
+				<p>
+					Review medicine quantities, GST and pricing before
+					placing the final retailer order.
 				</p>
+
+				<div class="cart-meta">
+
+					<span>
+						<i class="bi bi-capsule-pill"></i>
+						Medicine items
+					</span>
+
+					<span>
+						<i class="bi bi-receipt-cutoff"></i>
+						GST calculation
+					</span>
+
+					<span>
+						<i class="bi bi-shield-check"></i>
+						Secure order placement
+					</span>
+
+				</div>
 
 			</div>
 
-		</div>
+			<div class="cart-hero-action">
+
+				<div class="cart-hero-icon">
+					<i class="bi bi-cart-fill"></i>
+				</div>
+
+				<strong>Retailer Cart</strong>
+
+				<small class="mt-2 text-white-50">
+					Review • Calculate • Order
+				</small>
+
+			</div>
+
+		</section>
 
 		<div id="msg"></div>
 
-		<div class="row g-4">
+		<section class="cart-layout-grid">
 
-			<div class="col-lg-8">
+			<div class="mr-card cart-list-card">
 
-				<div class="mr-card">
+				<div class="cart-card-header">
 
-					<h5 class="fw-bold text-primary mb-3">
-						Cart Items
-					</h5>
+					<div class="cart-title-wrap">
 
-					<div class="table-responsive">
+						<div class="cart-title-icon">
+							<i class="bi bi-basket2-fill"></i>
+						</div>
 
-						<table class="table">
-
-							<thead>
-
-								<tr>
-									<th>Medicine</th>
-									<th>Batch</th>
-									<th>Qty</th>
-									<th>Price</th>
-									<th>Total</th>
-									<th></th>
-								</tr>
-
-							</thead>
-
-							<tbody id="cartTable">
-
-							</tbody>
-
-						</table>
+						<div>
+							<small>Selected Medicines</small>
+							<h5>Cart Items</h5>
+						</div>
 
 					</div>
+
+					<a href="/retailer/search-medicines" class="btn btn-sm btn-outline-primary">
+
+						<i class="bi bi-plus-circle me-1"></i>
+						Add Medicines
+					</a>
+
+				</div>
+
+				<div class="table-responsive cart-table-wrap">
+
+					<table class="table table-hover align-middle">
+
+						<thead>
+							<tr>
+								<th>Medicine</th>
+								<th>Batch</th>
+								<th>Qty</th>
+								<th>Price</th>
+								<th>GST</th>
+								<th>Total</th>
+								<th>Action</th>
+							</tr>
+						</thead>
+
+						<tbody id="cartTable">
+
+							<tr>
+								<td colspan="7">
+
+									<div class="cart-state">
+
+										<div class="cart-state-icon">
+											<i class="bi bi-cart-fill"></i>
+										</div>
+
+										<h5 class="fw-bold text-primary">
+											Loading cart
+										</h5>
+
+										<p class="text-muted mb-0">
+											Please wait while we prepare your selected medicines.
+										</p>
+
+									</div>
+
+								</td>
+							</tr>
+
+						</tbody>
+
+					</table>
 
 				</div>
 
 			</div>
 
-			<div class="col-lg-4">
+			<aside class="mr-card cart-summary-card">
 
-				<div class="mr-card">
+				<div class="cart-card-header">
 
-					<h5 class="fw-bold text-primary mb-3">
-						Order Summary
-					</h5>
+					<div class="cart-title-wrap">
 
-					<div class="mb-2">
-						Items :
-						<strong id="itemCount">0</strong>
+						<div class="cart-title-icon">
+							<i class="bi bi-receipt-cutoff"></i>
+						</div>
+
+						<div>
+							<small>Payment Breakdown</small>
+							<h5>Order Summary</h5>
+						</div>
+
 					</div>
-
-					<div class="mb-2">
-						Subtotal :
-						<strong id="subTotal">0</strong>
-					</div>
-
-					<div class="mb-2">
-						GST :
-						<strong id="gstTotal">0</strong>
-					</div>
-
-					<hr>
-
-					<h4 class="fw-bold">
-						₹ <span id="grandTotal">0</span>
-					</h4>
-
-					<button class="btn btn-medi mt-3" onclick="placeOrder()">
-						Place Order
-					</button>
 
 				</div>
 
+				<div class="cart-summary-row">
+					<span>Items</span>
+					<strong id="itemCount">0</strong>
+				</div>
+
+				<div class="cart-summary-row">
+					<span>Subtotal</span>
+					<strong>₹<span id="subTotal">0.00</span></strong>
+				</div>
+
+				<div class="cart-summary-row">
+					<span>GST</span>
+					<strong>₹<span id="gstTotal">0.00</span></strong>
+				</div>
+
+				<div class="cart-grand-total">
+
+					<small>Grand Total</small>
+
+					<strong>
+						₹<span id="grandTotal">0.00</span>
+					</strong>
+
+				</div>
+
+				<button type="button" id="placeOrderBtn" class="btn btn-medi cart-place-button" onclick="placeOrder()">
+
+					<i class="bi bi-bag-check-fill me-1"></i>
+					Place Order
+				</button>
+
+				<div class="cart-note">
+
+					<i class="bi bi-info-circle-fill me-1"></i>
+
+					All medicines in one order must belong to the same wholesaler.
+
+				</div>
+
+			</aside>
+
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
+
+	</main>
+
+	<div class="module-exit-overlay" id="moduleExitOverlay">
+
+		<div class="module-exit-content">
+
+			<div class="module-exit-icon">
+				<i class="bi bi-arrow-left-right"></i>
+			</div>
+
+			<h2>Switching Experience</h2>
+
+			<p>
+				Returning to MediRevolution module selection...
+			</p>
+
+			<div class="module-exit-progress">
+				<span></span>
 			</div>
 
 		</div>
 
-	</main>
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-	<script th:src="@{/js/common-dashboard.js}"></script>
-	<script th:src="@{/js/cart.js}"></script>
 
+	<script th:src="@{/js/module-switch.js}"></script>
+	<script th:src="@{/js/common-dashboard.js}"></script>
+	<script th:src="@{/js/cart.js?v=2}"></script>
 	<script th:src="@{/js/pwa.js}"></script>
+
 </body>
 
 </html>

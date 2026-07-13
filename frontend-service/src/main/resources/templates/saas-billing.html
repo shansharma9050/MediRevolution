@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>MediRevolution | SaaS Billing</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="manifest" href="/manifest.json">
+	<meta name="theme-color" content="#05285f">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.saas-billing-page {
+			position: relative
+		}
+
+		.saas-billing-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 235px;
+			margin-bottom: 28px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f 0%, #08739f 48%, #08c7d4 100%);
+			box-shadow: 0 25px 65px rgba(5, 40, 95, .22);
+			animation: billReveal .75s cubic-bezier(.22, 1, .36, 1) both
+		}
+
+		.saas-billing-hero:before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation: billFloat 9s ease-in-out infinite
+		}
+
+		.saas-billing-hero:after {
+			position: absolute;
+			bottom: -180px;
+			left: 28%;
+			width: 360px;
+			height: 360px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(123, 214, 0, .23), transparent 68%)
+		}
+
+		.saas-billing-hero-content,
+		.saas-billing-hero-action {
+			position: relative;
+			z-index: 2
+		}
+
+		.saas-billing-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px)
+		}
+
+		.saas-billing-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px
+		}
+
+		.saas-billing-hero h1 span {
+			color: #b8f267
+		}
+
+		.saas-billing-hero p {
+			max-width: 760px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .8);
+			line-height: 1.75
+		}
+
+		.saas-billing-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px
+		}
+
+		.saas-billing-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700
+		}
+
+		.saas-billing-hero-action {
+			display: flex;
+			min-width: 220px;
+			flex-direction: column;
+			align-items: center;
+			padding: 22px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px)
+		}
+
+		.saas-billing-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 68px;
+			height: 68px;
+			margin-bottom: 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #fff;
+			font-size: 28px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+			animation: billIcon 3s ease-in-out infinite
+		}
+
+		.saas-billing-create-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 46px;
+			margin-top: 13px;
+			padding: 0 18px;
+			border: none;
+			border-radius: 15px;
+			color: #05285f;
+			background: #fff;
+			font-size: 12px;
+			font-weight: 800
+		}
+
+		.billing-summary-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px
+		}
+
+		.billing-summary-card {
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .96);
+			box-shadow: 0 14px 35px rgba(5, 40, 95, .08);
+			transition: .35s
+		}
+
+		.billing-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 22px 48px rgba(5, 40, 95, .14)
+		}
+
+		.billing-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px
+		}
+
+		.billing-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700
+		}
+
+		.billing-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 29px;
+			font-weight: 900
+		}
+
+		.billing-card {
+			position: relative;
+			overflow: hidden
+		}
+
+		.billing-card:after {
+			position: absolute;
+			top: -90px;
+			right: -90px;
+			width: 190px;
+			height: 190px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(8, 199, 212, .1), transparent 68%);
+			pointer-events: none
+		}
+
+		.billing-section-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5
+		}
+
+		.billing-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px
+		}
+
+		.billing-title-icon {
+			display: flex;
+			flex: 0 0 46px;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px
+		}
+
+		.billing-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase
+		}
+
+		.billing-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900
+		}
+
+		.billing-control {
+			position: relative;
+			z-index: 2
+		}
+
+		.billing-control>i {
+			position: absolute;
+			top: 39px;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			pointer-events: none
+		}
+
+		.billing-control .form-control,
+		.billing-control .form-select {
+			padding-left: 41px
+		}
+
+		.billing-table-wrap {
+			position: relative;
+			z-index: 2;
+			overflow: hidden;
+			border: 1px solid #e6eef4;
+			border-radius: 18px
+		}
+
+		.billing-table-wrap table {
+			margin-bottom: 0
+		}
+
+		.billing-table-wrap thead th {
+			padding: 15px 16px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 12px;
+			font-weight: 900;
+			white-space: nowrap
+		}
+
+		.billing-table-wrap tbody td {
+			padding: 15px 16px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 13px;
+			vertical-align: middle
+		}
+
+		.billing-table-wrap tbody tr {
+			opacity: 0;
+			transform: translateY(12px);
+			animation: billRow .45s var(--row-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards
+		}
+
+		.billing-patient {
+			display: flex;
+			align-items: center;
+			gap: 10px
+		}
+
+		.billing-patient-icon {
+			display: flex;
+			flex: 0 0 40px;
+			align-items: center;
+			justify-content: center;
+			width: 40px;
+			height: 40px;
+			border-radius: 13px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4)
+		}
+
+		.billing-pill {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			font-size: 10px;
+			font-weight: 900;
+			white-space: nowrap
+		}
+
+		.billing-pill.type {
+			color: #05285f;
+			background: #e8f7fb
+		}
+
+		.billing-pill.paid {
+			color: #0f5132;
+			background: #d1e7dd
+		}
+
+		.billing-pill.partial {
+			color: #664d03;
+			background: #fff3cd
+		}
+
+		.billing-pill.cancelled {
+			color: #842029;
+			background: #f8d7da
+		}
+
+		.billing-pill.pending,
+		.billing-pill.unpaid {
+			color: #41464b;
+			background: #e2e3e5
+		}
+
+		.billing-actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 7px
+		}
+
+		.billing-state {
+			padding: 54px 20px;
+			text-align: center
+		}
+
+		.billing-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 72px;
+			height: 72px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 28px;
+			box-shadow: 0 15px 32px rgba(5, 40, 95, .17)
+		}
+
+		.billing-loading {
+			animation: billPulse 1.3s ease-in-out infinite
+		}
+
+		.billing-modal .modal-content {
+			overflow: hidden;
+			border: none;
+			border-radius: 26px;
+			box-shadow: 0 28px 75px rgba(5, 40, 95, .22)
+		}
+
+		.billing-modal .modal-header {
+			padding: 21px 24px;
+			color: #fff;
+			border-bottom: none;
+			background: linear-gradient(135deg, #05285f, #087aa3)
+		}
+
+		.billing-modal .btn-close {
+			filter: invert(1)
+		}
+
+		.billing-modal .modal-body {
+			padding: 25px
+		}
+
+		.billing-modal .modal-footer {
+			padding: 18px 24px;
+			border-top: 1px solid #e8f1f5;
+			background: #f8fbfc
+		}
+
+		.invoice-item-table {
+			overflow: hidden;
+			border: 1px solid #e2ebf0;
+			border-radius: 16px
+		}
+
+		.invoice-item-table table {
+			margin: 0
+		}
+
+		.invoice-item-table thead th {
+			color: #05285f;
+			background: #eff9fb;
+			font-size: 11px;
+			font-weight: 900
+		}
+
+		.invoice-preview {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 10px;
+			margin-top: 18px
+		}
+
+		.invoice-preview>div {
+			padding: 13px;
+			border: 1px solid #e2ebf0;
+			border-radius: 14px;
+			background: #f8fbfc
+		}
+
+		.invoice-preview small {
+			display: block;
+			color: #718496;
+			font-size: 9px;
+			font-weight: 800;
+			text-transform: uppercase
+		}
+
+		.invoice-preview strong {
+			display: block;
+			margin-top: 4px;
+			color: #05285f;
+			font-size: 17px;
+			font-weight: 900
+		}
+
+		.invoice-detail-grid {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 12px
+		}
+
+		.invoice-detail {
+			padding: 14px;
+			border: 1px solid #e2ebf0;
+			border-radius: 15px;
+			background: #f9fcfd
+		}
+
+		.invoice-detail.full {
+			grid-column: 1/-1
+		}
+
+		.invoice-detail small {
+			display: block;
+			margin-bottom: 4px;
+			color: #718496;
+			font-size: 9px;
+			font-weight: 800;
+			text-transform: uppercase
+		}
+
+		.invoice-detail strong {
+			color: #05285f;
+			font-size: 13px;
+			white-space: pre-line
+		}
+
+		@keyframes billReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px)
+			}
+
+			to {
+				opacity: 1;
+				transform: none
+			}
+		}
+
+		@keyframes billFloat {
+
+			0%,
+			100% {
+				transform: none
+			}
+
+			50% {
+				transform: translateY(25px) rotate(8deg)
+			}
+		}
+
+		@keyframes billIcon {
+
+			0%,
+			100% {
+				transform: none
+			}
+
+			50% {
+				transform: translateY(-7px)
+			}
+		}
+
+		@keyframes billRow {
+			to {
+				opacity: 1;
+				transform: none
+			}
+		}
+
+		@keyframes billPulse {
+
+			0%,
+			100% {
+				transform: scale(.94);
+				opacity: .72
+			}
+
+			50% {
+				transform: scale(1.06);
+				opacity: 1
+			}
+		}
+
+		@media(max-width:1150px) {
+
+			.billing-summary-grid,
+			.invoice-preview {
+				grid-template-columns: repeat(2, minmax(0, 1fr))
+			}
+		}
+
+		@media(max-width:992px) {
+			.saas-billing-hero {
+				align-items: flex-start;
+				flex-direction: column
+			}
+
+			.saas-billing-hero-action {
+				width: 100%
+			}
+		}
+
+		@media(max-width:768px) {
+			.billing-section-header {
+				align-items: stretch;
+				flex-direction: column
+			}
+
+			.invoice-detail-grid {
+				grid-template-columns: 1fr
+			}
+
+			.invoice-detail.full {
+				grid-column: auto
+			}
+		}
+
+		@media(max-width:576px) {
+			.saas-billing-hero {
+				padding: 26px 21px;
+				border-radius: 24px
+			}
+
+			.billing-summary-grid,
+			.invoice-preview {
+				grid-template-columns: 1fr
+			}
+
+			.billing-modal .modal-body {
+				padding: 20px 16px
+			}
+
+			.billing-modal .modal-footer {
+				flex-direction: column-reverse
+			}
+
+			.billing-modal .modal-footer .btn {
+				width: 100% !important
+			}
+		}
+	</style>
+</head>
+
+<body class="dashboard-body saas-dashboard-body">
+
+	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
+	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
+
+	<main class="mr-main saas-main saas-billing-page">
+
+		<section class="saas-billing-hero">
+			<div class="saas-billing-hero-content">
+				<span class="saas-billing-kicker"><i class="bi bi-receipt-cutoff"></i>SaaS Revenue & Invoice
+					Center</span>
+				<h1>SaaS <span>billing</span></h1>
+				<p>Create OPD/IPD bills and manage patient invoices for <strong id="tenantNameText">your
+						workspace</strong>.</p>
+				<div class="saas-billing-meta">
+					<span><i class="bi bi-hospital-fill"></i>OPD & IPD billing</span>
+					<span><i class="bi bi-credit-card-fill"></i>Payment tracking</span>
+					<span><i class="bi bi-file-earmark-pdf-fill"></i>PDF invoices</span>
+				</div>
+			</div>
+
+			<div class="saas-billing-hero-action">
+				<div class="saas-billing-hero-icon"><i class="bi bi-receipt"></i></div>
+				<strong>Create Patient Invoice</strong>
+				<button type="button" id="createInvoiceBtn" class="saas-billing-create-button"
+					onclick="openInvoiceModal()">
+					<i class="bi bi-plus-circle-fill"></i>Create Invoice
+				</button>
+			</div>
+		</section>
+
+		<div id="msg"></div>
+
+		<section class="billing-summary-grid">
+			<article class="billing-summary-card">
+				<div class="billing-summary-icon"><i class="bi bi-receipt-cutoff"></i></div>
+				<small>Total Invoices</small>
+				<strong id="totalInvoices">0</strong>
+			</article>
+			<article class="billing-summary-card">
+				<div class="billing-summary-icon"><i class="bi bi-currency-rupee"></i></div>
+				<small>Total Billing</small>
+				<strong id="totalBillingAmount">₹0</strong>
+			</article>
+			<article class="billing-summary-card">
+				<div class="billing-summary-icon"><i class="bi bi-check-circle-fill"></i></div>
+				<small>Amount Received</small>
+				<strong id="totalPaidAmount">₹0</strong>
+			</article>
+			<article class="billing-summary-card">
+				<div class="billing-summary-icon"><i class="bi bi-exclamation-circle-fill"></i></div>
+				<small>Outstanding Due</small>
+				<strong id="totalDueAmount">₹0</strong>
+			</article>
+		</section>
+
+		<section class="mr-card billing-card mb-4">
+			<div class="billing-section-header">
+				<div class="billing-title-wrap">
+					<div class="billing-title-icon"><i class="bi bi-funnel-fill"></i></div>
+					<div><small>Billing Controls</small>
+						<h5>Invoice Filters & IPD Billing</h5>
+					</div>
+				</div>
+			</div>
+
+			<div class="row g-3 align-items-end">
+				<div class="col-lg-4 billing-control">
+					<label class="form-label" for="filterPatientId">Filter by Patient</label>
+					<i class="bi bi-person-fill"></i>
+					<select id="filterPatientId" class="form-select">
+						<option value="">All Patients</option>
+					</select>
+				</div>
+
+				<div class="col-lg-4 billing-control">
+					<label class="form-label" for="filterAdmissionId">Generate IPD Final Bill</label>
+					<i class="bi bi-building-fill-add"></i>
+					<select id="filterAdmissionId" class="form-select">
+						<option value="">Select IPD Admission</option>
+					</select>
+				</div>
+
+				<div class="col-lg-2">
+					<button type="button" id="filterInvoicesBtn" class="btn btn-outline-primary w-100"
+						onclick="applyPatientFilter()">
+						<i class="bi bi-funnel me-1"></i>Filter
+					</button>
+				</div>
+
+				<div class="col-lg-2">
+					<button type="button" id="createIpdBillBtn" class="btn btn-medi w-100"
+						onclick="createIpdFinalBill()">
+						<i class="bi bi-building-check me-1"></i>IPD Bill
+					</button>
+				</div>
+			</div>
+		</section>
+
+		<section class="mr-card billing-card">
+			<div class="billing-section-header">
+				<div class="billing-title-wrap">
+					<div class="billing-title-icon"><i class="bi bi-journal-text"></i></div>
+					<div><small>Financial Register</small>
+						<h5>Patient Invoices</h5>
+					</div>
+				</div>
+
+				<button type="button" id="refreshInvoicesBtn" class="btn btn-outline-primary" onclick="loadInvoices()">
+					<i class="bi bi-arrow-clockwise me-1"></i>Refresh
+				</button>
+			</div>
+
+			<div class="table-responsive billing-table-wrap">
+				<table class="table table-hover align-middle">
+					<thead>
+						<tr>
+							<th>Invoice</th>
+							<th>Patient</th>
+							<th>Type</th>
+							<th>Total</th>
+							<th>Paid</th>
+							<th>Due</th>
+							<th>Status</th>
+							<th style="width:280px;">Action</th>
+						</tr>
+					</thead>
+					<tbody id="invoiceTableBody">
+						<tr>
+							<td colspan="8">
+								<div class="billing-state">
+									<div class="billing-state-icon billing-loading"><i class="bi bi-receipt-cutoff"></i>
+									</div>
+									<h5 class="fw-bold text-primary">Loading invoices</h5>
+									<p class="text-muted mb-0">Please wait while we prepare billing records.</p>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
+	</main>
+
+	<div class="modal fade billing-modal" id="invoiceModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header">
+					<div>
+						<div class="small text-white-50 fw-bold text-uppercase mb-1">SaaS Invoice Form</div>
+						<h5 class="modal-title">Create Invoice</h5>
+					</div>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+
+				<div class="modal-body">
+					<div class="row g-3">
+						<div class="col-lg-4 billing-control">
+							<label class="form-label" for="patientId">Patient *</label><i class="bi bi-person-fill"></i>
+							<select id="patientId" class="form-select">
+								<option value="">Select Patient</option>
+							</select>
+						</div>
+						<div class="col-lg-4 billing-control">
+							<label class="form-label" for="doctorProfileId">Doctor</label><i
+								class="bi bi-person-badge-fill"></i>
+							<select id="doctorProfileId" class="form-select">
+								<option value="">Select Doctor</option>
+							</select>
+						</div>
+						<div class="col-lg-4 billing-control">
+							<label class="form-label" for="invoiceType">Invoice Type *</label><i
+								class="bi bi-ui-checks-grid"></i>
+							<select id="invoiceType" class="form-select">
+								<option value="OPD">OPD</option>
+								<option value="IPD">IPD</option>
+								<option value="PHARMACY">Pharmacy</option>
+								<option value="LAB">Lab</option>
+								<option value="GENERAL">General</option>
+							</select>
+						</div>
+
+						<div class="col-lg-4 billing-control">
+							<label class="form-label" for="opdVisitId">OPD Visit ID</label><i
+								class="bi bi-hospital"></i>
+							<input id="opdVisitId" type="number" min="1" class="form-control" placeholder="Optional">
+						</div>
+						<div class="col-lg-4 billing-control">
+							<label class="form-label" for="ipdAdmissionId">IPD Admission ID</label><i
+								class="bi bi-building-fill-add"></i>
+							<input id="ipdAdmissionId" type="number" min="1" class="form-control"
+								placeholder="Optional">
+						</div>
+						<div class="col-lg-4 billing-control">
+							<label class="form-label" for="paymentMode">Payment Mode</label><i
+								class="bi bi-credit-card-fill"></i>
+							<select id="paymentMode" class="form-select">
+								<option value="">Select</option>
+								<option value="CASH">Cash</option>
+								<option value="UPI">UPI</option>
+								<option value="CARD">Card</option>
+								<option value="BANK_TRANSFER">Bank Transfer</option>
+								<option value="ONLINE">Online</option>
+								<option value="OTHER">Other</option>
+							</select>
+						</div>
+
+						<div class="col-lg-4 billing-control">
+							<label class="form-label" for="discountAmount">Discount</label><i
+								class="bi bi-tags-fill"></i>
+							<input id="discountAmount" type="number" min="0" step="0.01" class="form-control" value="0"
+								oninput="updateInvoicePreview()">
+						</div>
+						<div class="col-lg-4 billing-control">
+							<label class="form-label" for="taxAmount">Tax</label><i class="bi bi-percent"></i>
+							<input id="taxAmount" type="number" min="0" step="0.01" class="form-control" value="0"
+								oninput="updateInvoicePreview()">
+						</div>
+						<div class="col-lg-4 billing-control">
+							<label class="form-label" for="paidAmount">Paid Amount</label><i
+								class="bi bi-cash-stack"></i>
+							<input id="paidAmount" type="number" min="0" step="0.01" class="form-control" value="0"
+								oninput="updateInvoicePreview()">
+						</div>
+
+						<div class="col-lg-6 billing-control">
+							<label class="form-label" for="transactionId">Transaction ID</label><i
+								class="bi bi-upc-scan"></i>
+							<input id="transactionId" class="form-control" placeholder="Optional transaction reference">
+						</div>
+						<div class="col-lg-6 billing-control">
+							<label class="form-label" for="notes">Notes</label><i class="bi bi-journal-text"></i>
+							<input id="notes" class="form-control" placeholder="Optional billing notes">
+						</div>
+
+						<div class="col-12">
+							<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
+								<div>
+									<div class="small text-muted fw-bold text-uppercase">Invoice Lines</div>
+									<h5 class="mb-0 text-primary fw-bold">Invoice Items</h5>
+								</div>
+								<button type="button" class="btn btn-sm btn-outline-primary"
+									onclick="addInvoiceItemRow()">
+									<i class="bi bi-plus-circle-fill me-1"></i>Add Item
+								</button>
+							</div>
+
+							<div class="table-responsive invoice-item-table mt-3">
+								<table class="table table-bordered align-middle">
+									<thead>
+										<tr>
+											<th>Item</th>
+											<th>Type</th>
+											<th>Qty</th>
+											<th>Unit Price</th>
+											<th>Total</th>
+											<th>Action</th>
+										</tr>
+									</thead>
+									<tbody id="invoiceItemRows"></tbody>
+								</table>
+							</div>
+
+							<div class="invoice-preview">
+								<div><small>Item Subtotal</small><strong>₹<span
+											id="previewSubtotal">0.00</span></strong></div>
+								<div><small>Final Total</small><strong>₹<span id="previewTotal">0.00</span></strong>
+								</div>
+								<div><small>Paid Amount</small><strong>₹<span id="previewPaid">0.00</span></strong>
+								</div>
+								<div><small>Due Amount</small><strong>₹<span id="previewDue">0.00</span></strong></div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+					<button type="button" id="saveInvoiceBtn" class="btn btn-medi" style="width:auto;"
+						onclick="saveInvoice()">
+						<i class="bi bi-check2-circle me-1"></i>Save Invoice
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade billing-modal" id="paymentModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Update Invoice Payment</h5><button type="button" class="btn-close"
+						data-bs-dismiss="modal"></button>
+				</div>
+				<div class="modal-body">
+					<input type="hidden" id="paymentInvoiceId">
+					<div class="row g-3">
+						<div class="col-12 billing-control">
+							<label class="form-label" for="paymentAmountInput">Paid Amount *</label><i
+								class="bi bi-cash-stack"></i>
+							<input type="number" id="paymentAmountInput" min="0.01" step="0.01" class="form-control">
+						</div>
+						<div class="col-12 billing-control">
+							<label class="form-label" for="paymentModeInput">Payment Mode *</label><i
+								class="bi bi-credit-card-fill"></i>
+							<select id="paymentModeInput" class="form-select">
+								<option value="CASH">Cash</option>
+								<option value="UPI">UPI</option>
+								<option value="CARD">Card</option>
+								<option value="BANK_TRANSFER">Bank Transfer</option>
+								<option value="ONLINE">Online</option>
+								<option value="OTHER">Other</option>
+							</select>
+						</div>
+						<div class="col-12 billing-control">
+							<label class="form-label" for="paymentTransactionIdInput">Transaction ID</label><i
+								class="bi bi-upc-scan"></i>
+							<input type="text" id="paymentTransactionIdInput" class="form-control">
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+					<button type="button" id="savePaymentBtn" class="btn btn-medi" style="width:auto;"
+						onclick="submitInvoicePayment()">
+						<i class="bi bi-check-circle-fill me-1"></i>Update Payment
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade billing-modal" id="invoiceViewModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Invoice Details</h5><button type="button" class="btn-close"
+						data-bs-dismiss="modal"></button>
+				</div>
+				<div class="modal-body" id="invoiceViewContent"></div>
+			</div>
+		</div>
+	</div>
+
+	<div class="module-exit-overlay" id="moduleExitOverlay">
+		<div class="module-exit-content">
+			<div class="module-exit-icon"><i class="bi bi-arrow-left-right"></i></div>
+			<h2>Switching Experience</h2>
+			<p>Returning to MediRevolution module selection...</p>
+			<div class="module-exit-progress"><span></span></div>
+		</div>
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script th:src="@{/js/common-dashboard.js}"></script>
+	<script th:src="@{/js/module-switch.js}"></script>
+	<script th:src="@{/js/saas-auth-guard.js}"></script>
+	<script th:src="@{/js/saas-billing.js?v=20260713_1}"></script>
+	<script th:src="@{/js/pwa.js}"></script>
+</body>
+
+</html>

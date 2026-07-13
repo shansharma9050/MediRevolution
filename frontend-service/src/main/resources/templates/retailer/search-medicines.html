@@ -1,135 +1,887 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
+	<meta charset="UTF-8">
+
 	<title>MediRevolution | Search Medicines</title>
+
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	
+
 	<link rel="manifest" href="/manifest.json">
 
 	<meta name="theme-color" content="#05285f">
-
 	<meta name="mobile-web-app-capable" content="yes">
-
 	<meta name="apple-mobile-web-app-capable" content="yes">
-
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
 	<meta name="apple-mobile-web-app-title" content="MediRevolution">
 
 	<link rel="apple-touch-icon" href="/images/icon-192.png">
 
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
 	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.retailer-search-page {
+			position: relative;
+		}
+
+		.retailer-search-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 230px;
+			margin-bottom: 28px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg, #05285f 0%, #076a9c 52%, #08c7d4 100%);
+			box-shadow: 0 25px 65px rgba(5, 40, 95, .22);
+			animation: searchHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.retailer-search-hero::before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation: searchHeroFloat 9s ease-in-out infinite;
+		}
+
+		.retailer-search-hero::after {
+			position: absolute;
+			bottom: -175px;
+			left: 28%;
+			width: 350px;
+			height: 350px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(123, 214, 0, .23), transparent 68%);
+		}
+
+		.retailer-search-hero-content,
+		.retailer-search-hero-action {
+			position: relative;
+			z-index: 2;
+		}
+
+		.retailer-search-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.retailer-search-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px;
+		}
+
+		.retailer-search-hero h1 span {
+			color: #b8f267;
+		}
+
+		.retailer-search-hero p {
+			max-width: 760px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .78);
+			line-height: 1.75;
+		}
+
+		.retailer-search-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px;
+		}
+
+		.retailer-search-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.retailer-search-hero-action {
+			display: flex;
+			min-width: 210px;
+			flex-direction: column;
+			align-items: center;
+			padding: 22px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px);
+		}
+
+		.retailer-search-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 68px;
+			height: 68px;
+			margin-bottom: 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 28px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+			animation: searchHeroIconFloat 3s ease-in-out infinite;
+		}
+
+		.retailer-search-cart-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 46px;
+			margin-top: 13px;
+			padding: 0 18px;
+			border: none;
+			border-radius: 15px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 12px;
+			font-weight: 800;
+			text-decoration: none;
+			transition: transform .3s ease, box-shadow .3s ease;
+		}
+
+		.retailer-search-cart-button:hover {
+			color: #05285f;
+			transform: translateY(-3px);
+			box-shadow: 0 14px 30px rgba(0, 0, 0, .18);
+		}
+
+		.retailer-summary-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px;
+		}
+
+		.retailer-summary-card {
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .95);
+			box-shadow: 0 14px 35px rgba(5, 40, 95, .08);
+			transition: transform .35s ease, box-shadow .35s ease;
+		}
+
+		.retailer-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 22px 48px rgba(5, 40, 95, .14);
+		}
+
+		.retailer-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+		}
+
+		.retailer-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700;
+		}
+
+		.retailer-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 29px;
+			font-weight: 900;
+		}
+
+		.retailer-search-card,
+		.retailer-results-card {
+			position: relative;
+			overflow: hidden;
+		}
+
+		.retailer-search-card::after,
+		.retailer-results-card::after {
+			position: absolute;
+			top: -90px;
+			right: -90px;
+			width: 190px;
+			height: 190px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(8, 199, 212, .1), transparent 68%);
+			pointer-events: none;
+		}
+
+		.retailer-section-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5;
+		}
+
+		.retailer-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px;
+		}
+
+		.retailer-title-icon {
+			display: flex;
+			flex: 0 0 46px;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+			box-shadow: 0 12px 26px rgba(5, 40, 95, .16);
+		}
+
+		.retailer-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		.retailer-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.retailer-search-control {
+			position: relative;
+			z-index: 2;
+		}
+
+		.retailer-search-control i {
+			position: absolute;
+			top: 50%;
+			left: 16px;
+			z-index: 2;
+			color: #0577b8;
+			transform: translateY(-50%);
+		}
+
+		.retailer-search-control .form-control {
+			min-height: 50px;
+			padding-left: 45px;
+			border-radius: 15px;
+		}
+
+		.retailer-sort-wrap {
+			position: relative;
+			min-width: 260px;
+		}
+
+		.retailer-sort-wrap i {
+			position: absolute;
+			top: 50%;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			transform: translateY(-50%);
+			pointer-events: none;
+		}
+
+		.retailer-sort-wrap .form-select {
+			padding-left: 41px;
+		}
+
+		.retailer-stock-grid {
+			position: relative;
+			z-index: 2;
+		}
+
+		.stock-card {
+			position: relative;
+			height: 100%;
+			overflow: hidden;
+			padding: 21px;
+			border: 1px solid #e3edf2;
+			border-radius: 22px;
+			background: #ffffff;
+			box-shadow: 0 13px 32px rgba(5, 40, 95, .07);
+			opacity: 0;
+			transform: translateY(16px);
+			animation: stockCardReveal .5s var(--card-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards;
+			transition: transform .3s ease, box-shadow .3s ease;
+		}
+
+		.stock-card:hover {
+			transform: translateY(-5px);
+			box-shadow: 0 20px 46px rgba(5, 40, 95, .13);
+		}
+
+		.stock-card::after {
+			position: absolute;
+			top: -80px;
+			right: -80px;
+			width: 170px;
+			height: 170px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(8, 199, 212, .11), transparent 68%);
+			pointer-events: none;
+		}
+
+		.stock-card-content {
+			position: relative;
+			z-index: 2;
+		}
+
+		.medicine-icon {
+			display: flex;
+			flex: 0 0 48px;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			border-radius: 16px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 21px;
+		}
+
+		.stock-meta {
+			color: #6b7d8f;
+			font-size: 11px;
+			line-height: 1.55;
+		}
+
+		.stock-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 5px;
+			margin: 4px 4px 0 0;
+			padding: 6px 9px;
+			border-radius: 999px;
+			color: #526a7e;
+			background: #eef6f8;
+			font-size: 10px;
+			font-weight: 800;
+		}
+
+		.stock-stat-box {
+			padding: 12px;
+			border: 1px solid #e5eef2;
+			border-radius: 14px;
+			background: #f9fcfd;
+		}
+
+		.stock-stat-box small {
+			display: block;
+			margin-bottom: 3px;
+			color: #728496;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: .5px;
+			text-transform: uppercase;
+		}
+
+		.stock-stat-box strong {
+			color: #05285f;
+			font-size: 14px;
+		}
+
+		.stock-price {
+			color: #0f6f62;
+			font-size: 24px;
+			font-weight: 900;
+		}
+
+		.stock-status-row {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 7px;
+		}
+
+		.stock-status-pill {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			font-size: 10px;
+			font-weight: 900;
+		}
+
+		.stock-status-pill.success {
+			color: #0f5132;
+			background: #d1e7dd;
+		}
+
+		.stock-status-pill.warning {
+			color: #664d03;
+			background: #fff3cd;
+		}
+
+		.stock-status-pill.danger {
+			color: #842029;
+			background: #f8d7da;
+		}
+
+		.stock-status-pill.secondary {
+			color: #41464b;
+			background: #e2e3e5;
+		}
+
+		.stock-add-row {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) auto;
+			gap: 10px;
+			margin-top: 16px;
+		}
+
+		.stock-add-row .form-control {
+			min-height: 44px;
+			border-radius: 13px;
+		}
+
+		.retailer-state {
+			padding: 54px 20px;
+			text-align: center;
+		}
+
+		.retailer-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 72px;
+			height: 72px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 28px;
+			box-shadow: 0 15px 32px rgba(5, 40, 95, .17);
+		}
+
+		.retailer-loading-icon {
+			animation: retailerLoadingPulse 1.3s ease-in-out infinite;
+		}
+
+		@keyframes searchHeroReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes searchHeroFloat {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(25px) rotate(8deg);
+			}
+		}
+
+		@keyframes searchHeroIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-7px);
+			}
+		}
+
+		@keyframes stockCardReveal {
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes retailerLoadingPulse {
+
+			0%,
+			100% {
+				transform: scale(.94);
+				opacity: .72;
+			}
+
+			50% {
+				transform: scale(1.06);
+				opacity: 1;
+			}
+		}
+
+		@media (max-width: 1100px) {
+			.retailer-summary-grid {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+		}
+
+		@media (max-width: 992px) {
+			.retailer-search-hero {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.retailer-search-hero-action {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 768px) {
+			.retailer-section-header {
+				align-items: stretch;
+				flex-direction: column;
+			}
+
+			.retailer-sort-wrap {
+				width: 100%;
+				min-width: 0;
+			}
+		}
+
+		@media (max-width: 576px) {
+			.retailer-search-hero {
+				padding: 26px 21px;
+				border-radius: 24px;
+			}
+
+			.retailer-summary-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.stock-add-row {
+				grid-template-columns: 1fr;
+			}
+
+			.stock-add-row .btn {
+				width: 100%;
+			}
+		}
+	</style>
 </head>
 
-<body class="dashboard-body">
+<body class="dashboard-body platform-dashboard-body">
 
-	<div th:replace="~{layout/topnavbar :: topnavbar}"></div>
-	<div th:replace="~{layout/sidebar :: sidebar}"></div>
+	<div th:replace="~{layout/platform-topnavbar :: platformTopnavbar}"></div>
+	<div th:replace="~{layout/platform-sidebar :: platformSidebar}"></div>
 
-	<main class="mr-main">
+	<main class="mr-main platform-main retailer-search-page">
 
-		<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
-			<div>
-				<h1 class="mr-page-title">Search Medicines</h1>
-				<p class="mr-page-subtitle">
-					Search available medicines from verified wholesalers and compare stock, price and expiry.
+		<section class="retailer-search-hero">
+
+			<div class="retailer-search-hero-content">
+
+				<span class="retailer-search-kicker">
+					<i class="bi bi-search-heart-fill"></i>
+					Verified Medicine Marketplace
+				</span>
+
+				<h1>
+					Search
+					<span>medicines</span>
+				</h1>
+
+				<p>
+					Search medicines from verified wholesalers and compare
+					stock availability, price, GST, manufacturer and expiry.
 				</p>
+
+				<div class="retailer-search-meta">
+
+					<span>
+						<i class="bi bi-patch-check-fill"></i>
+						Verified wholesalers
+					</span>
+
+					<span>
+						<i class="bi bi-box-seam-fill"></i>
+						Live stock
+					</span>
+
+					<span>
+						<i class="bi bi-calendar-check-fill"></i>
+						Expiry validation
+					</span>
+
+				</div>
+
 			</div>
 
-			<a th:href="@{/retailer/cart}" class="btn btn-medi" style="width:auto;">
-				🛒 View Cart <span id="cartCountBadge" class="badge bg-light text-dark ms-1">0</span>
-			</a>
-		</div>
+			<div class="retailer-search-hero-action">
+
+				<div class="retailer-search-hero-icon">
+					<i class="bi bi-cart-check-fill"></i>
+				</div>
+
+				<strong>Retailer Cart</strong>
+
+				<a href="/retailer/cart" class="retailer-search-cart-button">
+
+					<i class="bi bi-cart-fill"></i>
+					View Cart
+
+					<span id="cartCountBadge" class="badge bg-danger">
+						0
+					</span>
+
+				</a>
+
+			</div>
+
+		</section>
 
 		<div id="msg"></div>
 
-		<div class="row g-4 mb-4">
+		<section class="retailer-summary-grid">
 
-			<div class="col-md-3">
-				<div class="mr-stat-card">
-					<div class="mr-stat-title">Search Results</div>
-					<div class="mr-stat-value" id="resultCount">0</div>
+			<article class="retailer-summary-card">
+
+				<div class="retailer-summary-icon">
+					<i class="bi bi-search"></i>
 				</div>
-			</div>
 
-			<div class="col-md-3">
-				<div class="mr-stat-card">
-					<div class="mr-stat-title">Available Stock</div>
-					<div class="mr-stat-value" id="availableStockCount">0</div>
+				<small>Search Results</small>
+				<strong id="resultCount">0</strong>
+
+			</article>
+
+			<article class="retailer-summary-card">
+
+				<div class="retailer-summary-icon">
+					<i class="bi bi-boxes"></i>
 				</div>
-			</div>
 
-			<div class="col-md-3">
-				<div class="mr-stat-card">
-					<div class="mr-stat-title">Cart Items</div>
-					<div class="mr-stat-value" id="cartCountCard">0</div>
+				<small>Available Stock</small>
+				<strong id="availableStockCount">0</strong>
+
+			</article>
+
+			<article class="retailer-summary-card">
+
+				<div class="retailer-summary-icon">
+					<i class="bi bi-cart-fill"></i>
 				</div>
-			</div>
 
-			<div class="col-md-3">
-				<div class="mr-stat-card">
-					<div class="mr-stat-title">Module</div>
-					<div class="mr-stat-value">Retail</div>
+				<small>Cart Items</small>
+				<strong id="cartCountCard">0</strong>
+
+			</article>
+
+			<article class="retailer-summary-card">
+
+				<div class="retailer-summary-icon">
+					<i class="bi bi-shop"></i>
 				</div>
+
+				<small>Module</small>
+				<strong>Retail</strong>
+
+			</article>
+
+		</section>
+
+		<section class="mr-card retailer-search-card mb-4">
+
+			<div class="retailer-section-header">
+
+				<div class="retailer-title-wrap">
+
+					<div class="retailer-title-icon">
+						<i class="bi bi-search"></i>
+					</div>
+
+					<div>
+						<small>Medicine Lookup</small>
+						<h5>Find Medicine</h5>
+					</div>
+
+				</div>
+
 			</div>
-
-		</div>
-
-		<div class="mr-card mb-4">
-
-			<h5 class="fw-bold text-primary mb-3">Find Medicine</h5>
 
 			<div class="row g-3 align-items-end">
 
-				<div class="col-md-8">
-					<label class="form-label">Medicine / Brand Name</label>
-					<input type="text" id="keyword" class="form-control"
-						placeholder="Search e.g. Dolo, Paracetamol, Azithromycin" onkeyup="searchOnEnter(event)">
+				<div class="col-lg-9">
+
+					<label for="keyword" class="form-label">
+						Medicine / Brand Name
+					</label>
+
+					<div class="retailer-search-control">
+
+						<i class="bi bi-capsule-pill"></i>
+
+						<input type="text" id="keyword" class="form-control"
+							placeholder="Search e.g. Dolo, Paracetamol, Azithromycin" onkeyup="searchOnEnter(event)">
+
+					</div>
+
 				</div>
 
-				<div class="col-md-4">
-					<button class="btn btn-medi" onclick="searchMedicineStock()">
+				<div class="col-lg-3">
+
+					<button type="button" id="searchMedicineBtn" class="btn btn-medi w-100"
+						onclick="searchMedicineStock()">
+
+						<i class="bi bi-search me-1"></i>
 						Search Medicine
 					</button>
+
 				</div>
 
 			</div>
 
-		</div>
+		</section>
 
-		<div class="mr-card">
+		<section class="mr-card retailer-results-card">
 
-			<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
-				<h5 class="fw-bold text-primary mb-0">Available Wholesaler Stock</h5>
+			<div class="retailer-section-header">
 
-				<select id="sortOption" class="form-select" style="max-width:260px;" onchange="sortResults()">
-					<option value="">Sort Results</option>
-					<option value="priceLow">Price Low to High</option>
-					<option value="priceHigh">Price High to Low</option>
-					<option value="qtyHigh">Quantity High to Low</option>
-					<option value="expiryFar">Expiry Far First</option>
-				</select>
-			</div>
+				<div class="retailer-title-wrap">
 
-			<div id="stockResultContainer" class="row g-4">
-				<div class="col-12">
-					<div class="text-center text-muted py-5">
-						Search medicine to view available stock.
+					<div class="retailer-title-icon">
+						<i class="bi bi-shop-window"></i>
 					</div>
+
+					<div>
+						<small>Verified Sellers</small>
+						<h5>Available Wholesaler Stock</h5>
+					</div>
+
 				</div>
+
+				<div class="retailer-sort-wrap">
+
+					<i class="bi bi-sort-down"></i>
+
+					<select id="sortOption" class="form-select" onchange="sortResults()">
+
+						<option value="">Sort Results</option>
+						<option value="priceLow">Price Low to High</option>
+						<option value="priceHigh">Price High to Low</option>
+						<option value="qtyHigh">Quantity High to Low</option>
+						<option value="expiryFar">Expiry Far First</option>
+					</select>
+
+				</div>
+
+			</div>
+
+			<div id="stockResultContainer" class="row g-4 retailer-stock-grid">
+
+				<div class="col-12">
+
+					<div class="retailer-state">
+
+						<div class="retailer-state-icon">
+							<i class="bi bi-search-heart-fill"></i>
+						</div>
+
+						<h5 class="fw-bold text-primary">
+							Search medicine stock
+						</h5>
+
+						<p class="text-muted mb-0">
+							Enter a medicine or brand name to view available wholesaler stock.
+						</p>
+
+					</div>
+
+				</div>
+
+			</div>
+
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
+
+	</main>
+
+	<div class="module-exit-overlay" id="moduleExitOverlay">
+
+		<div class="module-exit-content">
+
+			<div class="module-exit-icon">
+				<i class="bi bi-arrow-left-right"></i>
+			</div>
+
+			<h2>Switching Experience</h2>
+
+			<p>
+				Returning to MediRevolution module selection...
+			</p>
+
+			<div class="module-exit-progress">
+				<span></span>
 			</div>
 
 		</div>
-		<div th:replace="~{layout/footer :: footer}"></div>
-	</main>
+
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-	<script th:src="@{/js/common-dashboard.js}"></script>
-	<script th:src="@{/js/retailer-search-medicines.js?v=2}"></script>
 
+	<script th:src="@{/js/module-switch.js}"></script>
+	<script th:src="@{/js/common-dashboard.js}"></script>
+	<script th:src="@{/js/retailer-search-medicines.js?v=3}"></script>
 	<script th:src="@{/js/pwa.js}"></script>
+
 </body>
 
 </html>

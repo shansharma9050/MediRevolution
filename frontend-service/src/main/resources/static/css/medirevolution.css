@@ -115,6 +115,47 @@ body {
     text-decoration: none;
 }
 
+.notification-item {
+    background: #ffffff;
+    border: 1px solid #e3eef7;
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 14px;
+    box-shadow: 0 12px 30px rgba(5, 40, 95, 0.06);
+}
+
+.notification-unread {
+    border-left: 6px solid #05285f;
+    background: #f8fcff;
+}
+
+.notification-title {
+    font-weight: 700;
+    color: #05285f;
+    font-size: 16px;
+}
+
+.notification-time {
+    color: #6c757d;
+    font-size: 13px;
+}
+
+.priority-high {
+    border-left-color: #ff9800;
+}
+
+.priority-critical {
+    border-left-color: #dc3545;
+}
+
+.priority-medium {
+    border-left-color: #05285f;
+}
+
+.priority-low {
+    border-left-color: #6c757d;
+}
+
 .green-link:hover {
     color: var(--mr-green);
 }
@@ -155,13 +196,16 @@ body {
 
 .mr-sidebar {
     width: 270px;
+    height: calc(100vh - 72px);
     min-height: calc(100vh - 72px);
     background: white;
     box-shadow: 8px 0 30px rgba(5, 40, 95, 0.08);
     position: fixed;
     top: 72px;
     left: 0;
-    padding: 22px 14px;
+    padding: 22px 14px 45px;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .mr-sidebar a {
@@ -181,6 +225,24 @@ body {
 .mr-sidebar a.active {
     background: linear-gradient(90deg, rgba(8,199,212,0.15), rgba(123,214,0,0.12));
     color: var(--mr-blue);
+}
+
+.mr-sidebar::-webkit-scrollbar {
+    width: 7px;
+}
+
+.mr-sidebar::-webkit-scrollbar-track {
+    background: #f1f7fb;
+    border-radius: 20px;
+}
+
+.mr-sidebar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #05285f, #08c7d4);
+    border-radius: 20px;
+}
+
+.mr-sidebar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #05285f, #0577b8);
 }
 
 .mr-main {
@@ -442,6 +504,26 @@ body {
     margin-bottom: 8px;
 }
 
+
+.saas-module-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #e4f8ff, #e9ffe2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+}
+
+.mr-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 18px 45px rgba(5, 40, 95, 0.10);
+    border: 1px solid #e3eef7;
+}
 
 /*-------------------------------Login Page New Css-------------------------------------------------*/
 
@@ -1523,6 +1605,186 @@ body {
 }
 
 
+
+.subscription-current-card {
+    background: #ffffff;
+    border-radius: 22px;
+    padding: 28px;
+    box-shadow: 0 18px 45px rgba(5, 40, 95, 0.12);
+    border: 1px solid #e1edf7;
+    margin-top: 18px;
+}
+
+.subscription-current-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 26px;
+}
+
+.subscription-active-badge {
+    display: inline-block;
+    background: #d1f4dc;
+    color: #0d6b32;
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 900;
+    margin-bottom: 12px;
+}
+
+.subscription-current-card h2 {
+    color: #05285f;
+    font-size: 30px;
+    font-weight: 900;
+    margin: 0;
+}
+
+.subscription-current-card p {
+    color: #60748a;
+    margin: 6px 0 0;
+    font-weight: 700;
+}
+
+.subscription-status {
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.subscription-status.active {
+    background: #d1f4dc;
+    color: #0d6b32;
+}
+
+.subscription-status.inactive {
+    background: #f8d7da;
+    color: #842029;
+}
+
+.subscription-info-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+.subscription-info-item {
+    background: #eef9ff;
+    border: 1px solid #bcecf5;
+    border-radius: 16px;
+    padding: 18px;
+}
+
+.subscription-info-item span {
+    display: block;
+    color: #60748a;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.subscription-info-item strong {
+    color: #102033;
+    font-size: 15px;
+    font-weight: 900;
+    word-break: break-word;
+}
+
+.subscription-benefits {
+    background: #f8fcff;
+    border: 1px solid #e1edf7;
+    border-radius: 18px;
+    padding: 20px;
+}
+
+.subscription-benefits h5 {
+    color: #05285f;
+    font-weight: 900;
+    margin-bottom: 14px;
+}
+
+.benefit-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.benefit-item {
+    background: #ffffff;
+    border: 1px solid #e1edf7;
+    border-radius: 14px;
+    padding: 14px;
+    font-weight: 800;
+    color: #102033;
+}
+
+.benefit-item span {
+    margin-right: 6px;
+}
+
+.subscription-action-row {
+    margin-top: 26px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.subscription-empty-card {
+    background: #ffffff;
+    border-radius: 22px;
+    padding: 42px 28px;
+    text-align: center;
+    box-shadow: 0 18px 45px rgba(5, 40, 95, 0.12);
+    border: 1px solid #e1edf7;
+    margin-top: 18px;
+}
+
+.subscription-empty-icon {
+    width: 76px;
+    height: 76px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background: #eaf9ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+}
+
+.subscription-empty-card h3 {
+    color: #05285f;
+    font-weight: 900;
+    margin-bottom: 10px;
+}
+
+.subscription-empty-card p {
+    color: #60748a;
+    max-width: 520px;
+    margin: 0 auto 22px;
+}
+
+@media (max-width: 992px) {
+    .subscription-info-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .benefit-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .subscription-current-header {
+        flex-direction: column;
+    }
+
+    .subscription-info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* =========================================================
    FINAL RESPONSIVE FIX FOR LOGIN + REGISTER AUTH PAGES
    Paste this at the END of medirevolution.css
@@ -1920,5 +2182,769 @@ body {
     .btn-login,
     .btn-medi {
         font-size: 13px !important;
+    }
+}
+/* =============================================================================
+   MEDIREVOLUTION PROFESSIONAL UI & SAFE ANIMATION LAYER
+   Added as a non-breaking enhancement layer.
+   Existing selectors, IDs, layout widths, routes and JavaScript behavior remain unchanged.
+   ============================================================================= */
+
+:root {
+    --mr-surface: rgba(255, 255, 255, 0.94);
+    --mr-surface-soft: rgba(255, 255, 255, 0.76);
+    --mr-border-soft: rgba(8, 199, 212, 0.15);
+    --mr-shadow-sm: 0 10px 28px rgba(5, 40, 95, 0.08);
+    --mr-shadow-md: 0 18px 48px rgba(5, 40, 95, 0.13);
+    --mr-shadow-lg: 0 28px 80px rgba(5, 40, 95, 0.18);
+    --mr-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---------- Accessibility and motion safety ---------- */
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+    -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible {
+    outline: 3px solid rgba(8, 199, 212, 0.28);
+    outline-offset: 3px;
+}
+
+/* ---------- Shared page entrance ---------- */
+
+.dashboard-body .mr-main {
+    animation: mrPageReveal 0.7s var(--mr-ease) both;
+}
+
+.dashboard-body .mr-page-title,
+.dashboard-body .mr-page-subtitle {
+    animation: mrContentRise 0.62s var(--mr-ease) both;
+}
+
+.dashboard-body .mr-page-subtitle {
+    animation-delay: 80ms;
+}
+
+/* ---------- Navbar polish ---------- */
+
+.mr-navbar {
+    overflow: visible;
+    isolation: isolate;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.mr-navbar::after {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 1px;
+    content: "";
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.58),
+        transparent
+    );
+    opacity: 0.75;
+}
+
+.mr-navbar-brand,
+.mr-nav-logo,
+.mr-user-pill,
+.mobile-menu-btn {
+    transition:
+        transform 0.3s var(--mr-ease),
+        box-shadow 0.3s ease,
+        background-color 0.3s ease,
+        color 0.3s ease;
+}
+
+.mr-navbar-brand:hover {
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+.mr-navbar-brand:hover .mr-nav-logo {
+    transform: rotate(-4deg) scale(1.06);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.19);
+}
+
+.mr-nav-logo {
+    box-shadow: 0 7px 18px rgba(0, 0, 0, 0.13);
+}
+
+.mr-user-pill {
+    border: 1px solid rgba(255, 255, 255, 0.19);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.mobile-menu-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16);
+}
+
+/* ---------- Sidebar polish ---------- */
+
+.mr-sidebar {
+    z-index: 999;
+    border-right: 1px solid rgba(8, 199, 212, 0.09);
+}
+
+.mr-sidebar a {
+    position: relative;
+    overflow: hidden;
+    transform: translateZ(0);
+}
+
+.mr-sidebar a::before {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 4px;
+    height: 0;
+    border-radius: 0 8px 8px 0;
+    content: "";
+    background: linear-gradient(180deg, var(--mr-cyan), var(--mr-green));
+    transform: translateY(-50%);
+    transition: height 0.3s var(--mr-ease);
+}
+
+.mr-sidebar a::after {
+    position: absolute;
+    top: -45%;
+    left: -130%;
+    width: 70%;
+    height: 190%;
+    content: "";
+    background: linear-gradient(
+        110deg,
+        transparent,
+        rgba(255, 255, 255, 0.72),
+        transparent
+    );
+    transform: rotate(14deg);
+    transition: left 0.65s var(--mr-ease);
+    pointer-events: none;
+}
+
+.mr-sidebar a:hover,
+.mr-sidebar a.active {
+    transform: translateX(4px);
+    box-shadow: 0 9px 22px rgba(5, 40, 95, 0.07);
+}
+
+.mr-sidebar a:hover::before,
+.mr-sidebar a.active::before {
+    height: 55%;
+}
+
+.mr-sidebar a:hover::after {
+    left: 145%;
+}
+
+/* ---------- Cards ---------- */
+
+.mr-card,
+.mr-stat-card,
+.stock-card,
+.order-card,
+.appointment-profile-card,
+.subscription-current-card,
+.subscription-empty-card,
+.invoice-preview,
+.notification-item {
+    transform: translateZ(0);
+    transition:
+        transform 0.38s var(--mr-ease),
+        box-shadow 0.38s ease,
+        border-color 0.38s ease,
+        background-color 0.38s ease;
+}
+
+.mr-card:hover,
+.mr-stat-card:hover,
+.stock-card:hover,
+.order-card:hover,
+.appointment-profile-card:hover,
+.subscription-current-card:hover,
+.subscription-empty-card:hover {
+    border-color: rgba(8, 199, 212, 0.28);
+    box-shadow: var(--mr-shadow-md);
+}
+
+.mr-card:hover,
+.order-card:hover,
+.subscription-current-card:hover,
+.subscription-empty-card:hover {
+    transform: translateY(-4px);
+}
+
+.mr-stat-card {
+    isolation: isolate;
+}
+
+.mr-stat-card::after {
+    position: absolute;
+    top: -110px;
+    right: -110px;
+    z-index: -1;
+    width: 230px;
+    height: 230px;
+    border-radius: 50%;
+    content: "";
+    background: radial-gradient(
+        circle,
+        rgba(8, 199, 212, 0.14),
+        transparent 68%
+    );
+    transition: transform 0.55s var(--mr-ease);
+}
+
+.mr-stat-card:hover {
+    transform: translateY(-7px);
+}
+
+.mr-stat-card:hover::after {
+    transform: translate(-22px, 22px) scale(1.25);
+}
+
+.mr-stat-icon,
+.medicine-icon,
+.profile-avatar-circle,
+.saas-module-icon,
+.subscription-empty-icon {
+    transition:
+        transform 0.42s var(--mr-ease),
+        box-shadow 0.35s ease;
+}
+
+.mr-stat-card:hover .mr-stat-icon,
+.stock-card:hover .medicine-icon,
+.appointment-profile-card:hover .profile-avatar-circle,
+.mr-card:hover .saas-module-icon,
+.subscription-empty-card:hover .subscription-empty-icon {
+    transform: translateY(-5px) rotate(-4deg) scale(1.06);
+    box-shadow: 0 14px 30px rgba(5, 40, 95, 0.18);
+}
+
+/* ---------- Buttons and links ---------- */
+
+.btn-medi,
+.btn-login,
+.btn-medi-inline,
+.btn {
+    transition:
+        transform 0.28s var(--mr-ease),
+        box-shadow 0.28s ease,
+        filter 0.28s ease,
+        opacity 0.28s ease;
+}
+
+.btn-medi,
+.btn-login,
+.btn-medi-inline {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.btn-medi::before,
+.btn-login::before,
+.btn-medi-inline::before {
+    position: absolute;
+    top: -60%;
+    left: -45%;
+    z-index: -1;
+    width: 35%;
+    height: 220%;
+    content: "";
+    background: rgba(255, 255, 255, 0.32);
+    transform: rotate(20deg);
+    transition: left 0.65s var(--mr-ease);
+}
+
+.btn-medi:hover,
+.btn-login:hover,
+.btn-medi-inline:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 17px 34px rgba(5, 40, 95, 0.24);
+    filter: saturate(1.08);
+}
+
+.btn-medi:hover::before,
+.btn-login:hover::before,
+.btn-medi-inline:hover::before {
+    left: 125%;
+}
+
+.btn-medi:active,
+.btn-login:active,
+.btn-medi-inline:active,
+.btn:active {
+    transform: translateY(0) scale(0.985);
+}
+
+/* ---------- Forms ---------- */
+
+.form-control,
+.form-select {
+    background-color: rgba(255, 255, 255, 0.94);
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.25s ease,
+        transform 0.25s var(--mr-ease),
+        background-color 0.25s ease;
+}
+
+.form-control:hover,
+.form-select:hover {
+    border-color: rgba(8, 199, 212, 0.5);
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: #ffffff;
+    transform: translateY(-1px);
+}
+
+/* ---------- Tables ---------- */
+
+.table-responsive {
+    border-radius: 18px;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table > :not(caption) > * > * {
+    vertical-align: middle;
+}
+
+.table tbody tr {
+    transition:
+        background-color 0.22s ease,
+        transform 0.22s var(--mr-ease);
+}
+
+.table tbody tr:hover {
+    background-color: rgba(8, 199, 212, 0.055);
+}
+
+/* ---------- Notifications ---------- */
+
+.notification-item {
+    position: relative;
+    overflow: hidden;
+}
+
+.notification-item::after {
+    position: absolute;
+    top: -50px;
+    right: -50px;
+    width: 115px;
+    height: 115px;
+    border-radius: 50%;
+    content: "";
+    background: radial-gradient(
+        circle,
+        rgba(8, 199, 212, 0.12),
+        transparent 67%
+    );
+    transition: transform 0.4s var(--mr-ease);
+}
+
+.notification-item:hover {
+    transform: translateY(-3px);
+}
+
+.notification-item:hover::after {
+    transform: translate(-15px, 15px) scale(1.18);
+}
+
+.live-toast {
+    animation: mrToastIn 0.48s var(--mr-ease) both;
+}
+
+/* ---------- Order timeline ---------- */
+
+.timeline-dot {
+    transition:
+        transform 0.3s var(--mr-ease),
+        box-shadow 0.3s ease;
+}
+
+.timeline-step.active .timeline-dot,
+.timeline-step.delivered .timeline-dot {
+    animation: mrTimelinePulse 2.2s ease-in-out infinite;
+}
+
+.timeline-step:hover .timeline-dot {
+    transform: translateY(-3px) scale(1.08);
+}
+
+/* ---------- Profile and previews ---------- */
+
+.profile-logo-preview {
+    transition:
+        transform 0.38s var(--mr-ease),
+        box-shadow 0.38s ease;
+}
+
+.profile-logo-preview:hover {
+    transform: scale(1.035) rotate(-1deg);
+    box-shadow: 0 20px 45px rgba(5, 40, 95, 0.17);
+}
+
+/* ---------- Auth page safe enhancements ---------- */
+
+.login-page .auth-left,
+.auth-page .auth-left {
+    position: relative;
+    overflow: hidden;
+}
+
+.login-page .auth-left::before,
+.auth-page .auth-left::before {
+    position: absolute;
+    top: -180px;
+    right: -130px;
+    width: 430px;
+    height: 430px;
+    border: 70px solid rgba(255, 255, 255, 0.055);
+    border-radius: 50%;
+    content: "";
+    animation: mrAuthOrb 10s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.login-page .auth-left::after,
+.auth-page .auth-left::after {
+    position: absolute;
+    bottom: -210px;
+    left: -140px;
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    content: "";
+    background: radial-gradient(
+        circle,
+        rgba(123, 214, 0, 0.22),
+        transparent 67%
+    );
+    animation: mrAuthOrb 12s ease-in-out infinite reverse;
+    pointer-events: none;
+}
+
+.login-page .auth-left-content,
+.auth-page .auth-left-content,
+.login-page .auth-card,
+.auth-page .auth-card {
+    position: relative;
+    z-index: 1;
+}
+
+.login-page .auth-card,
+.auth-page .auth-card {
+    animation: mrAuthCardReveal 0.75s var(--mr-ease) both;
+}
+
+.login-page .hero-logo,
+.auth-page .hero-logo,
+.login-page .auth-logo-small,
+.auth-page .auth-logo-small {
+    transition:
+        transform 0.4s var(--mr-ease),
+        box-shadow 0.4s ease;
+}
+
+.login-page .hero-logo:hover,
+.auth-page .hero-logo:hover,
+.login-page .auth-logo-small:hover,
+.auth-page .auth-logo-small:hover {
+    transform: translateY(-4px) rotate(-2deg) scale(1.025);
+}
+
+/* ---------- Dropdown and registration ---------- */
+
+.registered-patient-dropdown {
+    animation: mrDropdownReveal 0.24s var(--mr-ease) both;
+}
+
+.registered-patient-item {
+    transition:
+        background-color 0.22s ease,
+        padding-left 0.22s var(--mr-ease);
+}
+
+.registered-patient-item:hover {
+    padding-left: 18px;
+}
+
+.register-steps .step.active {
+    animation: mrStepPulse 1.9s ease-in-out infinite;
+}
+
+/* ---------- Subscription ---------- */
+
+.subscription-info-item,
+.benefit-item,
+.report-summary-item {
+    transition:
+        transform 0.3s var(--mr-ease),
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+}
+
+.subscription-info-item:hover,
+.benefit-item:hover,
+.report-summary-item:hover {
+    transform: translateY(-4px);
+    border-color: rgba(8, 199, 212, 0.3);
+    box-shadow: var(--mr-shadow-sm);
+}
+
+/* ---------- Reusable animation utility classes ---------- */
+
+.mr-animate {
+    opacity: 0;
+    transform: translateY(22px);
+    animation: mrContentRise 0.68s var(--mr-ease) forwards;
+}
+
+.mr-animate-delay-1 {
+    animation-delay: 90ms;
+}
+
+.mr-animate-delay-2 {
+    animation-delay: 180ms;
+}
+
+.mr-animate-delay-3 {
+    animation-delay: 270ms;
+}
+
+.mr-animate-delay-4 {
+    animation-delay: 360ms;
+}
+
+.mr-float {
+    animation: mrGentleFloat 4s ease-in-out infinite;
+}
+
+.mr-pulse {
+    animation: mrSoftPulse 2.1s ease-in-out infinite;
+}
+
+/* ---------- Mobile stability fixes ---------- */
+
+@media (max-width: 768px) {
+    /*
+     * Earlier global `.d-flex { flex-wrap: wrap !important; }` can break fixed
+     * navbars. Keep wrapping for page content but preserve navbar structure.
+     */
+    .mr-navbar .d-flex {
+        flex-wrap: nowrap !important;
+    }
+
+    .mr-navbar {
+        overflow: visible !important;
+    }
+
+    .mr-navbar-brand {
+        flex: 0 1 auto;
+    }
+
+    .mr-navbar .btn,
+    .mr-navbar button,
+    .mr-navbar a {
+        flex-shrink: 0;
+    }
+
+    .mr-card:hover,
+    .mr-stat-card:hover,
+    .stock-card:hover,
+    .order-card:hover,
+    .appointment-profile-card:hover,
+    .subscription-current-card:hover,
+    .subscription-empty-card:hover {
+        transform: none;
+    }
+
+    .mr-sidebar a:hover,
+    .mr-sidebar a.active {
+        transform: none;
+    }
+}
+
+@media (max-width: 576px) {
+    .live-toast {
+        right: 12px;
+        left: 12px;
+        width: auto;
+    }
+
+    .notification-item,
+    .mr-card,
+    .mr-stat-card,
+    .order-card,
+    .stock-card {
+        box-shadow: 0 10px 28px rgba(5, 40, 95, 0.09);
+    }
+}
+
+/* ---------- Keyframes ---------- */
+
+@keyframes mrPageReveal {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes mrContentRise {
+    from {
+        opacity: 0;
+        transform: translateY(22px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes mrToastIn {
+    from {
+        opacity: 0;
+        transform: translateX(26px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes mrTimelinePulse {
+    0%,
+    100% {
+        box-shadow: 0 4px 14px rgba(5, 40, 95, 0.12);
+    }
+
+    50% {
+        box-shadow: 0 0 0 8px rgba(8, 199, 212, 0.1);
+    }
+}
+
+@keyframes mrAuthOrb {
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+
+    50% {
+        transform: translate3d(-28px, 24px, 0) rotate(8deg);
+    }
+}
+
+@keyframes mrAuthCardReveal {
+    from {
+        opacity: 0;
+        transform: translateY(28px) scale(0.975);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes mrDropdownReveal {
+    from {
+        opacity: 0;
+        transform: translateY(-8px) scale(0.985);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes mrStepPulse {
+    0%,
+    100% {
+        box-shadow: 0 8px 22px rgba(3, 191, 215, 0.24);
+    }
+
+    50% {
+        box-shadow: 0 8px 30px rgba(3, 191, 215, 0.48);
+    }
+}
+
+@keyframes mrGentleFloat {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-7px);
+    }
+}
+
+@keyframes mrSoftPulse {
+    0%,
+    100% {
+        opacity: 0.78;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.035);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
     }
 }

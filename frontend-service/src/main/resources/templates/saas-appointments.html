@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+
+	<title>MediRevolution | SaaS Appointments</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link rel="manifest" href="/manifest.json">
+
+	<meta name="theme-color" content="#05285f">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
+
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.saas-appointments-page {
+			position: relative;
+		}
+
+		.saas-appointments-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 235px;
+			margin-bottom: 28px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg, #05285f 0%, #08739f 48%, #08c7d4 100%);
+			box-shadow: 0 25px 65px rgba(5, 40, 95, .22);
+			animation: saasAppointmentHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.saas-appointments-hero::before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation: saasAppointmentHeroFloat 9s ease-in-out infinite;
+		}
+
+		.saas-appointments-hero::after {
+			position: absolute;
+			bottom: -180px;
+			left: 28%;
+			width: 360px;
+			height: 360px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(123, 214, 0, .23), transparent 68%);
+		}
+
+		.saas-appointments-hero-content,
+		.saas-appointments-hero-action {
+			position: relative;
+			z-index: 2;
+		}
+
+		.saas-appointments-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.saas-appointments-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px;
+		}
+
+		.saas-appointments-hero h1 span {
+			color: #b8f267;
+		}
+
+		.saas-appointments-hero p {
+			max-width: 760px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .8);
+			line-height: 1.75;
+		}
+
+		.saas-appointments-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px;
+		}
+
+		.saas-appointments-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.saas-appointments-hero-action {
+			display: flex;
+			min-width: 220px;
+			flex-direction: column;
+			align-items: center;
+			padding: 22px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px);
+		}
+
+		.saas-appointments-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 68px;
+			height: 68px;
+			margin-bottom: 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 28px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+			animation: saasAppointmentIconFloat 3s ease-in-out infinite;
+		}
+
+		.saas-appointments-create-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 46px;
+			margin-top: 13px;
+			padding: 0 18px;
+			border: none;
+			border-radius: 15px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 12px;
+			font-weight: 800;
+			transition: transform .3s ease, box-shadow .3s ease;
+		}
+
+		.saas-appointments-create-button:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 14px 30px rgba(0, 0, 0, .18);
+		}
+
+		.saas-appointments-summary-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px;
+		}
+
+		.saas-appointments-summary-card {
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .96);
+			box-shadow: 0 14px 35px rgba(5, 40, 95, .08);
+			transition: transform .35s ease, box-shadow .35s ease;
+		}
+
+		.saas-appointments-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 22px 48px rgba(5, 40, 95, .14);
+		}
+
+		.saas-appointments-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+		}
+
+		.saas-appointments-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700;
+		}
+
+		.saas-appointments-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 29px;
+			font-weight: 900;
+		}
+
+		.saas-appointments-list-card {
+			position: relative;
+			overflow: hidden;
+		}
+
+		.saas-appointments-list-card::after {
+			position: absolute;
+			top: -90px;
+			right: -90px;
+			width: 190px;
+			height: 190px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(8, 199, 212, .1), transparent 68%);
+			pointer-events: none;
+		}
+
+		.saas-appointments-section-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5;
+		}
+
+		.saas-appointments-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px;
+		}
+
+		.saas-appointments-title-icon {
+			display: flex;
+			flex: 0 0 46px;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+			box-shadow: 0 12px 26px rgba(5, 40, 95, .16);
+		}
+
+		.saas-appointments-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		.saas-appointments-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.saas-appointments-filter-group {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+		}
+
+		.saas-appointments-filter-wrap {
+			position: relative;
+			min-width: 190px;
+		}
+
+		.saas-appointments-filter-wrap i {
+			position: absolute;
+			top: 50%;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			transform: translateY(-50%);
+			pointer-events: none;
+		}
+
+		.saas-appointments-filter-wrap .form-select,
+		.saas-appointments-filter-wrap .form-control {
+			padding-left: 41px;
+		}
+
+		.saas-appointments-table-wrap {
+			position: relative;
+			z-index: 2;
+			overflow: hidden;
+			border: 1px solid #e6eef4;
+			border-radius: 18px;
+		}
+
+		.saas-appointments-table-wrap table {
+			margin-bottom: 0;
+		}
+
+		.saas-appointments-table-wrap thead th {
+			padding: 15px 16px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 12px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.saas-appointments-table-wrap tbody td {
+			padding: 15px 16px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 13px;
+			vertical-align: middle;
+		}
+
+		.saas-appointments-table-wrap tbody tr {
+			opacity: 0;
+			transform: translateY(12px);
+			animation: saasAppointmentRowReveal .45s var(--row-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards;
+		}
+
+		.saas-appointment-person {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+
+		.saas-appointment-person-icon {
+			display: flex;
+			flex: 0 0 40px;
+			align-items: center;
+			justify-content: center;
+			width: 40px;
+			height: 40px;
+			border-radius: 13px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 16px;
+		}
+
+		.saas-appointment-type-pill,
+		.saas-appointment-status-pill {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			font-size: 10px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.saas-appointment-type-pill {
+			color: #05285f;
+			background: #e8f7fb;
+		}
+
+		.saas-appointment-status-pill.pending {
+			color: #664d03;
+			background: #fff3cd;
+		}
+
+		.saas-appointment-status-pill.confirmed {
+			color: #0f5132;
+			background: #d1e7dd;
+		}
+
+		.saas-appointment-status-pill.completed {
+			color: #084298;
+			background: #cfe2ff;
+		}
+
+		.saas-appointment-status-pill.rejected,
+		.saas-appointment-status-pill.payment-failed {
+			color: #842029;
+			background: #f8d7da;
+		}
+
+		.saas-appointment-status-pill.cancelled {
+			color: #41464b;
+			background: #e2e3e5;
+		}
+
+		.saas-appointment-status-pill.payment-pending {
+			color: #664d03;
+			background: #fff3cd;
+		}
+
+		.saas-appointment-actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 7px;
+		}
+
+		.saas-appointment-meeting-link {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border: 1px solid #9fd8c2;
+			border-radius: 11px;
+			color: #0f6b50;
+			background: #f0fff8;
+			font-size: 11px;
+			font-weight: 800;
+			text-decoration: none;
+		}
+
+		.saas-appointment-meeting-link:hover {
+			color: #084a37;
+			background: #e2fff1;
+		}
+
+		.saas-appointments-state {
+			padding: 54px 20px;
+			text-align: center;
+		}
+
+		.saas-appointments-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 72px;
+			height: 72px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 28px;
+			box-shadow: 0 15px 32px rgba(5, 40, 95, .17);
+		}
+
+		.saas-appointments-loading-icon {
+			animation: saasAppointmentLoadingPulse 1.3s ease-in-out infinite;
+		}
+
+		.saas-appointment-modal .modal-content {
+			overflow: hidden;
+			border: none;
+			border-radius: 26px;
+			box-shadow: 0 28px 75px rgba(5, 40, 95, .22);
+		}
+
+		.saas-appointment-modal .modal-header {
+			padding: 21px 24px;
+			color: #ffffff;
+			border-bottom: none;
+			background: linear-gradient(135deg, #05285f, #087aa3);
+		}
+
+		.saas-appointment-modal .modal-title {
+			font-weight: 900;
+		}
+
+		.saas-appointment-modal .btn-close {
+			filter: invert(1);
+		}
+
+		.saas-appointment-modal .modal-body {
+			padding: 25px;
+		}
+
+		.saas-appointment-modal .modal-footer {
+			padding: 18px 24px;
+			border-top: 1px solid #e8f1f5;
+			background: #f8fbfc;
+		}
+
+		.saas-appointment-control-wrap {
+			position: relative;
+		}
+
+		.saas-appointment-control-wrap>i {
+			position: absolute;
+			top: 39px;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			pointer-events: none;
+		}
+
+		.saas-appointment-control-wrap .form-control,
+		.saas-appointment-control-wrap .form-select {
+			padding-left: 41px;
+		}
+
+		.saas-appointment-form-note {
+			display: flex;
+			align-items: flex-start;
+			gap: 10px;
+			margin-top: 18px;
+			padding: 14px 16px;
+			border: 1px solid #cfe7ef;
+			border-radius: 15px;
+			color: #526f80;
+			background: #f2fbfd;
+			font-size: 12px;
+			line-height: 1.6;
+		}
+
+		@keyframes saasAppointmentHeroReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes saasAppointmentHeroFloat {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(25px) rotate(8deg);
+			}
+		}
+
+		@keyframes saasAppointmentIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-7px);
+			}
+		}
+
+		@keyframes saasAppointmentRowReveal {
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes saasAppointmentLoadingPulse {
+
+			0%,
+			100% {
+				transform: scale(.94);
+				opacity: .72;
+			}
+
+			50% {
+				transform: scale(1.06);
+				opacity: 1;
+			}
+		}
+
+		@media (max-width: 1150px) {
+			.saas-appointments-summary-grid {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+		}
+
+		@media (max-width: 992px) {
+			.saas-appointments-hero {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.saas-appointments-hero-action {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 768px) {
+			.saas-appointments-section-header {
+				align-items: stretch;
+				flex-direction: column;
+			}
+
+			.saas-appointments-filter-group,
+			.saas-appointments-filter-wrap {
+				width: 100%;
+			}
+
+			.saas-appointments-filter-wrap {
+				min-width: 0;
+			}
+		}
+
+		@media (max-width: 576px) {
+			.saas-appointments-hero {
+				padding: 26px 21px;
+				border-radius: 24px;
+			}
+
+			.saas-appointments-summary-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.saas-appointment-modal .modal-body {
+				padding: 20px 16px;
+			}
+
+			.saas-appointment-modal .modal-footer {
+				align-items: stretch;
+				flex-direction: column-reverse;
+			}
+
+			.saas-appointment-modal .modal-footer .btn {
+				width: 100% !important;
+			}
+		}
+	</style>
+</head>
+
+<body class="dashboard-body saas-dashboard-body">
+
+	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
+	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
+
+	<main class="mr-main saas-main saas-appointments-page">
+
+		<section class="saas-appointments-hero">
+
+			<div class="saas-appointments-hero-content">
+
+				<span class="saas-appointments-kicker">
+					<i class="bi bi-calendar2-check-fill"></i>
+					SaaS Clinical Scheduling
+				</span>
+
+				<h1>
+					SaaS
+					<span>appointments</span>
+				</h1>
+
+				<p>
+					Manage OPD, IPD and online appointments for
+					<strong id="tenantNameText">your workspace</strong>.
+				</p>
+
+				<div class="saas-appointments-meta">
+
+					<span>
+						<i class="bi bi-person-vcard-fill"></i>
+						Patient scheduling
+					</span>
+
+					<span>
+						<i class="bi bi-person-badge-fill"></i>
+						Doctor availability
+					</span>
+
+					<span>
+						<i class="bi bi-camera-video-fill"></i>
+						Online consultation
+					</span>
+
+				</div>
+
+			</div>
+
+			<div class="saas-appointments-hero-action">
+
+				<div class="saas-appointments-hero-icon">
+					<i class="bi bi-calendar-plus-fill"></i>
+				</div>
+
+				<strong>New Appointment</strong>
+
+				<button type="button" id="addAppointmentBtn" class="saas-appointments-create-button"
+					onclick="openCreateAppointmentModal()">
+
+					<i class="bi bi-plus-circle-fill"></i>
+					Book Appointment
+				</button>
+
+			</div>
+
+		</section>
+
+		<div id="msg"></div>
+
+		<section class="saas-appointments-summary-grid">
+
+			<article class="saas-appointments-summary-card">
+
+				<div class="saas-appointments-summary-icon">
+					<i class="bi bi-calendar3"></i>
+				</div>
+
+				<small>Total Appointments</small>
+				<strong id="totalAppointments">0</strong>
+
+			</article>
+
+			<article class="saas-appointments-summary-card">
+
+				<div class="saas-appointments-summary-icon">
+					<i class="bi bi-hourglass-split"></i>
+				</div>
+
+				<small>Pending</small>
+				<strong id="pendingAppointments">0</strong>
+
+			</article>
+
+			<article class="saas-appointments-summary-card">
+
+				<div class="saas-appointments-summary-icon">
+					<i class="bi bi-check2-circle"></i>
+				</div>
+
+				<small>Confirmed</small>
+				<strong id="confirmedAppointments">0</strong>
+
+			</article>
+
+			<article class="saas-appointments-summary-card">
+
+				<div class="saas-appointments-summary-icon">
+					<i class="bi bi-clipboard2-check-fill"></i>
+				</div>
+
+				<small>Completed</small>
+				<strong id="completedAppointments">0</strong>
+
+			</article>
+
+		</section>
+
+		<section class="mr-card saas-appointments-list-card">
+
+			<div class="saas-appointments-section-header">
+
+				<div class="saas-appointments-title-wrap">
+
+					<div class="saas-appointments-title-icon">
+						<i class="bi bi-calendar-week-fill"></i>
+					</div>
+
+					<div>
+						<small>Workspace Schedule</small>
+						<h5>Appointment Register</h5>
+					</div>
+
+				</div>
+
+				<div class="saas-appointments-filter-group">
+
+					<div class="saas-appointments-filter-wrap">
+
+						<i class="bi bi-funnel-fill"></i>
+
+						<select id="appointmentStatusFilter" class="form-select" onchange="filterAppointments()">
+
+							<option value="">All Status</option>
+							<option value="PENDING">Pending</option>
+							<option value="PAYMENT_PENDING">Payment Pending</option>
+							<option value="CONFIRMED">Confirmed</option>
+							<option value="COMPLETED">Completed</option>
+							<option value="REJECTED">Rejected</option>
+							<option value="CANCELLED">Cancelled</option>
+						</select>
+
+					</div>
+
+					<div class="saas-appointments-filter-wrap">
+
+						<i class="bi bi-search"></i>
+
+						<input type="text" id="appointmentSearchBox" class="form-control"
+							placeholder="Search patient or doctor" oninput="filterAppointments()">
+
+					</div>
+
+					<button type="button" id="refreshAppointmentsBtn" class="btn btn-outline-primary"
+						onclick="loadAppointments()">
+
+						<i class="bi bi-arrow-clockwise me-1"></i>
+						Refresh
+					</button>
+
+				</div>
+
+			</div>
+
+			<div class="table-responsive saas-appointments-table-wrap">
+
+				<table class="table table-hover align-middle">
+
+					<thead>
+						<tr>
+							<th>Date / Time</th>
+							<th>Patient</th>
+							<th>Doctor</th>
+							<th>Type</th>
+							<th>Status</th>
+							<th>Meeting</th>
+							<th style="width: 280px;">Action</th>
+						</tr>
+					</thead>
+
+					<tbody id="appointmentsTableBody">
+
+						<tr>
+							<td colspan="7">
+
+								<div class="saas-appointments-state">
+
+									<div class="saas-appointments-state-icon saas-appointments-loading-icon">
+										<i class="bi bi-calendar2-check-fill"></i>
+									</div>
+
+									<h5 class="fw-bold text-primary">
+										Loading appointments
+									</h5>
+
+									<p class="text-muted mb-0">
+										Please wait while we prepare the workspace schedule.
+									</p>
+
+								</div>
+
+							</td>
+						</tr>
+
+					</tbody>
+
+				</table>
+
+			</div>
+
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
+
+	</main>
+
+	<div class="modal fade saas-appointment-modal" id="appointmentModal" tabindex="-1"
+		aria-labelledby="appointmentModalTitle" aria-hidden="true">
+
+		<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+
+			<div class="modal-content">
+
+				<div class="modal-header">
+
+					<div>
+
+						<div class="small text-white-50 fw-bold text-uppercase mb-1">
+							SaaS Appointment Form
+						</div>
+
+						<h5 class="modal-title" id="appointmentModalTitle">
+							Book Appointment
+						</h5>
+
+					</div>
+
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+				</div>
+
+				<div class="modal-body">
+
+					<input type="hidden" id="appointmentId">
+
+					<div class="row g-3">
+
+						<div class="col-lg-4 saas-appointment-control-wrap">
+
+							<label for="patientId" class="form-label">
+								Patient *
+							</label>
+
+							<i class="bi bi-person-fill"></i>
+
+							<select id="patientId" class="form-select">
+
+								<option value="">Select Patient</option>
+							</select>
+
+						</div>
+
+						<div class="col-lg-4 saas-appointment-control-wrap">
+
+							<label for="doctorStaffId" class="form-label">
+								Doctor *
+							</label>
+
+							<i class="bi bi-person-badge-fill"></i>
+
+							<select id="doctorStaffId" class="form-select" onchange="handleDoctorSelectionChange()">
+
+								<option value="">Select Doctor</option>
+							</select>
+
+						</div>
+
+						<div class="col-lg-4 saas-appointment-control-wrap">
+
+							<label for="appointmentType" class="form-label">
+								Appointment Type *
+							</label>
+
+							<i class="bi bi-ui-checks-grid"></i>
+
+							<select id="appointmentType" class="form-select" onchange="handleAppointmentTypeChange()">
+
+								<option value="OPD">OPD</option>
+								<option value="IPD">IPD</option>
+								<option value="ONLINE">Online</option>
+							</select>
+
+						</div>
+
+						<div class="col-lg-4 saas-appointment-control-wrap">
+
+							<label for="appointmentDate" class="form-label">
+								Date *
+							</label>
+
+							<i class="bi bi-calendar-event-fill"></i>
+
+							<input type="date" id="appointmentDate" class="form-control"
+								onchange="loadDoctorSlotsForAppointment()">
+
+						</div>
+
+						<div class="col-lg-4 saas-appointment-control-wrap">
+
+							<label for="appointmentTime" class="form-label">
+								Available Slot *
+							</label>
+
+							<i class="bi bi-clock-fill"></i>
+
+							<select id="appointmentTime" class="form-select">
+
+								<option value="">
+									Select doctor and date first
+								</option>
+							</select>
+
+						</div>
+
+						<div class="col-lg-4">
+
+							<label class="form-label">
+								Quick Links
+							</label>
+
+							<div class="d-flex gap-2">
+
+								<a href="/saas/patients" class="btn btn-outline-primary w-50">
+
+									<i class="bi bi-people-fill me-1"></i>
+									Patients
+								</a>
+
+								<a href="/saas/doctors" class="btn btn-outline-primary w-50">
+
+									<i class="bi bi-person-badge-fill me-1"></i>
+									Doctors
+								</a>
+
+							</div>
+
+						</div>
+
+						<div class="col-lg-6">
+
+							<label for="symptoms" class="form-label">
+								Symptoms
+							</label>
+
+							<textarea id="symptoms" class="form-control" rows="4"
+								placeholder="Enter patient symptoms"></textarea>
+
+						</div>
+
+						<div class="col-lg-6">
+
+							<label for="notes" class="form-label">
+								Notes
+							</label>
+
+							<textarea id="notes" class="form-control" rows="4"
+								placeholder="Enter internal appointment notes"></textarea>
+
+						</div>
+
+					</div>
+
+					<div id="selectedDoctorInfo" class="saas-appointment-form-note" style="display:none;">
+
+						<i class="bi bi-info-circle-fill text-primary"></i>
+
+						<div id="selectedDoctorInfoText"></div>
+
+					</div>
+
+					<div class="saas-appointment-form-note">
+
+						<i class="bi bi-calendar2-week-fill text-primary"></i>
+
+						<div>
+							Slots are generated from doctor availability.
+							If no slots are visible, first add availability for the selected doctor.
+						</div>
+
+					</div>
+
+				</div>
+
+				<div class="modal-footer">
+
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+
+						Close
+					</button>
+
+					<button type="button" id="saveAppointmentBtn" class="btn btn-medi" style="width:auto;"
+						onclick="saveAppointment()">
+
+						<i class="bi bi-check2-circle me-1"></i>
+						Save Appointment
+					</button>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+	<div class="module-exit-overlay" id="moduleExitOverlay">
+
+		<div class="module-exit-content">
+
+			<div class="module-exit-icon">
+				<i class="bi bi-arrow-left-right"></i>
+			</div>
+
+			<h2>Switching Experience</h2>
+
+			<p>
+				Returning to MediRevolution module selection...
+			</p>
+
+			<div class="module-exit-progress">
+				<span></span>
+			</div>
+
+		</div>
+
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script th:src="@{/js/common-dashboard.js?v=20260708_3}"></script>
+	<script th:src="@{/js/module-switch.js}"></script>
+	<script th:src="@{/js/saas-auth-guard.js}"></script>
+	<script th:src="@{/js/saas-appointments.js?v=20260713_1}"></script>
+	<script th:src="@{/js/pwa.js}"></script>
+
+</body>
+
+</html>

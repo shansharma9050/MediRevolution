@@ -1,29 +1,54 @@
 document.addEventListener("DOMContentLoaded", function() {
-
 	applyRoleVisibility();
-
+	bindInvoiceEnterKey();
 });
 
 function applyRoleVisibility() {
-
 	const role =
 		localStorage.getItem("role");
 
-	if (role !== "WHOLESALER") {
+	const generateButton =
+		document.getElementById(
+			"generateBtn"
+		);
 
-		document
-			.getElementById("generateBtn")
-			.style.display = "none";
+	if (
+		generateButton &&
+		role !== "WHOLESALER"
+	) {
+		generateButton.style.display =
+			"none";
 	}
 }
 
-async function generateInvoice() {
+function bindInvoiceEnterKey() {
+	const orderInput =
+		document.getElementById(
+			"invoiceOrderId"
+		);
 
+	if (!orderInput) {
+		return;
+	}
+
+	orderInput.addEventListener(
+		"keydown",
+		function(event) {
+
+			if (event.key === "Enter") {
+				event.preventDefault();
+				loadInvoice();
+			}
+
+		}
+	);
+}
+
+async function generateInvoice() {
 	const orderNo =
-		document.getElementById("invoiceOrderId").value;
+		getInvoiceOrderNumber();
 
 	if (!orderNo) {
-
 		showInvoiceMessage(
 			"Order ID required"
 		);
@@ -34,11 +59,16 @@ async function generateInvoice() {
 	const token =
 		localStorage.getItem("token");
 
-	try {
+	setButtonLoading(
+		"generateBtn",
+		"Generating...",
+		true
+	);
 
+	try {
 		const response =
 			await fetch(
-				`${API_BASE}/billing/invoice/order/${orderNo}`,
+				`${API_BASE}/billing/invoice/order/${encodeURIComponent(orderNo)}`,
 				{
 					method: "POST",
 
@@ -50,13 +80,14 @@ async function generateInvoice() {
 			);
 
 		const result =
-			await response.json();
+			await readJsonSafely(response);
 
 		if (!response.ok) {
-
 			showInvoiceMessage(
-				result.message ||
-				"Unable to generate invoice"
+				getErrorMessage(
+					result,
+					"Unable to generate invoice"
+				)
 			);
 
 			return;
@@ -67,22 +98,32 @@ async function generateInvoice() {
 			"success"
 		);
 
-		loadInvoice();
+		await loadInvoice();
 
 	} catch (e) {
+		console.error(
+			"Generate invoice error:",
+			e
+		);
 
 		showInvoiceMessage(
 			"Billing service unavailable"
+		);
+
+	} finally {
+		setButtonLoading(
+			"generateBtn",
+			"Generate Invoice",
+			false
 		);
 	}
 }
 
 async function loadInvoice() {
-
-	const orderNo =document.getElementById("invoiceOrderId").value;
+	const orderNo =
+		getInvoiceOrderNumber();
 
 	if (!orderNo) {
-
 		showInvoiceMessage(
 			"Order ID required"
 		);
@@ -93,11 +134,18 @@ async function loadInvoice() {
 	const token =
 		localStorage.getItem("token");
 
-	try {
+	showInvoiceLoadingState();
 
+	setButtonLoading(
+		"viewInvoiceBtn",
+		"Loading...",
+		true
+	);
+
+	try {
 		const response =
 			await fetch(
-				`${API_BASE}/billing/invoice/order/${orderNo}`,
+				`${API_BASE}/billing/invoice/order/${encodeURIComponent(orderNo)}`,
 				{
 					headers: {
 						"Authorization":
@@ -107,13 +155,21 @@ async function loadInvoice() {
 			);
 
 		const invoice =
-			await response.json();
+			await readJsonSafely(response);
 
 		if (!response.ok) {
+			showInvoiceErrorState(
+				getErrorMessage(
+					invoice,
+					"Invoice not found"
+				)
+			);
 
 			showInvoiceMessage(
-				invoice.message ||
-				"Invoice not found"
+				getErrorMessage(
+					invoice,
+					"Invoice not found"
+				)
 			);
 
 			return;
@@ -122,6 +178,239 @@ async function loadInvoice() {
 		renderInvoice(invoice);
 
 	} catch (e) {
+		console.error(
+			"Load invoice error:",
+			e
+		);
+
+		showInvoiceErrorState(
+			"Billing service unavailable"
+		);
+
+		showInvoiceMessage(
+			"Billing service unavailable"
+		);
+
+	} finally {
+		setButtonLoading(
+			"viewInvoiceBtn",
+			"View Invoice",
+			false
+		);
+	}
+}
+
+function renderInvoice(invoice) {
+	const container =
+		document.getElementById(
+			"invoiceContainer"
+		);
+
+	if (!container) {
+		return;
+	}
+
+	container.innerHTML = `
+		<div class="invoice-preview-shell">
+
+			<div class="invoice-preview-top">
+
+				<div class="d-flex justify-content-between align-items-start gap-4">
+
+					<div class="invoice-preview-brand">
+
+						<img src="/images/logo.png"
+							 class="invoice-preview-logo"
+							 alt="MediRevolution logo">
+
+						<div>
+							<div class="invoice-preview-title">
+								MediRevolution
+							</div>
+
+							<div class="invoice-preview-subtitle">
+								Digital Healthcare & Commerce Platform
+							</div>
+						</div>
+
+					</div>
+
+					<div class="invoice-number-box">
+
+						<div class="small text-white-50">
+							TAX INVOICE
+						</div>
+
+						<div class="fw-bold mt-1">
+							${safe(invoice.invoiceNumber)}
+						</div>
+
+					</div>
+
+				</div>
+
+			</div>
+
+			<div class="invoice-preview-body">
+
+				<div class="invoice-info-grid">
+
+					<div class="invoice-info-box">
+						<small>Order Number</small>
+						<strong>${safe(invoice.orderNumber)}</strong>
+					</div>
+
+					<div class="invoice-info-box">
+						<small>Invoice Date</small>
+						<strong>${formatDate(invoice.invoiceDate)}</strong>
+					</div>
+
+				</div>
+
+				<div class="invoice-amount-grid">
+
+					<div class="invoice-amount-box">
+						<small>Sub Total</small>
+						<strong>₹${formatMoney(invoice.taxableAmount)}</strong>
+					</div>
+
+					<div class="invoice-amount-box">
+						<small>GST</small>
+						<strong>₹${formatMoney(invoice.gstAmount)}</strong>
+					</div>
+
+					<div class="invoice-amount-box total">
+						<small>Total Amount</small>
+						<strong>₹${formatMoney(invoice.totalAmount)}</strong>
+					</div>
+
+				</div>
+
+				<div class="invoice-preview-actions">
+
+					<button type="button"
+							class="btn btn-medi"
+							style="width:auto;"
+							onclick="downloadInvoice('${safeJsString(invoice.orderNumber)}')">
+
+						<i class="bi bi-file-earmark-pdf-fill me-1"></i>
+						Download PDF
+					</button>
+
+				</div>
+
+			</div>
+
+		</div>
+	`;
+}
+
+function showInvoiceLoadingState() {
+	const container =
+		document.getElementById(
+			"invoiceContainer"
+		);
+
+	if (!container) {
+		return;
+	}
+
+	container.innerHTML = `
+		<div class="invoice-loading-state">
+
+			<div class="invoice-state-icon">
+				<i class="bi bi-receipt"></i>
+			</div>
+
+			<h5 class="fw-bold text-primary">
+				Loading invoice
+			</h5>
+
+			<p class="text-muted mb-0">
+				Please wait while we retrieve invoice details.
+			</p>
+
+		</div>
+	`;
+}
+
+function showInvoiceErrorState(message) {
+	const container =
+		document.getElementById(
+			"invoiceContainer"
+		);
+
+	if (!container) {
+		return;
+	}
+
+	container.innerHTML = `
+		<div class="invoice-error-state">
+
+			<div class="invoice-state-icon">
+				<i class="bi bi-exclamation-triangle-fill"></i>
+			</div>
+
+			<h5 class="fw-bold text-danger">
+				Unable to load invoice
+			</h5>
+
+			<p class="text-muted mb-0">
+				${escapeHtml(message)}
+			</p>
+
+		</div>
+	`;
+}
+
+async function downloadInvoice(orderNo) {
+	const token =
+		localStorage.getItem("token");
+
+	try {
+		const response =
+			await fetch(
+				`${API_BASE}/billing/invoice/order/${encodeURIComponent(orderNo)}/download`,
+				{
+					headers: {
+						"Authorization":
+							"Bearer " + token
+					}
+				}
+			);
+
+		if (!response.ok) {
+			showInvoiceMessage(
+				"PDF download failed"
+			);
+
+			return;
+		}
+
+		const blob =
+			await response.blob();
+
+		const url =
+			window.URL.createObjectURL(blob);
+
+		const anchor =
+			document.createElement("a");
+
+		anchor.href = url;
+		anchor.download =
+			`invoice-${orderNo}.pdf`;
+
+		document.body.appendChild(anchor);
+		anchor.click();
+		anchor.remove();
+
+		window.URL.revokeObjectURL(url);
+
+	} catch (e) {
+		console.error(
+			"Invoice download error:",
+			e
+		);
 
 		showInvoiceMessage(
 			"Billing service unavailable"
@@ -129,185 +418,156 @@ async function loadInvoice() {
 	}
 }
 
-function renderInvoice(invoice) {
-
-	const html = `
-
-    <div class="invoice-preview">
-
-        <div class="invoice-header">
-
-            <div class="d-flex justify-content-between">
-
-                <div>
-
-                    <img src="/images/logo.png"
-                         width="120">
-
-                    <h4 class="fw-bold mt-2">
-                        MediRevolution
-                    </h4>
-
-                </div>
-
-                <div class="text-end">
-
-                    <h4 class="fw-bold">
-                        TAX INVOICE
-                    </h4>
-
-                    <div>
-                        Invoice No :
-                        ${invoice.invoiceNumber}
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="row mb-3">
-
-            <div class="col-md-6">
-
-                <div class="invoice-label">
-                    Order Number
-                </div>
-
-                <div class="invoice-value">
-                    ${invoice.orderNumber}
-                </div>
-
-            </div>
-
-            <div class="col-md-6">
-
-                <div class="invoice-label">
-                    Invoice Date
-                </div>
-
-                <div class="invoice-value">
-                    ${formatDate(invoice.invoiceDate)}
-                </div>
-
-            </div>
-
-        </div>
-
-        <hr>
-
-        <div class="row mb-3">
-
-            <div class="col-md-4">
-
-                <div class="invoice-label">
-                    Sub Total
-                </div>
-
-                <div class="invoice-value">
-                    ₹ ${formatMoney(invoice.taxableAmount)}
-                </div>
-
-            </div>
-
-            <div class="col-md-4">
-
-                <div class="invoice-label">
-                    GST
-                </div>
-
-                <div class="invoice-value">
-                    ₹ ${formatMoney(invoice.gstAmount)}
-                </div>
-
-            </div>
-
-            <div class="col-md-4">
-
-                <div class="invoice-label">
-                    Total
-                </div>
-
-                <div class="invoice-total">
-                    ₹ ${formatMoney(invoice.totalAmount)}
-                </div>
-
-            </div>
-
-        </div>
-
-        <button class="btn btn-medi"
-                onclick="downloadInvoice('${invoice.orderNumber}')">
-
-            Download PDF
-
-        </button>
-
-    </div>
-
-    `;
-
-	document
-		.getElementById("invoiceContainer")
-		.innerHTML = html;
-}
-
-async function downloadInvoice(orderNo) {
-    const token = localStorage.getItem("token");
-
-    const response = await fetch(
-        `${API_BASE}/billing/invoice/order/${orderNo}/download`,
-        {
-            headers: {
-                "Authorization": "Bearer " + token
-            }
-        }
-    );
-
-    if (!response.ok) {
-        showInvoiceMessage("PDF download failed");
-        return;
-    }
-
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "invoice-" + orderNo + ".pdf";
-    document.body.appendChild(a);
-    a.click();
-
-    a.remove();
-    window.URL.revokeObjectURL(url);
+function getInvoiceOrderNumber() {
+	return document
+		.getElementById("invoiceOrderId")
+		?.value
+		.trim() || "";
 }
 
 function formatDate(value) {
+	if (!value) {
+		return "-";
+	}
 
-	if (!value) return "-";
+	const date =
+		new Date(value);
 
-	return new Date(value)
-		.toLocaleDateString();
+	if (Number.isNaN(date.getTime())) {
+		return safe(value);
+	}
+
+	return date.toLocaleDateString(
+		"en-IN",
+		{
+			day: "2-digit",
+			month: "short",
+			year: "numeric"
+		}
+	);
 }
 
 function formatMoney(value) {
+	const numberValue =
+		Number(value);
 
-	if (!value) return "0.00";
+	return Number.isFinite(numberValue)
+		? numberValue.toFixed(2)
+		: "0.00";
+}
 
-	return Number(value)
-		.toFixed(2);
+function setButtonLoading(
+	buttonId,
+	loadingText,
+	isLoading
+) {
+	const button =
+		document.getElementById(buttonId);
+
+	if (!button) {
+		return;
+	}
+
+	if (isLoading) {
+		button.dataset.originalHtml =
+			button.innerHTML;
+
+		button.innerHTML = `
+			<span class="spinner-border spinner-border-sm me-2"
+				  role="status"
+				  aria-hidden="true"></span>
+			${escapeHtml(loadingText)}
+		`;
+
+		button.disabled = true;
+
+	} else {
+		button.innerHTML =
+			button.dataset.originalHtml ||
+			button.innerHTML;
+
+		button.disabled = false;
+	}
 }
 
 function showInvoiceMessage(
 	message,
 	type = "danger"
 ) {
+	const msg =
+		document.getElementById("msg");
 
-	document
-		.getElementById("msg")
-		.innerHTML =
-		`<div class="alert alert-${type}">
-            ${message}
-        </div>`;
+	if (!msg) {
+		return;
+	}
+
+	msg.innerHTML = `
+		<div class="alert alert-${type}">
+			${escapeHtml(message)}
+		</div>
+	`;
+
+	setTimeout(function() {
+		if (msg) {
+			msg.innerHTML = "";
+		}
+	}, 4000);
+}
+
+async function readJsonSafely(response) {
+	try {
+		return await response.json();
+	} catch (error) {
+		return null;
+	}
+}
+
+function getErrorMessage(
+	data,
+	fallback
+) {
+	if (!data) {
+		return fallback;
+	}
+
+	if (data.message) {
+		return data.message;
+	}
+
+	if (data.error) {
+		return data.error;
+	}
+
+	if (typeof data === "string") {
+		return data;
+	}
+
+	return fallback;
+}
+
+function safe(value) {
+	return (
+		value === null ||
+		value === undefined ||
+		value === ""
+	)
+		? "-"
+		: escapeHtml(value);
+}
+
+function safeJsString(value) {
+	return String(value || "")
+		.replace(/\\/g, "\\\\")
+		.replace(/'/g, "\\'")
+		.replace(/\r/g, "\\r")
+		.replace(/\n/g, "\\n");
+}
+
+function escapeHtml(value) {
+	return String(value || "")
+		.replace(/&/g, "&amp;")
+		.replace(/'/g, "&#39;")
+		.replace(/"/g, "&quot;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;");
 }

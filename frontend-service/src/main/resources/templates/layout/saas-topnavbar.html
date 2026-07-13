@@ -1,0 +1,83 @@
+<nav th:fragment="saasTopnavbar" class="navbar fixed-top mr-navbar saas-navbar px-3 px-lg-4">
+
+	<div class="d-flex align-items-center gap-3">
+
+		<button type="button" class="mobile-menu-btn" onclick="toggleSaasSidebar()" aria-label="Open SaaS navigation">
+			☰
+		</button>
+
+		<a th:href="@{/saas/dashboard}" class="mr-navbar-brand d-flex align-items-center gap-2">
+
+			<img th:src="@{/images/logo.png}" class="mr-nav-logo" alt="MediRevolution">
+
+			<span class="platform-brand-text">
+				Medi<span>Revolution</span>
+			</span>
+
+			<span class="module-navbar-badge saas-badge">
+				SaaS
+			</span>
+		</a>
+
+	</div>
+
+	<div class="d-flex align-items-center gap-2 gap-lg-3">
+
+		<div class="saas-workspace-pill d-none d-md-flex">
+
+			<span class="workspace-status-dot"></span>
+
+			<div>
+				<small>Active Workspace</small>
+				<strong id="navbarTenantName">Workspace</strong>
+			</div>
+
+		</div>
+
+		<button type="button" class="module-switch-navbar-button saas-module-switch" onclick="switchSaasWorkspace()">
+
+			<span class="module-switch-icon">
+				<i class="bi bi-building"></i>
+			</span>
+
+			<span class="d-none d-xl-inline">
+				Switch Workspace
+			</span>
+		</button>
+
+		<button type="button" class="module-switch-navbar-button saas-module-switch"
+			onclick="switchMediRevolutionModule()">
+
+			<span class="module-switch-icon">
+				<i class="bi bi-arrow-left-right"></i>
+			</span>
+
+			<span class="d-none d-xl-inline">
+				Switch Module
+			</span>
+		</button>
+
+		<a th:href="@{/saas/notifications}" class="navbar-icon-button position-relative"
+			aria-label="SaaS notifications">
+
+			<i class="bi bi-bell-fill"></i>
+
+			<span id="saasNotificationCount"
+				class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+				style="display:none;">
+				0
+			</span>
+		</a>
+
+		<button type="button" class="navbar-logout-button" onclick="logoutFromSaas()">
+
+			<i class="bi bi-box-arrow-right"></i>
+
+			<span class="d-none d-lg-inline">
+				Logout
+			</span>
+		</button>
+
+	</div>
+
+</nav>

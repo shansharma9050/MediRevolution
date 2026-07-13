@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+
+	<title>MediRevolution | SaaS Patients</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link rel="manifest" href="/manifest.json">
+
+	<meta name="theme-color" content="#05285f">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
+
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.saas-patients-page {
+			position: relative
+		}
+
+		.saas-patients-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 235px;
+			margin-bottom: 28px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f 0%, #08739f 48%, #08c7d4 100%);
+			box-shadow: 0 25px 65px rgba(5, 40, 95, .22);
+			animation: patientHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both
+		}
+
+		.saas-patients-hero:before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation: patientHeroFloat 9s ease-in-out infinite
+		}
+
+		.saas-patients-hero:after {
+			position: absolute;
+			bottom: -180px;
+			left: 28%;
+			width: 360px;
+			height: 360px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(123, 214, 0, .23), transparent 68%)
+		}
+
+		.saas-patients-hero-content,
+		.saas-patients-hero-action {
+			position: relative;
+			z-index: 2
+		}
+
+		.saas-patients-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px)
+		}
+
+		.saas-patients-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px
+		}
+
+		.saas-patients-hero h1 span {
+			color: #b8f267
+		}
+
+		.saas-patients-hero p {
+			max-width: 760px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .8);
+			line-height: 1.75
+		}
+
+		.saas-patients-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px
+		}
+
+		.saas-patients-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700
+		}
+
+		.saas-patients-hero-action {
+			display: flex;
+			min-width: 230px;
+			flex-direction: column;
+			align-items: center;
+			padding: 22px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px)
+		}
+
+		.saas-patients-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 68px;
+			height: 68px;
+			margin-bottom: 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #fff;
+			font-size: 28px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+			animation: patientIconFloat 3s ease-in-out infinite
+		}
+
+		.saas-patients-create-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 46px;
+			margin-top: 13px;
+			padding: 0 18px;
+			border: none;
+			border-radius: 15px;
+			color: #05285f;
+			background: #fff;
+			font-size: 12px;
+			font-weight: 800;
+			transition: .3s
+		}
+
+		.saas-patients-create-button:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 14px 30px rgba(0, 0, 0, .18)
+		}
+
+		.saas-patients-summary-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px
+		}
+
+		.saas-patients-summary-card {
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .96);
+			box-shadow: 0 14px 35px rgba(5, 40, 95, .08);
+			transition: .35s
+		}
+
+		.saas-patients-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 22px 48px rgba(5, 40, 95, .14)
+		}
+
+		.saas-patients-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px
+		}
+
+		.saas-patients-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700
+		}
+
+		.saas-patients-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 29px;
+			font-weight: 900
+		}
+
+		.saas-patients-card {
+			position: relative;
+			overflow: hidden
+		}
+
+		.saas-patients-card:after {
+			position: absolute;
+			top: -90px;
+			right: -90px;
+			width: 190px;
+			height: 190px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(8, 199, 212, .1), transparent 68%);
+			pointer-events: none
+		}
+
+		.saas-patients-section-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5
+		}
+
+		.saas-patients-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px
+		}
+
+		.saas-patients-title-icon {
+			display: flex;
+			flex: 0 0 46px;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px
+		}
+
+		.saas-patients-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase
+		}
+
+		.saas-patients-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900
+		}
+
+		.saas-patients-filters {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px
+		}
+
+		.saas-patients-filter-wrap {
+			position: relative;
+			min-width: 220px
+		}
+
+		.saas-patients-filter-wrap i {
+			position: absolute;
+			top: 50%;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			transform: translateY(-50%);
+			pointer-events: none
+		}
+
+		.saas-patients-filter-wrap .form-control,
+		.saas-patients-filter-wrap .form-select {
+			padding-left: 41px
+		}
+
+		.saas-patients-table-wrap {
+			position: relative;
+			z-index: 2;
+			overflow: hidden;
+			border: 1px solid #e6eef4;
+			border-radius: 18px
+		}
+
+		.saas-patients-table-wrap table {
+			margin-bottom: 0
+		}
+
+		.saas-patients-table-wrap thead th {
+			padding: 15px 16px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 12px;
+			font-weight: 900;
+			white-space: nowrap
+		}
+
+		.saas-patients-table-wrap tbody td {
+			padding: 15px 16px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 13px;
+			vertical-align: middle
+		}
+
+		.saas-patients-table-wrap tbody tr {
+			opacity: 0;
+			transform: translateY(12px);
+			animation: patientRowReveal .45s var(--row-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards
+		}
+
+		.patient-profile-cell {
+			display: flex;
+			align-items: center;
+			gap: 10px
+		}
+
+		.patient-avatar {
+			display: flex;
+			flex: 0 0 44px;
+			align-items: center;
+			justify-content: center;
+			width: 44px;
+			height: 44px;
+			border-radius: 14px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 18px
+		}
+
+		.patient-gender-pill,
+		.patient-blood-pill {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			font-size: 10px;
+			font-weight: 900;
+			white-space: nowrap
+		}
+
+		.patient-gender-pill {
+			color: #084298;
+			background: #cfe2ff
+		}
+
+		.patient-blood-pill {
+			color: #842029;
+			background: #f8d7da
+		}
+
+		.patient-actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 7px
+		}
+
+		.patient-state {
+			padding: 54px 20px;
+			text-align: center
+		}
+
+		.patient-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 72px;
+			height: 72px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 28px;
+			box-shadow: 0 15px 32px rgba(5, 40, 95, .17)
+		}
+
+		.patient-loading {
+			animation: patientLoadingPulse 1.3s ease-in-out infinite
+		}
+
+		.saas-patient-modal .modal-content {
+			overflow: hidden;
+			border: none;
+			border-radius: 26px;
+			box-shadow: 0 28px 75px rgba(5, 40, 95, .22)
+		}
+
+		.saas-patient-modal .modal-header {
+			padding: 21px 24px;
+			color: #fff;
+			border-bottom: none;
+			background: linear-gradient(135deg, #05285f, #087aa3)
+		}
+
+		.saas-patient-modal .btn-close {
+			filter: invert(1)
+		}
+
+		.saas-patient-modal .modal-body {
+			padding: 25px
+		}
+
+		.saas-patient-modal .modal-footer {
+			padding: 18px 24px;
+			border-top: 1px solid #e8f1f5;
+			background: #f8fbfc
+		}
+
+		.patient-control-wrap {
+			position: relative
+		}
+
+		.patient-control-wrap>i {
+			position: absolute;
+			top: 39px;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			pointer-events: none
+		}
+
+		.patient-control-wrap .form-control,
+		.patient-control-wrap .form-select {
+			padding-left: 41px
+		}
+
+		.patient-form-note {
+			display: flex;
+			align-items: flex-start;
+			gap: 10px;
+			margin-top: 18px;
+			padding: 14px 16px;
+			border: 1px solid #cfe7ef;
+			border-radius: 15px;
+			color: #526f80;
+			background: #f2fbfd;
+			font-size: 12px;
+			line-height: 1.6
+		}
+
+		@keyframes patientHeroReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px)
+			}
+
+			to {
+				opacity: 1;
+				transform: none
+			}
+		}
+
+		@keyframes patientHeroFloat {
+
+			0%,
+			100% {
+				transform: none
+			}
+
+			50% {
+				transform: translateY(25px) rotate(8deg)
+			}
+		}
+
+		@keyframes patientIconFloat {
+
+			0%,
+			100% {
+				transform: none
+			}
+
+			50% {
+				transform: translateY(-7px)
+			}
+		}
+
+		@keyframes patientRowReveal {
+			to {
+				opacity: 1;
+				transform: none
+			}
+		}
+
+		@keyframes patientLoadingPulse {
+
+			0%,
+			100% {
+				transform: scale(.94);
+				opacity: .72
+			}
+
+			50% {
+				transform: scale(1.06);
+				opacity: 1
+			}
+		}
+
+		@media(max-width:1150px) {
+			.saas-patients-summary-grid {
+				grid-template-columns: repeat(2, minmax(0, 1fr))
+			}
+		}
+
+		@media(max-width:992px) {
+			.saas-patients-hero {
+				align-items: flex-start;
+				flex-direction: column
+			}
+
+			.saas-patients-hero-action {
+				width: 100%
+			}
+		}
+
+		@media(max-width:768px) {
+			.saas-patients-section-header {
+				align-items: stretch;
+				flex-direction: column
+			}
+
+			.saas-patients-filters,
+			.saas-patients-filter-wrap {
+				width: 100%
+			}
+		}
+
+		@media(max-width:576px) {
+			.saas-patients-hero {
+				padding: 26px 21px;
+				border-radius: 24px
+			}
+
+			.saas-patients-summary-grid {
+				grid-template-columns: 1fr
+			}
+
+			.saas-patient-modal .modal-body {
+				padding: 20px 16px
+			}
+
+			.saas-patient-modal .modal-footer {
+				flex-direction: column-reverse
+			}
+
+			.saas-patient-modal .modal-footer .btn {
+				width: 100% !important
+			}
+		}
+	</style>
+</head>
+
+<body class="dashboard-body saas-dashboard-body">
+
+	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
+	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
+
+	<main class="mr-main saas-main saas-patients-page">
+
+		<section class="saas-patients-hero">
+			<div class="saas-patients-hero-content">
+				<span class="saas-patients-kicker">
+					<i class="bi bi-people-fill"></i>
+					SaaS Patient Registry
+				</span>
+
+				<h1>SaaS <span>patients</span></h1>
+
+				<p>
+					Manage patients for
+					<strong id="tenantNameText">your workspace</strong>.
+				</p>
+
+				<div class="saas-patients-meta">
+					<span><i class="bi bi-person-vcard-fill"></i>Patient profiles</span>
+					<span><i class="bi bi-heart-pulse-fill"></i>Clinical history</span>
+					<span><i class="bi bi-shield-check"></i>Permission controlled</span>
+				</div>
+			</div>
+
+			<div class="saas-patients-hero-action">
+				<div class="saas-patients-hero-icon">
+					<i class="bi bi-person-plus-fill"></i>
+				</div>
+
+				<strong>Create Patient</strong>
+
+				<button type="button" id="addPatientBtn" class="saas-patients-create-button"
+					onclick="openCreatePatientModal()">
+					<i class="bi bi-plus-circle-fill"></i>
+					Add Patient
+				</button>
+			</div>
+		</section>
+
+		<div id="msg"></div>
+
+		<section class="saas-patients-summary-grid">
+			<article class="saas-patients-summary-card">
+				<div class="saas-patients-summary-icon"><i class="bi bi-people-fill"></i></div>
+				<small>Total Patients</small>
+				<strong id="totalPatientCount">0</strong>
+			</article>
+
+			<article class="saas-patients-summary-card">
+				<div class="saas-patients-summary-icon"><i class="bi bi-gender-ambiguous"></i></div>
+				<small>Female Patients</small>
+				<strong id="femalePatientCount">0</strong>
+			</article>
+
+			<article class="saas-patients-summary-card">
+				<div class="saas-patients-summary-icon"><i class="bi bi-geo-alt-fill"></i></div>
+				<small>Cities Covered</small>
+				<strong id="patientCityCount">0</strong>
+			</article>
+
+			<article class="saas-patients-summary-card">
+				<div class="saas-patients-summary-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+				<small>With Medical History</small>
+				<strong id="medicalHistoryCount">0</strong>
+			</article>
+		</section>
+
+		<section class="mr-card saas-patients-card">
+
+			<div class="saas-patients-section-header">
+				<div class="saas-patients-title-wrap">
+					<div class="saas-patients-title-icon">
+						<i class="bi bi-person-lines-fill"></i>
+					</div>
+
+					<div>
+						<small>Workspace Registry</small>
+						<h5>Patient Directory</h5>
+					</div>
+				</div>
+
+				<div class="saas-patients-filters">
+
+					<div class="saas-patients-filter-wrap">
+						<i class="bi bi-search"></i>
+
+						<input type="text" id="searchKeyword" class="form-control"
+							placeholder="Search name, mobile, code, city" oninput="handlePatientSearchInput(event)">
+					</div>
+
+					<div class="saas-patients-filter-wrap">
+						<i class="bi bi-gender-ambiguous"></i>
+
+						<select id="genderFilter" class="form-select" onchange="filterPatientsClientSide()">
+							<option value="">All Gender</option>
+							<option value="MALE">Male</option>
+							<option value="FEMALE">Female</option>
+							<option value="OTHER">Other</option>
+						</select>
+					</div>
+
+					<button type="button" id="searchPatientsBtn" class="btn btn-medi" onclick="searchPatients()">
+						<i class="bi bi-search me-1"></i>
+						Search
+					</button>
+
+					<button type="button" id="refreshPatientsBtn" class="btn btn-outline-primary"
+						onclick="loadPatients()">
+						<i class="bi bi-arrow-clockwise me-1"></i>
+						Refresh
+					</button>
+				</div>
+			</div>
+
+			<div class="table-responsive saas-patients-table-wrap">
+
+				<table class="table table-hover align-middle">
+					<thead>
+						<tr>
+							<th>Patient Code</th>
+							<th>Name</th>
+							<th>Mobile</th>
+							<th>Gender</th>
+							<th>Age</th>
+							<th>Blood Group</th>
+							<th>City</th>
+							<th style="width:190px;">Action</th>
+						</tr>
+					</thead>
+
+					<tbody id="patientsTableBody">
+						<tr>
+							<td colspan="8">
+								<div class="patient-state">
+									<div class="patient-state-icon patient-loading">
+										<i class="bi bi-people-fill"></i>
+									</div>
+
+									<h5 class="fw-bold text-primary">Loading patients</h5>
+									<p class="text-muted mb-0">Please wait while the patient registry is prepared.</p>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+
+			</div>
+
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
+	</main>
+
+	<div class="modal fade saas-patient-modal" id="patientModal" tabindex="-1" aria-labelledby="patientModalTitle"
+		aria-hidden="true">
+
+		<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+
+			<div class="modal-content">
+
+				<div class="modal-header">
+					<div>
+						<div class="small text-white-50 fw-bold text-uppercase mb-1">
+							Patient Registration
+						</div>
+
+						<h5 class="modal-title" id="patientModalTitle">
+							Add Patient
+						</h5>
+					</div>
+
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+
+				<div class="modal-body">
+
+					<input type="hidden" id="patientId">
+
+					<div class="row g-3">
+
+						<div class="col-lg-4 patient-control-wrap">
+							<label class="form-label" for="patientName">Patient Name *</label>
+							<i class="bi bi-person-fill"></i>
+							<input type="text" id="patientName" class="form-control" maxlength="150">
+						</div>
+
+						<div class="col-lg-4 patient-control-wrap">
+							<label class="form-label" for="mobile">Mobile</label>
+							<i class="bi bi-telephone-fill"></i>
+							<input type="tel" id="mobile" class="form-control" maxlength="15" inputmode="numeric">
+						</div>
+
+						<div class="col-lg-4 patient-control-wrap">
+							<label class="form-label" for="email">Email</label>
+							<i class="bi bi-envelope-fill"></i>
+							<input type="email" id="email" class="form-control" maxlength="180">
+						</div>
+
+						<div class="col-lg-3 patient-control-wrap">
+							<label class="form-label" for="gender">Gender</label>
+							<i class="bi bi-gender-ambiguous"></i>
+
+							<select id="gender" class="form-select">
+								<option value="">Select</option>
+								<option value="MALE">Male</option>
+								<option value="FEMALE">Female</option>
+								<option value="OTHER">Other</option>
+							</select>
+						</div>
+
+						<div class="col-lg-3 patient-control-wrap">
+							<label class="form-label" for="dateOfBirth">Date of Birth</label>
+							<i class="bi bi-calendar-event-fill"></i>
+							<input type="date" id="dateOfBirth" class="form-control"
+								onchange="syncAgeFromDateOfBirth()">
+						</div>
+
+						<div class="col-lg-3 patient-control-wrap">
+							<label class="form-label" for="age">Age</label>
+							<i class="bi bi-hourglass-split"></i>
+							<input type="number" id="age" class="form-control" min="0" max="150">
+						</div>
+
+						<div class="col-lg-3 patient-control-wrap">
+							<label class="form-label" for="bloodGroup">Blood Group</label>
+							<i class="bi bi-droplet-fill"></i>
+
+							<select id="bloodGroup" class="form-select">
+								<option value="">Select</option>
+								<option value="A+">A+</option>
+								<option value="A-">A-</option>
+								<option value="B+">B+</option>
+								<option value="B-">B-</option>
+								<option value="O+">O+</option>
+								<option value="O-">O-</option>
+								<option value="AB+">AB+</option>
+								<option value="AB-">AB-</option>
+							</select>
+						</div>
+
+						<div class="col-lg-4 patient-control-wrap">
+							<label class="form-label" for="emergencyContactName">Emergency Contact Name</label>
+							<i class="bi bi-person-exclamation"></i>
+							<input type="text" id="emergencyContactName" class="form-control" maxlength="150">
+						</div>
+
+						<div class="col-lg-4 patient-control-wrap">
+							<label class="form-label" for="emergencyContactMobile">Emergency Contact Mobile</label>
+							<i class="bi bi-telephone-plus-fill"></i>
+							<input type="tel" id="emergencyContactMobile" class="form-control" maxlength="15"
+								inputmode="numeric">
+						</div>
+
+						<div class="col-lg-4 patient-control-wrap">
+							<label class="form-label" for="city">City</label>
+							<i class="bi bi-geo-alt-fill"></i>
+							<input type="text" id="city" class="form-control" maxlength="120">
+						</div>
+
+						<div class="col-lg-4 patient-control-wrap">
+							<label class="form-label" for="state">State</label>
+							<i class="bi bi-map-fill"></i>
+							<input type="text" id="state" class="form-control" maxlength="120">
+						</div>
+
+						<div class="col-lg-4 patient-control-wrap">
+							<label class="form-label" for="pincode">Pincode</label>
+							<i class="bi bi-mailbox2"></i>
+							<input type="text" id="pincode" class="form-control" maxlength="10" inputmode="numeric">
+						</div>
+
+						<div class="col-lg-4 patient-control-wrap">
+							<label class="form-label" for="address">Address</label>
+							<i class="bi bi-house-door-fill"></i>
+							<input type="text" id="address" class="form-control" maxlength="250">
+						</div>
+
+						<div class="col-lg-6">
+							<label class="form-label" for="allergies">Allergies</label>
+							<textarea id="allergies" class="form-control" rows="3" maxlength="1500"></textarea>
+						</div>
+
+						<div class="col-lg-6">
+							<label class="form-label" for="existingDiseases">Existing Diseases</label>
+							<textarea id="existingDiseases" class="form-control" rows="3" maxlength="1500"></textarea>
+						</div>
+
+						<div class="col-12">
+							<label class="form-label" for="notes">Notes</label>
+							<textarea id="notes" class="form-control" rows="3" maxlength="2000"></textarea>
+						</div>
+
+					</div>
+
+					<div class="patient-form-note">
+						<i class="bi bi-info-circle-fill text-primary"></i>
+						<div>
+							At least one field among Patient Mobile or Email is required.
+							The age will be automatically calculated upon selecting the Date of Birth.
+						</div>
+					</div>
+
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+						Close
+					</button>
+
+					<button type="button" id="savePatientBtn" class="btn btn-medi" style="width:auto;"
+						onclick="savePatient()">
+						<i class="bi bi-check2-circle me-1"></i>
+						Save Patient
+					</button>
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+	<div class="module-exit-overlay" id="moduleExitOverlay">
+		<div class="module-exit-content">
+			<div class="module-exit-icon">
+				<i class="bi bi-arrow-left-right"></i>
+			</div>
+
+			<h2>Switching Experience</h2>
+
+			<p>Returning to MediRevolution module selection...</p>
+
+			<div class="module-exit-progress">
+				<span></span>
+			</div>
+		</div>
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script th:src="@{/js/common-dashboard.js}"></script>
+	<script th:src="@{/js/module-switch.js}"></script>
+	<script th:src="@{/js/saas-auth-guard.js}"></script>
+	<script th:src="@{/js/saas-patients.js?v=20260713_1}"></script>
+	<script th:src="@{/js/pwa.js}"></script>
+
+</body>
+
+</html>

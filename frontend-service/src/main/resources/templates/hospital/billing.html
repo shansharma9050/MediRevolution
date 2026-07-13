@@ -1,110 +1,847 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-	<title>MediRevolution | Hospital Dashboard</title>
+	<meta charset="UTF-8">
+
+	<title>MediRevolution | Hospital Billing</title>
+
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+
 	<link rel="manifest" href="/manifest.json">
+
 	<meta name="theme-color" content="#05285f">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
+
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
+
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
 	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.hospital-billing-page {
+			position: relative;
+		}
+
+		.hospital-billing-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 230px;
+			margin-bottom: 28px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg, #05285f 0%, #076a9c 52%, #08c7d4 100%);
+			box-shadow: 0 25px 65px rgba(5, 40, 95, 0.22);
+			animation: hospitalBillingHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.hospital-billing-hero::before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, 0.07);
+			border-radius: 50%;
+			content: "";
+			animation: hospitalBillingHeroFloat 9s ease-in-out infinite;
+		}
+
+		.hospital-billing-hero::after {
+			position: absolute;
+			bottom: -175px;
+			left: 28%;
+			width: 350px;
+			height: 350px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle, rgba(123, 214, 0, 0.23), transparent 68%);
+		}
+
+		.hospital-billing-hero-content,
+		.hospital-billing-hero-action {
+			position: relative;
+			z-index: 2;
+		}
+
+		.hospital-billing-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, 0.2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.hospital-billing-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px;
+		}
+
+		.hospital-billing-hero h1 span {
+			color: #b8f267;
+		}
+
+		.hospital-billing-hero p {
+			max-width: 720px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, 0.78);
+			line-height: 1.75;
+		}
+
+		.hospital-billing-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px;
+		}
+
+		.hospital-billing-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.11);
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.hospital-billing-hero-action {
+			display: flex;
+			min-width: 210px;
+			flex-direction: column;
+			align-items: center;
+			padding: 22px;
+			border: 1px solid rgba(255, 255, 255, 0.18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, 0.11);
+			text-align: center;
+			backdrop-filter: blur(15px);
+		}
+
+		.hospital-billing-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 68px;
+			height: 68px;
+			margin-bottom: 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 28px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+			animation: hospitalBillingIconFloat 3s ease-in-out infinite;
+		}
+
+		.hospital-billing-add-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 46px;
+			margin-top: 13px;
+			padding: 0 18px;
+			border: none;
+			border-radius: 15px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 12px;
+			font-weight: 800;
+			transition: transform .3s ease, box-shadow .3s ease;
+		}
+
+		.hospital-billing-add-button:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 14px 30px rgba(0, 0, 0, .18);
+		}
+
+		.hospital-billing-summary-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px;
+		}
+
+		.hospital-billing-summary-card {
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .95);
+			box-shadow: 0 14px 35px rgba(5, 40, 95, .08);
+			transition: transform .35s ease, box-shadow .35s ease;
+		}
+
+		.hospital-billing-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 22px 48px rgba(5, 40, 95, .14);
+		}
+
+		.hospital-billing-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+		}
+
+		.hospital-billing-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700;
+		}
+
+		.hospital-billing-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 29px;
+			font-weight: 900;
+		}
+
+		.hospital-billing-form-card {
+			position: relative;
+			overflow: hidden;
+			animation: hospitalBillingPanelReveal .45s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.hospital-billing-form-card::after {
+			position: absolute;
+			top: -90px;
+			right: -90px;
+			width: 190px;
+			height: 190px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(8, 199, 212, .11), transparent 68%);
+			pointer-events: none;
+		}
+
+		.hospital-billing-form-header,
+		.hospital-billing-list-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5;
+		}
+
+		.hospital-billing-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px;
+		}
+
+		.hospital-billing-title-icon {
+			display: flex;
+			flex: 0 0 46px;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+			box-shadow: 0 12px 26px rgba(5, 40, 95, .16);
+		}
+
+		.hospital-billing-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		.hospital-billing-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.hospital-billing-control-wrap {
+			position: relative;
+			z-index: 2;
+		}
+
+		.hospital-billing-control-wrap>i {
+			position: absolute;
+			top: 39px;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			pointer-events: none;
+		}
+
+		.hospital-billing-control-wrap .form-control,
+		.hospital-billing-control-wrap .form-select {
+			padding-left: 41px;
+		}
+
+		.hospital-billing-total-box {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			margin-top: 18px;
+			padding: 16px 18px;
+			border: 1px solid #dbeef3;
+			border-radius: 16px;
+			background: #f5fbfd;
+		}
+
+		.hospital-billing-total-box span {
+			color: #60748a;
+			font-size: 12px;
+			font-weight: 700;
+		}
+
+		.hospital-billing-total-box strong {
+			color: #05285f;
+			font-size: 24px;
+			font-weight: 900;
+		}
+
+		.hospital-billing-form-actions {
+			display: flex;
+			justify-content: flex-end;
+			gap: 10px;
+			margin-top: 18px;
+			padding-top: 18px;
+			border-top: 1px solid #edf3f6;
+		}
+
+		.hospital-billing-table-wrap {
+			overflow: hidden;
+			border: 1px solid #e6eef4;
+			border-radius: 18px;
+		}
+
+		.hospital-billing-table-wrap table {
+			margin-bottom: 0;
+		}
+
+		.hospital-billing-table-wrap thead th {
+			padding: 15px 16px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 12px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.hospital-billing-table-wrap tbody td {
+			padding: 15px 16px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 13px;
+			vertical-align: middle;
+		}
+
+		.hospital-billing-table-wrap tbody tr {
+			opacity: 0;
+			transform: translateY(12px);
+			animation: hospitalBillingRowReveal .45s var(--row-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards;
+		}
+
+		.hospital-billing-patient {
+			display: flex;
+			align-items: center;
+			gap: 11px;
+		}
+
+		.hospital-billing-avatar {
+			display: flex;
+			flex: 0 0 42px;
+			align-items: center;
+			justify-content: center;
+			width: 42px;
+			height: 42px;
+			border-radius: 14px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 17px;
+		}
+
+		.hospital-billing-status {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			font-size: 11px;
+			font-weight: 800;
+		}
+
+		.hospital-billing-status.paid {
+			color: #0f5132;
+			background: #d1e7dd;
+		}
+
+		.hospital-billing-status.pending {
+			color: #664d03;
+			background: #fff3cd;
+		}
+
+		.hospital-billing-actions {
+			display: inline-flex;
+			flex-wrap: wrap;
+			gap: 7px;
+		}
+
+		.hospital-billing-state {
+			padding: 50px 20px;
+			text-align: center;
+		}
+
+		.hospital-billing-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 70px;
+			height: 70px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 27px;
+			box-shadow: 0 15px 32px rgba(5, 40, 95, .17);
+		}
+
+		.hospital-billing-loading-icon {
+			animation: hospitalBillingLoadingPulse 1.3s ease-in-out infinite;
+		}
+
+		@keyframes hospitalBillingHeroReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes hospitalBillingHeroFloat {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(25px) rotate(8deg);
+			}
+		}
+
+		@keyframes hospitalBillingIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-7px);
+			}
+		}
+
+		@keyframes hospitalBillingPanelReveal {
+			from {
+				opacity: 0;
+				transform: translateY(-12px) scale(.985);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0) scale(1);
+			}
+		}
+
+		@keyframes hospitalBillingRowReveal {
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes hospitalBillingLoadingPulse {
+
+			0%,
+			100% {
+				transform: scale(.94);
+				opacity: .72;
+			}
+
+			50% {
+				transform: scale(1.06);
+				opacity: 1;
+			}
+		}
+
+		@media (max-width: 1100px) {
+			.hospital-billing-summary-grid {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+		}
+
+		@media (max-width: 992px) {
+			.hospital-billing-hero {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.hospital-billing-hero-action {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 576px) {
+			.hospital-billing-hero {
+				padding: 26px 21px;
+				border-radius: 24px;
+			}
+
+			.hospital-billing-summary-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.hospital-billing-form-actions {
+				flex-direction: column-reverse;
+			}
+
+			.hospital-billing-form-actions .btn {
+				width: 100% !important;
+			}
+		}
+	</style>
 </head>
 
-<body class="dashboard-body">
+<body class="dashboard-body platform-dashboard-body">
 
-	<nav class="navbar fixed-top mr-navbar px-3 px-lg-4">
-		<div class="d-flex align-items-center gap-3">
-			<button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-			<a href="/dashboard" class="mr-navbar-brand d-flex align-items-center gap-2">
-				<img th:src="@{/images/logo.png}" class="mr-nav-logo">
-				Medi<span>Revolution</span>
-			</a>
-		</div>
+	<div th:replace="~{layout/platform-topnavbar :: platformTopnavbar}"></div>
+	<div th:replace="~{layout/platform-sidebar :: platformSidebar}"></div>
 
-		<div class="d-flex align-items-center gap-3">
-			<div class="mr-user-pill"><span id="userEmail">hospital@email.com</span></div>
-			<button class="btn btn-light position-relative" onclick="window.location='/notifications'">
-				🔔
-				<span id="notificationCount"
-					class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
-			</button>
-			<button class="btn btn-outline-light" onclick="logout()">Logout</button>
-		</div>
-	</nav>
+	<main class="mr-main platform-main hospital-billing-page">
 
-	<aside class="mr-sidebar" id="sidebar">
-		<a href="/dashboard">🏠 Main Dashboard</a>
-		<a href="/hospital/dashboard" class="active">🏥 Hospital Dashboard</a>
-		<a href="/hospital/patients">🧑‍⚕️ OPD / IPD Patients</a>
-		<a href="/hospital/staff">👥 Staff Management</a>
-		<a href="/hospital/inventory">📦 Inventory</a>
-		<a href="/hospital/billing">💳 Billing</a>
-		<a href="/hospital/reports">📊 Reports</a>
-		<a href="/notifications">🔔 Notifications</a>
-		<a href="/profile">👤 Profile</a>
-	</aside>
-	<main class="mr-main">
+		<section class="hospital-billing-hero">
 
-		<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
-			<div>
-				<h1 class="mr-page-title">Hospital Billing</h1>
-				<p class="mr-page-subtitle">Create OPD/IPD bills with consultation, medicine, room and other charges.
+			<div class="hospital-billing-hero-content">
+
+				<span class="hospital-billing-kicker">
+					<i class="bi bi-receipt-cutoff"></i>
+					Hospital Revenue Center
+				</span>
+
+				<h1>
+					Hospital
+					<span>billing</span>
+				</h1>
+
+				<p>
+					Create and manage OPD/IPD bills with consultation, medicine,
+					room and additional charges from one secure billing workspace.
 				</p>
+
+				<div class="hospital-billing-meta">
+
+					<span>
+						<i class="bi bi-person-check-fill"></i>
+						Patient-linked bills
+					</span>
+
+					<span>
+						<i class="bi bi-cash-stack"></i>
+						Charge breakdown
+					</span>
+
+					<span>
+						<i class="bi bi-check2-circle"></i>
+						Paid status tracking
+					</span>
+
+				</div>
+
 			</div>
 
-			<button class="btn btn-medi" style="width:auto;" onclick="toggleBillForm()">+ Create Bill</button>
-		</div>
+			<div class="hospital-billing-hero-action">
+
+				<div class="hospital-billing-hero-icon">
+					<i class="bi bi-receipt"></i>
+				</div>
+
+				<strong>Create Patient Bill</strong>
+
+				<button type="button" class="hospital-billing-add-button" onclick="openCreateBillForm()">
+
+					<i class="bi bi-plus-circle-fill"></i>
+					Create Bill
+				</button>
+
+			</div>
+
+		</section>
 
 		<div id="msg"></div>
 
-		<div class="mr-card mb-4" id="billFormPanel" style="display:none;">
-			<h5 class="fw-bold text-primary mb-3">Create Patient Bill</h5>
+		<section class="hospital-billing-summary-grid">
+
+			<article class="hospital-billing-summary-card">
+
+				<div class="hospital-billing-summary-icon">
+					<i class="bi bi-receipt"></i>
+				</div>
+
+				<small>Total Bills</small>
+				<strong id="totalHospitalBillCount">0</strong>
+
+			</article>
+
+			<article class="hospital-billing-summary-card">
+
+				<div class="hospital-billing-summary-icon">
+					<i class="bi bi-check2-circle"></i>
+				</div>
+
+				<small>Paid Bills</small>
+				<strong id="paidHospitalBillCount">0</strong>
+
+			</article>
+
+			<article class="hospital-billing-summary-card">
+
+				<div class="hospital-billing-summary-icon">
+					<i class="bi bi-hourglass-split"></i>
+				</div>
+
+				<small>Pending Bills</small>
+				<strong id="pendingHospitalBillCount">0</strong>
+
+			</article>
+
+			<article class="hospital-billing-summary-card">
+
+				<div class="hospital-billing-summary-icon">
+					<i class="bi bi-currency-rupee"></i>
+				</div>
+
+				<small>Total Revenue</small>
+				<strong id="hospitalBillRevenue">₹0</strong>
+
+			</article>
+
+		</section>
+
+		<section class="mr-card hospital-billing-form-card mb-4" id="billFormPanel" style="display:none;">
+
+			<div class="hospital-billing-form-header">
+
+				<div class="hospital-billing-title-wrap">
+
+					<div class="hospital-billing-title-icon">
+						<i class="bi bi-receipt-cutoff"></i>
+					</div>
+
+					<div>
+						<small>Patient Billing</small>
+						<h5 id="billFormTitle">Create Patient Bill</h5>
+					</div>
+
+				</div>
+
+				<button type="button" class="btn btn-sm btn-outline-secondary" onclick="closeBillForm()">
+
+					<i class="bi bi-x-lg"></i>
+				</button>
+
+			</div>
 
 			<div class="row g-3">
-				<div class="col-md-6">
-					<label class="form-label">Select Patient</label>
-					<select id="patientId" class="form-select"></select>
+
+				<div class="col-lg-6 hospital-billing-control-wrap">
+
+					<label for="patientId" class="form-label">
+						Select Patient
+					</label>
+
+					<i class="bi bi-person-fill"></i>
+
+					<select id="patientId" class="form-select">
+
+						<option value="">
+							Loading patients...
+						</option>
+					</select>
+
 				</div>
 
-				<div class="col-md-3">
-					<label class="form-label">Consultation Fee</label>
-					<input type="number" step="0.01" id="consultationFee" class="form-control">
+				<div class="col-lg-3 col-md-6 hospital-billing-control-wrap">
+
+					<label for="consultationFee" class="form-label">
+						Consultation Fee
+					</label>
+
+					<i class="bi bi-currency-rupee"></i>
+
+					<input type="number" min="0" step="0.01" id="consultationFee" class="form-control"
+						oninput="updateBillPreview()">
+
 				</div>
 
-				<div class="col-md-3">
-					<label class="form-label">Medicine Charge</label>
-					<input type="number" step="0.01" id="medicineCharge" class="form-control">
+				<div class="col-lg-3 col-md-6 hospital-billing-control-wrap">
+
+					<label for="medicineCharge" class="form-label">
+						Medicine Charge
+					</label>
+
+					<i class="bi bi-capsule-pill"></i>
+
+					<input type="number" min="0" step="0.01" id="medicineCharge" class="form-control"
+						oninput="updateBillPreview()">
+
 				</div>
 
-				<div class="col-md-3">
-					<label class="form-label">Room Charge</label>
-					<input type="number" step="0.01" id="roomCharge" class="form-control">
+				<div class="col-lg-3 col-md-6 hospital-billing-control-wrap">
+
+					<label for="roomCharge" class="form-label">
+						Room Charge
+					</label>
+
+					<i class="bi bi-door-open-fill"></i>
+
+					<input type="number" min="0" step="0.01" id="roomCharge" class="form-control"
+						oninput="updateBillPreview()">
+
 				</div>
 
-				<div class="col-md-3">
-					<label class="form-label">Other Charge</label>
-					<input type="number" step="0.01" id="otherCharge" class="form-control">
-				</div>
-				
-				<div class="col-md-3">
-				    <label class="form-label">Bill Status</label>
-				    <select id="billStatus" class="form-select">
-				        <option value="PENDING">PENDING</option>
-				        <option value="PAID">PAID</option>
-				    </select>
+				<div class="col-lg-3 col-md-6 hospital-billing-control-wrap">
+
+					<label for="otherCharge" class="form-label">
+						Other Charge
+					</label>
+
+					<i class="bi bi-plus-square-fill"></i>
+
+					<input type="number" min="0" step="0.01" id="otherCharge" class="form-control"
+						oninput="updateBillPreview()">
+
 				</div>
 
-				<div class="col-md-12 text-end">
-					<button class="btn btn-medi" style="width:auto;" onclick="createBill()">Save Bill</button>
+				<div class="col-lg-3 col-md-6 hospital-billing-control-wrap">
+
+					<label for="billStatus" class="form-label">
+						Bill Status
+					</label>
+
+					<i class="bi bi-flag-fill"></i>
+
+					<select id="billStatus" class="form-select">
+
+						<option value="PENDING">PENDING</option>
+						<option value="PAID">PAID</option>
+					</select>
+
 				</div>
+
 			</div>
-		</div>
 
-		<div class="mr-card">
-			<h5 class="fw-bold text-primary mb-3">Bill List</h5>
+			<div class="hospital-billing-total-box">
 
-			<div class="table-responsive">
+				<span>
+					Estimated Total
+				</span>
+
+				<strong id="billPreviewTotal">
+					₹0.00
+				</strong>
+
+			</div>
+
+			<div class="hospital-billing-form-actions">
+
+				<button type="button" class="btn btn-secondary" style="width:auto;" onclick="closeBillForm()">
+
+					<i class="bi bi-x-circle me-1"></i>
+					Cancel
+				</button>
+
+				<button type="button" id="saveHospitalBillBtn" class="btn btn-medi" style="width:auto;"
+					onclick="createBill()">
+
+					<i class="bi bi-check2-circle me-1"></i>
+					Save Bill
+				</button>
+
+			</div>
+
+		</section>
+
+		<section class="mr-card">
+
+			<div class="hospital-billing-list-header">
+
+				<div class="hospital-billing-title-wrap">
+
+					<div class="hospital-billing-title-icon">
+						<i class="bi bi-list-check"></i>
+					</div>
+
+					<div>
+						<small>Billing History</small>
+						<h5>Bill List</h5>
+					</div>
+
+				</div>
+
+				<button type="button" class="btn btn-sm btn-outline-primary" onclick="loadBills()">
+
+					<i class="bi bi-arrow-clockwise me-1"></i>
+					Refresh
+				</button>
+
+			</div>
+
+			<div class="table-responsive hospital-billing-table-wrap">
+
 				<table class="table table-hover align-middle">
+
 					<thead>
 						<tr>
 							<th>#</th>
@@ -118,14 +855,70 @@
 							<th>Action</th>
 						</tr>
 					</thead>
-					<tbody id="billTable"></tbody>
+
+					<tbody id="billTable">
+
+						<tr>
+							<td colspan="9">
+
+								<div class="hospital-billing-state">
+
+									<div class="hospital-billing-state-icon hospital-billing-loading-icon">
+										<i class="bi bi-receipt"></i>
+									</div>
+
+									<h5 class="fw-bold text-primary">
+										Loading bills
+									</h5>
+
+									<p class="text-muted mb-0">
+										Please wait while we prepare billing records.
+									</p>
+
+								</div>
+
+							</td>
+						</tr>
+
+					</tbody>
+
 				</table>
+
 			</div>
-		</div>
+
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
 
 	</main>
+
+	<div class="module-exit-overlay" id="moduleExitOverlay">
+
+		<div class="module-exit-content">
+
+			<div class="module-exit-icon">
+				<i class="bi bi-arrow-left-right"></i>
+			</div>
+
+			<h2>Switching Experience</h2>
+
+			<p>
+				Returning to MediRevolution module selection...
+			</p>
+
+			<div class="module-exit-progress">
+				<span></span>
+			</div>
+
+		</div>
+
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script th:src="@{/js/module-switch.js}"></script>
 	<script th:src="@{/js/common-dashboard.js}"></script>
-	<script th:src="@{/js/hospital-billing.js}"></script>
+	<script th:src="@{/js/hospital-billing.js?v=2}"></script>
 	<script th:src="@{/js/pwa.js}"></script>
 
 </body>

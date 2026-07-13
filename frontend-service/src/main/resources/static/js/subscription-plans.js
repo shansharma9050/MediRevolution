@@ -3,11 +3,6 @@ let subscriptionPlans = [];
 document.addEventListener("DOMContentLoaded", function () {
     requireSubscriptionRole();
     loadPlans();
-
-    const billingCycleElement = document.getElementById("billingCycle");
-    if (billingCycleElement) {
-        billingCycleElement.addEventListener("change", renderPlans);
-    }
 });
 
 function requireSubscriptionRole() {
@@ -52,21 +47,8 @@ async function loadPlans() {
     }
 }
 
-function getPlanCode(plan) {
-    if (!plan) {
-        return "";
-    }
-
-    return plan.planCode ||
-        plan.plan_code ||
-        plan.code ||
-        plan.id ||
-        "";
-}
-
 function renderPlans() {
     const container = document.getElementById("plansContainer");
-    const billingCycle = document.getElementById("billingCycle").value;
 
     if (!subscriptionPlans || subscriptionPlans.length === 0) {
         container.innerHTML = `
@@ -80,20 +62,30 @@ function renderPlans() {
     let html = "";
 
     subscriptionPlans.forEach(plan => {
-        const price = getPlanPrice(plan, billingCycle);
+        const planCode = getPlanCode(plan);
+        const billingCycle = getBillingCycle(plan);
+        const price = getPlanPrice(plan);
         const cycleText = billingCycle === "YEARLY" ? "year" : "month";
 
         html += `
             <div class="col-xl-4 col-md-6">
-                <div class="mr-card h-100">
+                <div class="mr-card h-100 subscription-plan-card">
 
-                    <h4 class="fw-bold text-primary">
-                        ${safe(plan.planName)}
-                    </h4>
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div>
+                            <h4 class="fw-bold text-primary mb-2">
+                                ${safe(plan.planName)}
+                            </h4>
 
-                    <p class="text-muted">
-   						 ${safe(getPlanCode(plan))} • ${safe(plan.role)}
-					</p>
+                            <p class="text-muted mb-3">
+                                ${safe(planCode)} • ${safe(plan.role)}
+                            </p>
+                        </div>
+
+                        <span class="badge bg-info text-dark">
+                            ${billingCycle}
+                        </span>
+                    </div>
 
                     <h2 class="fw-bold mb-3">
                         ₹${price}
@@ -114,7 +106,7 @@ function renderPlans() {
                     </ul>
 
                     <button class="btn btn-medi mt-3 w-100"
-                            onclick="subscribePlan('${safeForJs(getPlanCode(plan))}')">
+                            onclick="subscribePlan('${safeForJs(planCode)}', '${safeForJs(billingCycle)}')">
                         Subscribe
                     </button>
                 </div>
@@ -125,10 +117,26 @@ function renderPlans() {
     container.innerHTML = html;
 }
 
-function getPlanPrice(plan, billingCycle) {
-    if (!plan) {
-        return "0.00";
+function getPlanCode(plan) {
+    return plan?.planCode || plan?.plan_code || plan?.code || "";
+}
+
+function getBillingCycle(plan) {
+    const code = getPlanCode(plan).toUpperCase();
+
+    if (plan?.billingCycle) {
+        return String(plan.billingCycle).toUpperCase();
     }
+
+    if (code.includes("YEARLY")) {
+        return "YEARLY";
+    }
+
+    return "MONTHLY";
+}
+
+function getPlanPrice(plan) {
+    const billingCycle = getBillingCycle(plan);
 
     let price;
 
@@ -137,8 +145,6 @@ function getPlanPrice(plan, billingCycle) {
             plan.yearlyPrice ??
             plan.yearly_price ??
             plan.price ??
-            plan.monthlyPrice ??
-            plan.monthly_price ??
             0;
     } else {
         price =
@@ -188,16 +194,20 @@ function isPrioritySupportEnabled(plan) {
     );
 }
 
-async function subscribePlan(planCode) {
+async function subscribePlan(planCode, billingCycle) {
     const token = localStorage.getItem("token");
-    const billingCycle = document.getElementById("billingCycle").value;
 
     if (!planCode || planCode === "-") {
         showMsg("Invalid plan selected.");
         return;
     }
 
-    if (!confirm("Subscribe to " + planCode + " with " + billingCycle + " billing?")) {
+    if (!billingCycle) {
+        showMsg("Invalid billing cycle selected.");
+        return;
+    }
+
+    if (!confirm("Subscribe to " + planCode + "?")) {
         return;
     }
 

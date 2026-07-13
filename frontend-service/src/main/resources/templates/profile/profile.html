@@ -1,280 +1,1087 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
+	<meta charset="UTF-8">
+
 	<title>MediRevolution | Profile</title>
+
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
 	<link rel="manifest" href="/manifest.json">
 
 	<meta name="theme-color" content="#05285f">
-
 	<meta name="mobile-web-app-capable" content="yes">
-
 	<meta name="apple-mobile-web-app-capable" content="yes">
-
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
 	<meta name="apple-mobile-web-app-title" content="MediRevolution">
 
 	<link rel="apple-touch-icon" href="/images/icon-192.png">
 
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
 	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.profile-page {
+			position: relative;
+		}
+
+		.profile-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 230px;
+			margin-bottom: 28px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg, #05285f 0%, #076a9c 52%, #08c7d4 100%);
+			box-shadow: 0 25px 65px rgba(5, 40, 95, .22);
+			animation: profileHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.profile-hero::before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation: profileHeroFloat 9s ease-in-out infinite;
+		}
+
+		.profile-hero::after {
+			position: absolute;
+			bottom: -175px;
+			left: 28%;
+			width: 350px;
+			height: 350px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(123, 214, 0, .23), transparent 68%);
+		}
+
+		.profile-hero-content,
+		.profile-hero-role {
+			position: relative;
+			z-index: 2;
+		}
+
+		.profile-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.profile-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px;
+		}
+
+		.profile-hero h1 span {
+			color: #b8f267;
+		}
+
+		.profile-hero p {
+			max-width: 760px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .78);
+			line-height: 1.75;
+		}
+
+		.profile-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px;
+		}
+
+		.profile-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.profile-hero-role {
+			display: flex;
+			min-width: 210px;
+			flex-direction: column;
+			align-items: center;
+			padding: 22px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px);
+		}
+
+		.profile-role-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 68px;
+			height: 68px;
+			margin-bottom: 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 28px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+			animation: profileIconFloat 3s ease-in-out infinite;
+		}
+
+		.profile-role-badge {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			margin-top: 11px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 11px;
+			font-weight: 900;
+		}
+
+		.profile-layout-grid {
+			display: grid;
+			grid-template-columns: minmax(300px, .78fr) minmax(0, 1.62fr);
+			gap: 24px;
+		}
+
+		.profile-sidebar-card {
+			position: sticky;
+			top: 95px;
+			align-self: start;
+			overflow: hidden;
+			text-align: center;
+		}
+
+		.profile-sidebar-card::after {
+			position: absolute;
+			top: -100px;
+			right: -100px;
+			width: 210px;
+			height: 210px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(8, 199, 212, .12), transparent 68%);
+			pointer-events: none;
+		}
+
+		.profile-logo-shell {
+			position: relative;
+			z-index: 2;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 145px;
+			height: 145px;
+			padding: 10px;
+			border: 1px solid #dceaf0;
+			border-radius: 32px;
+			background: linear-gradient(145deg, #ffffff, #eff9fb);
+			box-shadow: 0 18px 40px rgba(5, 40, 95, .12);
+		}
+
+		.profile-logo-preview {
+			width: 100%;
+			height: 100%;
+			border-radius: 24px;
+			object-fit: cover;
+		}
+
+		.profile-verification-badge {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 8px 11px;
+			border-radius: 999px;
+			font-size: 11px;
+			font-weight: 900;
+		}
+
+		.profile-upload-section {
+			position: relative;
+			z-index: 2;
+			margin-top: 18px;
+			padding-top: 18px;
+			border-top: 1px solid #e8f1f5;
+			text-align: left;
+		}
+
+		.profile-upload-section+.profile-upload-section {
+			margin-top: 14px;
+		}
+
+		.profile-upload-label {
+			display: flex;
+			align-items: center;
+			gap: 7px;
+			margin-bottom: 9px;
+			color: #05285f;
+			font-size: 12px;
+			font-weight: 900;
+		}
+
+		.profile-document-link {
+			display: none;
+			align-items: center;
+			justify-content: center;
+			gap: 7px;
+			margin-top: 10px;
+			padding: 10px 12px;
+			border-radius: 13px;
+			color: #076a9c;
+			background: #eef9fc;
+			font-size: 12px;
+			font-weight: 800;
+			text-decoration: none;
+		}
+
+		.profile-document-link:hover {
+			color: #05285f;
+		}
+
+		.profile-section-card {
+			position: relative;
+			overflow: hidden;
+			margin-bottom: 22px;
+			animation: profileSectionReveal .55s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.profile-section-card::after {
+			position: absolute;
+			top: -90px;
+			right: -90px;
+			width: 190px;
+			height: 190px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(8, 199, 212, .1), transparent 68%);
+			pointer-events: none;
+		}
+
+		.profile-section-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			gap: 13px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5;
+		}
+
+		.profile-section-icon {
+			display: flex;
+			flex: 0 0 46px;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+			box-shadow: 0 12px 26px rgba(5, 40, 95, .16);
+		}
+
+		.profile-section-header small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		.profile-section-header h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.profile-control-wrap {
+			position: relative;
+			z-index: 2;
+		}
+
+		.profile-control-wrap>i {
+			position: absolute;
+			top: 39px;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			pointer-events: none;
+		}
+
+		.profile-control-wrap .form-control,
+		.profile-control-wrap .form-select {
+			padding-left: 41px;
+		}
+
+		.profile-save-bar {
+			position: sticky;
+			bottom: 14px;
+			z-index: 10;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			padding: 16px 18px;
+			border: 1px solid rgba(8, 199, 212, .2);
+			border-radius: 18px;
+			background: rgba(255, 255, 255, .94);
+			box-shadow: 0 18px 45px rgba(5, 40, 95, .15);
+			backdrop-filter: blur(14px);
+		}
+
+		.profile-save-bar small {
+			color: #697d8f;
+		}
+
+		.profile-loading-overlay {
+			position: fixed;
+			inset: 0;
+			z-index: 2200;
+			display: none;
+			align-items: center;
+			justify-content: center;
+			background: rgba(5, 40, 95, .12);
+			backdrop-filter: blur(4px);
+		}
+
+		.profile-loading-overlay.active {
+			display: flex;
+		}
+
+		.profile-loading-box {
+			display: flex;
+			align-items: center;
+			gap: 14px;
+			padding: 18px 22px;
+			border-radius: 18px;
+			color: #05285f;
+			background: #ffffff;
+			box-shadow: 0 20px 50px rgba(5, 40, 95, .18);
+			font-weight: 800;
+		}
+
+		@keyframes profileHeroReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes profileHeroFloat {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(25px) rotate(8deg);
+			}
+		}
+
+		@keyframes profileIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-7px);
+			}
+		}
+
+		@keyframes profileSectionReveal {
+			from {
+				opacity: 0;
+				transform: translateY(16px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@media (max-width: 1100px) {
+			.profile-layout-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.profile-sidebar-card {
+				position: relative;
+				top: auto;
+			}
+		}
+
+		@media (max-width: 992px) {
+			.profile-hero {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.profile-hero-role {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 576px) {
+			.profile-hero {
+				padding: 26px 21px;
+				border-radius: 24px;
+			}
+
+			.profile-save-bar {
+				align-items: stretch;
+				flex-direction: column;
+			}
+
+			.profile-save-bar .btn {
+				width: 100% !important;
+			}
+		}
+	</style>
 </head>
 
-<body class="dashboard-body">
+<body class="dashboard-body platform-dashboard-body">
 
-	<div th:replace="~{layout/topnavbar :: topnavbar}"></div>
-	<div th:replace="~{layout/sidebar :: sidebar}"></div>
-	<main class="mr-main">
+	<div th:replace="~{layout/platform-topnavbar :: platformTopnavbar}"></div>
+	<div th:replace="~{layout/platform-sidebar :: platformSidebar}"></div>
 
-		<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
-			<div>
-				<h1 class="mr-page-title">Profile Management</h1>
+	<main class="mr-main platform-main profile-page">
+
+		<section class="profile-hero">
+
+			<div class="profile-hero-content">
+
+				<span class="profile-kicker">
+					<i class="bi bi-person-badge-fill"></i>
+					Account & Professional Identity
+				</span>
+
+				<h1>
+					Profile
+					<span>management</span>
+				</h1>
+
 				<p class="mr-page-subtitle">
-					Manage business details, license details, contact information and bank details.
+					Manage business details, license details, contact information,
+					bank information and verification documents.
 				</p>
+
+				<div class="profile-meta">
+
+					<span>
+						<i class="bi bi-shield-check"></i>
+						Verification profile
+					</span>
+
+					<span>
+						<i class="bi bi-building-fill"></i>
+						Business information
+					</span>
+
+					<span>
+						<i class="bi bi-bank2"></i>
+						Bank details
+					</span>
+
+				</div>
+
 			</div>
 
-			<div class="mr-card">
-				<strong>Role:</strong> <span id="profileRole">-</span>
+			<div class="profile-hero-role">
+
+				<div class="profile-role-icon">
+					<i class="bi bi-person-vcard-fill"></i>
+				</div>
+
+				<strong>Current Role</strong>
+
+				<span class="profile-role-badge">
+					<i class="bi bi-patch-check-fill"></i>
+					<span id="profileRole">-</span>
+				</span>
+
 			</div>
-		</div>
+
+		</section>
 
 		<div id="msg"></div>
 
-		<div class="row g-4">
+		<section class="profile-layout-grid">
 
-			<div class="col-lg-4">
-				<div class="mr-card text-center">
-					<img id="profileLogoPreview" src="/images/logo.png" class="profile-logo-preview">
+			<aside class="mr-card profile-sidebar-card">
 
-					<h5 class="fw-bold mt-3" id="profileNamePreview">MediRevolution Profile</h5>
-					<p class="text-muted mb-2" id="profileEmailPreview">email@example.com</p>
+				<div class="profile-logo-shell">
 
-					<span class="badge bg-warning text-dark" id="verificationStatus">
-						Pending Verification
-					</span>
+					<img id="profileLogoPreview" src="/images/logo.png" class="profile-logo-preview" alt="Profile logo">
 
-					<hr>
+				</div>
 
-					<label class="form-label text-start w-100">Profile Logo</label>
+				<h5 class="fw-bold mt-3 mb-1 text-primary" id="profileNamePreview">
+					MediRevolution Profile
+				</h5>
+
+				<p class="text-muted mb-2" id="profileEmailPreview">
+					email@example.com
+				</p>
+
+				<span class="profile-verification-badge bg-warning text-dark" id="verificationStatus">
+
+					<i class="bi bi-hourglass-split"></i>
+					Pending Verification
+				</span>
+
+				<div class="profile-upload-section">
+
+					<label class="profile-upload-label" for="profileLogoFile">
+
+						<i class="bi bi-image-fill"></i>
+						Profile Logo
+					</label>
 
 					<input type="file" id="profileLogoFile" class="form-control"
 						accept="image/png,image/jpeg,image/jpg,image/webp">
 
-					<button class="btn btn-medi mt-2" style="width:100%;" onclick="uploadProfileLogo()">
+					<button type="button" id="uploadProfileLogoBtn" class="btn btn-medi mt-2 w-100"
+						onclick="uploadProfileLogo()">
+
+						<i class="bi bi-cloud-arrow-up-fill me-1"></i>
 						Upload Logo
 					</button>
 
 					<input type="hidden" id="profileLogoUrl">
 
-					<label class="form-label text-start w-100 mt-3">Verification Document</label>
+				</div>
+
+				<div class="profile-upload-section" id="documentBlock">
+
+					<label class="profile-upload-label" for="documentFile">
+
+						<i class="bi bi-file-earmark-check-fill"></i>
+						Verification Document
+					</label>
 
 					<input type="file" id="documentFile" class="form-control"
 						accept="application/pdf,image/png,image/jpeg,image/jpg,image/webp">
 
-					<button class="btn btn-outline-primary mt-2 w-100" onclick="uploadDocument()">
+					<button type="button" id="uploadDocumentBtn" class="btn btn-outline-primary mt-2 w-100"
+						onclick="uploadDocument()">
+
+						<i class="bi bi-cloud-arrow-up me-1"></i>
 						Upload Document
 					</button>
 
 					<input type="hidden" id="documentUrl">
 
 					<a href="javascript:void(0)" id="documentPreviewLink" onclick="viewUploadedDocument()"
-						class="d-block mt-2" style="display:none;">
+						class="profile-document-link">
+
+						<i class="bi bi-box-arrow-up-right"></i>
 						View Uploaded Document
 					</a>
 
-					<small class="text-muted d-block mt-2">
-						For now enter uploaded file URL/path. File upload API can be added next.
-					</small>
 				</div>
-			</div>
 
-			<div class="col-lg-8">
+			</aside>
 
-				<div class="mr-card mb-4">
-					<h5 class="fw-bold text-primary mb-3">Company / Professional Information</h5>
+			<div>
+
+				<section class="mr-card profile-section-card">
+
+					<div class="profile-section-header">
+
+						<div class="profile-section-icon">
+							<i class="bi bi-building-fill"></i>
+						</div>
+
+						<div>
+							<small>Identity Details</small>
+							<h5>Company / Professional Information</h5>
+						</div>
+
+					</div>
 
 					<div class="row g-3">
 
-						<div class="col-md-6 field-patient">
-							<label class="form-label">Patient Name</label>
+						<div class="col-md-6 field-patient profile-control-wrap">
+
+							<label for="patientName" class="form-label">
+								Patient Name
+							</label>
+
+							<i class="bi bi-person-fill"></i>
+
 							<input type="text" id="patientName" class="form-control" placeholder="Amit Sharma">
+
 						</div>
 
-						<div class="col-md-6 field-patient">
-							<label class="form-label">Gender</label>
+						<div class="col-md-6 field-patient profile-control-wrap">
+
+							<label for="gender" class="form-label">
+								Gender
+							</label>
+
+							<i class="bi bi-gender-ambiguous"></i>
+
 							<select id="gender" class="form-select">
+
 								<option value="">Select Gender</option>
 								<option value="Male">Male</option>
 								<option value="Female">Female</option>
 								<option value="Other">Other</option>
 							</select>
+
 						</div>
 
-						<div class="col-md-6 field-patient">
-							<label class="form-label">Date of Birth</label>
+						<div class="col-md-6 field-patient profile-control-wrap">
+
+							<label for="dateOfBirth" class="form-label">
+								Date of Birth
+							</label>
+
+							<i class="bi bi-calendar-heart-fill"></i>
+
 							<input type="date" id="dateOfBirth" class="form-control">
+
 						</div>
 
-						<div class="col-md-6 field-patient">
-							<label class="form-label">Blood Group</label>
+						<div class="col-md-6 field-patient profile-control-wrap">
+
+							<label for="bloodGroup" class="form-label">
+								Blood Group
+							</label>
+
+							<i class="bi bi-droplet-fill"></i>
+
 							<input type="text" id="bloodGroup" class="form-control" placeholder="B+">
+
 						</div>
 
 						<div class="col-md-12 field-patient">
-							<label class="form-label">Medical History</label>
+
+							<label for="medicalHistory" class="form-label">
+								Medical History
+							</label>
+
 							<textarea id="medicalHistory" class="form-control" rows="3"
 								placeholder="Diabetes, BP, allergies etc."></textarea>
+
 						</div>
 
-						<div class="col-md-6 field-patient">
-							<label class="form-label">Emergency Contact Name</label>
+						<div class="col-md-6 field-patient profile-control-wrap">
+
+							<label for="emergencyContactName" class="form-label">
+								Emergency Contact Name
+							</label>
+
+							<i class="bi bi-person-lines-fill"></i>
+
 							<input type="text" id="emergencyContactName" class="form-control">
+
 						</div>
 
-						<div class="col-md-6 field-patient">
-							<label class="form-label">Emergency Contact Mobile</label>
+						<div class="col-md-6 field-patient profile-control-wrap">
+
+							<label for="emergencyContactMobile" class="form-label">
+								Emergency Contact Mobile
+							</label>
+
+							<i class="bi bi-telephone-fill"></i>
+
 							<input type="text" id="emergencyContactMobile" class="form-control">
+
 						</div>
 
+						<div class="col-md-6 profile-control-wrap" id="businessNameBlock">
 
-						<div class="col-md-6" id="businessNameBlock">
-							<label class="form-label" id="businessNameLabel">Business Name</label>
+							<label for="businessName" class="form-label" id="businessNameLabel">
+								Business Name
+							</label>
+
+							<i class="bi bi-building-fill"></i>
+
 							<input type="text" id="businessName" class="form-control">
+
 						</div>
 
-						<div class="col-md-6">
-							<label class="form-label">Doctor / Owner Name</label>
+						<div class="col-md-6 profile-control-wrap" id="ownerNameBlock">
+
+							<label for="ownerName" class="form-label">
+								Doctor / Owner Name
+							</label>
+
+							<i class="bi bi-person-badge-fill"></i>
+
 							<input type="text" id="ownerName" class="form-control">
+
 						</div>
 
-						<div class="col-md-6" id="drugLicenseBlock">
-							<label class="form-label">Drug License Number</label>
+						<div class="col-md-6 profile-control-wrap" id="drugLicenseBlock">
+
+							<label for="drugLicenseNumber" class="form-label">
+								Drug License Number
+							</label>
+
+							<i class="bi bi-file-earmark-medical-fill"></i>
+
 							<input type="text" id="drugLicenseNumber" class="form-control">
+
 						</div>
 
-						<div class="col-md-6" id="gstBlock">
-							<label class="form-label">GST Number</label>
+						<div class="col-md-6 profile-control-wrap" id="gstBlock">
+
+							<label for="gstNumber" class="form-label">
+								GST Number
+							</label>
+
+							<i class="bi bi-receipt-cutoff"></i>
+
 							<input type="text" id="gstNumber" class="form-control">
+
 						</div>
 
-						<div class="col-md-6" id="registrationBlock" style="display:none;">
-							<label class="form-label">Registration Number</label>
+						<div class="col-md-6 profile-control-wrap" id="registrationBlock" style="display:none;">
+
+							<label for="registrationNumber" class="form-label">
+								Registration Number
+							</label>
+
+							<i class="bi bi-patch-check-fill"></i>
+
 							<input type="text" id="registrationNumber" class="form-control">
+
 						</div>
 
-						<div class="col-md-6" id="specializationBlock" style="display:none;">
-							<label class="form-label">Specialization / Hospital Type</label>
+						<div class="col-md-6 profile-control-wrap" id="specializationBlock" style="display:none;">
+
+							<label for="specialization" class="form-label">
+								Specialization / Hospital Type
+							</label>
+
+							<i class="bi bi-heart-pulse-fill"></i>
+
 							<input type="text" id="specialization" class="form-control">
+
 						</div>
 
-						<div class="col-md-6">
-							<label class="form-label">Email</label>
+						<div class="col-md-6 profile-control-wrap">
+
+							<label for="email" class="form-label">
+								Email
+							</label>
+
+							<i class="bi bi-envelope-fill"></i>
+
 							<input type="email" id="email" class="form-control">
+
 						</div>
 
-						<div class="col-md-6">
-							<label class="form-label">Mobile</label>
+						<div class="col-md-6 profile-control-wrap">
+
+							<label for="mobile" class="form-label">
+								Mobile
+							</label>
+
+							<i class="bi bi-telephone-fill"></i>
+
 							<input type="text" id="mobile" class="form-control">
-						</div>
-						<div class="col-md-6">
-							<label class="form-label">Year's Of Experience</label>
-							<input type="number" id="experienceYears" class="form-control">
-						</div>
-					</div>
-				</div>
 
-				<div class="mr-card mb-4">
-					<h5 class="fw-bold text-primary mb-3">Address & Contact Person</h5>
+						</div>
+
+						<div class="col-md-6 profile-control-wrap" id="experienceYearsBlock">
+
+							<label for="experienceYears" class="form-label">
+								Years of Experience
+							</label>
+
+							<i class="bi bi-award-fill"></i>
+
+							<input type="number" min="0" id="experienceYears" class="form-control">
+
+						</div>
+
+					</div>
+
+				</section>
+
+				<section class="mr-card profile-section-card">
+
+					<div class="profile-section-header">
+
+						<div class="profile-section-icon">
+							<i class="bi bi-geo-alt-fill"></i>
+						</div>
+
+						<div>
+							<small>Location & Communication</small>
+							<h5>Address & Contact Person</h5>
+						</div>
+
+					</div>
 
 					<div class="row g-3">
 
 						<div class="col-md-12">
-							<label class="form-label">Address</label>
+
+							<label for="address" class="form-label">
+								Address
+							</label>
+
 							<textarea id="address" class="form-control" rows="3"></textarea>
+
 						</div>
 
-						<div class="col-md-4">
-							<label class="form-label">State</label>
+						<div class="col-md-4 profile-control-wrap">
+
+							<label for="state" class="form-label">
+								State
+							</label>
+
+							<i class="bi bi-map-fill"></i>
+
 							<input type="text" id="state" class="form-control">
+
 						</div>
 
-						<div class="col-md-4">
-							<label class="form-label">District</label>
+						<div class="col-md-4 profile-control-wrap">
+
+							<label for="district" class="form-label">
+								District
+							</label>
+
+							<i class="bi bi-geo-fill"></i>
+
 							<input type="text" id="district" class="form-control">
+
 						</div>
 
-						<div class="col-md-4">
-							<label class="form-label">Pincode</label>
+						<div class="col-md-4 profile-control-wrap">
+
+							<label for="pincode" class="form-label">
+								Pincode
+							</label>
+
+							<i class="bi bi-pin-map-fill"></i>
+
 							<input type="text" id="pincode" class="form-control">
+
 						</div>
 
-						<div class="col-md-6">
-							<label class="form-label">Contact Person Name</label>
+						<div class="col-md-6 profile-control-wrap" id="contactPersonNameBlock">
+
+							<label for="contactPersonName" class="form-label">
+								Contact Person Name
+							</label>
+
+							<i class="bi bi-person-lines-fill"></i>
+
 							<input type="text" id="contactPersonName" class="form-control">
+
 						</div>
 
-						<div class="col-md-6">
-							<label class="form-label">Contact Person Mobile</label>
+						<div class="col-md-6 profile-control-wrap" id="contactPersonMobileBlock">
+
+							<label for="contactPersonMobile" class="form-label">
+								Contact Person Mobile
+							</label>
+
+							<i class="bi bi-telephone-forward-fill"></i>
+
 							<input type="text" id="contactPersonMobile" class="form-control">
+
 						</div>
 
 					</div>
-				</div>
 
-				<div class="mr-card mb-4">
-					<h5 class="fw-bold text-primary mb-3">Bank Details</h5>
+				</section>
+
+				<section class="mr-card profile-section-card" id="bankDetailsBlock">
+
+					<div class="profile-section-header">
+
+						<div class="profile-section-icon">
+							<i class="bi bi-bank2"></i>
+						</div>
+
+						<div>
+							<small>Payment Information</small>
+							<h5>Bank Details</h5>
+						</div>
+
+					</div>
 
 					<div class="row g-3">
 
-						<div class="col-md-6">
-							<label class="form-label">Bank Name</label>
+						<div class="col-md-6 profile-control-wrap">
+
+							<label for="bankName" class="form-label">
+								Bank Name
+							</label>
+
+							<i class="bi bi-bank2"></i>
+
 							<input type="text" id="bankName" class="form-control">
+
 						</div>
 
-						<div class="col-md-6">
-							<label class="form-label">Account Holder Name</label>
+						<div class="col-md-6 profile-control-wrap">
+
+							<label for="accountHolderName" class="form-label">
+								Account Holder Name
+							</label>
+
+							<i class="bi bi-person-check-fill"></i>
+
 							<input type="text" id="accountHolderName" class="form-control">
+
 						</div>
 
-						<div class="col-md-6">
-							<label class="form-label">Account Number</label>
+						<div class="col-md-6 profile-control-wrap">
+
+							<label for="accountNumber" class="form-label">
+								Account Number
+							</label>
+
+							<i class="bi bi-credit-card-2-front-fill"></i>
+
 							<input type="text" id="accountNumber" class="form-control">
+
 						</div>
 
-						<div class="col-md-6">
-							<label class="form-label">IFSC Code</label>
+						<div class="col-md-6 profile-control-wrap">
+
+							<label for="ifscCode" class="form-label">
+								IFSC Code
+							</label>
+
+							<i class="bi bi-upc-scan"></i>
+
 							<input type="text" id="ifscCode" class="form-control">
+
 						</div>
 
-						<div class="col-md-12">
-							<label class="form-label">Branch Name</label>
+						<div class="col-md-12 profile-control-wrap">
+
+							<label for="branchName" class="form-label">
+								Branch Name
+							</label>
+
+							<i class="bi bi-building-check"></i>
+
 							<input type="text" id="branchName" class="form-control">
+
 						</div>
 
 					</div>
-				</div>
 
-				<div class="text-end">
-					<button class="btn btn-medi" style="width:auto;" onclick="saveProfile()">
+				</section>
+
+				<div class="profile-save-bar">
+
+					<small>
+						<i class="bi bi-shield-check me-1"></i>
+						Review the information before saving your profile.
+					</small>
+
+					<button type="button" id="saveProfileBtn" class="btn btn-medi" style="width:auto;"
+						onclick="saveProfile()">
+
+						<i class="bi bi-check2-circle me-1"></i>
 						Save Profile
 					</button>
+
 				</div>
 
 			</div>
 
-		</div>
+		</section>
 
 		<div th:replace="~{layout/footer :: footer}"></div>
+
 	</main>
 
-	<script th:src="@{/js/common-dashboard.js}"></script>
-	<script th:src="@{/js/profile.js}"></script>
+	<div class="profile-loading-overlay" id="profileLoadingOverlay">
 
+		<div class="profile-loading-box">
+
+			<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+
+			Loading profile...
+		</div>
+
+	</div>
+
+	<div class="module-exit-overlay" id="moduleExitOverlay">
+
+		<div class="module-exit-content">
+
+			<div class="module-exit-icon">
+				<i class="bi bi-arrow-left-right"></i>
+			</div>
+
+			<h2>Switching Experience</h2>
+
+			<p>
+				Returning to MediRevolution module selection...
+			</p>
+
+			<div class="module-exit-progress">
+				<span></span>
+			</div>
+
+		</div>
+
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script th:src="@{/js/module-switch.js}"></script>
+	<script th:src="@{/js/common-dashboard.js}"></script>
+	<script th:src="@{/js/profile.js?v=2}"></script>
 	<script th:src="@{/js/pwa.js}"></script>
+
 </body>
 
 </html>

@@ -45,6 +45,7 @@ public class SecurityConfig {
         	                "/images/**",
         	                "/manifest.json").permitAll()
         	        .requestMatchers("/actuator/**").permitAll()
+        	        .requestMatchers("/auth/internal/**").authenticated()
         	        .requestMatchers("/auth/registered-patients").hasRole("DOCTOR")
         	        .requestMatchers("/auth/admin/users/**").hasAuthority("ROLE_SUPER_ADMIN")
         	        .anyRequest().authenticated()

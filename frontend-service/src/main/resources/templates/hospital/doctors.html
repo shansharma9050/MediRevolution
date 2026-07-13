@@ -1,125 +1,853 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
+	<meta charset="UTF-8">
+
 	<title>MediRevolution | Hospital Doctors</title>
+
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+
 	<link rel="manifest" href="/manifest.json">
+
 	<meta name="theme-color" content="#05285f">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
+
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
+
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
 	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.hospital-doctors-page {
+			position: relative;
+		}
+
+		.hospital-doctors-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 230px;
+			margin-bottom: 28px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg, #05285f 0%, #076a9c 52%, #08c7d4 100%);
+			box-shadow: 0 25px 65px rgba(5, 40, 95, 0.22);
+			animation: hospitalDoctorsHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.hospital-doctors-hero::before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, 0.07);
+			border-radius: 50%;
+			content: "";
+			animation: hospitalDoctorsHeroFloat 9s ease-in-out infinite;
+		}
+
+		.hospital-doctors-hero::after {
+			position: absolute;
+			bottom: -175px;
+			left: 28%;
+			width: 350px;
+			height: 350px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle, rgba(123, 214, 0, 0.23), transparent 68%);
+		}
+
+		.hospital-doctors-hero-content,
+		.hospital-doctors-hero-action {
+			position: relative;
+			z-index: 2;
+		}
+
+		.hospital-doctors-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, 0.2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.hospital-doctors-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px;
+		}
+
+		.hospital-doctors-hero h1 span {
+			color: #b8f267;
+		}
+
+		.hospital-doctors-hero p {
+			max-width: 720px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, 0.78);
+			line-height: 1.75;
+		}
+
+		.hospital-doctors-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px;
+		}
+
+		.hospital-doctors-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.11);
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.hospital-doctors-hero-action {
+			display: flex;
+			min-width: 210px;
+			flex-direction: column;
+			align-items: center;
+			padding: 22px;
+			border: 1px solid rgba(255, 255, 255, 0.18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, 0.11);
+			text-align: center;
+			backdrop-filter: blur(15px);
+		}
+
+		.hospital-doctors-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 68px;
+			height: 68px;
+			margin-bottom: 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 28px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+			animation: hospitalDoctorsIconFloat 3s ease-in-out infinite;
+		}
+
+		.hospital-doctors-add-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 46px;
+			margin-top: 13px;
+			padding: 0 18px;
+			border: none;
+			border-radius: 15px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 12px;
+			font-weight: 800;
+			transition: transform .3s ease, box-shadow .3s ease;
+		}
+
+		.hospital-doctors-add-button:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 14px 30px rgba(0, 0, 0, .18);
+		}
+
+		.hospital-doctors-summary-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px;
+		}
+
+		.hospital-doctors-summary-card {
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .95);
+			box-shadow: 0 14px 35px rgba(5, 40, 95, .08);
+			transition: transform .35s ease, box-shadow .35s ease;
+		}
+
+		.hospital-doctors-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 22px 48px rgba(5, 40, 95, .14);
+		}
+
+		.hospital-doctors-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+		}
+
+		.hospital-doctors-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700;
+		}
+
+		.hospital-doctors-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 29px;
+			font-weight: 900;
+		}
+
+		.hospital-doctor-form-card {
+			position: relative;
+			overflow: hidden;
+			animation: hospitalDoctorPanelReveal .45s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.hospital-doctor-form-card::after {
+			position: absolute;
+			top: -90px;
+			right: -90px;
+			width: 190px;
+			height: 190px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(8, 199, 212, .11), transparent 68%);
+			pointer-events: none;
+		}
+
+		.hospital-doctor-form-header,
+		.hospital-doctor-list-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5;
+		}
+
+		.hospital-doctor-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px;
+		}
+
+		.hospital-doctor-title-icon {
+			display: flex;
+			flex: 0 0 46px;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+			box-shadow: 0 12px 26px rgba(5, 40, 95, .16);
+		}
+
+		.hospital-doctor-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		.hospital-doctor-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.hospital-doctor-control-wrap {
+			position: relative;
+			z-index: 2;
+		}
+
+		.hospital-doctor-control-wrap>i {
+			position: absolute;
+			top: 39px;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			pointer-events: none;
+		}
+
+		.hospital-doctor-control-wrap .form-control {
+			padding-left: 41px;
+		}
+
+		.hospital-doctor-form-actions {
+			display: flex;
+			justify-content: flex-end;
+			gap: 10px;
+			margin-top: 18px;
+			padding-top: 18px;
+			border-top: 1px solid #edf3f6;
+		}
+
+		.hospital-doctor-search-wrap {
+			position: relative;
+			min-width: 320px;
+		}
+
+		.hospital-doctor-search-wrap i {
+			position: absolute;
+			top: 50%;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			transform: translateY(-50%);
+		}
+
+		.hospital-doctor-search-wrap .form-control {
+			padding-left: 41px;
+		}
+
+		.hospital-doctors-table-wrap {
+			overflow: hidden;
+			border: 1px solid #e6eef4;
+			border-radius: 18px;
+		}
+
+		.hospital-doctors-table-wrap table {
+			margin-bottom: 0;
+		}
+
+		.hospital-doctors-table-wrap thead th {
+			padding: 15px 16px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 12px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.hospital-doctors-table-wrap tbody td {
+			padding: 15px 16px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 13px;
+			vertical-align: middle;
+		}
+
+		.hospital-doctors-table-wrap tbody tr {
+			opacity: 0;
+			transform: translateY(12px);
+			animation: hospitalDoctorRowReveal .45s var(--row-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards;
+		}
+
+		.hospital-doctor-profile {
+			display: flex;
+			align-items: center;
+			gap: 11px;
+		}
+
+		.hospital-doctor-avatar {
+			display: flex;
+			flex: 0 0 42px;
+			align-items: center;
+			justify-content: center;
+			width: 42px;
+			height: 42px;
+			border-radius: 14px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 17px;
+		}
+
+		.hospital-doctor-pill {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			color: #05285f;
+			background: #eaf7fb;
+			font-size: 11px;
+			font-weight: 800;
+		}
+
+		.hospital-doctor-fee {
+			color: #0f6f62;
+			font-weight: 900;
+		}
+
+		.hospital-doctor-actions {
+			display: inline-flex;
+			flex-wrap: wrap;
+			gap: 7px;
+		}
+
+		.hospital-doctors-state {
+			padding: 50px 20px;
+			text-align: center;
+		}
+
+		.hospital-doctors-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 70px;
+			height: 70px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 27px;
+			box-shadow: 0 15px 32px rgba(5, 40, 95, .17);
+		}
+
+		.hospital-doctors-loading-icon {
+			animation: hospitalDoctorsLoadingPulse 1.3s ease-in-out infinite;
+		}
+
+		@keyframes hospitalDoctorsHeroReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes hospitalDoctorsHeroFloat {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(25px) rotate(8deg);
+			}
+		}
+
+		@keyframes hospitalDoctorsIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-7px);
+			}
+		}
+
+		@keyframes hospitalDoctorPanelReveal {
+			from {
+				opacity: 0;
+				transform: translateY(-12px) scale(.985);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0) scale(1);
+			}
+		}
+
+		@keyframes hospitalDoctorRowReveal {
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes hospitalDoctorsLoadingPulse {
+
+			0%,
+			100% {
+				transform: scale(.94);
+				opacity: .72;
+			}
+
+			50% {
+				transform: scale(1.06);
+				opacity: 1;
+			}
+		}
+
+		@media (max-width: 1100px) {
+			.hospital-doctors-summary-grid {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+		}
+
+		@media (max-width: 992px) {
+			.hospital-doctors-hero {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.hospital-doctors-hero-action {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 768px) {
+			.hospital-doctor-list-header {
+				align-items: stretch;
+				flex-direction: column;
+			}
+
+			.hospital-doctor-search-wrap {
+				width: 100%;
+				min-width: 0;
+			}
+		}
+
+		@media (max-width: 576px) {
+			.hospital-doctors-hero {
+				padding: 26px 21px;
+				border-radius: 24px;
+			}
+
+			.hospital-doctors-summary-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.hospital-doctor-form-actions {
+				flex-direction: column-reverse;
+			}
+
+			.hospital-doctor-form-actions .btn {
+				width: 100% !important;
+			}
+		}
+	</style>
 </head>
 
-<body class="dashboard-body">
+<body class="dashboard-body platform-dashboard-body">
 
-	<nav class="navbar fixed-top mr-navbar px-3 px-lg-4">
-		<div class="d-flex align-items-center gap-3">
-			<button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-			<a href="/dashboard" class="mr-navbar-brand d-flex align-items-center gap-2">
-				<img th:src="@{/images/logo.png}" class="mr-nav-logo">
-				Medi<span>Revolution</span>
-			</a>
-		</div>
+	<div th:replace="~{layout/platform-topnavbar :: platformTopnavbar}"></div>
+	<div th:replace="~{layout/platform-sidebar :: platformSidebar}"></div>
 
-		<div class="d-flex align-items-center gap-3">
-			<div class="mr-user-pill"><span id="userEmail">hospital@email.com</span></div>
-			<button class="btn btn-light position-relative" onclick="window.location='/notifications'">
-				🔔 <span id="notificationCount"
-					class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
-			</button>
-			<button class="btn btn-outline-light" onclick="logout()">Logout</button>
-		</div>
-	</nav>
+	<main class="mr-main platform-main hospital-doctors-page">
 
-	<aside class="mr-sidebar" id="sidebar">
-		<a href="/dashboard">🏠 Main Dashboard</a>
-		<a href="/hospital/dashboard">🏥 Hospital Dashboard</a>
-		<a href="/hospital/doctors" class="active">👨‍⚕️ Hospital Doctors</a>
-		<a href="/hospital/doctor-availability">🕒 Doctor Availability</a>
-		<a href="/hospital/appointment-requests">📅 Appointment Requests</a>
-		<a href="/hospital/patients">🧑‍⚕️ OPD / IPD</a>
-		<a href="/hospital/staff">👥 Staff</a>
-		<a href="/hospital/inventory">📦 Inventory</a>
-		<a href="/hospital/billing">💳 Billing</a>
-		<a href="/hospital/reports">📊 Reports</a>
-		<a href="/profile">👤 Profile</a>
-	</aside>
+		<section class="hospital-doctors-hero">
 
-	<main class="mr-main">
+			<div class="hospital-doctors-hero-content">
 
-		<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
-			<div>
-				<h1 class="mr-page-title">Hospital Doctors</h1>
-				<p class="mr-page-subtitle">Add and manage doctors working in your hospital.</p>
+				<span class="hospital-doctors-kicker">
+					<i class="bi bi-person-badge-fill"></i>
+					Hospital Medical Team
+				</span>
+
+				<h1>
+					Hospital
+					<span>doctors</span>
+				</h1>
+
+				<p>
+					Add and manage doctors working in your hospital,
+					including specialization, department, experience and consultation fee.
+				</p>
+
+				<div class="hospital-doctors-meta">
+
+					<span>
+						<i class="bi bi-person-check-fill"></i>
+						Doctor profiles
+					</span>
+
+					<span>
+						<i class="bi bi-building-fill"></i>
+						Department mapping
+					</span>
+
+					<span>
+						<i class="bi bi-cash-stack"></i>
+						Consultation fees
+					</span>
+
+				</div>
+
 			</div>
 
-			<button class="btn btn-medi" style="width:auto;" onclick="toggleDoctorForm()">+ Add Doctor</button>
-		</div>
+			<div class="hospital-doctors-hero-action">
+
+				<div class="hospital-doctors-hero-icon">
+					<i class="bi bi-person-plus-fill"></i>
+				</div>
+
+				<strong>Add Hospital Doctor</strong>
+
+				<button type="button" class="hospital-doctors-add-button" onclick="openCreateDoctorForm()">
+
+					<i class="bi bi-plus-circle-fill"></i>
+					Add Doctor
+				</button>
+
+			</div>
+
+		</section>
 
 		<div id="msg"></div>
 
-		<div class="mr-card mb-4" id="doctorFormPanel" style="display:none;">
-			<h5 class="fw-bold text-primary mb-3">Doctor Details</h5>
+		<section class="hospital-doctors-summary-grid">
+
+			<article class="hospital-doctors-summary-card">
+
+				<div class="hospital-doctors-summary-icon">
+					<i class="bi bi-people-fill"></i>
+				</div>
+
+				<small>Total Doctors</small>
+				<strong id="totalHospitalDoctorCount">0</strong>
+
+			</article>
+
+			<article class="hospital-doctors-summary-card">
+
+				<div class="hospital-doctors-summary-icon">
+					<i class="bi bi-building-fill"></i>
+				</div>
+
+				<small>Departments</small>
+				<strong id="hospitalDoctorDepartmentCount">0</strong>
+
+			</article>
+
+			<article class="hospital-doctors-summary-card">
+
+				<div class="hospital-doctors-summary-icon">
+					<i class="bi bi-award-fill"></i>
+				</div>
+
+				<small>Experienced Doctors</small>
+				<strong id="experiencedHospitalDoctorCount">0</strong>
+
+			</article>
+
+			<article class="hospital-doctors-summary-card">
+
+				<div class="hospital-doctors-summary-icon">
+					<i class="bi bi-currency-rupee"></i>
+				</div>
+
+				<small>Average Fee</small>
+				<strong id="hospitalDoctorAverageFee">₹0</strong>
+
+			</article>
+
+		</section>
+
+		<section class="mr-card hospital-doctor-form-card mb-4" id="doctorFormPanel" style="display:none;">
+
+			<div class="hospital-doctor-form-header">
+
+				<div class="hospital-doctor-title-wrap">
+
+					<div class="hospital-doctor-title-icon">
+						<i class="bi bi-person-plus-fill"></i>
+					</div>
+
+					<div>
+						<small>Doctor Record</small>
+						<h5 id="doctorFormTitle">Doctor Details</h5>
+					</div>
+
+				</div>
+
+				<button type="button" class="btn btn-sm btn-outline-secondary" onclick="closeDoctorForm()">
+
+					<i class="bi bi-x-lg"></i>
+				</button>
+
+			</div>
 
 			<div class="row g-3">
-				<div class="col-md-4">
-					<label class="form-label">Doctor Name</label>
+
+				<div class="col-lg-4 col-md-6 hospital-doctor-control-wrap">
+
+					<label for="doctorName" class="form-label">
+						Doctor Name
+					</label>
+
+					<i class="bi bi-person-fill"></i>
+
 					<input type="text" id="doctorName" class="form-control" placeholder="Dr Rajesh Kumar">
+
 				</div>
 
-				<div class="col-md-4">
-					<label class="form-label">Specialization</label>
+				<div class="col-lg-4 col-md-6 hospital-doctor-control-wrap">
+
+					<label for="specialization" class="form-label">
+						Specialization
+					</label>
+
+					<i class="bi bi-heart-pulse-fill"></i>
+
 					<input type="text" id="specialization" class="form-control" placeholder="Cardiologist">
+
 				</div>
 
-				<div class="col-md-4">
-					<label class="form-label">Department</label>
+				<div class="col-lg-4 col-md-6 hospital-doctor-control-wrap">
+
+					<label for="department" class="form-label">
+						Department
+					</label>
+
+					<i class="bi bi-building-fill"></i>
+
 					<input type="text" id="department" class="form-control" placeholder="Cardiology">
+
 				</div>
 
-				<div class="col-md-4">
-					<label class="form-label">Qualification</label>
+				<div class="col-lg-4 col-md-6 hospital-doctor-control-wrap">
+
+					<label for="qualification" class="form-label">
+						Qualification
+					</label>
+
+					<i class="bi bi-mortarboard-fill"></i>
+
 					<input type="text" id="qualification" class="form-control" placeholder="MBBS, MD">
+
 				</div>
 
-				<div class="col-md-4">
-					<label class="form-label">Experience Years</label>
-					<input type="number" id="experienceYears" class="form-control">
+				<div class="col-lg-4 col-md-6 hospital-doctor-control-wrap">
+
+					<label for="experienceYears" class="form-label">
+						Experience Years
+					</label>
+
+					<i class="bi bi-award-fill"></i>
+
+					<input type="number" min="0" id="experienceYears" class="form-control" placeholder="10">
+
 				</div>
 
-				<div class="col-md-4">
-					<label class="form-label">Consultation Fee</label>
-					<input type="number" step="0.01" id="consultationFee" class="form-control">
+				<div class="col-lg-4 col-md-6 hospital-doctor-control-wrap">
+
+					<label for="consultationFee" class="form-label">
+						Consultation Fee
+					</label>
+
+					<i class="bi bi-currency-rupee"></i>
+
+					<input type="number" min="0" step="0.01" id="consultationFee" class="form-control"
+						placeholder="500">
+
 				</div>
 
-				<div class="col-md-4">
-					<label class="form-label">Mobile</label>
-					<input type="text" id="mobile" class="form-control">
+				<div class="col-lg-4 col-md-6 hospital-doctor-control-wrap">
+
+					<label for="mobile" class="form-label">
+						Mobile
+					</label>
+
+					<i class="bi bi-telephone-fill"></i>
+
+					<input type="text" id="mobile" class="form-control" placeholder="9876543210">
+
 				</div>
 
-				<div class="col-md-4">
-					<label class="form-label">Email</label>
-					<input type="email" id="email" class="form-control">
+				<div class="col-lg-4 col-md-6 hospital-doctor-control-wrap">
+
+					<label for="email" class="form-label">
+						Email
+					</label>
+
+					<i class="bi bi-envelope-fill"></i>
+
+					<input type="email" id="email" class="form-control" placeholder="doctor@hospital.com">
+
 				</div>
 
-				<div class="col-md-12 text-end">
-					<button class="btn btn-outline-secondary me-2" style="width:auto;"
-						onclick="clearDoctorForm()">Clear</button>
-					<button class="btn btn-medi" style="width:auto;" onclick="saveHospitalDoctor()">Save Doctor</button>
-				</div>
 			</div>
-		</div>
 
-		<div class="mr-card">
-			<div class="d-flex justify-content-between flex-wrap gap-3 mb-3">
-				<h5 class="fw-bold text-primary mb-0">Doctor List</h5>
+			<div class="hospital-doctor-form-actions">
 
-				<input type="text" id="searchBox" class="form-control" style="max-width:320px;"
-					placeholder="Search doctor / department" onkeyup="filterDoctors()">
+				<button type="button" class="btn btn-outline-secondary" style="width:auto;" onclick="clearDoctorForm()">
+
+					<i class="bi bi-eraser-fill me-1"></i>
+					Clear
+				</button>
+
+				<button type="button" id="saveHospitalDoctorBtn" class="btn btn-medi" style="width:auto;"
+					onclick="saveHospitalDoctor()">
+
+					<i class="bi bi-check2-circle me-1"></i>
+					Save Doctor
+				</button>
+
 			</div>
 
-			<div class="table-responsive">
+		</section>
+
+		<section class="mr-card">
+
+			<div class="hospital-doctor-list-header">
+
+				<div class="hospital-doctor-title-wrap">
+
+					<div class="hospital-doctor-title-icon">
+						<i class="bi bi-people-fill"></i>
+					</div>
+
+					<div>
+						<small>Medical Team</small>
+						<h5>Doctor List</h5>
+					</div>
+
+				</div>
+
+				<div class="hospital-doctor-search-wrap">
+
+					<i class="bi bi-search"></i>
+
+					<input type="text" id="searchBox" class="form-control"
+						placeholder="Search doctor, specialization or department" onkeyup="filterDoctors()">
+
+				</div>
+
+			</div>
+
+			<div class="table-responsive hospital-doctors-table-wrap">
+
 				<table class="table table-hover align-middle">
+
 					<thead>
 						<tr>
 							<th>#</th>
@@ -132,15 +860,70 @@
 							<th>Action</th>
 						</tr>
 					</thead>
-					<tbody id="doctorTable"></tbody>
+
+					<tbody id="doctorTable">
+
+						<tr>
+							<td colspan="8">
+
+								<div class="hospital-doctors-state">
+
+									<div class="hospital-doctors-state-icon hospital-doctors-loading-icon">
+										<i class="bi bi-people-fill"></i>
+									</div>
+
+									<h5 class="fw-bold text-primary">
+										Loading doctors
+									</h5>
+
+									<p class="text-muted mb-0">
+										Please wait while we prepare the hospital doctor list.
+									</p>
+
+								</div>
+
+							</td>
+						</tr>
+
+					</tbody>
+
 				</table>
+
 			</div>
-		</div>
+
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
 
 	</main>
 
+	<div class="module-exit-overlay" id="moduleExitOverlay">
+
+		<div class="module-exit-content">
+
+			<div class="module-exit-icon">
+				<i class="bi bi-arrow-left-right"></i>
+			</div>
+
+			<h2>Switching Experience</h2>
+
+			<p>
+				Returning to MediRevolution module selection...
+			</p>
+
+			<div class="module-exit-progress">
+				<span></span>
+			</div>
+
+		</div>
+
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script th:src="@{/js/module-switch.js}"></script>
 	<script th:src="@{/js/common-dashboard.js}"></script>
-	<script th:src="@{/js/hospital-doctors.js}"></script>
+	<script th:src="@{/js/hospital-doctors.js?v=2}"></script>
 	<script th:src="@{/js/pwa.js}"></script>
 
 </body>

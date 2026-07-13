@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+
+	<title>MediRevolution | SaaS IPD</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link rel="manifest" href="/manifest.json">
+
+	<meta name="theme-color" content="#05285f">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
+
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.saas-ipd-page {
+			position: relative
+		}
+
+		.saas-ipd-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 235px;
+			margin-bottom: 28px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f 0%, #08739f 48%, #08c7d4 100%);
+			box-shadow: 0 25px 65px rgba(5, 40, 95, .22);
+			animation: ipdHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both
+		}
+
+		.saas-ipd-hero:before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation: ipdHeroFloat 9s ease-in-out infinite
+		}
+
+		.saas-ipd-hero:after {
+			position: absolute;
+			bottom: -180px;
+			left: 28%;
+			width: 360px;
+			height: 360px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(123, 214, 0, .23), transparent 68%)
+		}
+
+		.saas-ipd-hero-content,
+		.saas-ipd-hero-action {
+			position: relative;
+			z-index: 2
+		}
+
+		.saas-ipd-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px)
+		}
+
+		.saas-ipd-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px
+		}
+
+		.saas-ipd-hero h1 span {
+			color: #b8f267
+		}
+
+		.saas-ipd-hero p {
+			max-width: 760px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .8);
+			line-height: 1.75
+		}
+
+		.saas-ipd-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px
+		}
+
+		.saas-ipd-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700
+		}
+
+		.saas-ipd-hero-action {
+			display: flex;
+			min-width: 255px;
+			flex-direction: column;
+			align-items: stretch;
+			padding: 22px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px)
+		}
+
+		.saas-ipd-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 68px;
+			height: 68px;
+			margin: 0 auto 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #fff;
+			font-size: 28px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+			animation: ipdIconFloat 3s ease-in-out infinite
+		}
+
+		.saas-ipd-hero-buttons {
+			display: grid;
+			gap: 9px;
+			margin-top: 13px
+		}
+
+		.saas-ipd-hero-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 44px;
+			padding: 0 16px;
+			border: none;
+			border-radius: 14px;
+			color: #05285f;
+			background: #fff;
+			font-size: 12px;
+			font-weight: 800;
+			transition: .3s
+		}
+
+		.saas-ipd-hero-button.secondary {
+			border: 1px solid rgba(255, 255, 255, .28);
+			color: #fff;
+			background: rgba(255, 255, 255, .08)
+		}
+
+		.saas-ipd-hero-button:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 14px 30px rgba(0, 0, 0, .16)
+		}
+
+		.saas-ipd-summary-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px
+		}
+
+		.saas-ipd-summary-card {
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .96);
+			box-shadow: 0 14px 35px rgba(5, 40, 95, .08);
+			transition: .35s
+		}
+
+		.saas-ipd-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 22px 48px rgba(5, 40, 95, .14)
+		}
+
+		.saas-ipd-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px
+		}
+
+		.saas-ipd-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700
+		}
+
+		.saas-ipd-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 29px;
+			font-weight: 900
+		}
+
+		.saas-ipd-card {
+			position: relative;
+			overflow: hidden
+		}
+
+		.saas-ipd-card:after {
+			position: absolute;
+			top: -90px;
+			right: -90px;
+			width: 190px;
+			height: 190px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(8, 199, 212, .1), transparent 68%);
+			pointer-events: none
+		}
+
+		.saas-ipd-section-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5
+		}
+
+		.saas-ipd-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px
+		}
+
+		.saas-ipd-title-icon {
+			display: flex;
+			flex: 0 0 46px;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px
+		}
+
+		.saas-ipd-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase
+		}
+
+		.saas-ipd-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900
+		}
+
+		.saas-ipd-filters {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px
+		}
+
+		.saas-ipd-filter-wrap {
+			position: relative;
+			min-width: 210px
+		}
+
+		.saas-ipd-filter-wrap i {
+			position: absolute;
+			top: 50%;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			transform: translateY(-50%);
+			pointer-events: none
+		}
+
+		.saas-ipd-filter-wrap .form-control,
+		.saas-ipd-filter-wrap .form-select {
+			padding-left: 41px
+		}
+
+		.saas-ipd-table-wrap {
+			position: relative;
+			z-index: 2;
+			overflow: hidden;
+			border: 1px solid #e6eef4;
+			border-radius: 18px
+		}
+
+		.saas-ipd-table-wrap table {
+			margin-bottom: 0
+		}
+
+		.saas-ipd-table-wrap thead th {
+			padding: 15px 16px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 12px;
+			font-weight: 900;
+			white-space: nowrap
+		}
+
+		.saas-ipd-table-wrap tbody td {
+			padding: 15px 16px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 13px;
+			vertical-align: middle
+		}
+
+		.saas-ipd-table-wrap tbody tr {
+			opacity: 0;
+			transform: translateY(12px);
+			animation: ipdRowReveal .45s var(--row-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards
+		}
+
+		.ipd-patient-cell,
+		.ipd-doctor-cell {
+			display: flex;
+			align-items: center;
+			gap: 10px
+		}
+
+		.ipd-person-icon {
+			display: flex;
+			flex: 0 0 42px;
+			align-items: center;
+			justify-content: center;
+			width: 42px;
+			height: 42px;
+			border-radius: 14px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 17px
+		}
+
+		.ipd-status-pill {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			font-size: 10px;
+			font-weight: 900;
+			white-space: nowrap
+		}
+
+		.ipd-status-pill.admitted {
+			color: #664d03;
+			background: #fff3cd
+		}
+
+		.ipd-status-pill.discharged {
+			color: #0f5132;
+			background: #d1e7dd
+		}
+
+		.ipd-status-pill.other {
+			color: #41464b;
+			background: #e2e3e5
+		}
+
+		.ipd-actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 7px
+		}
+
+		.ipd-state {
+			padding: 54px 20px;
+			text-align: center
+		}
+
+		.ipd-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 72px;
+			height: 72px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 28px;
+			box-shadow: 0 15px 32px rgba(5, 40, 95, .17)
+		}
+
+		.ipd-loading {
+			animation: ipdLoadingPulse 1.3s ease-in-out infinite
+		}
+
+		.saas-ipd-modal .modal-content {
+			overflow: hidden;
+			border: none;
+			border-radius: 26px;
+			box-shadow: 0 28px 75px rgba(5, 40, 95, .22)
+		}
+
+		.saas-ipd-modal .modal-header {
+			padding: 21px 24px;
+			color: #fff;
+			border-bottom: none;
+			background: linear-gradient(135deg, #05285f, #087aa3)
+		}
+
+		.saas-ipd-modal .btn-close {
+			filter: invert(1)
+		}
+
+		.saas-ipd-modal .modal-body {
+			padding: 25px
+		}
+
+		.saas-ipd-modal .modal-footer {
+			padding: 18px 24px;
+			border-top: 1px solid #e8f1f5;
+			background: #f8fbfc
+		}
+
+		.ipd-control-wrap {
+			position: relative
+		}
+
+		.ipd-control-wrap>i {
+			position: absolute;
+			top: 39px;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			pointer-events: none
+		}
+
+		.ipd-control-wrap .form-control,
+		.ipd-control-wrap .form-select {
+			padding-left: 41px
+		}
+
+		.ipd-form-note {
+			display: flex;
+			align-items: flex-start;
+			gap: 10px;
+			margin-top: 18px;
+			padding: 14px 16px;
+			border: 1px solid #cfe7ef;
+			border-radius: 15px;
+			color: #526f80;
+			background: #f2fbfd;
+			font-size: 12px;
+			line-height: 1.6
+		}
+
+		@keyframes ipdHeroReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px)
+			}
+
+			to {
+				opacity: 1;
+				transform: none
+			}
+		}
+
+		@keyframes ipdHeroFloat {
+
+			0%,
+			100% {
+				transform: none
+			}
+
+			50% {
+				transform: translateY(25px) rotate(8deg)
+			}
+		}
+
+		@keyframes ipdIconFloat {
+
+			0%,
+			100% {
+				transform: none
+			}
+
+			50% {
+				transform: translateY(-7px)
+			}
+		}
+
+		@keyframes ipdRowReveal {
+			to {
+				opacity: 1;
+				transform: none
+			}
+		}
+
+		@keyframes ipdLoadingPulse {
+
+			0%,
+			100% {
+				transform: scale(.94);
+				opacity: .72
+			}
+
+			50% {
+				transform: scale(1.06);
+				opacity: 1
+			}
+		}
+
+		@media(max-width:1150px) {
+			.saas-ipd-summary-grid {
+				grid-template-columns: repeat(2, minmax(0, 1fr))
+			}
+		}
+
+		@media(max-width:992px) {
+			.saas-ipd-hero {
+				align-items: flex-start;
+				flex-direction: column
+			}
+
+			.saas-ipd-hero-action {
+				width: 100%
+			}
+		}
+
+		@media(max-width:768px) {
+			.saas-ipd-section-header {
+				align-items: stretch;
+				flex-direction: column
+			}
+
+			.saas-ipd-filters,
+			.saas-ipd-filter-wrap {
+				width: 100%
+			}
+		}
+
+		@media(max-width:576px) {
+			.saas-ipd-hero {
+				padding: 26px 21px;
+				border-radius: 24px
+			}
+
+			.saas-ipd-summary-grid {
+				grid-template-columns: 1fr
+			}
+
+			.saas-ipd-modal .modal-body {
+				padding: 20px 16px
+			}
+
+			.saas-ipd-modal .modal-footer {
+				flex-direction: column-reverse
+			}
+
+			.saas-ipd-modal .modal-footer .btn {
+				width: 100% !important
+			}
+		}
+	</style>
+</head>
+
+<body class="dashboard-body saas-dashboard-body">
+
+	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
+	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
+
+	<main class="mr-main saas-main saas-ipd-page">
+
+		<section class="saas-ipd-hero">
+			<div class="saas-ipd-hero-content">
+				<span class="saas-ipd-kicker"><i class="bi bi-bed-fill"></i>SaaS Inpatient Management</span>
+				<h1>SaaS <span>IPD</span></h1>
+				<p>Manage admissions, wards, beds, notes and charges for <strong id="tenantNameText">your
+						workspace</strong>.</p>
+
+				<div class="saas-ipd-meta">
+					<span><i class="bi bi-building-fill-add"></i>Admissions</span>
+					<span><i class="bi bi-bed-fill"></i>Ward & bed allocation</span>
+					<span><i class="bi bi-cash-stack"></i>Charges & discharge</span>
+				</div>
+			</div>
+
+			<div class="saas-ipd-hero-action">
+				<div class="saas-ipd-hero-icon"><i class="bi bi-hospital-fill"></i></div>
+				<strong>IPD Actions</strong>
+
+				<div class="saas-ipd-hero-buttons">
+					<button type="button" id="addWardBtn" class="saas-ipd-hero-button secondary"
+						onclick="openWardModal()">
+						<i class="bi bi-building-fill-add"></i>Add Ward
+					</button>
+
+					<button type="button" id="addBedBtn" class="saas-ipd-hero-button secondary"
+						onclick="openBedModal()">
+						<i class="bi bi-bed-fill"></i>Add Bed
+					</button>
+
+					<button type="button" id="addIpdBtn" class="saas-ipd-hero-button" onclick="openAdmissionModal()">
+						<i class="bi bi-person-plus-fill"></i>Admit Patient
+					</button>
+				</div>
+			</div>
+		</section>
+
+		<div id="msg"></div>
+
+		<section class="saas-ipd-summary-grid">
+			<article class="saas-ipd-summary-card">
+				<div class="saas-ipd-summary-icon"><i class="bi bi-hospital-fill"></i></div>
+				<small>Total Admissions</small>
+				<strong id="totalAdmissionCount">0</strong>
+			</article>
+
+			<article class="saas-ipd-summary-card">
+				<div class="saas-ipd-summary-icon"><i class="bi bi-person-check-fill"></i></div>
+				<small>Currently Admitted</small>
+				<strong id="activeAdmissionCount">0</strong>
+			</article>
+
+			<article class="saas-ipd-summary-card">
+				<div class="saas-ipd-summary-icon"><i class="bi bi-bed-fill"></i></div>
+				<small>Available Beds</small>
+				<strong id="availableBedCount">0</strong>
+			</article>
+
+			<article class="saas-ipd-summary-card">
+				<div class="saas-ipd-summary-icon"><i class="bi bi-currency-rupee"></i></div>
+				<small>Total Charges</small>
+				<strong id="totalChargesAmount">₹0</strong>
+			</article>
+		</section>
+
+		<section class="mr-card saas-ipd-card">
+
+			<div class="saas-ipd-section-header">
+				<div class="saas-ipd-title-wrap">
+					<div class="saas-ipd-title-icon"><i class="bi bi-clipboard2-pulse-fill"></i></div>
+					<div><small>Inpatient Register</small>
+						<h5>IPD Admissions</h5>
+					</div>
+				</div>
+
+				<div class="saas-ipd-filters">
+					<div class="saas-ipd-filter-wrap">
+						<i class="bi bi-search"></i>
+						<input type="text" id="ipdSearchBox" class="form-control"
+							placeholder="Search IPD, patient, doctor" oninput="filterAdmissions()">
+					</div>
+
+					<div class="saas-ipd-filter-wrap">
+						<i class="bi bi-funnel-fill"></i>
+						<select id="ipdStatusFilter" class="form-select" onchange="filterAdmissions()">
+							<option value="">All Status</option>
+							<option value="ADMITTED">Admitted</option>
+							<option value="DISCHARGED">Discharged</option>
+						</select>
+					</div>
+
+					<button type="button" id="refreshIpdBtn" class="btn btn-outline-primary" onclick="loadAdmissions()">
+						<i class="bi bi-arrow-clockwise me-1"></i>Refresh
+					</button>
+				</div>
+			</div>
+
+			<div class="table-responsive saas-ipd-table-wrap">
+				<table class="table table-hover align-middle">
+					<thead>
+						<tr>
+							<th>IPD No.</th>
+							<th>Patient</th>
+							<th>Doctor</th>
+							<th>Ward / Bed</th>
+							<th>Admission</th>
+							<th>Total</th>
+							<th>Status</th>
+							<th style="width:300px;">Action</th>
+						</tr>
+					</thead>
+
+					<tbody id="ipdTableBody">
+						<tr>
+							<td colspan="8">
+								<div class="ipd-state">
+									<div class="ipd-state-icon ipd-loading"><i class="bi bi-hospital-fill"></i></div>
+									<h5 class="fw-bold text-primary">Loading admissions</h5>
+									<p class="text-muted mb-0">Please wait while we prepare IPD records.</p>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
+	</main>
+
+	<div class="modal fade saas-ipd-modal" id="wardModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<div>
+						<div class="small text-white-50 fw-bold text-uppercase mb-1">IPD Infrastructure</div>
+						<h5 class="modal-title">Add Ward</h5>
+					</div>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+
+				<div class="modal-body">
+					<div class="row g-3">
+						<div class="col-12 ipd-control-wrap">
+							<label class="form-label" for="wardName">Ward Name *</label><i
+								class="bi bi-building-fill"></i>
+							<input id="wardName" class="form-control" maxlength="120">
+						</div>
+
+						<div class="col-12 ipd-control-wrap">
+							<label class="form-label" for="wardType">Ward Type</label><i
+								class="bi bi-ui-checks-grid"></i>
+							<input id="wardType" class="form-control" maxlength="80"
+								placeholder="General / ICU / Private">
+						</div>
+
+						<div class="col-12">
+							<label class="form-label" for="wardDescription">Description</label>
+							<textarea id="wardDescription" class="form-control" rows="3" maxlength="500"></textarea>
+						</div>
+					</div>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+					<button type="button" id="saveWardBtn" class="btn btn-medi" style="width:auto;"
+						onclick="saveWard()">
+						<i class="bi bi-check2-circle me-1"></i>Save Ward
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade saas-ipd-modal" id="bedModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<div>
+						<div class="small text-white-50 fw-bold text-uppercase mb-1">IPD Infrastructure</div>
+						<h5 class="modal-title">Add Bed</h5>
+					</div>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+
+				<div class="modal-body">
+					<div class="row g-3">
+						<div class="col-12 ipd-control-wrap">
+							<label class="form-label" for="bedWardId">Ward *</label><i
+								class="bi bi-building-fill-add"></i>
+							<select id="bedWardId" class="form-select">
+								<option value="">Select Ward</option>
+							</select>
+						</div>
+
+						<div class="col-12 ipd-control-wrap">
+							<label class="form-label" for="bedNumber">Bed Number *</label><i class="bi bi-bed-fill"></i>
+							<input id="bedNumber" class="form-control" maxlength="80">
+						</div>
+
+						<div class="col-12 ipd-control-wrap">
+							<label class="form-label" for="dailyCharge">Daily Charge</label><i
+								class="bi bi-currency-rupee"></i>
+							<input id="dailyCharge" type="number" min="0" step="0.01" class="form-control" value="0">
+						</div>
+					</div>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+					<button type="button" id="saveBedBtn" class="btn btn-medi" style="width:auto;" onclick="saveBed()">
+						<i class="bi bi-check2-circle me-1"></i>Save Bed
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade saas-ipd-modal" id="admissionModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header">
+					<div>
+						<div class="small text-white-50 fw-bold text-uppercase mb-1">Inpatient Admission</div>
+						<h5 class="modal-title">Admit Patient</h5>
+					</div>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+
+				<div class="modal-body">
+					<div class="row g-3">
+						<div class="col-lg-4 ipd-control-wrap">
+							<label class="form-label" for="patientId">Patient *</label><i class="bi bi-person-fill"></i>
+							<select id="patientId" class="form-select">
+								<option value="">Select Patient</option>
+							</select>
+						</div>
+
+						<div class="col-lg-4 ipd-control-wrap">
+							<label class="form-label" for="doctorProfileId">Doctor *</label><i
+								class="bi bi-person-badge-fill"></i>
+							<select id="doctorProfileId" class="form-select">
+								<option value="">Select Doctor</option>
+							</select>
+						</div>
+
+						<div class="col-lg-4 ipd-control-wrap">
+							<label class="form-label" for="bedId">Bed *</label><i class="bi bi-bed-fill"></i>
+							<select id="bedId" class="form-select">
+								<option value="">Select Bed</option>
+							</select>
+						</div>
+
+						<div class="col-lg-6">
+							<label class="form-label" for="reasonForAdmission">Reason For Admission</label>
+							<textarea id="reasonForAdmission" class="form-control" rows="3" maxlength="1000"></textarea>
+						</div>
+
+						<div class="col-lg-6">
+							<label class="form-label" for="provisionalDiagnosis">Provisional Diagnosis</label>
+							<textarea id="provisionalDiagnosis" class="form-control" rows="3"
+								maxlength="1000"></textarea>
+						</div>
+
+						<div class="col-lg-4 ipd-control-wrap">
+							<label class="form-label" for="advanceAmount">Advance Amount</label><i
+								class="bi bi-cash-stack"></i>
+							<input type="number" id="advanceAmount" min="0" step="0.01" class="form-control" value="0">
+						</div>
+					</div>
+
+					<div class="ipd-form-note">
+						<i class="bi bi-info-circle-fill text-primary"></i>
+						<div>Only currently available beds are shown. Selected bed is reserved after successful
+							admission.</div>
+					</div>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+					<button type="button" id="admitPatientBtn" class="btn btn-medi" style="width:auto;"
+						onclick="admitPatient()">
+						<i class="bi bi-person-check-fill me-1"></i>Admit Patient
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade saas-ipd-modal" id="chargeModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<div>
+						<div class="small text-white-50 fw-bold text-uppercase mb-1">IPD Billing Entry</div>
+						<h5 class="modal-title">Add Charge</h5>
+					</div>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+
+				<div class="modal-body">
+					<input type="hidden" id="chargeAdmissionId">
+
+					<div class="row g-3">
+						<div class="col-12 ipd-control-wrap">
+							<label class="form-label" for="chargeType">Charge Type *</label><i
+								class="bi bi-tags-fill"></i>
+							<select id="chargeType" class="form-select">
+								<option value="BED">Bed</option>
+								<option value="DOCTOR_VISIT">Doctor Visit</option>
+								<option value="NURSING">Nursing</option>
+								<option value="MEDICINE">Medicine</option>
+								<option value="LAB">Lab</option>
+								<option value="PROCEDURE">Procedure</option>
+								<option value="SURGERY">Surgery</option>
+								<option value="OTHER">Other</option>
+							</select>
+						</div>
+
+						<div class="col-12">
+							<label class="form-label" for="chargeDescription">Description *</label>
+							<input id="chargeDescription" class="form-control" maxlength="250" value="IPD Charge">
+						</div>
+
+						<div class="col-12 ipd-control-wrap">
+							<label class="form-label" for="chargeAmount">Amount *</label><i
+								class="bi bi-currency-rupee"></i>
+							<input id="chargeAmount" type="number" min="0.01" step="0.01" class="form-control">
+						</div>
+					</div>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+					<button type="button" id="saveChargeBtn" class="btn btn-medi" style="width:auto;"
+						onclick="submitCharge()">
+						<i class="bi bi-check2-circle me-1"></i>Add Charge
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade saas-ipd-modal" id="noteModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-lg modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<div>
+						<div class="small text-white-50 fw-bold text-uppercase mb-1">Clinical Progress Entry</div>
+						<h5 class="modal-title">Add Daily Note</h5>
+					</div>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+
+				<div class="modal-body">
+					<input type="hidden" id="noteAdmissionId">
+					<input type="hidden" id="noteDoctorProfileId">
+
+					<div class="row g-3">
+						<div class="col-12">
+							<label class="form-label" for="progressNote">Progress Note *</label>
+							<textarea id="progressNote" class="form-control" rows="4" maxlength="2000"></textarea>
+						</div>
+
+						<div class="col-lg-6">
+							<label class="form-label" for="treatmentPlan">Treatment Plan</label>
+							<textarea id="treatmentPlan" class="form-control" rows="3" maxlength="1500"></textarea>
+						</div>
+
+						<div class="col-lg-6">
+							<label class="form-label" for="vitals">Vitals</label>
+							<textarea id="vitals" class="form-control" rows="3" maxlength="1000"
+								placeholder="BP, pulse, temperature, SpO2"></textarea>
+						</div>
+					</div>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+					<button type="button" id="saveNoteBtn" class="btn btn-medi" style="width:auto;"
+						onclick="submitDailyNote()">
+						<i class="bi bi-check2-circle me-1"></i>Save Note
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade saas-ipd-modal" id="dischargeModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-lg modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<div>
+						<div class="small text-white-50 fw-bold text-uppercase mb-1">Patient Discharge</div>
+						<h5 class="modal-title">Discharge Patient</h5>
+					</div>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+
+				<div class="modal-body">
+					<input type="hidden" id="dischargeAdmissionId">
+
+					<div class="row g-3">
+						<div class="col-12">
+							<label class="form-label" for="dischargeSummary">Discharge Summary *</label>
+							<textarea id="dischargeSummary" class="form-control" rows="5" maxlength="3000"></textarea>
+						</div>
+
+						<div class="col-12">
+							<label class="form-label" for="dischargeAdvice">Discharge Advice</label>
+							<textarea id="dischargeAdvice" class="form-control" rows="4" maxlength="2000"></textarea>
+						</div>
+					</div>
+
+					<div class="alert alert-warning mt-3 mb-0">
+						<i class="bi bi-exclamation-triangle-fill me-1"></i>
+						Discharging the patient will release the assigned bed.
+					</div>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+					<button type="button" id="confirmDischargeBtn" class="btn btn-success" onclick="submitDischarge()">
+						<i class="bi bi-box-arrow-right me-1"></i>Discharge Patient
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="module-exit-overlay" id="moduleExitOverlay">
+		<div class="module-exit-content">
+			<div class="module-exit-icon"><i class="bi bi-arrow-left-right"></i></div>
+			<h2>Switching Experience</h2>
+			<p>Returning to MediRevolution module selection...</p>
+			<div class="module-exit-progress"><span></span></div>
+		</div>
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script th:src="@{/js/common-dashboard.js}"></script>
+	<script th:src="@{/js/module-switch.js}"></script>
+	<script th:src="@{/js/saas-auth-guard.js}"></script>
+	<script th:src="@{/js/saas-ipd.js?v=20260713_1}"></script>
+	<script th:src="@{/js/pwa.js}"></script>
+
+</body>
+
+</html>

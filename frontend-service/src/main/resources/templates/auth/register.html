@@ -1,29 +1,324 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
+	<meta charset="UTF-8">
+
 	<title>MediRevolution | Register</title>
+
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
 	<link rel="manifest" href="/manifest.json">
+
 	<meta name="theme-color" content="#05285f">
 	<meta name="mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
 
 	<link rel="apple-touch-icon" href="/images/icon-192.png">
 
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
 	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+
+	<style>
+		.register-experience {
+			position: relative;
+			min-height: 100vh;
+			overflow: hidden;
+		}
+
+		.register-experience::before,
+		.register-experience::after {
+			position: fixed;
+			z-index: 0;
+			border-radius: 50%;
+			content: "";
+			pointer-events: none;
+		}
+
+		.register-experience::before {
+			top: -180px;
+			right: -130px;
+			width: 410px;
+			height: 410px;
+			background: radial-gradient(circle, rgba(8, 199, 212, .22), transparent 70%);
+			animation: registerAmbientFloat 11s ease-in-out infinite;
+		}
+
+		.register-experience::after {
+			bottom: -220px;
+			left: 28%;
+			width: 450px;
+			height: 450px;
+			background: radial-gradient(circle, rgba(123, 214, 0, .18), transparent 70%);
+			animation: registerAmbientFloat 13s ease-in-out infinite reverse;
+		}
+
+		.register-left-content {
+			position: relative;
+			z-index: 2;
+			animation: registerLeftReveal .85s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.register-hero-badge {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.register-feature-list>div {
+			display: flex;
+			align-items: center;
+			gap: 9px;
+			opacity: 0;
+			transform: translateX(-16px);
+			animation: registerFeatureReveal .48s var(--feature-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards;
+		}
+
+		.register-feature-list i {
+			color: #b8f267;
+			font-size: 16px;
+		}
+
+		.register-auth-right {
+			position: relative;
+			z-index: 2;
+		}
+
+		.register-auth-card {
+			position: relative;
+			overflow: hidden;
+			animation: registerCardReveal .75s .12s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.register-auth-card::before {
+			position: absolute;
+			top: -100px;
+			right: -95px;
+			width: 210px;
+			height: 210px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(8, 199, 212, .12), transparent 68%);
+			pointer-events: none;
+		}
+
+		.register-header-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 56px;
+			height: 56px;
+			margin: 0 auto 12px;
+			border-radius: 18px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 23px;
+			box-shadow: 0 14px 30px rgba(5, 40, 95, .18);
+			animation: registerHeaderIconFloat 3s ease-in-out infinite;
+		}
+
+		.register-stage {
+			position: relative;
+			animation: registerStageReveal .48s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.register-input-wrap {
+			position: relative;
+		}
+
+		.register-input-wrap>i {
+			position: absolute;
+			top: 50%;
+			left: 15px;
+			z-index: 4;
+			color: #0577b8;
+			transform: translateY(-50%);
+			pointer-events: none;
+		}
+
+		.register-input-wrap .form-control,
+		.register-input-wrap .form-select {
+			padding-left: 44px;
+		}
+
+		.register-otp-note {
+			display: flex;
+			align-items: flex-start;
+			gap: 9px;
+			margin-top: 10px;
+			padding: 11px 13px;
+			border: 1px solid #e1eef3;
+			border-radius: 13px;
+			color: #62778a;
+			background: #f6fbfd;
+			font-size: 11px;
+		}
+
+		.register-otp-note i {
+			color: #08a9bd;
+			font-size: 16px;
+		}
+
+		.register-verified-box {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+
+		.register-password-field {
+			position: relative;
+		}
+
+		.register-password-toggle {
+			position: absolute;
+			top: 50%;
+			right: 12px;
+			z-index: 5;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 38px;
+			height: 38px;
+			border: 0;
+			border-radius: 11px;
+			color: #45647d;
+			background: transparent;
+			transform: translateY(-50%);
+		}
+
+		.register-password-field .form-control {
+			padding-right: 54px;
+		}
+
+		.register-submit-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 52px;
+		}
+
+		.register-trust-strip {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			margin-top: 18px;
+			padding: 12px 14px;
+			border: 1px solid #dff0f4;
+			border-radius: 14px;
+			color: #5f7489;
+			background: #f5fbfd;
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.register-trust-strip i {
+			color: #08a9bd;
+			font-size: 18px;
+		}
+
+		@keyframes registerLeftReveal {
+			from {
+				opacity: 0;
+				transform: translateX(-30px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateX(0);
+			}
+		}
+
+		@keyframes registerCardReveal {
+			from {
+				opacity: 0;
+				transform: translateY(28px) scale(.985);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0) scale(1);
+			}
+		}
+
+		@keyframes registerFeatureReveal {
+			to {
+				opacity: 1;
+				transform: translateX(0);
+			}
+		}
+
+		@keyframes registerStageReveal {
+			from {
+				opacity: 0;
+				transform: translateY(14px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes registerAmbientFloat {
+
+			0%,
+			100% {
+				transform: translateY(0) translateX(0);
+			}
+
+			50% {
+				transform: translateY(24px) translateX(-18px);
+			}
+		}
+
+		@keyframes registerHeaderIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-6px);
+			}
+		}
+
+		@media (max-width: 991px) {
+
+			.register-experience::before,
+			.register-experience::after {
+				display: none;
+			}
+		}
+
+		@media (max-width: 576px) {
+			.register-auth-card {
+				border-radius: 22px;
+			}
+
+			.register-trust-strip {
+				align-items: flex-start;
+			}
+		}
+	</style>
 </head>
 
 <body>
 
-	<div class="auth-page">
+	<div class="auth-page register-experience">
 
 		<div class="auth-left">
-			<div class="auth-left-content">
 
-				<div class="hero-badge">
+			<div class="auth-left-content register-left-content">
+
+				<div class="hero-badge register-hero-badge">
+					<i class="bi bi-person-check-fill"></i>
 					Secure Healthcare Registration
 				</div>
 
@@ -40,6 +335,7 @@
 				</p>
 
 				<div class="hero-stats">
+
 					<div class="stat-card">
 						<h2>500+</h2>
 						<span>Businesses</span>
@@ -54,24 +350,57 @@
 						<h2>24/7</h2>
 						<span>Support</span>
 					</div>
+
 				</div>
 
-				<div class="feature-list">
-					<div>✔ Verified Email Registration</div>
-					<div>✔ Mobile Number Registration</div>
-					<div>✔ Secure Password Validation</div>
-					<div>✔ Role Based Healthcare Access</div>
-					<div>✔ Admin Approval Workflow</div>
-					<div>✔ PWA Supported Platform</div>
+				<div class="feature-list register-feature-list">
+
+					<div style="--feature-delay:80ms;">
+						<i class="bi bi-check-circle-fill"></i>
+						Verified Email Registration
+					</div>
+
+					<div style="--feature-delay:150ms;">
+						<i class="bi bi-check-circle-fill"></i>
+						Mobile Number Registration
+					</div>
+
+					<div style="--feature-delay:220ms;">
+						<i class="bi bi-check-circle-fill"></i>
+						Secure Password Validation
+					</div>
+
+					<div style="--feature-delay:290ms;">
+						<i class="bi bi-check-circle-fill"></i>
+						Role Based Healthcare Access
+					</div>
+
+					<div style="--feature-delay:360ms;">
+						<i class="bi bi-check-circle-fill"></i>
+						Admin Approval Workflow
+					</div>
+
+					<div style="--feature-delay:430ms;">
+						<i class="bi bi-check-circle-fill"></i>
+						PWA Supported Platform
+					</div>
+
 				</div>
 
 			</div>
+
 		</div>
 
-		<div class="auth-right">
-			<div class="auth-card professional-register-card">
+		<div class="auth-right register-auth-right">
+
+			<div class="auth-card professional-register-card register-auth-card">
 
 				<div class="login-header">
+
+					<div class="register-header-icon">
+						<i class="bi bi-person-plus-fill"></i>
+					</div>
+
 					<img th:src="@{/images/logo.png}" class="auth-logo-small" alt="MediRevolution Logo">
 
 					<h2>Create Secure Account</h2>
@@ -79,69 +408,116 @@
 					<p>
 						Verify your email to continue
 					</p>
+
 				</div>
 
 				<div class="register-steps mb-4">
-					<div class="step active" id="stepEmail">1</div>
+
+					<div class="step active" id="stepEmail">
+						1
+					</div>
+
 					<div class="step-line"></div>
-					<div class="step" id="stepAccount">2</div>
+
+					<div class="step" id="stepAccount">
+						2
+					</div>
+
 				</div>
 
 				<div id="msg"></div>
 
-				<!-- EMAIL VERIFICATION SECTION -->
-				<div id="emailSection">
+				<div id="emailSection" class="register-stage">
 
-					<label class="form-label">Email Address</label>
+					<label for="email" class="form-label">
+						Email Address
+					</label>
 
-					<div class="input-group mb-3">
+					<div class="input-group mb-3 register-input-wrap">
+
+						<i class="bi bi-envelope-fill"></i>
+
 						<input type="email" id="email" class="form-control form-control-lg"
-							placeholder="Enter your email address">
+							placeholder="Enter your email address" autocomplete="email">
 
 						<button class="btn btn-medi-inline" id="sendEmailOtpBtn" type="button" onclick="sendEmailOtp()">
+
 							Send OTP
 						</button>
+
 					</div>
 
-					<div id="emailOtpBox" style="display:none;">
-						<label class="form-label">Email OTP</label>
+					<div id="emailOtpBox" class="register-stage" style="display:none;">
 
-						<div class="input-group mb-3">
+						<label for="emailOtp" class="form-label">
+							Email OTP
+						</label>
+
+						<div class="input-group mb-3 register-input-wrap">
+
+							<i class="bi bi-shield-lock-fill"></i>
+
 							<input type="text" id="emailOtp" maxlength="6" class="form-control form-control-lg"
-								placeholder="Enter email OTP"
+								placeholder="Enter email OTP" inputmode="numeric"
 								oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)">
 
-							<button class="btn btn-success" type="button" onclick="verifyEmailOtp()">
+							<button class="btn btn-success" id="verifyEmailOtpBtn" type="button"
+								onclick="verifyEmailOtp()">
+
 								Verify
 							</button>
+
 						</div>
 
-						<small class="text-muted">
-							OTP sent to your email. Please check inbox or spam folder.
-						</small>
+						<div class="register-otp-note">
+
+							<i class="bi bi-info-circle-fill"></i>
+
+							<span>
+								OTP sent to your email. Please check inbox or spam folder.
+							</span>
+
+						</div>
+
 					</div>
 
 				</div>
 
-				<!-- ACCOUNT DETAILS SECTION -->
-				<div id="accountSection" style="display:none;">
+				<div id="accountSection" class="register-stage" style="display:none;">
 
-					<div class="verified-box mb-3">
-						✅ Email verified successfully
+					<div class="verified-box register-verified-box mb-3">
+
+						<i class="bi bi-check-circle-fill"></i>
+						Email verified successfully
 					</div>
 
 					<div class="mb-3">
-						<label class="form-label">Full Name / Business Name</label>
 
-						<input type="text" id="fullName" class="form-control form-control-lg"
-							placeholder="Enter business or owner name">
+						<label for="fullName" class="form-label">
+							Full Name / Business Name
+						</label>
+
+						<div class="register-input-wrap">
+
+							<i class="bi bi-person-fill"></i>
+
+							<input type="text" id="fullName" class="form-control form-control-lg"
+								placeholder="Enter business or owner name" autocomplete="name">
+
+						</div>
+
 					</div>
 
 					<div class="mb-3">
-						<label class="form-label">Mobile Number</label>
+
+						<label for="mobile" class="form-label">
+							Mobile Number
+						</label>
 
 						<div class="input-group">
-							<select id="countryCode" class="form-select form-select-lg" style="max-width: 135px;">
+
+							<select id="countryCode" class="form-select form-select-lg" style="max-width:135px;">
+
 								<option value="+91" selected>🇮🇳 +91</option>
 								<option value="+1">🇺🇸 +1</option>
 								<option value="+44">🇬🇧 +44</option>
@@ -153,52 +529,115 @@
 							</select>
 
 							<input type="text" id="mobile" maxlength="10" class="form-control form-control-lg"
-								placeholder="Enter 10 digit mobile number" oninput="allowOnlyTenDigits(this)">
+								placeholder="Enter 10 digit mobile number" inputmode="numeric" autocomplete="tel"
+								oninput="allowOnlyTenDigits(this)">
+
 						</div>
 
 						<small class="text-muted">
 							Enter mobile number without country code.
 						</small>
+
 					</div>
 
 					<div class="mb-3">
-						<label class="form-label">Register As</label>
 
-						<select id="role" class="form-select form-select-lg">
-							<option value="">Select Role</option>
-							<option value="WHOLESALER">💊 Medicine Wholesaler</option>
-							<option value="RETAILER">🏪 Medical Store / Retailer</option>
-							<option value="DOCTOR">👨‍⚕️ Doctor</option>
-							<option value="HOSPITAL">🏥 Hospital</option>
-							<option value="PATIENT">🧑 Patient</option>
-						</select>
+						<label for="role" class="form-label">
+							Register As
+						</label>
+
+						<div class="register-input-wrap">
+
+							<i class="bi bi-person-vcard-fill"></i>
+
+							<select id="role" class="form-select form-select-lg">
+
+								<option value="">Select Role</option>
+								<option value="WHOLESALER">💊 Medicine Wholesaler</option>
+								<option value="RETAILER">🏪 Medical Store / Retailer</option>
+								<option value="DOCTOR">👨‍⚕️ Doctor</option>
+								<option value="HOSPITAL">🏥 Hospital</option>
+								<option value="PATIENT">🧑 Patient</option>
+							</select>
+
+						</div>
+
 					</div>
 
 					<div class="mb-3">
-						<label class="form-label">Password</label>
 
-						<input type="password" id="password" class="form-control form-control-lg"
-							placeholder="Create secure password" onkeyup="checkPasswordStrength()">
+						<label for="password" class="form-label">
+							Password
+						</label>
+
+						<div class="register-password-field register-input-wrap">
+
+							<i class="bi bi-lock-fill"></i>
+
+							<input type="password" id="password" class="form-control form-control-lg"
+								placeholder="Create secure password" autocomplete="new-password"
+								onkeyup="checkPasswordStrength()">
+
+							<button type="button" class="register-password-toggle"
+								onclick="toggleRegisterPassword('password', 'registerPasswordIcon')"
+								aria-label="Show or hide password">
+
+								<i id="registerPasswordIcon" class="bi bi-eye-fill"></i>
+							</button>
+
+						</div>
 
 						<div class="password-strength mt-2">
 							<div id="passwordStrengthBar"></div>
 						</div>
 
 						<small id="passwordStrengthText" class="text-muted">
+
 							Password must be at least 6 characters.
 						</small>
+
 					</div>
 
 					<div class="mb-3">
-						<label class="form-label">Re-enter Password</label>
 
-						<input type="password" id="confirmPassword" class="form-control form-control-lg"
-							placeholder="Re-enter password">
+						<label for="confirmPassword" class="form-label">
+							Re-enter Password
+						</label>
+
+						<div class="register-password-field register-input-wrap">
+
+							<i class="bi bi-lock-fill"></i>
+
+							<input type="password" id="confirmPassword" class="form-control form-control-lg"
+								placeholder="Re-enter password" autocomplete="new-password">
+
+							<button type="button" class="register-password-toggle"
+								onclick="toggleRegisterPassword('confirmPassword', 'confirmPasswordIcon')"
+								aria-label="Show or hide password">
+
+								<i id="confirmPasswordIcon" class="bi bi-eye-fill"></i>
+							</button>
+
+						</div>
+
 					</div>
 
-					<button class="btn btn-login mt-2" id="registerBtn" type="button" onclick="register()">
-						Create My Account
+					<button class="btn btn-login mt-2 register-submit-button" id="registerBtn" type="button"
+						onclick="register()">
+
+						<i class="bi bi-person-check-fill"></i>
+						<span>Create My Account</span>
 					</button>
+
+					<div class="register-trust-strip">
+
+						<i class="bi bi-shield-check"></i>
+
+						<span>
+							Your account is protected by verified email and role-based access.
+						</span>
+
+					</div>
 
 				</div>
 
@@ -208,15 +647,18 @@
 
 				<p class="text-center mb-0">
 					Already registered?
-					<a href="/" class="green-link">Login Here</a>
+					<a href="/" class="green-link">
+						Login Here
+					</a>
 				</p>
 
 			</div>
+
 		</div>
 
 	</div>
 
-	<script th:src="@{/js/auth.js}"></script>
+	<script th:src="@{/js/auth.js?v=20260713_1}"></script>
 	<script th:src="@{/js/pwa.js}"></script>
 
 </body>

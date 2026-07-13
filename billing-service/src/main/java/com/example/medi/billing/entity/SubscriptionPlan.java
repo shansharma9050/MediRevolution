@@ -36,6 +36,9 @@ public class SubscriptionPlan {
     
     @Column(name = "monthly_price")
     private BigDecimal monthlyPrice;
+    
+    @Column(name = "yearly_price")
+    private BigDecimal yearlyPrice;
 
     private BigDecimal price;
 

@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+
+	<title>MediRevolution | SaaS Inventory</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link rel="manifest" href="/manifest.json">
+
+	<meta name="theme-color" content="#05285f">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
+
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.saas-inventory-page {
+			position: relative;
+		}
+
+		.saas-inventory-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 235px;
+			margin-bottom: 28px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg, #05285f 0%, #08739f 48%, #08c7d4 100%);
+			box-shadow: 0 25px 65px rgba(5, 40, 95, .22);
+			animation: inventoryHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.saas-inventory-hero::before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation: inventoryHeroFloat 9s ease-in-out infinite;
+		}
+
+		.saas-inventory-hero::after {
+			position: absolute;
+			bottom: -180px;
+			left: 28%;
+			width: 360px;
+			height: 360px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(123, 214, 0, .23), transparent 68%);
+		}
+
+		.saas-inventory-hero-content,
+		.saas-inventory-hero-action {
+			position: relative;
+			z-index: 2;
+		}
+
+		.saas-inventory-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.saas-inventory-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px;
+		}
+
+		.saas-inventory-hero h1 span {
+			color: #b8f267;
+		}
+
+		.saas-inventory-hero p {
+			max-width: 760px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .8);
+			line-height: 1.75;
+		}
+
+		.saas-inventory-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px;
+		}
+
+		.saas-inventory-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.saas-inventory-hero-action {
+			display: flex;
+			min-width: 245px;
+			flex-direction: column;
+			align-items: stretch;
+			padding: 22px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px);
+		}
+
+		.saas-inventory-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 68px;
+			height: 68px;
+			margin: 0 auto 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 28px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+			animation: inventoryIconFloat 3s ease-in-out infinite;
+		}
+
+		.saas-inventory-hero-buttons {
+			display: grid;
+			gap: 9px;
+			margin-top: 13px;
+		}
+
+		.saas-inventory-hero-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 44px;
+			padding: 0 16px;
+			border: none;
+			border-radius: 14px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 12px;
+			font-weight: 800;
+			transition: transform .3s ease, box-shadow .3s ease;
+		}
+
+		.saas-inventory-hero-button.secondary {
+			border: 1px solid rgba(255, 255, 255, .28);
+			color: #ffffff;
+			background: rgba(255, 255, 255, .08);
+		}
+
+		.saas-inventory-hero-button:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 14px 30px rgba(0, 0, 0, .16);
+		}
+
+		.saas-inventory-summary-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px;
+		}
+
+		.saas-inventory-summary-card {
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .96);
+			box-shadow: 0 14px 35px rgba(5, 40, 95, .08);
+			transition: transform .35s ease, box-shadow .35s ease;
+		}
+
+		.saas-inventory-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 22px 48px rgba(5, 40, 95, .14);
+		}
+
+		.saas-inventory-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+		}
+
+		.saas-inventory-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700;
+		}
+
+		.saas-inventory-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 29px;
+			font-weight: 900;
+		}
+
+		.saas-inventory-card {
+			position: relative;
+			overflow: hidden;
+		}
+
+		.saas-inventory-card::after {
+			position: absolute;
+			top: -90px;
+			right: -90px;
+			width: 190px;
+			height: 190px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(8, 199, 212, .1), transparent 68%);
+			pointer-events: none;
+		}
+
+		.saas-inventory-section-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5;
+		}
+
+		.saas-inventory-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px;
+		}
+
+		.saas-inventory-title-icon {
+			display: flex;
+			flex: 0 0 46px;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+			box-shadow: 0 12px 26px rgba(5, 40, 95, .16);
+		}
+
+		.saas-inventory-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		.saas-inventory-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.saas-inventory-filters {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+		}
+
+		.saas-inventory-filter-wrap {
+			position: relative;
+			min-width: 210px;
+		}
+
+		.saas-inventory-filter-wrap i {
+			position: absolute;
+			top: 50%;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			transform: translateY(-50%);
+			pointer-events: none;
+		}
+
+		.saas-inventory-filter-wrap .form-control,
+		.saas-inventory-filter-wrap .form-select {
+			padding-left: 41px;
+		}
+
+		.saas-inventory-table-wrap {
+			position: relative;
+			z-index: 2;
+			overflow: hidden;
+			border: 1px solid #e6eef4;
+			border-radius: 18px;
+		}
+
+		.saas-inventory-table-wrap table {
+			margin-bottom: 0;
+		}
+
+		.saas-inventory-table-wrap thead th {
+			padding: 15px 16px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 12px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.saas-inventory-table-wrap tbody td {
+			padding: 15px 16px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 13px;
+			vertical-align: middle;
+		}
+
+		.saas-inventory-table-wrap tbody tr {
+			opacity: 0;
+			transform: translateY(12px);
+			animation: inventoryRowReveal .45s var(--row-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards;
+		}
+
+		.inventory-medicine-cell {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+
+		.inventory-medicine-icon {
+			display: flex;
+			flex: 0 0 42px;
+			align-items: center;
+			justify-content: center;
+			width: 42px;
+			height: 42px;
+			border-radius: 14px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 17px;
+		}
+
+		.inventory-status-pill {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			font-size: 10px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.inventory-status-pill.ok {
+			color: #0f5132;
+			background: #d1e7dd;
+		}
+
+		.inventory-status-pill.low-stock {
+			color: #664d03;
+			background: #fff3cd;
+		}
+
+		.inventory-status-pill.expired {
+			color: #842029;
+			background: #f8d7da;
+		}
+
+		.inventory-state {
+			padding: 54px 20px;
+			text-align: center;
+		}
+
+		.inventory-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 72px;
+			height: 72px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 28px;
+			box-shadow: 0 15px 32px rgba(5, 40, 95, .17);
+		}
+
+		.inventory-loading {
+			animation: inventoryLoadingPulse 1.3s ease-in-out infinite;
+		}
+
+		.saas-inventory-modal .modal-content {
+			overflow: hidden;
+			border: none;
+			border-radius: 26px;
+			box-shadow: 0 28px 75px rgba(5, 40, 95, .22);
+		}
+
+		.saas-inventory-modal .modal-header {
+			padding: 21px 24px;
+			color: #ffffff;
+			border-bottom: none;
+			background: linear-gradient(135deg, #05285f, #087aa3);
+		}
+
+		.saas-inventory-modal .modal-title {
+			font-weight: 900;
+		}
+
+		.saas-inventory-modal .btn-close {
+			filter: invert(1);
+		}
+
+		.saas-inventory-modal .modal-body {
+			padding: 25px;
+		}
+
+		.saas-inventory-modal .modal-footer {
+			padding: 18px 24px;
+			border-top: 1px solid #e8f1f5;
+			background: #f8fbfc;
+		}
+
+		.inventory-control-wrap {
+			position: relative;
+		}
+
+		.inventory-control-wrap>i {
+			position: absolute;
+			top: 39px;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			pointer-events: none;
+		}
+
+		.inventory-control-wrap .form-control,
+		.inventory-control-wrap .form-select {
+			padding-left: 41px;
+		}
+
+		.inventory-form-note {
+			display: flex;
+			align-items: flex-start;
+			gap: 10px;
+			margin-top: 18px;
+			padding: 14px 16px;
+			border: 1px solid #cfe7ef;
+			border-radius: 15px;
+			color: #526f80;
+			background: #f2fbfd;
+			font-size: 12px;
+			line-height: 1.6;
+		}
+
+		@keyframes inventoryHeroReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes inventoryHeroFloat {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(25px) rotate(8deg);
+			}
+		}
+
+		@keyframes inventoryIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-7px);
+			}
+		}
+
+		@keyframes inventoryRowReveal {
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes inventoryLoadingPulse {
+
+			0%,
+			100% {
+				transform: scale(.94);
+				opacity: .72;
+			}
+
+			50% {
+				transform: scale(1.06);
+				opacity: 1;
+			}
+		}
+
+		@media (max-width: 1150px) {
+			.saas-inventory-summary-grid {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+		}
+
+		@media (max-width: 992px) {
+			.saas-inventory-hero {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.saas-inventory-hero-action {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 768px) {
+			.saas-inventory-section-header {
+				align-items: stretch;
+				flex-direction: column;
+			}
+
+			.saas-inventory-filters,
+			.saas-inventory-filter-wrap {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 576px) {
+			.saas-inventory-hero {
+				padding: 26px 21px;
+				border-radius: 24px;
+			}
+
+			.saas-inventory-summary-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.saas-inventory-modal .modal-body {
+				padding: 20px 16px;
+			}
+
+			.saas-inventory-modal .modal-footer {
+				flex-direction: column-reverse;
+			}
+
+			.saas-inventory-modal .modal-footer .btn {
+				width: 100% !important;
+			}
+		}
+	</style>
+</head>
+
+<body class="dashboard-body saas-dashboard-body">
+
+	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
+	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
+
+	<main class="mr-main saas-main saas-inventory-page">
+
+		<section class="saas-inventory-hero">
+
+			<div class="saas-inventory-hero-content">
+
+				<span class="saas-inventory-kicker">
+					<i class="bi bi-box-seam-fill"></i>
+					SaaS Stock & Medicine Control
+				</span>
+
+				<h1>
+					SaaS
+					<span>inventory</span>
+				</h1>
+
+				<p>
+					Manage medicine master, stock batches and low-stock alerts for
+					<strong id="tenantNameText">your workspace</strong>.
+				</p>
+
+				<div class="saas-inventory-meta">
+
+					<span>
+						<i class="bi bi-capsule-pill"></i>
+						Medicine master
+					</span>
+
+					<span>
+						<i class="bi bi-boxes"></i>
+						Batch stock
+					</span>
+
+					<span>
+						<i class="bi bi-exclamation-triangle-fill"></i>
+						Low-stock alerts
+					</span>
+
+				</div>
+
+			</div>
+
+			<div class="saas-inventory-hero-action">
+
+				<div class="saas-inventory-hero-icon">
+					<i class="bi bi-box-seam-fill"></i>
+				</div>
+
+				<strong>Inventory Actions</strong>
+
+				<div class="saas-inventory-hero-buttons">
+
+					<button type="button" id="addMedicineBtn" class="saas-inventory-hero-button secondary"
+						onclick="openMedicineModal()">
+
+						<i class="bi bi-capsule-pill"></i>
+						Add Medicine
+					</button>
+
+					<button type="button" id="addStockBtn" class="saas-inventory-hero-button"
+						onclick="openStockModal()">
+
+						<i class="bi bi-plus-circle-fill"></i>
+						Add Stock
+					</button>
+
+				</div>
+
+			</div>
+
+		</section>
+
+		<div id="msg"></div>
+
+		<section class="saas-inventory-summary-grid">
+
+			<article class="saas-inventory-summary-card">
+
+				<div class="saas-inventory-summary-icon">
+					<i class="bi bi-boxes"></i>
+				</div>
+
+				<small>Total Batches</small>
+				<strong id="totalBatchCount">0</strong>
+
+			</article>
+
+			<article class="saas-inventory-summary-card">
+
+				<div class="saas-inventory-summary-icon">
+					<i class="bi bi-stack"></i>
+				</div>
+
+				<small>Total Quantity</small>
+				<strong id="totalQuantityCount">0</strong>
+
+			</article>
+
+			<article class="saas-inventory-summary-card">
+
+				<div class="saas-inventory-summary-icon">
+					<i class="bi bi-exclamation-triangle-fill"></i>
+				</div>
+
+				<small>Low Stock</small>
+				<strong id="lowStockCount">0</strong>
+
+			</article>
+
+			<article class="saas-inventory-summary-card">
+
+				<div class="saas-inventory-summary-icon">
+					<i class="bi bi-calendar-x-fill"></i>
+				</div>
+
+				<small>Expired Batches</small>
+				<strong id="expiredStockCount">0</strong>
+
+			</article>
+
+		</section>
+
+		<section class="mr-card saas-inventory-card">
+
+			<div class="saas-inventory-section-header">
+
+				<div class="saas-inventory-title-wrap">
+
+					<div class="saas-inventory-title-icon">
+						<i class="bi bi-clipboard-data-fill"></i>
+					</div>
+
+					<div>
+						<small>Workspace Stock Register</small>
+						<h5>Inventory Batches</h5>
+					</div>
+
+				</div>
+
+				<div class="saas-inventory-filters">
+
+					<div class="saas-inventory-filter-wrap">
+
+						<i class="bi bi-search"></i>
+
+						<input type="text" id="stockSearchBox" class="form-control"
+							placeholder="Search medicine, batch, supplier" oninput="filterStocks()">
+
+					</div>
+
+					<div class="saas-inventory-filter-wrap">
+
+						<i class="bi bi-funnel-fill"></i>
+
+						<select id="stockStatusFilter" class="form-select" onchange="filterStocks()">
+
+							<option value="">All Status</option>
+							<option value="OK">Available</option>
+							<option value="LOW_STOCK">Low Stock</option>
+							<option value="EXPIRED">Expired</option>
+						</select>
+
+					</div>
+
+					<button type="button" id="loadAllStockBtn" class="btn btn-outline-primary" onclick="loadStocks()">
+
+						<i class="bi bi-boxes me-1"></i>
+						All Stock
+					</button>
+
+					<button type="button" id="loadLowStockBtn" class="btn btn-outline-danger" onclick="loadLowStock()">
+
+						<i class="bi bi-exclamation-triangle-fill me-1"></i>
+						Low Stock
+					</button>
+
+					<button type="button" id="exportInventoryBtn" class="btn btn-outline-success" style="display:none;">
+
+						<i class="bi bi-file-earmark-arrow-down-fill me-1"></i>
+						Export
+					</button>
+
+				</div>
+
+			</div>
+
+			<div class="table-responsive saas-inventory-table-wrap">
+
+				<table class="table table-hover align-middle">
+
+					<thead>
+						<tr>
+							<th>Medicine</th>
+							<th>Batch</th>
+							<th>Expiry</th>
+							<th>Qty</th>
+							<th>Purchase</th>
+							<th>Sale</th>
+							<th>Status</th>
+							<th style="width:180px;">Action</th>
+						</tr>
+					</thead>
+
+					<tbody id="stockTableBody">
+
+						<tr>
+							<td colspan="8">
+
+								<div class="inventory-state">
+
+									<div class="inventory-state-icon inventory-loading">
+										<i class="bi bi-box-seam-fill"></i>
+									</div>
+
+									<h5 class="fw-bold text-primary">
+										Loading stock
+									</h5>
+
+									<p class="text-muted mb-0">
+										Please wait while we prepare inventory batches.
+									</p>
+
+								</div>
+
+							</td>
+						</tr>
+
+					</tbody>
+
+				</table>
+
+			</div>
+
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
+
+	</main>
+
+	<div class="modal fade saas-inventory-modal" id="medicineModal" tabindex="-1" aria-hidden="true">
+
+		<div class="modal-dialog modal-lg modal-dialog-centered">
+
+			<div class="modal-content">
+
+				<form id="medicineForm">
+
+					<div class="modal-header">
+
+						<div>
+							<div class="small text-white-50 fw-bold text-uppercase mb-1">
+								Medicine Master
+							</div>
+
+							<h5 class="modal-title">
+								Add Medicine
+							</h5>
+						</div>
+
+						<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+					</div>
+
+					<div class="modal-body">
+
+						<div class="row g-3">
+
+							<div class="col-lg-6 inventory-control-wrap">
+
+								<label for="medicineName" class="form-label">
+									Medicine Name *
+								</label>
+
+								<i class="bi bi-capsule-pill"></i>
+
+								<input id="medicineName" class="form-control" required maxlength="150"
+									placeholder="Paracetamol">
+
+							</div>
+
+							<div class="col-lg-6 inventory-control-wrap">
+
+								<label for="medicineType" class="form-label">
+									Type
+								</label>
+
+								<i class="bi bi-ui-checks-grid"></i>
+
+								<input id="medicineType" class="form-control" maxlength="80"
+									placeholder="Tablet / Syrup / Injection">
+
+							</div>
+
+							<div class="col-lg-6 inventory-control-wrap">
+
+								<label for="manufacturer" class="form-label">
+									Manufacturer
+								</label>
+
+								<i class="bi bi-building-fill"></i>
+
+								<input id="manufacturer" class="form-control" maxlength="150">
+
+							</div>
+
+							<div class="col-lg-6 inventory-control-wrap">
+
+								<label for="saltName" class="form-label">
+									Salt
+								</label>
+
+								<i class="bi bi-droplet-fill"></i>
+
+								<input id="saltName" class="form-control" maxlength="150">
+
+							</div>
+
+							<div class="col-lg-4 inventory-control-wrap">
+
+								<label for="strength" class="form-label">
+									Strength
+								</label>
+
+								<i class="bi bi-speedometer2"></i>
+
+								<input id="strength" class="form-control" maxlength="50" placeholder="500mg">
+
+							</div>
+
+							<div class="col-lg-4 inventory-control-wrap">
+
+								<label for="unit" class="form-label">
+									Unit
+								</label>
+
+								<i class="bi bi-box-fill"></i>
+
+								<input id="unit" class="form-control" maxlength="50" placeholder="Strip / Bottle">
+
+							</div>
+
+							<div class="col-lg-4 inventory-control-wrap">
+
+								<label for="reorderLevel" class="form-label">
+									Reorder Level
+								</label>
+
+								<i class="bi bi-arrow-repeat"></i>
+
+								<input id="reorderLevel" type="number" min="0" class="form-control" value="10">
+
+							</div>
+
+						</div>
+
+						<div class="inventory-form-note">
+
+							<i class="bi bi-info-circle-fill text-primary"></i>
+
+							<div>
+								Reorder level is used to identify low-stock medicine batches.
+							</div>
+
+						</div>
+
+					</div>
+
+					<div class="modal-footer">
+
+						<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+
+							Cancel
+						</button>
+
+						<button type="submit" class="btn btn-medi" style="width:auto;" id="saveMedicineBtn">
+
+							<i class="bi bi-check2-circle me-1"></i>
+							Save Medicine
+						</button>
+
+					</div>
+
+				</form>
+
+			</div>
+
+		</div>
+
+	</div>
+
+	<div class="modal fade saas-inventory-modal" id="stockModal" tabindex="-1" aria-hidden="true">
+
+		<div class="modal-dialog modal-lg modal-dialog-centered">
+
+			<div class="modal-content">
+
+				<form id="stockForm">
+
+					<div class="modal-header">
+
+						<div>
+							<div class="small text-white-50 fw-bold text-uppercase mb-1">
+								Stock Batch
+							</div>
+
+							<h5 class="modal-title">
+								Add Stock
+							</h5>
+						</div>
+
+						<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+					</div>
+
+					<div class="modal-body">
+
+						<div class="row g-3">
+
+							<div class="col-lg-6 inventory-control-wrap">
+
+								<label for="stockMedicineId" class="form-label">
+									Medicine *
+								</label>
+
+								<i class="bi bi-capsule-pill"></i>
+
+								<select id="stockMedicineId" class="form-select" required>
+
+									<option value="">Select Medicine</option>
+								</select>
+
+							</div>
+
+							<div class="col-lg-6 inventory-control-wrap">
+
+								<label for="batchNumber" class="form-label">
+									Batch Number
+								</label>
+
+								<i class="bi bi-upc-scan"></i>
+
+								<input id="batchNumber" class="form-control" maxlength="100">
+
+							</div>
+
+							<div class="col-lg-4 inventory-control-wrap">
+
+								<label for="expiryDate" class="form-label">
+									Expiry Date
+								</label>
+
+								<i class="bi bi-calendar-x-fill"></i>
+
+								<input id="expiryDate" type="date" class="form-control">
+
+							</div>
+
+							<div class="col-lg-4 inventory-control-wrap">
+
+								<label for="quantity" class="form-label">
+									Quantity *
+								</label>
+
+								<i class="bi bi-stack"></i>
+
+								<input id="quantity" type="number" class="form-control" min="1" required>
+
+							</div>
+
+							<div class="col-lg-4 inventory-control-wrap">
+
+								<label for="supplierName" class="form-label">
+									Supplier
+								</label>
+
+								<i class="bi bi-truck"></i>
+
+								<input id="supplierName" class="form-control" maxlength="150">
+
+							</div>
+
+							<div class="col-lg-6 inventory-control-wrap">
+
+								<label for="purchasePrice" class="form-label">
+									Purchase Price
+								</label>
+
+								<i class="bi bi-currency-rupee"></i>
+
+								<input id="purchasePrice" type="number" class="form-control" value="0" min="0"
+									step="0.01">
+
+							</div>
+
+							<div class="col-lg-6 inventory-control-wrap">
+
+								<label for="salePrice" class="form-label">
+									Sale Price
+								</label>
+
+								<i class="bi bi-tag-fill"></i>
+
+								<input id="salePrice" type="number" class="form-control" value="0" min="0" step="0.01">
+
+							</div>
+
+						</div>
+
+						<div class="inventory-form-note">
+
+							<i class="bi bi-info-circle-fill text-primary"></i>
+
+							<div>
+								Each batch is tracked separately by quantity, expiry and pricing.
+							</div>
+
+						</div>
+
+					</div>
+
+					<div class="modal-footer">
+
+						<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+
+							Cancel
+						</button>
+
+						<button type="submit" class="btn btn-medi" style="width:auto;" id="saveStockBtn">
+
+							<i class="bi bi-check2-circle me-1"></i>
+							Save Stock
+						</button>
+
+					</div>
+
+				</form>
+
+			</div>
+
+		</div>
+
+	</div>
+
+	<div class="modal fade saas-inventory-modal" id="adjustStockModal" tabindex="-1" aria-hidden="true">
+
+		<div class="modal-dialog modal-dialog-centered">
+
+			<div class="modal-content">
+
+				<div class="modal-header">
+
+					<div>
+						<div class="small text-white-50 fw-bold text-uppercase mb-1">
+							Inventory Movement
+						</div>
+
+						<h5 class="modal-title">
+							Adjust Stock
+						</h5>
+					</div>
+
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+				</div>
+
+				<div class="modal-body">
+
+					<input type="hidden" id="adjustStockId">
+
+					<div class="row g-3">
+
+						<div class="col-12">
+
+							<div class="alert alert-info mb-0" id="adjustStockInfo">
+
+								Select movement details.
+							</div>
+
+						</div>
+
+						<div class="col-12 inventory-control-wrap">
+
+							<label for="movementType" class="form-label">
+								Movement Type *
+							</label>
+
+							<i class="bi bi-arrow-left-right"></i>
+
+							<select id="movementType" class="form-select">
+
+								<option value="ADJUSTMENT_IN">Adjustment In</option>
+								<option value="ADJUSTMENT_OUT" selected>Adjustment Out</option>
+								<option value="EXPIRED">Expired</option>
+								<option value="DAMAGED">Damaged</option>
+							</select>
+
+						</div>
+
+						<div class="col-12 inventory-control-wrap">
+
+							<label for="adjustQuantity" class="form-label">
+								Quantity *
+							</label>
+
+							<i class="bi bi-stack"></i>
+
+							<input type="number" id="adjustQuantity" min="1" class="form-control" value="1">
+
+						</div>
+
+						<div class="col-12">
+
+							<label for="adjustRemarks" class="form-label">
+								Remarks
+							</label>
+
+							<textarea id="adjustRemarks" class="form-control" rows="3" maxlength="500"
+								placeholder="Enter adjustment reason"></textarea>
+
+						</div>
+
+					</div>
+
+				</div>
+
+				<div class="modal-footer">
+
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+
+						Cancel
+					</button>
+
+					<button type="button" id="saveAdjustmentBtn" class="btn btn-medi" style="width:auto;"
+						onclick="submitStockAdjustment()">
+
+						<i class="bi bi-check2-circle me-1"></i>
+						Adjust Stock
+					</button>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+	<div class="module-exit-overlay" id="moduleExitOverlay">
+
+		<div class="module-exit-content">
+
+			<div class="module-exit-icon">
+				<i class="bi bi-arrow-left-right"></i>
+			</div>
+
+			<h2>Switching Experience</h2>
+
+			<p>
+				Returning to MediRevolution module selection...
+			</p>
+
+			<div class="module-exit-progress">
+				<span></span>
+			</div>
+
+		</div>
+
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script th:src="@{/js/common-dashboard.js}"></script>
+	<script th:src="@{/js/module-switch.js}"></script>
+	<script th:src="@{/js/saas-auth-guard.js}"></script>
+	<script th:src="@{/js/saas-inventory.js?v=20260713_1}"></script>
+	<script th:src="@{/js/pwa.js}"></script>
+
+</body>
+
+</html>

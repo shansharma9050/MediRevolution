@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>MediRevolution | SaaS Lab</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="manifest" href="/manifest.json">
+	<meta name="theme-color" content="#05285f">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.saas-diagnostics-page {
+			position: relative
+		}
+
+		.diagnostics-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 235px;
+			margin-bottom: 28px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f 0%, #08739f 48%, #08c7d4 100%);
+			box-shadow: 0 25px 65px rgba(5, 40, 95, .22);
+			animation: diagReveal .75s cubic-bezier(.22, 1, .36, 1) both
+		}
+
+		.diagnostics-hero:before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation: diagFloat 9s ease-in-out infinite
+		}
+
+		.diagnostics-hero:after {
+			position: absolute;
+			bottom: -180px;
+			left: 28%;
+			width: 360px;
+			height: 360px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(123, 214, 0, .23), transparent 68%)
+		}
+
+		.diagnostics-hero-content,
+		.diagnostics-hero-action {
+			position: relative;
+			z-index: 2
+		}
+
+		.diagnostics-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px)
+		}
+
+		.diagnostics-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px
+		}
+
+		.diagnostics-hero h1 span {
+			color: #b8f267
+		}
+
+		.diagnostics-hero p {
+			max-width: 760px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .8);
+			line-height: 1.75
+		}
+
+		.diagnostics-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px
+		}
+
+		.diagnostics-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700
+		}
+
+		.diagnostics-hero-action {
+			display: flex;
+			min-width: 250px;
+			flex-direction: column;
+			align-items: stretch;
+			padding: 22px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px)
+		}
+
+		.diagnostics-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 68px;
+			height: 68px;
+			margin: 0 auto 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #fff;
+			font-size: 28px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+			animation: diagIcon 3s ease-in-out infinite
+		}
+
+		.diagnostics-hero-buttons {
+			display: grid;
+			gap: 9px;
+			margin-top: 13px
+		}
+
+		.diagnostics-hero-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 44px;
+			padding: 0 16px;
+			border: none;
+			border-radius: 14px;
+			color: #05285f;
+			background: #fff;
+			font-size: 12px;
+			font-weight: 800;
+			transition: .3s
+		}
+
+		.diagnostics-hero-button.secondary {
+			border: 1px solid rgba(255, 255, 255, .28);
+			color: #fff;
+			background: rgba(255, 255, 255, .08)
+		}
+
+		.diagnostics-hero-button:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 14px 30px rgba(0, 0, 0, .16)
+		}
+
+		.diagnostics-summary-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px
+		}
+
+		.diagnostics-summary-card {
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .96);
+			box-shadow: 0 14px 35px rgba(5, 40, 95, .08);
+			transition: .35s
+		}
+
+		.diagnostics-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 22px 48px rgba(5, 40, 95, .14)
+		}
+
+		.diagnostics-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px
+		}
+
+		.diagnostics-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700
+		}
+
+		.diagnostics-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 29px;
+			font-weight: 900
+		}
+
+		.diagnostics-card {
+			position: relative;
+			overflow: hidden
+		}
+
+		.diagnostics-card:after {
+			position: absolute;
+			top: -90px;
+			right: -90px;
+			width: 190px;
+			height: 190px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(8, 199, 212, .1), transparent 68%);
+			pointer-events: none
+		}
+
+		.diagnostics-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5
+		}
+
+		.diagnostics-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px
+		}
+
+		.diagnostics-title-icon {
+			display: flex;
+			flex: 0 0 46px;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px
+		}
+
+		.diagnostics-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase
+		}
+
+		.diagnostics-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900
+		}
+
+		.diagnostics-filters {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px
+		}
+
+		.diagnostics-filter-wrap {
+			position: relative;
+			min-width: 210px
+		}
+
+		.diagnostics-filter-wrap i {
+			position: absolute;
+			top: 50%;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			transform: translateY(-50%);
+			pointer-events: none
+		}
+
+		.diagnostics-filter-wrap .form-control,
+		.diagnostics-filter-wrap .form-select {
+			padding-left: 41px
+		}
+
+		.diagnostics-table-wrap {
+			position: relative;
+			z-index: 2;
+			overflow: hidden;
+			border: 1px solid #e6eef4;
+			border-radius: 18px
+		}
+
+		.diagnostics-table-wrap table {
+			margin-bottom: 0
+		}
+
+		.diagnostics-table-wrap thead th {
+			padding: 15px 16px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 12px;
+			font-weight: 900;
+			white-space: nowrap
+		}
+
+		.diagnostics-table-wrap tbody td {
+			padding: 15px 16px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 13px;
+			vertical-align: middle
+		}
+
+		.diagnostics-table-wrap tbody tr {
+			opacity: 0;
+			transform: translateY(12px);
+			animation: diagRow .45s var(--row-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards
+		}
+
+		.diagnostics-person {
+			display: flex;
+			align-items: center;
+			gap: 10px
+		}
+
+		.diagnostics-person-icon {
+			display: flex;
+			flex: 0 0 42px;
+			align-items: center;
+			justify-content: center;
+			width: 42px;
+			height: 42px;
+			border-radius: 14px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 17px
+		}
+
+		.diagnostics-pill {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			font-size: 10px;
+			font-weight: 900;
+			white-space: nowrap
+		}
+
+		.diagnostics-pill.success {
+			color: #0f5132;
+			background: #d1e7dd
+		}
+
+		.diagnostics-pill.danger {
+			color: #842029;
+			background: #f8d7da
+		}
+
+		.diagnostics-pill.primary {
+			color: #084298;
+			background: #cfe2ff
+		}
+
+		.diagnostics-pill.warning {
+			color: #664d03;
+			background: #fff3cd
+		}
+
+		.diagnostics-actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 7px
+		}
+
+		.diagnostics-state {
+			padding: 54px 20px;
+			text-align: center
+		}
+
+		.diagnostics-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 72px;
+			height: 72px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 28px;
+			box-shadow: 0 15px 32px rgba(5, 40, 95, .17)
+		}
+
+		.diagnostics-loading {
+			animation: diagPulse 1.3s ease-in-out infinite
+		}
+
+		.diagnostics-modal .modal-content {
+			overflow: hidden;
+			border: none;
+			border-radius: 26px;
+			box-shadow: 0 28px 75px rgba(5, 40, 95, .22)
+		}
+
+		.diagnostics-modal .modal-header {
+			padding: 21px 24px;
+			color: #fff;
+			border-bottom: none;
+			background: linear-gradient(135deg, #05285f, #087aa3)
+		}
+
+		.diagnostics-modal .btn-close {
+			filter: invert(1)
+		}
+
+		.diagnostics-modal .modal-body {
+			padding: 25px
+		}
+
+		.diagnostics-modal .modal-footer {
+			padding: 18px 24px;
+			border-top: 1px solid #e8f1f5;
+			background: #f8fbfc
+		}
+
+		.diagnostics-control {
+			position: relative
+		}
+
+		.diagnostics-control>i {
+			position: absolute;
+			top: 39px;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			pointer-events: none
+		}
+
+		.diagnostics-control .form-control,
+		.diagnostics-control .form-select {
+			padding-left: 41px
+		}
+
+		.diagnostics-item-table {
+			overflow: hidden;
+			border: 1px solid #e2ebf0;
+			border-radius: 16px
+		}
+
+		.diagnostics-item-table table {
+			margin: 0
+		}
+
+		.diagnostics-item-table thead th {
+			color: #05285f;
+			background: #eff9fb;
+			font-size: 11px;
+			font-weight: 900
+		}
+
+		.diagnostics-preview {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 10px;
+			margin-top: 18px
+		}
+
+		.diagnostics-preview>div {
+			padding: 13px;
+			border: 1px solid #e2ebf0;
+			border-radius: 14px;
+			background: #f8fbfc
+		}
+
+		.diagnostics-preview small {
+			display: block;
+			color: #718496;
+			font-size: 9px;
+			font-weight: 800;
+			text-transform: uppercase
+		}
+
+		.diagnostics-preview strong {
+			display: block;
+			margin-top: 4px;
+			color: #05285f;
+			font-size: 17px;
+			font-weight: 900
+		}
+
+		@keyframes diagReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px)
+			}
+
+			to {
+				opacity: 1;
+				transform: none
+			}
+		}
+
+		@keyframes diagFloat {
+
+			0%,
+			100% {
+				transform: none
+			}
+
+			50% {
+				transform: translateY(25px) rotate(8deg)
+			}
+		}
+
+		@keyframes diagIcon {
+
+			0%,
+			100% {
+				transform: none
+			}
+
+			50% {
+				transform: translateY(-7px)
+			}
+		}
+
+		@keyframes diagRow {
+			to {
+				opacity: 1;
+				transform: none
+			}
+		}
+
+		@keyframes diagPulse {
+
+			0%,
+			100% {
+				transform: scale(.94);
+				opacity: .72
+			}
+
+			50% {
+				transform: scale(1.06);
+				opacity: 1
+			}
+		}
+
+		@media(max-width:1150px) {
+
+			.diagnostics-summary-grid,
+			.diagnostics-preview {
+				grid-template-columns: repeat(2, minmax(0, 1fr))
+			}
+		}
+
+		@media(max-width:992px) {
+			.diagnostics-hero {
+				align-items: flex-start;
+				flex-direction: column
+			}
+
+			.diagnostics-hero-action {
+				width: 100%
+			}
+		}
+
+		@media(max-width:768px) {
+			.diagnostics-header {
+				align-items: stretch;
+				flex-direction: column
+			}
+
+			.diagnostics-filters,
+			.diagnostics-filter-wrap {
+				width: 100%
+			}
+		}
+
+		@media(max-width:576px) {
+			.diagnostics-hero {
+				padding: 26px 21px;
+				border-radius: 24px
+			}
+
+			.diagnostics-summary-grid,
+			.diagnostics-preview {
+				grid-template-columns: 1fr
+			}
+
+			.diagnostics-modal .modal-body {
+				padding: 20px 16px
+			}
+
+			.diagnostics-modal .modal-footer {
+				flex-direction: column-reverse
+			}
+
+			.diagnostics-modal .modal-footer .btn {
+				width: 100% !important
+			}
+		}
+	</style>
+
+</head>
+
+<body class="dashboard-body saas-dashboard-body">
+	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
+	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
+
+	<main class="mr-main saas-main saas-diagnostics-page">
+		<section class="diagnostics-hero">
+			<div class="diagnostics-hero-content">
+				<span class="diagnostics-kicker"><i class="bi bi-droplet-half"></i>Laboratory Diagnostics</span>
+				<h1>SaaS <span>Lab</span></h1>
+				<p>Manage lab tests, lab orders and reports for <strong id="tenantNameText">your workspace</strong>.</p>
+
+				<div class="diagnostics-meta">
+					<span><i class="bi bi-ui-checks-grid"></i>Lab test master</span>
+					<span><i class="bi bi-activity"></i>Samples & processing</span>
+					<span><i class="bi bi-file-earmark-pdf-fill"></i>Diagnostic reports</span>
+				</div>
+			</div>
+
+			<div class="diagnostics-hero-action">
+				<div class="diagnostics-hero-icon"><i class="bi bi-droplet-half"></i></div>
+				<strong>Lab Actions</strong>
+
+				<div class="diagnostics-hero-buttons">
+					<button type="button" id="addTestBtn" class="diagnostics-hero-button secondary"
+						onclick="openTestModal()">
+						<i class="bi bi-plus-circle-fill"></i>Add Lab Test
+					</button>
+
+					<button type="button" id="createOrderBtn" class="diagnostics-hero-button"
+						onclick="openOrderModal()">
+						<i class="bi bi-clipboard2-plus-fill"></i>New Lab Order
+					</button>
+				</div>
+			</div>
+		</section>
+
+		<div id="msg"></div>
+
+		<section class="diagnostics-summary-grid">
+			<article class="diagnostics-summary-card">
+				<div class="diagnostics-summary-icon"><i class="bi bi-clipboard2-pulse-fill"></i></div>
+				<small>Total Orders</small>
+				<strong id="totalOrderCount">0</strong>
+			</article>
+
+			<article class="diagnostics-summary-card">
+				<div class="diagnostics-summary-icon"><i class="bi bi-hourglass-split"></i></div>
+				<small>In Process</small>
+				<strong id="inProcessCount">0</strong>
+			</article>
+
+			<article class="diagnostics-summary-card">
+				<div class="diagnostics-summary-icon"><i class="bi bi-check-circle-fill"></i></div>
+				<small>Reports Ready</small>
+				<strong id="reportReadyCount">0</strong>
+			</article>
+
+			<article class="diagnostics-summary-card">
+				<div class="diagnostics-summary-icon"><i class="bi bi-currency-rupee"></i></div>
+				<small>Total Amount</small>
+				<strong id="totalOrderAmount">₹0</strong>
+			</article>
+		</section>
+
+		<section class="mr-card diagnostics-card">
+			<div class="diagnostics-header">
+				<div class="diagnostics-title-wrap">
+					<div class="diagnostics-title-icon"><i class="bi bi-droplet-half"></i></div>
+					<div><small>Diagnostic Register</small>
+						<h5>Lab Orders</h5>
+					</div>
+				</div>
+
+				<div class="diagnostics-filters">
+					<div class="diagnostics-filter-wrap">
+						<i class="bi bi-search"></i>
+						<input type="text" id="orderSearchBox" class="form-control"
+							placeholder="Search order, patient, doctor" oninput="filterOrders()">
+					</div>
+
+					<div class="diagnostics-filter-wrap">
+						<i class="bi bi-funnel-fill"></i>
+						<select id="orderStatusFilter" class="form-select" onchange="filterOrders()">
+							<option value="">All Status</option>
+							<option value="ORDERED">Ordered</option>
+							<option value="SAMPLE_COLLECTED">Sample Collected</option>
+							<option value="IN_PROCESS">In Process</option>
+							<option value="REPORT_READY">Report Ready</option>
+							<option value="DELIVERED">Delivered</option>
+							<option value="CANCELLED">Cancelled</option>
+						</select>
+					</div>
+
+					<button type="button" id="refreshOrdersBtn" class="btn btn-outline-primary" onclick="loadOrders()">
+						<i class="bi bi-arrow-clockwise me-1"></i>Refresh
+					</button>
+				</div>
+			</div>
+
+			<div class="table-responsive diagnostics-table-wrap">
+				<table class="table table-hover align-middle">
+					<thead>
+						<tr>
+							<th>Order</th>
+							<th>Patient</th>
+							<th>Doctor</th>
+							<th>Amount</th>
+							<th>Status</th>
+							<th style="width:320px;">Action</th>
+						</tr>
+					</thead>
+					<tbody id="ordersTableBody">
+						<tr>
+							<td colspan="6">
+								<div class="diagnostics-state">
+									<div class="diagnostics-state-icon diagnostics-loading"><i
+											class="bi bi-droplet-half"></i></div>
+									<h5 class="fw-bold text-primary">Loading lab orders</h5>
+									<p class="text-muted mb-0">Please wait while diagnostic records are prepared.</p>
+								</div>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
+	</main>
+
+	<div class="modal fade diagnostics-modal" id="testModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-lg modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<div>
+						<div class="small text-white-50 fw-bold text-uppercase mb-1">Diagnostic Test Master</div>
+						<h5 class="modal-title">Add Lab Test</h5>
+					</div>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+
+				<div class="modal-body">
+					<div class="row g-3">
+						<div class="col-lg-6 diagnostics-control">
+							<label class="form-label" for="testName">Test Name *</label><i class="bi bi-activity"></i>
+							<input id="testName" class="form-control" maxlength="160" placeholder="CBC / LFT / KFT">
+						</div>
+
+						<div class="col-lg-6 diagnostics-control">
+							<label class="form-label" for="testCode">Test Code</label><i class="bi bi-upc-scan"></i>
+							<input id="testCode" class="form-control" maxlength="80">
+						</div>
+
+						<div class="col-lg-6 diagnostics-control">
+							<label class="form-label" for="category">Category</label><i class="bi bi-tags-fill"></i>
+							<input id="category" class="form-control" maxlength="120"
+								placeholder="Blood / Urine / Biochemistry">
+						</div>
+
+						<div class="col-lg-6 diagnostics-control">
+							<label class="form-label" for="price">Price</label><i class="bi bi-currency-rupee"></i>
+							<input id="price" type="number" min="0" step="0.01" class="form-control" value="0">
+						</div>
+
+						<div class="col-12">
+							<label class="form-label" for="description">Description</label>
+							<textarea id="description" class="form-control" rows="3" maxlength="1000"></textarea>
+						</div>
+					</div>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+					<button type="button" id="saveTestBtn" class="btn btn-medi" style="width:auto;"
+						onclick="saveTest()">
+						<i class="bi bi-check2-circle me-1"></i>Save Test
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade diagnostics-modal" id="orderModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header">
+					<div>
+						<div class="small text-white-50 fw-bold text-uppercase mb-1">Diagnostic Order</div>
+						<h5 class="modal-title">New Lab Order</h5>
+					</div>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+
+				<div class="modal-body">
+					<div class="row g-3">
+						<div class="col-lg-4 diagnostics-control">
+							<label class="form-label" for="patientId">Patient *</label><i class="bi bi-person-fill"></i>
+							<select id="patientId" class="form-select">
+								<option value="">Select Patient</option>
+							</select>
+						</div>
+
+						<div class="col-lg-4 diagnostics-control">
+							<label class="form-label" for="doctorProfileId">Doctor</label><i
+								class="bi bi-person-badge-fill"></i>
+							<select id="doctorProfileId" class="form-select">
+								<option value="">Select Doctor</option>
+							</select>
+						</div>
+
+						<div class="col-lg-4 diagnostics-control">
+							<label class="form-label" for="prescriptionId">Prescription ID</label><i
+								class="bi bi-file-medical-fill"></i>
+							<input id="prescriptionId" type="number" min="1" class="form-control"
+								placeholder="Optional">
+						</div>
+
+						<div class="col-lg-6 diagnostics-control">
+							<label class="form-label" for="discountAmount">Discount</label><i
+								class="bi bi-tags-fill"></i>
+							<input id="discountAmount" type="number" min="0" step="0.01" class="form-control" value="0"
+								oninput="updateOrderPreview()">
+						</div>
+
+						<div class="col-lg-6 diagnostics-control">
+							<label class="form-label" for="taxAmount">Tax</label><i class="bi bi-percent"></i>
+							<input id="taxAmount" type="number" min="0" step="0.01" class="form-control" value="0"
+								oninput="updateOrderPreview()">
+						</div>
+
+						<div class="col-12">
+							<label class="form-label" for="clinicalNotes">Clinical Notes</label>
+							<textarea id="clinicalNotes" class="form-control" rows="3" maxlength="1500"></textarea>
+						</div>
+
+						<div class="col-12">
+							<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3">
+								<div>
+									<div class="small text-muted fw-bold text-uppercase">Selected Services</div>
+									<h5 class="mb-0 text-primary fw-bold">Tests</h5>
+								</div>
+								<button type="button" class="btn btn-sm btn-outline-primary" onclick="addTestRow()">
+									<i class="bi bi-plus-circle-fill me-1"></i>Add Test
+								</button>
+							</div>
+
+							<div class="table-responsive diagnostics-item-table mt-3">
+								<table class="table table-bordered align-middle">
+									<thead>
+										<tr>
+											<th>Test</th>
+											<th>Price</th>
+											<th style="width:80px;">Action</th>
+										</tr>
+									</thead>
+									<tbody id="testRows"></tbody>
+								</table>
+							</div>
+
+							<div class="diagnostics-preview">
+								<div><small>Test Subtotal</small><strong>₹<span
+											id="previewSubtotal">0.00</span></strong></div>
+								<div><small>Discount</small><strong>₹<span id="previewDiscount">0.00</span></strong>
+								</div>
+								<div><small>Tax</small><strong>₹<span id="previewTax">0.00</span></strong></div>
+								<div><small>Final Total</small><strong>₹<span id="previewTotal">0.00</span></strong>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+					<button type="button" id="saveOrderBtn" class="btn btn-medi" style="width:auto;"
+						onclick="saveOrder()">
+						<i class="bi bi-check2-circle me-1"></i>Save Order
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade diagnostics-modal" id="resultModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-lg modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<div>
+						<div class="small text-white-50 fw-bold text-uppercase mb-1">Diagnostic Result</div>
+						<h5 class="modal-title">Update Result</h5>
+					</div>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+
+				<div class="modal-body">
+					<input type="hidden" id="resultOrderId">
+
+					<div class="row g-3">
+						<div class="col-12">
+							<label class="form-label" for="resultSummary">Result Summary *</label>
+							<textarea id="resultSummary" class="form-control" rows="3" maxlength="1500"></textarea>
+						</div>
+
+						<div class="col-12">
+							<label class="form-label" for="resultDetails">Result Details</label>
+							<textarea id="resultDetails" class="form-control" rows="5" maxlength="4000"></textarea>
+						</div>
+
+						<div class="col-12 diagnostics-control">
+							<label class="form-label" for="reportFileUrl">Report File URL</label><i
+								class="bi bi-link-45deg"></i>
+							<input id="reportFileUrl" class="form-control" maxlength="1000" placeholder="Optional">
+						</div>
+					</div>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+					<button type="button" id="saveResultBtn" class="btn btn-medi" style="width:auto;"
+						onclick="submitResult()">
+						<i class="bi bi-check2-circle me-1"></i>Save Result
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="module-exit-overlay" id="moduleExitOverlay">
+		<div class="module-exit-content">
+			<div class="module-exit-icon"><i class="bi bi-arrow-left-right"></i></div>
+			<h2>Switching Experience</h2>
+			<p>Returning to MediRevolution module selection...</p>
+			<div class="module-exit-progress"><span></span></div>
+		</div>
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script th:src="@{/js/common-dashboard.js}"></script>
+	<script th:src="@{/js/module-switch.js}"></script>
+	<script th:src="@{/js/saas-auth-guard.js}"></script>
+	<script>window.DIAGNOSTIC_TYPE = "LAB";</script>
+	<script th:src="@{/js/saas-diagnostics.js?v=20260713_1}"></script>
+	<script th:src="@{/js/pwa.js}"></script>
+</body>
+
+</html>

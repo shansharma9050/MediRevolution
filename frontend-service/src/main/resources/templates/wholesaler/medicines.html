@@ -1,106 +1,774 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
+	<meta charset="UTF-8">
+
 	<title>MediRevolution | Medicine Master</title>
+
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
 	<link rel="manifest" href="/manifest.json">
 
 	<meta name="theme-color" content="#05285f">
-
 	<meta name="mobile-web-app-capable" content="yes">
-
 	<meta name="apple-mobile-web-app-capable" content="yes">
-
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
 	<meta name="apple-mobile-web-app-title" content="MediRevolution">
 
 	<link rel="apple-touch-icon" href="/images/icon-192.png">
 
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
 	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.medicine-master-page {
+			position: relative;
+		}
+
+		.medicine-master-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 230px;
+			margin-bottom: 28px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg, #05285f 0%, #076a9c 52%, #08c7d4 100%);
+			box-shadow: 0 25px 65px rgba(5, 40, 95, .22);
+			animation: medicineMasterHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.medicine-master-hero::before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation: medicineMasterHeroFloat 9s ease-in-out infinite;
+		}
+
+		.medicine-master-hero::after {
+			position: absolute;
+			bottom: -175px;
+			left: 28%;
+			width: 350px;
+			height: 350px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(123, 214, 0, .23), transparent 68%);
+		}
+
+		.medicine-master-hero-content,
+		.medicine-master-hero-action {
+			position: relative;
+			z-index: 2;
+		}
+
+		.medicine-master-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.medicine-master-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px;
+		}
+
+		.medicine-master-hero h1 span {
+			color: #b8f267;
+		}
+
+		.medicine-master-hero p {
+			max-width: 760px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .78);
+			line-height: 1.75;
+		}
+
+		.medicine-master-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px;
+		}
+
+		.medicine-master-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.medicine-master-hero-action {
+			display: flex;
+			min-width: 210px;
+			flex-direction: column;
+			align-items: center;
+			padding: 22px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px);
+		}
+
+		.medicine-master-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 68px;
+			height: 68px;
+			margin-bottom: 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 28px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+			animation: medicineMasterIconFloat 3s ease-in-out infinite;
+		}
+
+		.medicine-master-add-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 46px;
+			margin-top: 13px;
+			padding: 0 18px;
+			border: none;
+			border-radius: 15px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 12px;
+			font-weight: 800;
+			transition: transform .3s ease, box-shadow .3s ease;
+		}
+
+		.medicine-master-add-button:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 14px 30px rgba(0, 0, 0, .18);
+		}
+
+		.medicine-master-summary-grid {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px;
+		}
+
+		.medicine-master-summary-card {
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .95);
+			box-shadow: 0 14px 35px rgba(5, 40, 95, .08);
+			transition: transform .35s ease, box-shadow .35s ease;
+		}
+
+		.medicine-master-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 22px 48px rgba(5, 40, 95, .14);
+		}
+
+		.medicine-master-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+		}
+
+		.medicine-master-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700;
+		}
+
+		.medicine-master-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 29px;
+			font-weight: 900;
+		}
+
+		.medicine-form-card,
+		.medicine-list-card {
+			position: relative;
+			overflow: hidden;
+		}
+
+		.medicine-form-card {
+			animation: medicinePanelReveal .45s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.medicine-form-card::after,
+		.medicine-list-card::after {
+			position: absolute;
+			top: -90px;
+			right: -90px;
+			width: 190px;
+			height: 190px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(8, 199, 212, .1), transparent 68%);
+			pointer-events: none;
+		}
+
+		.medicine-section-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5;
+		}
+
+		.medicine-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px;
+		}
+
+		.medicine-title-icon {
+			display: flex;
+			flex: 0 0 46px;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+			box-shadow: 0 12px 26px rgba(5, 40, 95, .16);
+		}
+
+		.medicine-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		.medicine-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.medicine-control-wrap {
+			position: relative;
+			z-index: 2;
+		}
+
+		.medicine-control-wrap>i {
+			position: absolute;
+			top: 39px;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			pointer-events: none;
+		}
+
+		.medicine-control-wrap .form-control,
+		.medicine-control-wrap .form-select {
+			padding-left: 41px;
+		}
+
+		.medicine-form-actions {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			justify-content: flex-end;
+			gap: 10px;
+			margin-top: 18px;
+			padding-top: 18px;
+			border-top: 1px solid #edf3f6;
+		}
+
+		.medicine-search-group {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+		}
+
+		.medicine-search-wrap {
+			position: relative;
+			min-width: 300px;
+		}
+
+		.medicine-search-wrap i {
+			position: absolute;
+			top: 50%;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			transform: translateY(-50%);
+		}
+
+		.medicine-search-wrap .form-control {
+			padding-left: 41px;
+		}
+
+		.medicine-table-wrap {
+			position: relative;
+			z-index: 2;
+			overflow: hidden;
+			border: 1px solid #e6eef4;
+			border-radius: 18px;
+		}
+
+		.medicine-table-wrap table {
+			margin-bottom: 0;
+		}
+
+		.medicine-table-wrap thead th {
+			padding: 15px 16px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 12px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.medicine-table-wrap tbody td {
+			padding: 15px 16px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 13px;
+			vertical-align: middle;
+		}
+
+		.medicine-table-wrap tbody tr {
+			opacity: 0;
+			transform: translateY(12px);
+			animation: medicineRowReveal .45s var(--row-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards;
+		}
+
+		.medicine-profile {
+			display: flex;
+			align-items: center;
+			gap: 11px;
+		}
+
+		.medicine-profile-icon {
+			display: flex;
+			flex: 0 0 42px;
+			align-items: center;
+			justify-content: center;
+			width: 42px;
+			height: 42px;
+			border-radius: 14px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 17px;
+		}
+
+		.medicine-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			color: #05285f;
+			background: #eaf7fb;
+			font-size: 10px;
+			font-weight: 800;
+		}
+
+		.medicine-status-pill {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			font-size: 10px;
+			font-weight: 900;
+		}
+
+		.medicine-status-pill.active {
+			color: #0f5132;
+			background: #d1e7dd;
+		}
+
+		.medicine-status-pill.inactive {
+			color: #842029;
+			background: #f8d7da;
+		}
+
+		.medicine-state {
+			padding: 52px 20px;
+			text-align: center;
+		}
+
+		.medicine-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 72px;
+			height: 72px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 28px;
+			box-shadow: 0 15px 32px rgba(5, 40, 95, .17);
+		}
+
+		.medicine-loading-icon {
+			animation: medicineLoadingPulse 1.3s ease-in-out infinite;
+		}
+
+		@keyframes medicineMasterHeroReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes medicineMasterHeroFloat {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(25px) rotate(8deg);
+			}
+		}
+
+		@keyframes medicineMasterIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-7px);
+			}
+		}
+
+		@keyframes medicinePanelReveal {
+			from {
+				opacity: 0;
+				transform: translateY(-12px) scale(.985);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0) scale(1);
+			}
+		}
+
+		@keyframes medicineRowReveal {
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes medicineLoadingPulse {
+
+			0%,
+			100% {
+				transform: scale(.94);
+				opacity: .72;
+			}
+
+			50% {
+				transform: scale(1.06);
+				opacity: 1;
+			}
+		}
+
+		@media (max-width: 1100px) {
+			.medicine-master-summary-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		@media (max-width: 992px) {
+			.medicine-master-hero {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.medicine-master-hero-action {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 768px) {
+			.medicine-section-header {
+				align-items: stretch;
+				flex-direction: column;
+			}
+
+			.medicine-search-group,
+			.medicine-search-wrap {
+				width: 100%;
+			}
+
+			.medicine-search-wrap {
+				min-width: 0;
+			}
+		}
+
+		@media (max-width: 576px) {
+			.medicine-master-hero {
+				padding: 26px 21px;
+				border-radius: 24px;
+			}
+
+			.medicine-form-actions {
+				flex-direction: column-reverse;
+			}
+
+			.medicine-form-actions .btn,
+			.medicine-search-group .btn {
+				width: 100% !important;
+			}
+		}
+	</style>
 </head>
 
-<body class="dashboard-body">
+<body class="dashboard-body platform-dashboard-body">
 
-	<div th:replace="~{layout/topnavbar :: topnavbar}"></div>
-	<div th:replace="~{layout/sidebar :: sidebar}"></div>
+	<div th:replace="~{layout/platform-topnavbar :: platformTopnavbar}"></div>
+	<div th:replace="~{layout/platform-sidebar :: platformSidebar}"></div>
 
-	<main class="mr-main">
+	<main class="mr-main platform-main medicine-master-page">
 
-		<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
-			<div>
-				<h1 class="mr-page-title">Medicine Master</h1>
-				<p class="mr-page-subtitle">
-					Add and manage medicine master data used by wholesalers and retailers.
+		<section class="medicine-master-hero">
+
+			<div class="medicine-master-hero-content">
+
+				<span class="medicine-master-kicker">
+					<i class="bi bi-capsule-pill"></i>
+					Central Medicine Catalogue
+				</span>
+
+				<h1>
+					Medicine
+					<span>master</span>
+				</h1>
+
+				<p>
+					Add and manage medicine master data used by wholesalers,
+					retailers, inventory and marketplace modules.
 				</p>
+
+				<div class="medicine-master-meta">
+
+					<span>
+						<i class="bi bi-prescription2"></i>
+						Composition data
+					</span>
+
+					<span>
+						<i class="bi bi-building-fill"></i>
+						Manufacturer details
+					</span>
+
+					<span>
+						<i class="bi bi-tags-fill"></i>
+						Category & type
+					</span>
+
+				</div>
+
 			</div>
 
-			<button class="btn btn-medi" style="width:auto;" onclick="openAddMedicinePanel()">
-				+ Add Medicine
-			</button>
-		</div>
+			<div class="medicine-master-hero-action">
+
+				<div class="medicine-master-hero-icon">
+					<i class="bi bi-capsule"></i>
+				</div>
+
+				<strong>Create Medicine</strong>
+
+				<button type="button" class="medicine-master-add-button" onclick="openAddMedicinePanel()">
+
+					<i class="bi bi-plus-circle-fill"></i>
+					Add Medicine
+				</button>
+
+			</div>
+
+		</section>
 
 		<div id="msg"></div>
 
-		<div class="row g-4 mb-4">
+		<section class="medicine-master-summary-grid">
 
-			<div class="col-md-4">
-				<div class="mr-stat-card">
-					<div class="mr-stat-title">Total Medicines</div>
-					<div class="mr-stat-value" id="totalMedicines">0</div>
+			<article class="medicine-master-summary-card">
+
+				<div class="medicine-master-summary-icon">
+					<i class="bi bi-capsule-pill"></i>
 				</div>
-			</div>
 
-			<div class="col-md-4">
-				<div class="mr-stat-card">
-					<div class="mr-stat-title">Module</div>
-					<div class="mr-stat-value">Master</div>
+				<small>Total Medicines</small>
+				<strong id="totalMedicines">0</strong>
+
+			</article>
+
+			<article class="medicine-master-summary-card">
+
+				<div class="medicine-master-summary-icon">
+					<i class="bi bi-database-fill"></i>
 				</div>
-			</div>
 
-			<div class="col-md-4">
-				<div class="mr-stat-card">
-					<div class="mr-stat-title">Status</div>
-					<div class="mr-stat-value">Active</div>
+				<small>Module</small>
+				<strong>Master</strong>
+
+			</article>
+
+			<article class="medicine-master-summary-card">
+
+				<div class="medicine-master-summary-icon">
+					<i class="bi bi-check-circle-fill"></i>
 				</div>
-			</div>
 
-		</div>
+				<small>Status</small>
+				<strong>Active</strong>
 
-		<div class="mr-card mb-4" id="addMedicinePanel" style="display:none;">
-			<div class="d-flex justify-content-between align-items-center mb-3">
-				<h5 class="fw-bold text-primary mb-0">Add New Medicine</h5>
-				<button class="btn btn-sm btn-outline-danger" onclick="closeAddMedicinePanel()">Close</button>
+			</article>
+
+		</section>
+
+		<section class="mr-card medicine-form-card mb-4" id="addMedicinePanel" style="display:none;">
+
+			<div class="medicine-section-header">
+
+				<div class="medicine-title-wrap">
+
+					<div class="medicine-title-icon">
+						<i class="bi bi-capsule"></i>
+					</div>
+
+					<div>
+						<small>New Master Record</small>
+						<h5>Add New Medicine</h5>
+					</div>
+
+				</div>
+
+				<button type="button" class="btn btn-sm btn-outline-secondary" onclick="closeAddMedicinePanel()">
+
+					<i class="bi bi-x-lg"></i>
+				</button>
+
 			</div>
 
 			<div class="row g-3">
 
-				<div class="col-md-6">
-					<label class="form-label">Medicine Name</label>
+				<div class="col-lg-6 medicine-control-wrap">
+
+					<label for="medicineName" class="form-label">
+						Medicine Name
+					</label>
+
+					<i class="bi bi-capsule-pill"></i>
+
 					<input type="text" id="medicineName" class="form-control" placeholder="Paracetamol 650">
+
 				</div>
 
-				<div class="col-md-6">
-					<label class="form-label">Brand Name</label>
+				<div class="col-lg-6 medicine-control-wrap">
+
+					<label for="brandName" class="form-label">
+						Brand Name
+					</label>
+
+					<i class="bi bi-tag-fill"></i>
+
 					<input type="text" id="brandName" class="form-control" placeholder="Dolo 650">
+
 				</div>
 
-				<div class="col-md-6">
-					<label class="form-label">Composition</label>
+				<div class="col-lg-6 medicine-control-wrap">
+
+					<label for="composition" class="form-label">
+						Composition
+					</label>
+
+					<i class="bi bi-prescription2"></i>
+
 					<input type="text" id="composition" class="form-control" placeholder="Paracetamol 650mg">
+
 				</div>
 
-				<div class="col-md-6">
-					<label class="form-label">Manufacturer</label>
+				<div class="col-lg-6 medicine-control-wrap">
+
+					<label for="manufacturer" class="form-label">
+						Manufacturer
+					</label>
+
+					<i class="bi bi-building-fill"></i>
+
 					<input type="text" id="manufacturer" class="form-control" placeholder="Micro Labs">
+
 				</div>
 
-				<div class="col-md-6">
-					<label class="form-label">Category</label>
+				<div class="col-lg-6 medicine-control-wrap">
+
+					<label for="category" class="form-label">
+						Category
+					</label>
+
+					<i class="bi bi-grid-fill"></i>
+
 					<select id="category" class="form-select">
+
 						<option value="">Select Category</option>
 						<option value="Pain Relief">Pain Relief</option>
 						<option value="Antibiotic">Antibiotic</option>
@@ -110,11 +778,19 @@
 						<option value="Cardiac">Cardiac</option>
 						<option value="General">General</option>
 					</select>
+
 				</div>
 
-				<div class="col-md-6">
-					<label class="form-label">Medicine Type</label>
+				<div class="col-lg-6 medicine-control-wrap">
+
+					<label for="medicineType" class="form-label">
+						Medicine Type
+					</label>
+
+					<i class="bi bi-ui-checks-grid"></i>
+
 					<select id="medicineType" class="form-select">
+
 						<option value="">Select Type</option>
 						<option value="Tablet">Tablet</option>
 						<option value="Capsule">Capsule</option>
@@ -124,49 +800,103 @@
 						<option value="Drop">Drop</option>
 						<option value="Other">Other</option>
 					</select>
+
 				</div>
 
-				<div class="col-md-12">
-					<label class="form-label">Image URL</label>
+				<div class="col-md-12 medicine-control-wrap">
+
+					<label for="imageUrl" class="form-label">
+						Image URL
+					</label>
+
+					<i class="bi bi-image-fill"></i>
+
 					<input type="text" id="imageUrl" class="form-control" placeholder="images/dolo650.png">
+
 				</div>
 
 				<div class="col-md-12">
-					<label class="form-label">Description</label>
+
+					<label for="description" class="form-label">
+						Description
+					</label>
+
 					<textarea id="description" class="form-control" rows="3"
 						placeholder="Used for fever and pain"></textarea>
-				</div>
 
-				<div class="col-md-12 text-end">
-					<button class="btn btn-medi" style="width:auto;" onclick="addMedicine()">
-						Save Medicine
-					</button>
 				</div>
 
 			</div>
-		</div>
 
-		<div class="mr-card">
+			<div class="medicine-form-actions">
 
-			<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
-				<h5 class="fw-bold text-primary mb-0">Medicine List</h5>
+				<button type="button" class="btn btn-outline-secondary" style="width:auto;"
+					onclick="clearMedicineForm()">
 
-				<div class="d-flex gap-2">
-					<input type="text" id="searchKeyword" class="form-control" style="min-width:280px;"
-						placeholder="Search by medicine or brand">
+					<i class="bi bi-eraser-fill me-1"></i>
+					Clear
+				</button>
 
-					<button class="btn btn-medi" style="width:auto;" onclick="searchMedicines()">
+				<button type="button" id="saveMedicineBtn" class="btn btn-medi" style="width:auto;"
+					onclick="addMedicine()">
+
+					<i class="bi bi-check2-circle me-1"></i>
+					Save Medicine
+				</button>
+
+			</div>
+
+		</section>
+
+		<section class="mr-card medicine-list-card">
+
+			<div class="medicine-section-header">
+
+				<div class="medicine-title-wrap">
+
+					<div class="medicine-title-icon">
+						<i class="bi bi-list-ul"></i>
+					</div>
+
+					<div>
+						<small>Master Catalogue</small>
+						<h5>Medicine List</h5>
+					</div>
+
+				</div>
+
+				<div class="medicine-search-group">
+
+					<div class="medicine-search-wrap">
+
+						<i class="bi bi-search"></i>
+
+						<input type="text" id="searchKeyword" class="form-control"
+							placeholder="Search by medicine or brand" onkeydown="searchMedicinesOnEnter(event)">
+
+					</div>
+
+					<button type="button" id="searchMedicineMasterBtn" class="btn btn-medi" style="width:auto;"
+						onclick="searchMedicines()">
+
+						<i class="bi bi-search me-1"></i>
 						Search
 					</button>
 
-					<button class="btn btn-outline-secondary" onclick="loadMedicines()">
+					<button type="button" class="btn btn-outline-secondary" onclick="resetMedicineSearch()">
+
+						<i class="bi bi-arrow-counterclockwise me-1"></i>
 						Reset
 					</button>
+
 				</div>
+
 			</div>
 
-			<div class="table-responsive">
+			<div class="table-responsive medicine-table-wrap">
+
 				<table class="table align-middle table-hover">
+
 					<thead>
 						<tr>
 							<th>#</th>
@@ -181,22 +911,70 @@
 					</thead>
 
 					<tbody id="medicineTable">
+
 						<tr>
-							<td colspan="8" class="text-center text-muted py-4">
-								Loading medicines...
+							<td colspan="8">
+
+								<div class="medicine-state">
+
+									<div class="medicine-state-icon medicine-loading-icon">
+										<i class="bi bi-capsule-pill"></i>
+									</div>
+
+									<h5 class="fw-bold text-primary">
+										Loading medicines
+									</h5>
+
+									<p class="text-muted mb-0">
+										Please wait while we prepare medicine master data.
+									</p>
+
+								</div>
+
 							</td>
 						</tr>
+
 					</tbody>
+
 				</table>
+
+			</div>
+
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
+
+	</main>
+
+	<div class="module-exit-overlay" id="moduleExitOverlay">
+
+		<div class="module-exit-content">
+
+			<div class="module-exit-icon">
+				<i class="bi bi-arrow-left-right"></i>
+			</div>
+
+			<h2>Switching Experience</h2>
+
+			<p>
+				Returning to MediRevolution module selection...
+			</p>
+
+			<div class="module-exit-progress">
+				<span></span>
 			</div>
 
 		</div>
-		<div th:replace="~{layout/footer :: footer}"></div>
-	</main>
 
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script th:src="@{/js/module-switch.js}"></script>
 	<script th:src="@{/js/common-dashboard.js}"></script>
-	<script th:src="@{/js/medicine-master.js}"></script>
+	<script th:src="@{/js/medicine-master.js?v=2}"></script>
 	<script th:src="@{/js/pwa.js}"></script>
+
 </body>
 
 </html>

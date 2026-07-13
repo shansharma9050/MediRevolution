@@ -1,140 +1,831 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <title>MediRevolution | Doctor Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="UTF-8">
 
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#05285f">
+	<title>MediRevolution | Doctor Dashboard</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link rel="manifest" href="/manifest.json">
+
+	<meta name="theme-color" content="#05285f">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
+
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.doctor-dashboard-page {
+			position: relative;
+		}
+
+		.doctor-dashboard-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 235px;
+			margin-bottom: 28px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg, #05285f 0%, #076a9c 52%, #08c7d4 100%);
+			box-shadow: 0 25px 65px rgba(5, 40, 95, 0.22);
+			animation: doctorDashboardHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.doctor-dashboard-hero::before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation: doctorDashboardHeroFloat 9s ease-in-out infinite;
+		}
+
+		.doctor-dashboard-hero::after {
+			position: absolute;
+			bottom: -175px;
+			left: 28%;
+			width: 350px;
+			height: 350px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(123, 214, 0, .23), transparent 68%);
+		}
+
+		.doctor-dashboard-hero-content,
+		.doctor-dashboard-hero-panel {
+			position: relative;
+			z-index: 2;
+		}
+
+		.doctor-dashboard-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.doctor-dashboard-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 52px);
+			font-weight: 900;
+			letter-spacing: -1.8px;
+		}
+
+		.doctor-dashboard-hero h1 span {
+			color: #b8f267;
+		}
+
+		.doctor-dashboard-hero p {
+			max-width: 720px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .78);
+			line-height: 1.75;
+		}
+
+		.doctor-dashboard-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 21px;
+		}
+
+		.doctor-dashboard-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.doctor-dashboard-hero-panel {
+			display: flex;
+			min-width: 210px;
+			flex-direction: column;
+			align-items: center;
+			padding: 23px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px);
+		}
+
+		.doctor-dashboard-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 70px;
+			height: 70px;
+			margin-bottom: 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 29px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+			animation: doctorDashboardIconFloat 3s ease-in-out infinite;
+		}
+
+		.doctor-dashboard-summary-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px;
+		}
+
+		.doctor-dashboard-summary-card {
+			position: relative;
+			overflow: hidden;
+			padding: 22px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .96);
+			box-shadow: 0 14px 35px rgba(5, 40, 95, .08);
+			transition: transform .35s ease, box-shadow .35s ease;
+			animation: doctorDashboardCardReveal .6s var(--card-delay, 0ms) cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.doctor-dashboard-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 22px 48px rgba(5, 40, 95, .14);
+		}
+
+		.doctor-dashboard-summary-card::after {
+			position: absolute;
+			top: -72px;
+			right: -72px;
+			width: 145px;
+			height: 145px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(8, 199, 212, .12), transparent 68%);
+			pointer-events: none;
+		}
+
+		.doctor-dashboard-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 50px;
+			height: 50px;
+			margin-bottom: 15px;
+			border-radius: 16px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 21px;
+			box-shadow: 0 12px 26px rgba(5, 40, 95, .15);
+		}
+
+		.doctor-dashboard-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700;
+		}
+
+		.doctor-dashboard-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 31px;
+			font-weight: 900;
+		}
+
+		.doctor-dashboard-content-grid {
+			display: grid;
+			grid-template-columns: minmax(0, 1.65fr) minmax(300px, .85fr);
+			gap: 24px;
+		}
+
+		.doctor-dashboard-section-card {
+			position: relative;
+			overflow: hidden;
+		}
+
+		.doctor-dashboard-section-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5;
+		}
+
+		.doctor-dashboard-section-title {
+			display: flex;
+			align-items: center;
+			gap: 13px;
+		}
+
+		.doctor-dashboard-section-icon {
+			display: flex;
+			flex: 0 0 46px;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+			box-shadow: 0 12px 26px rgba(5, 40, 95, .16);
+		}
+
+		.doctor-dashboard-section-title small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		.doctor-dashboard-section-title h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.doctor-workflow-grid {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 16px;
+		}
+
+		.doctor-workflow-card {
+			position: relative;
+			overflow: hidden;
+			min-height: 200px;
+			padding: 20px;
+			border: 1px solid #e4edf3;
+			border-radius: 20px;
+			background: linear-gradient(145deg, #ffffff, #f5fbfd);
+			transition: transform .3s ease, box-shadow .3s ease;
+		}
+
+		.doctor-workflow-card:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 18px 38px rgba(5, 40, 95, .12);
+		}
+
+		.doctor-workflow-number {
+			position: absolute;
+			top: 14px;
+			right: 16px;
+			color: rgba(5, 40, 95, .08);
+			font-size: 52px;
+			font-weight: 900;
+			line-height: 1;
+		}
+
+		.doctor-workflow-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 18px;
+			border-radius: 16px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+		}
+
+		.doctor-workflow-card h6 {
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.doctor-workflow-card p {
+			margin-bottom: 0;
+			color: #6a7d90;
+			font-size: 13px;
+			line-height: 1.65;
+		}
+
+		.doctor-quick-actions {
+			display: grid;
+			gap: 12px;
+		}
+
+		.doctor-quick-action {
+			display: flex;
+			align-items: center;
+			gap: 13px;
+			padding: 14px 15px;
+			border: 1px solid #e2edf2;
+			border-radius: 17px;
+			color: #24445d;
+			background: #ffffff;
+			text-decoration: none;
+			transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+		}
+
+		.doctor-quick-action:hover {
+			color: #05285f;
+			border-color: rgba(8, 199, 212, .35);
+			transform: translateX(5px);
+			box-shadow: 0 14px 28px rgba(5, 40, 95, .1);
+		}
+
+		.doctor-quick-action-icon {
+			display: flex;
+			flex: 0 0 44px;
+			align-items: center;
+			justify-content: center;
+			width: 44px;
+			height: 44px;
+			border-radius: 14px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 18px;
+		}
+
+		.doctor-quick-action strong {
+			display: block;
+			font-size: 13px;
+		}
+
+		.doctor-quick-action small {
+			display: block;
+			margin-top: 2px;
+			color: #788b9d;
+			font-size: 10px;
+		}
+
+		.doctor-quick-action-arrow {
+			margin-left: auto;
+			color: #08a9bd;
+		}
+
+		.doctor-dashboard-loading {
+			position: fixed;
+			inset: 0;
+			z-index: 2000;
+			display: none;
+			align-items: center;
+			justify-content: center;
+			background: rgba(5, 40, 95, .12);
+			backdrop-filter: blur(4px);
+		}
+
+		.doctor-dashboard-loading.active {
+			display: flex;
+		}
+
+		.doctor-dashboard-loading-box {
+			display: flex;
+			align-items: center;
+			gap: 14px;
+			padding: 18px 22px;
+			border-radius: 18px;
+			background: #ffffff;
+			box-shadow: 0 20px 50px rgba(5, 40, 95, .18);
+			color: #05285f;
+			font-weight: 800;
+		}
+
+		@keyframes doctorDashboardHeroReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes doctorDashboardHeroFloat {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(25px) rotate(8deg);
+			}
+		}
+
+		@keyframes doctorDashboardIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-7px);
+			}
+		}
+
+		@keyframes doctorDashboardCardReveal {
+			from {
+				opacity: 0;
+				transform: translateY(18px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@media (max-width: 1100px) {
+			.doctor-dashboard-summary-grid {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+
+			.doctor-dashboard-content-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		@media (max-width: 992px) {
+			.doctor-dashboard-hero {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.doctor-dashboard-hero-panel {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 768px) {
+			.doctor-workflow-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		@media (max-width: 576px) {
+			.doctor-dashboard-hero {
+				padding: 26px 21px;
+				border-radius: 24px;
+			}
+
+			.doctor-dashboard-summary-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+	</style>
 </head>
 
-<body class="dashboard-body">
+<body class="dashboard-body platform-dashboard-body">
 
-<nav class="navbar fixed-top mr-navbar px-3 px-lg-4">
-    <div class="d-flex align-items-center gap-3">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+	<div th:replace="~{layout/platform-topnavbar :: platformTopnavbar}"></div>
+	<div th:replace="~{layout/platform-sidebar :: platformSidebar}"></div>
 
-        <a href="/dashboard" class="mr-navbar-brand d-flex align-items-center gap-2">
-            <img th:src="@{/images/logo.png}" class="mr-nav-logo">
-            Medi<span>Revolution</span>
-        </a>
-    </div>
+	<main class="mr-main platform-main doctor-dashboard-page">
 
-    <div class="d-flex align-items-center gap-3">
-        <div class="mr-user-pill">
-            <span id="userEmail">doctor@email.com</span>
-        </div>
+		<section class="doctor-dashboard-hero">
 
-        <button class="btn btn-light position-relative" onclick="window.location='/notifications'">
-            🔔
-            <span id="notificationCount"
-                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
-        </button>
+			<div class="doctor-dashboard-hero-content">
 
-        <button class="btn btn-outline-light" onclick="logout()">Logout</button>
-    </div>
-</nav>
+				<span class="doctor-dashboard-kicker">
+					<i class="bi bi-heart-pulse-fill"></i>
+					Clinical Practice Center
+				</span>
 
-<aside class="mr-sidebar" id="sidebar">
-    <a href="/dashboard">🏠 Main Dashboard</a>
-    <a href="/doctor/dashboard" class="active">🩺 Doctor Dashboard</a>
-    <a href="/doctor/patients">👨‍⚕️ Patients</a>
-    <a href="/doctor/prescriptions">💊 Prescriptions</a>
-    <a href="/doctor/appointments">📅 Appointments</a>
-    <a href="/doctor/reports">📊 Doctor Reports</a>
-    <a href="/notifications">🔔 Notifications</a>
-    <a href="/profile">👤 Profile</a>
-</aside>
+				<h1>
+					Doctor
+					<span>dashboard</span>
+				</h1>
 
-<main class="mr-main">
+				<p>
+					Manage patients, prescriptions, appointments and clinical history
+					from one secure and connected workspace.
+				</p>
 
-    <div class="mb-4">
-        <h1 class="mr-page-title">Doctor Dashboard</h1>
-        <p class="mr-page-subtitle">Manage patients, prescriptions, appointments and clinical history.</p>
-    </div>
+				<div class="doctor-dashboard-meta">
 
-    <div id="msg"></div>
+					<span>
+						<i class="bi bi-people-fill"></i>
+						Patient management
+					</span>
 
-    <div class="row g-4 mb-4">
-        <div class="col-md-3">
-            <div class="mr-stat-card">
-                <div class="mr-stat-title">Patients</div>
-                <div class="mr-stat-value" id="patientsCount">0</div>
-            </div>
-        </div>
+					<span>
+						<i class="bi bi-file-medical-fill"></i>
+						Digital prescriptions
+					</span>
 
-        <div class="col-md-3">
-            <div class="mr-stat-card">
-                <div class="mr-stat-title">Prescriptions</div>
-                <div class="mr-stat-value" id="prescriptionsCount">0</div>
-            </div>
-        </div>
+					<span>
+						<i class="bi bi-calendar-check-fill"></i>
+						Appointment workflow
+					</span>
 
-        <div class="col-md-3">
-            <div class="mr-stat-card">
-                <div class="mr-stat-title">Appointments</div>
-                <div class="mr-stat-value" id="appointmentsCount">0</div>
-            </div>
-        </div>
+				</div>
 
-        <div class="col-md-3">
-            <div class="mr-stat-card">
-                <div class="mr-stat-title">Requested</div>
-                <div class="mr-stat-value" id="requestedCount">0</div>
-            </div>
-        </div>
-    </div>
+			</div>
 
-    <div class="row g-4">
-        <div class="col-lg-8">
-            <div class="mr-card">
-                <h5 class="fw-bold text-primary mb-3">Doctor Workflow</h5>
+			<div class="doctor-dashboard-hero-panel">
 
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <div class="p-3 rounded-4 bg-light">
-                            <h6 class="fw-bold">1. Register Patient</h6>
-                            <p class="text-muted mb-0">Add patient details and medical history.</p>
-                        </div>
-                    </div>
+				<div class="doctor-dashboard-hero-icon">
+					<i class="bi bi-person-badge-fill"></i>
+				</div>
 
-                    <div class="col-md-4">
-                        <div class="p-3 rounded-4 bg-light">
-                            <h6 class="fw-bold">2. Prescription</h6>
-                            <p class="text-muted mb-0">Create prescription with diagnosis and advice.</p>
-                        </div>
-                    </div>
+				<strong>Clinical Overview</strong>
 
-                    <div class="col-md-4">
-                        <div class="p-3 rounded-4 bg-light">
-                            <h6 class="fw-bold">3. Appointment</h6>
-                            <p class="text-muted mb-0">Book and manage follow-up appointments.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+				<small class="mt-2 text-white-50">
+					Patients • Prescriptions • Appointments
+				</small>
 
-        <div class="col-lg-4">
-            <div class="mr-card">
-                <h5 class="fw-bold text-primary mb-3">Quick Actions</h5>
+			</div>
 
-                <a href="/doctor/patients" class="btn btn-medi mb-2">Add Patient</a>
-                <a href="/doctor/prescriptions" class="btn btn-medi mb-2">Create Prescription</a>
-                <a href="/doctor/appointments" class="btn btn-medi mb-2">Book Appointment</a>
-                <a href="/doctor/reports" class="btn btn-medi mb-2">View Reports</a>
-            </div>
-        </div>
-    </div>
+		</section>
 
-</main>
+		<div id="msg"></div>
 
-<script th:src="@{/js/common-dashboard.js}"></script>
-<script th:src="@{/js/doctor-dashboard.js}"></script>
-<script th:src="@{/js/pwa.js}"></script>
+		<section class="doctor-dashboard-summary-grid">
+
+			<article class="doctor-dashboard-summary-card" style="--card-delay:80ms;">
+
+				<div class="doctor-dashboard-summary-icon">
+					<i class="bi bi-people-fill"></i>
+				</div>
+
+				<small>Patients</small>
+				<strong id="patientsCount">0</strong>
+
+			</article>
+
+			<article class="doctor-dashboard-summary-card" style="--card-delay:150ms;">
+
+				<div class="doctor-dashboard-summary-icon">
+					<i class="bi bi-file-medical-fill"></i>
+				</div>
+
+				<small>Prescriptions</small>
+				<strong id="prescriptionsCount">0</strong>
+
+			</article>
+
+			<article class="doctor-dashboard-summary-card" style="--card-delay:220ms;">
+
+				<div class="doctor-dashboard-summary-icon">
+					<i class="bi bi-calendar3"></i>
+				</div>
+
+				<small>Appointments</small>
+				<strong id="appointmentsCount">0</strong>
+
+			</article>
+
+			<article class="doctor-dashboard-summary-card" style="--card-delay:290ms;">
+
+				<div class="doctor-dashboard-summary-icon">
+					<i class="bi bi-hourglass-split"></i>
+				</div>
+
+				<small>Requested</small>
+				<strong id="requestedCount">0</strong>
+
+			</article>
+
+		</section>
+
+		<section class="doctor-dashboard-content-grid">
+
+			<div class="mr-card doctor-dashboard-section-card">
+
+				<div class="doctor-dashboard-section-header">
+
+					<div class="doctor-dashboard-section-title">
+
+						<div class="doctor-dashboard-section-icon">
+							<i class="bi bi-diagram-3-fill"></i>
+						</div>
+
+						<div>
+							<small>Clinical Process</small>
+							<h5>Doctor Workflow</h5>
+						</div>
+
+					</div>
+
+				</div>
+
+				<div class="doctor-workflow-grid">
+
+					<article class="doctor-workflow-card">
+
+						<span class="doctor-workflow-number">01</span>
+
+						<div class="doctor-workflow-icon">
+							<i class="bi bi-person-plus-fill"></i>
+						</div>
+
+						<h6>Register Patient</h6>
+
+						<p>
+							Add patient details, contact information and clinical history
+							for future treatment and follow-up.
+						</p>
+
+					</article>
+
+					<article class="doctor-workflow-card">
+
+						<span class="doctor-workflow-number">02</span>
+
+						<div class="doctor-workflow-icon">
+							<i class="bi bi-file-medical-fill"></i>
+						</div>
+
+						<h6>Create Prescription</h6>
+
+						<p>
+							Document diagnosis, medicines, dosage, advice and treatment
+							instructions in a structured prescription.
+						</p>
+
+					</article>
+
+					<article class="doctor-workflow-card">
+
+						<span class="doctor-workflow-number">03</span>
+
+						<div class="doctor-workflow-icon">
+							<i class="bi bi-calendar-check-fill"></i>
+						</div>
+
+						<h6>Manage Appointment</h6>
+
+						<p>
+							Book, confirm and complete offline or online appointments
+							and maintain continuity of care.
+						</p>
+
+					</article>
+
+				</div>
+
+			</div>
+
+			<div class="mr-card doctor-dashboard-section-card">
+
+				<div class="doctor-dashboard-section-header">
+
+					<div class="doctor-dashboard-section-title">
+
+						<div class="doctor-dashboard-section-icon">
+							<i class="bi bi-lightning-charge-fill"></i>
+						</div>
+
+						<div>
+							<small>Navigation</small>
+							<h5>Quick Actions</h5>
+						</div>
+
+					</div>
+
+				</div>
+
+				<div class="doctor-quick-actions">
+
+					<a href="/doctor/patients" class="doctor-quick-action">
+
+						<div class="doctor-quick-action-icon">
+							<i class="bi bi-person-plus-fill"></i>
+						</div>
+
+						<div>
+							<strong>Add Patient</strong>
+							<small>Register or review patient records</small>
+						</div>
+
+						<i class="bi bi-chevron-right doctor-quick-action-arrow"></i>
+
+					</a>
+
+					<a href="/doctor/prescriptions" class="doctor-quick-action">
+
+						<div class="doctor-quick-action-icon">
+							<i class="bi bi-file-medical-fill"></i>
+						</div>
+
+						<div>
+							<strong>Create Prescription</strong>
+							<small>Prepare diagnosis and medicine advice</small>
+						</div>
+
+						<i class="bi bi-chevron-right doctor-quick-action-arrow"></i>
+
+					</a>
+
+					<a href="/doctor/appointments" class="doctor-quick-action">
+
+						<div class="doctor-quick-action-icon">
+							<i class="bi bi-calendar-plus-fill"></i>
+						</div>
+
+						<div>
+							<strong>Book Appointment</strong>
+							<small>Manage patient appointment workflow</small>
+						</div>
+
+						<i class="bi bi-chevron-right doctor-quick-action-arrow"></i>
+
+					</a>
+
+					<a href="/doctor/reports" class="doctor-quick-action">
+
+						<div class="doctor-quick-action-icon">
+							<i class="bi bi-bar-chart-fill"></i>
+						</div>
+
+						<div>
+							<strong>View Reports</strong>
+							<small>Review clinical and appointment reports</small>
+						</div>
+
+						<i class="bi bi-chevron-right doctor-quick-action-arrow"></i>
+
+					</a>
+
+				</div>
+
+			</div>
+
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
+
+	</main>
+
+	<div class="doctor-dashboard-loading" id="doctorDashboardLoading">
+
+		<div class="doctor-dashboard-loading-box">
+
+			<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+
+			Loading doctor dashboard...
+		</div>
+
+	</div>
+
+	<div class="module-exit-overlay" id="moduleExitOverlay">
+
+		<div class="module-exit-content">
+
+			<div class="module-exit-icon">
+				<i class="bi bi-arrow-left-right"></i>
+			</div>
+
+			<h2>Switching Experience</h2>
+
+			<p>
+				Returning to MediRevolution module selection...
+			</p>
+
+			<div class="module-exit-progress">
+				<span></span>
+			</div>
+
+		</div>
+
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script th:src="@{/js/module-switch.js}"></script>
+	<script th:src="@{/js/common-dashboard.js}"></script>
+	<script th:src="@{/js/doctor-dashboard.js?v=2}"></script>
+	<script th:src="@{/js/pwa.js}"></script>
 
 </body>
+
 </html>

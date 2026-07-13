@@ -1,500 +1,1511 @@
 let reportOrders = [];
 let reportStock = [];
 let currentReportRows = [];
+let isLoadingReports = false;
 
-document.addEventListener("DOMContentLoaded", function () {
-    validateReportRole();
-    applyRoleBasedReportMenu();
-    configureReportPageByRole();
-    loadReports();
+document.addEventListener("DOMContentLoaded", function() {
+	validateReportRole();
+	applyRoleBasedReportMenu();
+	configureReportPageByRole();
+	loadReports();
 });
 
 function validateReportRole() {
-    const role = localStorage.getItem("role");
+	const role =
+		localStorage.getItem("role");
 
-    if (!["SUPER_ADMIN", "WHOLESALER", "RETAILER"].includes(role)) {
-        alert("Reports are available for Admin, Wholesaler and Retailer only.");
-        window.location.href = "/dashboard";
-    }
+	if (
+		![
+			"SUPER_ADMIN",
+			"WHOLESALER",
+			"RETAILER"
+		].includes(role)
+	) {
+		alert(
+			"Reports are available for Admin, Wholesaler and Retailer only."
+		);
+
+		window.location.href =
+			"/dashboard";
+	}
 }
 
 function applyRoleBasedReportMenu() {
-    const role = localStorage.getItem("role");
+	const role =
+		localStorage.getItem("role");
 
-    document.querySelectorAll("[data-role]").forEach(item => {
-        const allowedRoles = item.getAttribute("data-role").split(" ");
-        if (!allowedRoles.includes(role)) {
-            item.style.display = "none";
-        }
-    });
+	document
+		.querySelectorAll("[data-role]")
+		.forEach(
+			function(item) {
 
-    document.querySelectorAll("#reportType option[data-role]").forEach(option => {
-        const allowedRoles = option.getAttribute("data-role").split(" ");
-        if (!allowedRoles.includes(role)) {
-            option.remove();
-        }
-    });
+				const allowedRoles =
+					item
+						.getAttribute("data-role")
+						.split(" ");
+
+				if (!allowedRoles.includes(role)) {
+					item.style.display = "none";
+				}
+
+			}
+		);
+
+	document
+		.querySelectorAll(
+			"#reportType option[data-role]"
+		)
+		.forEach(
+			function(option) {
+
+				const allowedRoles =
+					option
+						.getAttribute("data-role")
+						.split(" ");
+
+				if (!allowedRoles.includes(role)) {
+					option.remove();
+				}
+
+			}
+		);
 }
 
 function configureReportPageByRole() {
-    const role = localStorage.getItem("role");
+	const role =
+		localStorage.getItem("role");
 
-    if (role === "WHOLESALER") {
-        document.getElementById("reportSubtitle").innerText =
-            "View sales, delivered orders, invoice and medicine stock analytics.";
-    }
+	const subtitle =
+		document.getElementById(
+			"reportSubtitle"
+		);
 
-    if (role === "RETAILER") {
-        document.getElementById("reportSubtitle").innerText =
-            "View purchase history, delivered orders and invoice analytics.";
-    }
+	if (!subtitle) {
+		return;
+	}
 
-    if (role === "SUPER_ADMIN") {
-        document.getElementById("reportSubtitle").innerText =
-            "Monitor platform orders, approvals and business performance.";
-    }
+	if (role === "WHOLESALER") {
+		subtitle.innerText =
+			"View sales, delivered orders, invoice and medicine stock analytics.";
+	}
+
+	if (role === "RETAILER") {
+		subtitle.innerText =
+			"View purchase history, delivered orders and invoice analytics.";
+	}
+
+	if (role === "SUPER_ADMIN") {
+		subtitle.innerText =
+			"Monitor platform orders, approvals and business performance.";
+	}
 }
 
 async function loadReports() {
-    await loadOrderReport();
+	if (isLoadingReports) {
+		return;
+	}
 
-    const role = localStorage.getItem("role");
-    if (role === "WHOLESALER") {
-        await loadStockReport();
-    }
+	isLoadingReports = true;
 
-    renderCurrentReport();
+	showReportLoadingState();
+
+	setButtonLoading(
+		"refreshReportsBtn",
+		"Refreshing...",
+		true
+	);
+
+	try {
+		await loadOrderReport();
+
+		const role =
+			localStorage.getItem("role");
+
+		if (role === "WHOLESALER") {
+			await loadStockReport();
+		}
+
+		renderCurrentReport();
+
+	} finally {
+		isLoadingReports = false;
+
+		setButtonLoading(
+			"refreshReportsBtn",
+			"Refresh Reports",
+			false
+		);
+	}
 }
 
 async function loadOrderReport() {
-    const token = localStorage.getItem("token");
+	const token =
+		localStorage.getItem("token");
 
-    try {
-        const response = await fetch(`${API_BASE}/orders/my`, {
-            headers: {
-                "Authorization": "Bearer " + token
-            }
-        });
+	try {
+		const response =
+			await fetch(
+				`${API_BASE}/orders/my`,
+				{
+					headers: {
+						"Authorization":
+							"Bearer " + token
+					}
+				}
+			);
 
-        const result = await response.json();
+		const result =
+			await readJsonSafely(response);
 
-        if (!response.ok) {
-            showReportMessage(result.message || "Unable to load orders");
-            reportOrders = [];
-            return;
-        }
+		if (!response.ok) {
+			showReportMessage(
+				getErrorMessage(
+					result,
+					"Unable to load orders"
+				)
+			);
 
-        reportOrders = result;
+			reportOrders = [];
+			return;
+		}
 
-    } catch (error) {
-        showReportMessage("Order service not reachable.");
-        reportOrders = [];
-    }
+		reportOrders =
+			Array.isArray(result)
+				? result
+				: [];
+
+	} catch (error) {
+		console.error(
+			"Load order report error:",
+			error
+		);
+
+		showReportMessage(
+			"Order service not reachable."
+		);
+
+		reportOrders = [];
+	}
 }
 
 async function loadStockReport() {
-    const token = localStorage.getItem("token");
+	const token =
+		localStorage.getItem("token");
 
-    try {
-        const response = await fetch(`${API_BASE}/medicines/stock/my`, {
-            headers: {
-                "Authorization": "Bearer " + token
-            }
-        });
+	try {
+		const response =
+			await fetch(
+				`${API_BASE}/medicines/stock/my`,
+				{
+					headers: {
+						"Authorization":
+							"Bearer " + token
+					}
+				}
+			);
 
-        const result = await response.json();
+		const result =
+			await readJsonSafely(response);
 
-        if (!response.ok) {
-            reportStock = [];
-            return;
-        }
+		if (!response.ok) {
+			reportStock = [];
+			return;
+		}
 
-        reportStock = result;
+		reportStock =
+			Array.isArray(result)
+				? result
+				: [];
 
-    } catch (error) {
-        reportStock = [];
-    }
+	} catch (error) {
+		console.error(
+			"Load stock report error:",
+			error
+		);
+
+		reportStock = [];
+	}
 }
 
 function switchReportType() {
-    const type = document.getElementById("reportType").value;
+	const type =
+		document.getElementById(
+			"reportType"
+		)?.value;
 
-    if (type === "STOCK") {
-        document.getElementById("statusFilter").style.display = "none";
-    } else {
-        document.getElementById("statusFilter").style.display = "block";
-    }
+	const statusFilterWrap =
+		document.getElementById(
+			"statusFilterWrap"
+		);
 
-    renderCurrentReport();
+	if (statusFilterWrap) {
+		statusFilterWrap.style.display =
+			type === "STOCK" ||
+				type === "INVOICE"
+				? "none"
+				: "block";
+	}
+
+	renderCurrentReport();
 }
 
 function renderCurrentReport() {
-    const type = document.getElementById("reportType").value;
+	const type =
+		document.getElementById(
+			"reportType"
+		)?.value || "ORDER";
 
-    if (type === "ORDER") {
-        renderOrderReport();
-    }
+	if (type === "ORDER") {
+		renderOrderReport();
+		return;
+	}
 
-    if (type === "STOCK") {
-        renderStockReport();
-    }
+	if (type === "STOCK") {
+		renderStockReport();
+		return;
+	}
 
-    if (type === "INVOICE") {
-        renderInvoiceReport();
-    }
+	if (type === "INVOICE") {
+		renderInvoiceReport();
+		return;
+	}
 
-    if (type === "PLATFORM") {
-        renderPlatformReport();
-    }
+	if (type === "PLATFORM") {
+		renderPlatformReport();
+	}
 }
 
 function renderOrderReport() {
-    const status = document.getElementById("statusFilter").value;
-    let orders = [...reportOrders];
+	const status =
+		document.getElementById(
+			"statusFilter"
+		)?.value || "";
 
-    if (status) {
-        orders = orders.filter(order => order.status === status);
-    }
+	let orders = [
+		...reportOrders
+	];
 
-    const role = localStorage.getItem("role");
-    const title = role === "WHOLESALER" ? "Wholesaler Sales Report" :
-                  role === "RETAILER" ? "Retailer Purchase Report" :
-                  "Admin Order Report";
+	if (status) {
+		orders =
+			orders.filter(
+				order =>
+					order.status === status
+			);
+	}
 
-    document.getElementById("mainReportTitle").innerText = title;
+	const role =
+		localStorage.getItem("role");
 
-    currentReportRows = orders.map(order => ({
-        orderNumber: order.orderNumber,
-        status: order.status,
-        items: order.items ? order.items.length : 0,
-        amount: order.totalAmount,
-        date: formatDateTime(order.orderDate)
-    }));
+	const title =
+		role === "WHOLESALER"
+			? "Wholesaler Sales Report"
+			: role === "RETAILER"
+				? "Retailer Purchase Report"
+				: "Admin Order Report";
 
-    updateOrderCards(orders);
+	setText(
+		"mainReportTitle",
+		title
+	);
 
-    let html = `
-        <div class="table-responsive">
-            <table class="table table-hover report-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Order No</th>
-                        <th>Status</th>
-                        <th>Items</th>
-                        <th>Amount</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
+	currentReportRows =
+		orders.map(
+			order => ({
+				orderNumber:
+					order.orderNumber,
 
-    if (orders.length === 0) {
-        html += `<tr><td colspan="6" class="text-center text-muted py-4">No orders found</td></tr>`;
-    }
+				status:
+					order.status,
 
-    orders.forEach((order, index) => {
-        html += `
-            <tr>
-                <td>${index + 1}</td>
-                <td><strong>${safe(order.orderNumber)}</strong></td>
-                <td>${orderStatusBadge(order.status)}</td>
-                <td>${order.items ? order.items.length : 0}</td>
-                <td>Rs. ${formatMoney(order.totalAmount)}</td>
-                <td>${formatDateTime(order.orderDate)}</td>
-            </tr>
-        `;
-    });
+				items:
+					Array.isArray(order.items)
+						? order.items.length
+						: 0,
 
-    html += `</tbody></table></div>`;
+				amount:
+					order.totalAmount,
 
-    document.getElementById("reportTableContainer").innerHTML = html;
-    renderOrderAnalytics(orders);
+				date:
+					formatDateTime(
+						order.orderDate
+					)
+			})
+		);
+
+	updateOrderCards(orders);
+
+	let rows = "";
+
+	if (!orders.length) {
+		rows = emptyTableRow(
+			6,
+			"No orders found"
+		);
+	} else {
+		orders.forEach(
+			function(order, index) {
+
+				rows += `
+					<tr style="--row-delay:${Math.min(index * 55, 330)}ms">
+
+						<td>${index + 1}</td>
+
+						<td>
+							<strong class="text-primary">
+								${safe(order.orderNumber)}
+							</strong>
+						</td>
+
+						<td>
+							${orderStatusBadge(order.status)}
+						</td>
+
+						<td>
+							${Array.isArray(order.items) ? order.items.length : 0}
+						</td>
+
+						<td>
+							<strong>
+								₹${formatMoney(order.totalAmount)}
+							</strong>
+						</td>
+
+						<td>
+							${formatDateTime(order.orderDate)}
+						</td>
+
+					</tr>
+				`;
+
+			}
+		);
+	}
+
+	document.getElementById(
+		"reportTableContainer"
+	).innerHTML = `
+		<div class="table-responsive report-table-wrap">
+
+			<table class="table table-hover report-table">
+
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>Order No</th>
+						<th>Status</th>
+						<th>Items</th>
+						<th>Amount</th>
+						<th>Date</th>
+					</tr>
+				</thead>
+
+				<tbody>
+					${rows}
+				</tbody>
+
+			</table>
+
+		</div>
+	`;
+
+	renderOrderAnalytics(orders);
 }
 
 function renderStockReport() {
-    document.getElementById("mainReportTitle").innerText = "Medicine Stock Report";
+	setText(
+		"mainReportTitle",
+		"Medicine Stock Report"
+	);
 
-    currentReportRows = reportStock.map(stock => ({
-        medicine: stock.medicine ? stock.medicine.medicineName : "",
-        brand: stock.medicine ? stock.medicine.brandName : "",
-        batch: stock.batchNumber,
-        quantity: stock.availableQuantity,
-        minimumStock: stock.minimumStockLevel,
-        wholesalePrice: stock.wholesalePrice,
-        expiryDate: stock.expiryDate
-    }));
+	currentReportRows =
+		reportStock.map(
+			stock => {
 
-    const totalQty = reportStock.reduce((sum, s) => sum + Number(s.availableQuantity || 0), 0);
-    const lowStock = reportStock.filter(s => Number(s.availableQuantity || 0) <= Number(s.minimumStockLevel || 0)).length;
-    const stockValue = reportStock.reduce((sum, s) => sum + (Number(s.availableQuantity || 0) * Number(s.wholesalePrice || 0)), 0);
+				const medicine =
+					stock.medicine || {};
 
-    document.getElementById("rCard1Title").innerText = "Stock Items";
-    document.getElementById("rCard1Value").innerText = reportStock.length;
-    document.getElementById("rCard2Title").innerText = "Total Quantity";
-    document.getElementById("rCard2Value").innerText = totalQty;
-    document.getElementById("rCard3Title").innerText = "Stock Value";
-    document.getElementById("rCard3Value").innerText = formatShortMoney(stockValue);
-    document.getElementById("rCard4Title").innerText = "Low Stock";
-    document.getElementById("rCard4Value").innerText = lowStock;
+				return {
+					medicine:
+						medicine.medicineName || "",
 
-    let html = `
-        <div class="table-responsive">
-            <table class="table table-hover report-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Medicine</th>
-                        <th>Batch</th>
-                        <th>Qty</th>
-                        <th>Min</th>
-                        <th>Price</th>
-                        <th>Expiry</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
+					brand:
+						medicine.brandName || "",
 
-    if (reportStock.length === 0) {
-        html += `<tr><td colspan="7" class="text-center text-muted py-4">No stock found</td></tr>`;
-    }
+					batch:
+						stock.batchNumber,
 
-    reportStock.forEach((stock, index) => {
-        const medicine = stock.medicine || {};
-        html += `
-            <tr>
-                <td>${index + 1}</td>
-                <td><strong>${safe(medicine.medicineName)}</strong><br><span class="text-muted small">${safe(medicine.brandName)}</span></td>
-                <td>${safe(stock.batchNumber)}</td>
-                <td>${safe(stock.availableQuantity)}</td>
-                <td>${safe(stock.minimumStockLevel)}</td>
-                <td>Rs. ${formatMoney(stock.wholesalePrice)}</td>
-                <td>${formatDate(stock.expiryDate)}</td>
-            </tr>
-        `;
-    });
+					quantity:
+						stock.availableQuantity,
 
-    html += `</tbody></table></div>`;
-    document.getElementById("reportTableContainer").innerHTML = html;
+					minimumStock:
+						stock.minimumStockLevel,
 
-    document.getElementById("analyticsSummary").innerHTML = `
-        ${summaryItem("Stock Items", reportStock.length)}
-        ${summaryItem("Total Quantity", totalQty)}
-        ${summaryItem("Low Stock Items", lowStock)}
-        ${summaryItem("Estimated Stock Value", "Rs. " + formatMoney(stockValue))}
-    `;
+					wholesalePrice:
+						stock.wholesalePrice,
+
+					expiryDate:
+						stock.expiryDate
+				};
+
+			}
+		);
+
+	const totalQty =
+		reportStock.reduce(
+			(sum, stock) =>
+				sum +
+				Number(
+					stock.availableQuantity || 0
+				),
+			0
+		);
+
+	const lowStock =
+		reportStock.filter(
+			stock =>
+				Number(
+					stock.availableQuantity || 0
+				) <=
+				Number(
+					stock.minimumStockLevel || 0
+				)
+		).length;
+
+	const stockValue =
+		reportStock.reduce(
+			(sum, stock) =>
+				sum +
+				(
+					Number(
+						stock.availableQuantity || 0
+					) *
+					Number(
+						stock.wholesalePrice || 0
+					)
+				),
+			0
+		);
+
+	updateSummaryCard(
+		1,
+		"Stock Items",
+		reportStock.length
+	);
+
+	updateSummaryCard(
+		2,
+		"Total Quantity",
+		totalQty
+	);
+
+	updateSummaryCard(
+		3,
+		"Stock Value",
+		formatShortMoney(stockValue)
+	);
+
+	updateSummaryCard(
+		4,
+		"Low Stock",
+		lowStock
+	);
+
+	let rows = "";
+
+	if (!reportStock.length) {
+		rows = emptyTableRow(
+			8,
+			"No stock found"
+		);
+	} else {
+		reportStock.forEach(
+			function(stock, index) {
+
+				const medicine =
+					stock.medicine || {};
+
+				const isLow =
+					Number(
+						stock.availableQuantity || 0
+					) <=
+					Number(
+						stock.minimumStockLevel || 0
+					);
+
+				rows += `
+					<tr style="--row-delay:${Math.min(index * 55, 330)}ms">
+
+						<td>${index + 1}</td>
+
+						<td>
+							<strong class="text-primary">
+								${safe(medicine.medicineName)}
+							</strong>
+
+							<br>
+
+							<span class="text-muted small">
+								${safe(medicine.brandName)}
+							</span>
+						</td>
+
+						<td>${safe(stock.batchNumber)}</td>
+
+						<td>${safe(stock.availableQuantity)}</td>
+
+						<td>${safe(stock.minimumStockLevel)}</td>
+
+						<td>₹${formatMoney(stock.wholesalePrice)}</td>
+
+						<td>${formatDate(stock.expiryDate)}</td>
+
+						<td>
+							${stockStatusBadge(isLow)}
+						</td>
+
+					</tr>
+				`;
+
+			}
+		);
+	}
+
+	document.getElementById(
+		"reportTableContainer"
+	).innerHTML = `
+		<div class="table-responsive report-table-wrap">
+
+			<table class="table table-hover report-table">
+
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>Medicine</th>
+						<th>Batch</th>
+						<th>Qty</th>
+						<th>Min</th>
+						<th>Price</th>
+						<th>Expiry</th>
+						<th>Status</th>
+					</tr>
+				</thead>
+
+				<tbody>
+					${rows}
+				</tbody>
+
+			</table>
+
+		</div>
+	`;
+
+	document.getElementById(
+		"analyticsSummary"
+	).innerHTML = `
+		${summaryItem("Stock Items", reportStock.length)}
+		${summaryItem("Total Quantity", totalQty)}
+		${summaryItem("Low Stock Items", lowStock)}
+		${summaryItem("Estimated Stock Value", "₹" + formatMoney(stockValue))}
+	`;
 }
 
 function renderInvoiceReport() {
-    const deliveredOrders = reportOrders.filter(order => order.status === "DELIVERED");
+	const deliveredOrders =
+		reportOrders.filter(
+			order =>
+				order.status === "DELIVERED"
+		);
 
-    document.getElementById("mainReportTitle").innerText = "Invoice Report";
+	setText(
+		"mainReportTitle",
+		"Invoice Report"
+	);
 
-    currentReportRows = deliveredOrders.map(order => ({
-        orderId: order.id,
-        orderNumber: order.orderNumber,
-        amount: order.totalAmount,
-        status: "Invoice Eligible",
-        date: formatDateTime(order.orderDate)
-    }));
+	currentReportRows =
+		deliveredOrders.map(
+			order => ({
+				orderId:
+					order.id,
 
-    updateOrderCards(deliveredOrders);
+				orderNumber:
+					order.orderNumber,
 
-    let html = `
-        <div class="alert alert-info">
-            Invoice report shows delivered orders. Use invoice page to generate/download PDF invoices.
-        </div>
-        <div class="table-responsive">
-            <table class="table table-hover report-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Order ID</th>
-                        <th>Order No</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                        <th>Invoice</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
+				amount:
+					order.totalAmount,
 
-    if (deliveredOrders.length === 0) {
-        html += `<tr><td colspan="6" class="text-center text-muted py-4">No delivered orders found</td></tr>`;
-    }
+				status:
+					"Invoice Eligible",
 
-    deliveredOrders.forEach((order, index) => {
-        html += `
-            <tr>
-                <td>${index + 1}</td>
-                <td>${order.id}</td>
-                <td><strong>${safe(order.orderNumber)}</strong></td>
-                <td>Rs. ${formatMoney(order.totalAmount)}</td>
-                <td><span class="badge bg-success">Eligible</span></td>
-                <td><a href="/invoices" class="btn btn-sm btn-medi" style="width:auto;">Open Invoice</a></td>
-            </tr>
-        `;
-    });
+				date:
+					formatDateTime(
+						order.orderDate
+					)
+			})
+		);
 
-    html += `</tbody></table></div>`;
-    document.getElementById("reportTableContainer").innerHTML = html;
+	updateOrderCards(
+		deliveredOrders
+	);
 
-    const totalInvoiceAmount = deliveredOrders.reduce((sum, o) => sum + Number(o.totalAmount || 0), 0);
+	let rows = "";
 
-    document.getElementById("analyticsSummary").innerHTML = `
-        ${summaryItem("Invoice Eligible Orders", deliveredOrders.length)}
-        ${summaryItem("Total Invoice Value", "Rs. " + formatMoney(totalInvoiceAmount))}
-        ${summaryItem("Status", "Delivered Orders Only")}
-    `;
+	if (!deliveredOrders.length) {
+		rows = emptyTableRow(
+			6,
+			"No delivered orders found"
+		);
+	} else {
+		deliveredOrders.forEach(
+			function(order, index) {
+
+				rows += `
+					<tr style="--row-delay:${Math.min(index * 55, 330)}ms">
+
+						<td>${index + 1}</td>
+
+						<td>${safe(order.id)}</td>
+
+						<td>
+							<strong class="text-primary">
+								${safe(order.orderNumber)}
+							</strong>
+						</td>
+
+						<td>
+							₹${formatMoney(order.totalAmount)}
+						</td>
+
+						<td>
+							<span class="report-status delivered">
+								<i class="bi bi-check2-circle"></i>
+								Eligible
+							</span>
+						</td>
+
+						<td>
+							<a href="/invoices"
+							   class="btn btn-sm btn-medi"
+							   style="width:auto;">
+
+								<i class="bi bi-receipt-cutoff me-1"></i>
+								Open Invoice
+							</a>
+						</td>
+
+					</tr>
+				`;
+
+			}
+		);
+	}
+
+	document.getElementById(
+		"reportTableContainer"
+	).innerHTML = `
+		<div class="alert alert-info">
+
+			<i class="bi bi-info-circle-fill me-1"></i>
+
+			Invoice report shows delivered orders.
+			Use the invoice page to generate or download PDF invoices.
+
+		</div>
+
+		<div class="table-responsive report-table-wrap">
+
+			<table class="table table-hover report-table">
+
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>Order ID</th>
+						<th>Order No</th>
+						<th>Amount</th>
+						<th>Status</th>
+						<th>Invoice</th>
+					</tr>
+				</thead>
+
+				<tbody>
+					${rows}
+				</tbody>
+
+			</table>
+
+		</div>
+	`;
+
+	const totalInvoiceAmount =
+		deliveredOrders.reduce(
+			(sum, order) =>
+				sum +
+				Number(
+					order.totalAmount || 0
+				),
+			0
+		);
+
+	document.getElementById(
+		"analyticsSummary"
+	).innerHTML = `
+		${summaryItem("Invoice Eligible Orders", deliveredOrders.length)}
+		${summaryItem("Total Invoice Value", "₹" + formatMoney(totalInvoiceAmount))}
+		${summaryItem("Status", "Delivered Orders Only")}
+	`;
 }
 
 function renderPlatformReport() {
-    document.getElementById("mainReportTitle").innerText = "Admin Platform Report";
+	const status =
+		document.getElementById(
+			"statusFilter"
+		)?.value || "";
 
-    renderOrderReport();
+	let orders = [
+		...reportOrders
+	];
 
-    document.getElementById("mainReportTitle").innerText = "Admin Platform Report";
+	if (status) {
+		orders =
+			orders.filter(
+				order =>
+					order.status === status
+			);
+	}
 
-    document.getElementById("analyticsSummary").innerHTML += `
-        ${summaryItem("Platform Scope", "All registered order data")}
-        ${summaryItem("Admin View", "System-wide monitoring")}
-    `;
+	setText(
+		"mainReportTitle",
+		"Admin Platform Report"
+	);
+
+	currentReportRows =
+		orders.map(
+			order => ({
+				orderNumber:
+					order.orderNumber,
+
+				status:
+					order.status,
+
+				items:
+					Array.isArray(order.items)
+						? order.items.length
+						: 0,
+
+				amount:
+					order.totalAmount,
+
+				date:
+					formatDateTime(
+						order.orderDate
+					)
+			})
+		);
+
+	updateOrderCards(orders);
+
+	let rows = "";
+
+	if (!orders.length) {
+		rows = emptyTableRow(
+			6,
+			"No platform orders found"
+		);
+	} else {
+		orders.forEach(
+			function(order, index) {
+
+				rows += `
+					<tr style="--row-delay:${Math.min(index * 55, 330)}ms">
+
+						<td>${index + 1}</td>
+
+						<td>
+							<strong class="text-primary">
+								${safe(order.orderNumber)}
+							</strong>
+						</td>
+
+						<td>${orderStatusBadge(order.status)}</td>
+
+						<td>
+							${Array.isArray(order.items) ? order.items.length : 0}
+						</td>
+
+						<td>
+							₹${formatMoney(order.totalAmount)}
+						</td>
+
+						<td>
+							${formatDateTime(order.orderDate)}
+						</td>
+
+					</tr>
+				`;
+
+			}
+		);
+	}
+
+	document.getElementById(
+		"reportTableContainer"
+	).innerHTML = `
+		<div class="table-responsive report-table-wrap">
+
+			<table class="table table-hover report-table">
+
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>Order No</th>
+						<th>Status</th>
+						<th>Items</th>
+						<th>Amount</th>
+						<th>Date</th>
+					</tr>
+				</thead>
+
+				<tbody>
+					${rows}
+				</tbody>
+
+			</table>
+
+		</div>
+	`;
+
+	renderOrderAnalytics(orders);
+
+	document.getElementById(
+		"analyticsSummary"
+	).innerHTML += `
+		${summaryItem("Platform Scope", "All registered order data")}
+		${summaryItem("Admin View", "System-wide monitoring")}
+	`;
 }
 
 function updateOrderCards(orders) {
-    const total = orders.length;
-    const delivered = orders.filter(o => o.status === "DELIVERED").length;
-    const pending = orders.filter(o => o.status === "PENDING").length;
-    const amount = orders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0);
+	const total =
+		orders.length;
 
-    document.getElementById("rCard1Title").innerText = "Total Orders";
-    document.getElementById("rCard1Value").innerText = total;
-    document.getElementById("rCard2Title").innerText = "Delivered";
-    document.getElementById("rCard2Value").innerText = delivered;
-    document.getElementById("rCard3Title").innerText = "Value";
-    document.getElementById("rCard3Value").innerText = formatShortMoney(amount);
-    document.getElementById("rCard4Title").innerText = "Pending";
-    document.getElementById("rCard4Value").innerText = pending;
+	const delivered =
+		orders.filter(
+			order =>
+				order.status === "DELIVERED"
+		).length;
+
+	const pending =
+		orders.filter(
+			order =>
+				order.status === "PENDING"
+		).length;
+
+	const amount =
+		orders.reduce(
+			(sum, order) =>
+				sum +
+				Number(
+					order.totalAmount || 0
+				),
+			0
+		);
+
+	updateSummaryCard(
+		1,
+		"Total Orders",
+		total
+	);
+
+	updateSummaryCard(
+		2,
+		"Delivered",
+		delivered
+	);
+
+	updateSummaryCard(
+		3,
+		"Value",
+		formatShortMoney(amount)
+	);
+
+	updateSummaryCard(
+		4,
+		"Pending",
+		pending
+	);
+}
+
+function updateSummaryCard(
+	cardNumber,
+	title,
+	value
+) {
+	setText(
+		`rCard${cardNumber}Title`,
+		title
+	);
+
+	const valueElement =
+		document.getElementById(
+			`rCard${cardNumber}Value`
+		);
+
+	if (!valueElement) {
+		return;
+	}
+
+	if (
+		typeof value === "number" &&
+		Number.isFinite(value)
+	) {
+		animateValue(
+			valueElement,
+			value
+		);
+	} else {
+		valueElement.innerText =
+			value ?? "0";
+	}
 }
 
 function renderOrderAnalytics(orders) {
-    const pending = orders.filter(o => o.status === "PENDING").length;
-    const accepted = orders.filter(o => o.status === "ACCEPTED").length;
-    const rejected = orders.filter(o => o.status === "REJECTED").length;
-    const delivered = orders.filter(o => o.status === "DELIVERED").length;
-    const amount = orders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0);
+	const pending =
+		orders.filter(
+			order =>
+				order.status === "PENDING"
+		).length;
 
-    document.getElementById("analyticsSummary").innerHTML = `
-        ${summaryItem("Pending Orders", pending)}
-        ${summaryItem("Accepted Orders", accepted)}
-        ${summaryItem("Rejected Orders", rejected)}
-        ${summaryItem("Delivered Orders", delivered)}
-        ${summaryItem("Total Value", "Rs. " + formatMoney(amount))}
-    `;
+	const accepted =
+		orders.filter(
+			order =>
+				order.status === "ACCEPTED"
+		).length;
+
+	const rejected =
+		orders.filter(
+			order =>
+				order.status === "REJECTED"
+		).length;
+
+	const delivered =
+		orders.filter(
+			order =>
+				order.status === "DELIVERED"
+		).length;
+
+	const amount =
+		orders.reduce(
+			(sum, order) =>
+				sum +
+				Number(
+					order.totalAmount || 0
+				),
+			0
+		);
+
+	document.getElementById(
+		"analyticsSummary"
+	).innerHTML = `
+		${summaryItem("Pending Orders", pending)}
+		${summaryItem("Accepted Orders", accepted)}
+		${summaryItem("Rejected Orders", rejected)}
+		${summaryItem("Delivered Orders", delivered)}
+		${summaryItem("Total Value", "₹" + formatMoney(amount))}
+	`;
 }
 
 function exportReportCsv() {
-    if (!currentReportRows || currentReportRows.length === 0) {
-        showReportMessage("No data available to export");
-        return;
-    }
+	if (
+		!Array.isArray(currentReportRows) ||
+		!currentReportRows.length
+	) {
+		showReportMessage(
+			"No data available to export"
+		);
 
-    const headers = Object.keys(currentReportRows[0]);
-    const csvRows = [];
+		return;
+	}
 
-    csvRows.push(headers.join(","));
+	const headers =
+		Object.keys(
+			currentReportRows[0]
+		);
 
-    currentReportRows.forEach(row => {
-        csvRows.push(headers.map(header => `"${safe(row[header])}"`).join(","));
-    });
+	const csvRows = [
+		headers
+			.map(csvEscape)
+			.join(",")
+	];
 
-    const blob = new Blob([csvRows.join("\n")], {type: "text/csv"});
-    const url = window.URL.createObjectURL(blob);
+	currentReportRows.forEach(
+		function(row) {
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "medirevolution-report.csv";
-    a.click();
+			csvRows.push(
+				headers
+					.map(
+						header =>
+							csvEscape(
+								row[header]
+							)
+					)
+					.join(",")
+			);
 
-    window.URL.revokeObjectURL(url);
+		}
+	);
+
+	const csv =
+		"\uFEFF" +
+		csvRows.join("\n");
+
+	const blob =
+		new Blob(
+			[csv],
+			{
+				type:
+					"text/csv;charset=utf-8;"
+			}
+		);
+
+	const url =
+		window.URL.createObjectURL(blob);
+
+	const anchor =
+		document.createElement("a");
+
+	anchor.href = url;
+	anchor.download =
+		`medirevolution-report-${getTodayFileName()}.csv`;
+
+	document.body.appendChild(anchor);
+	anchor.click();
+	anchor.remove();
+
+	window.URL.revokeObjectURL(url);
 }
 
 function summaryItem(label, value) {
-    return `
-        <div class="report-summary-item">
-            <div class="report-summary-label">${label}</div>
-            <div class="report-summary-value">${value}</div>
-        </div>
-    `;
+	return `
+		<div class="report-summary-item">
+
+			<div class="report-summary-label">
+				${escapeHtml(label)}
+			</div>
+
+			<div class="report-summary-value">
+				${escapeHtml(value)}
+			</div>
+
+		</div>
+	`;
 }
 
 function orderStatusBadge(status) {
-    if (status === "PENDING") {
-        return `<span class="badge bg-warning text-dark">PENDING</span>`;
-    }
+	if (status === "PENDING") {
+		return `
+			<span class="report-status pending">
+				<i class="bi bi-hourglass-split"></i>
+				PENDING
+			</span>
+		`;
+	}
 
-    if (status === "ACCEPTED") {
-        return `<span class="badge bg-info text-dark">ACCEPTED</span>`;
-    }
+	if (status === "ACCEPTED") {
+		return `
+			<span class="report-status accepted">
+				<i class="bi bi-check2-circle"></i>
+				ACCEPTED
+			</span>
+		`;
+	}
 
-    if (status === "REJECTED") {
-        return `<span class="badge bg-danger">REJECTED</span>`;
-    }
+	if (status === "REJECTED") {
+		return `
+			<span class="report-status rejected">
+				<i class="bi bi-x-circle"></i>
+				REJECTED
+			</span>
+		`;
+	}
 
-    if (status === "DELIVERED") {
-        return `<span class="badge bg-success">DELIVERED</span>`;
-    }
+	if (status === "DELIVERED") {
+		return `
+			<span class="report-status delivered">
+				<i class="bi bi-truck"></i>
+				DELIVERED
+			</span>
+		`;
+	}
 
-    return `<span class="badge bg-secondary">${safe(status)}</span>`;
+	return `
+		<span class="report-status pending">
+			${safe(status)}
+		</span>
+	`;
 }
 
-function showReportMessage(message, type = "danger") {
-    document.getElementById("msg").innerHTML =
-        `<div class="alert alert-${type}">${message}</div>`;
+function stockStatusBadge(isLow) {
+	if (isLow) {
+		return `
+			<span class="report-stock-status low">
+				<i class="bi bi-exclamation-triangle-fill"></i>
+				LOW STOCK
+			</span>
+		`;
+	}
 
-    setTimeout(() => {
-        document.getElementById("msg").innerHTML = "";
-    }, 3500);
+	return `
+		<span class="report-stock-status normal">
+			<i class="bi bi-check2-circle"></i>
+			IN STOCK
+		</span>
+	`;
+}
+
+function showReportLoadingState() {
+	const container =
+		document.getElementById(
+			"reportTableContainer"
+		);
+
+	const summary =
+		document.getElementById(
+			"analyticsSummary"
+		);
+
+	if (container) {
+		container.innerHTML = `
+			<div class="reports-state">
+
+				<div class="reports-state-icon reports-loading-icon">
+					<i class="bi bi-bar-chart-fill"></i>
+				</div>
+
+				<h5 class="fw-bold text-primary">
+					Loading reports
+				</h5>
+
+				<p class="text-muted mb-0">
+					Please wait while we prepare analytics data.
+				</p>
+
+			</div>
+		`;
+	}
+
+	if (summary) {
+		summary.innerHTML = `
+			<div class="reports-state">
+
+				<div class="reports-state-icon reports-loading-icon">
+					<i class="bi bi-graph-up"></i>
+				</div>
+
+				<p class="text-muted mb-0">
+					Preparing analytics summary.
+				</p>
+
+			</div>
+		`;
+	}
+}
+
+function emptyTableRow(
+	colspan,
+	message
+) {
+	return `
+		<tr>
+			<td colspan="${colspan}">
+
+				<div class="reports-state">
+
+					<div class="reports-state-icon">
+						<i class="bi bi-bar-chart-line"></i>
+					</div>
+
+					<h5 class="fw-bold text-primary">
+						${escapeHtml(message)}
+					</h5>
+
+					<p class="text-muted mb-0">
+						No matching report data is currently available.
+					</p>
+
+				</div>
+
+			</td>
+		</tr>
+	`;
+}
+
+function showReportMessage(
+	message,
+	type = "danger"
+) {
+	const msg =
+		document.getElementById("msg");
+
+	if (!msg) {
+		return;
+	}
+
+	msg.innerHTML = `
+		<div class="alert alert-${type}">
+			${escapeHtml(message)}
+		</div>
+	`;
+
+	setTimeout(
+		function() {
+			if (msg) {
+				msg.innerHTML = "";
+			}
+		},
+		3500
+	);
 }
 
 function formatShortMoney(value) {
-    value = Number(value || 0);
+	const numericValue =
+		Number(value || 0);
 
-    if (value >= 100000) {
-        return "Rs. " + (value / 100000).toFixed(1) + "L";
-    }
+	if (numericValue >= 100000) {
+		return "₹" +
+			(numericValue / 100000)
+				.toFixed(1) +
+			"L";
+	}
 
-    if (value >= 1000) {
-        return "Rs. " + (value / 1000).toFixed(1) + "K";
-    }
+	if (numericValue >= 1000) {
+		return "₹" +
+			(numericValue / 1000)
+				.toFixed(1) +
+			"K";
+	}
 
-    return "Rs. " + value.toFixed(0);
+	return "₹" +
+		numericValue.toFixed(0);
 }
 
 function formatMoney(value) {
-    if (value === null || value === undefined) {
-        return "0.00";
-    }
+	const numericValue =
+		Number(value);
 
-    return Number(value).toFixed(2);
+	return Number.isFinite(numericValue)
+		? numericValue.toFixed(2)
+		: "0.00";
 }
 
 function formatDate(value) {
-    if (!value) {
-        return "-";
-    }
+	if (!value) {
+		return "-";
+	}
 
-    return new Date(value).toLocaleDateString();
+	const date =
+		new Date(value);
+
+	if (Number.isNaN(date.getTime())) {
+		return safe(value);
+	}
+
+	return date.toLocaleDateString(
+		"en-IN",
+		{
+			day: "2-digit",
+			month: "short",
+			year: "numeric"
+		}
+	);
 }
 
 function formatDateTime(value) {
-    if (!value) {
-        return "-";
-    }
+	if (!value) {
+		return "-";
+	}
 
-    return new Date(value).toLocaleString();
+	const date =
+		new Date(value);
+
+	if (Number.isNaN(date.getTime())) {
+		return safe(value);
+	}
+
+	return date.toLocaleString(
+		"en-IN",
+		{
+			day: "2-digit",
+			month: "short",
+			year: "numeric",
+			hour: "2-digit",
+			minute: "2-digit"
+		}
+	);
+}
+
+function animateValue(
+	element,
+	target
+) {
+	const start =
+		Number(element.textContent) || 0;
+
+	const difference =
+		target - start;
+
+	const duration = 500;
+	const startTime =
+		performance.now();
+
+	if (
+		difference === 0 ||
+		window.matchMedia(
+			"(prefers-reduced-motion: reduce)"
+		).matches
+	) {
+		element.textContent = target;
+		return;
+	}
+
+	function update(currentTime) {
+		const progress =
+			Math.min(
+				(currentTime - startTime) /
+				duration,
+				1
+			);
+
+		const eased =
+			1 - Math.pow(1 - progress, 3);
+
+		element.textContent =
+			Math.round(
+				start +
+				difference * eased
+			);
+
+		if (progress < 1) {
+			requestAnimationFrame(update);
+		}
+	}
+
+	requestAnimationFrame(update);
+}
+
+function setButtonLoading(
+	buttonId,
+	loadingText,
+	isLoading
+) {
+	const button =
+		document.getElementById(buttonId);
+
+	if (!button) {
+		return;
+	}
+
+	if (isLoading) {
+		button.dataset.originalHtml =
+			button.innerHTML;
+
+		button.innerHTML = `
+			<span class="spinner-border spinner-border-sm me-2"
+				  role="status"
+				  aria-hidden="true"></span>
+			${escapeHtml(loadingText)}
+		`;
+
+		button.disabled = true;
+
+	} else {
+		button.innerHTML =
+			button.dataset.originalHtml ||
+			button.innerHTML;
+
+		button.disabled = false;
+	}
+}
+
+function setText(id, value) {
+	const element =
+		document.getElementById(id);
+
+	if (element) {
+		element.innerText =
+			value ?? "";
+	}
+}
+
+async function readJsonSafely(response) {
+	try {
+		return await response.json();
+	} catch (error) {
+		return null;
+	}
+}
+
+function getErrorMessage(
+	data,
+	fallback
+) {
+	if (!data) {
+		return fallback;
+	}
+
+	if (data.message) {
+		return data.message;
+	}
+
+	if (data.error) {
+		return data.error;
+	}
+
+	if (typeof data === "string") {
+		return data;
+	}
+
+	return fallback;
+}
+
+function csvEscape(value) {
+	const text =
+		value === null ||
+			value === undefined
+			? ""
+			: String(value);
+
+	return `"${text.replace(/"/g, '""')}"`;
+}
+
+function getTodayFileName() {
+	const today =
+		new Date();
+
+	return [
+		today.getFullYear(),
+		String(
+			today.getMonth() + 1
+		).padStart(2, "0"),
+		String(
+			today.getDate()
+		).padStart(2, "0")
+	].join("-");
 }
 
 function safe(value) {
-    return value === null || value === undefined || value === "" ? "-" : value;
+	return (
+		value === null ||
+		value === undefined ||
+		value === ""
+	)
+		? "-"
+		: escapeHtml(value);
+}
+
+function escapeHtml(value) {
+	return String(value || "")
+		.replace(/&/g, "&amp;")
+		.replace(/'/g, "&#39;")
+		.replace(/"/g, "&quot;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;");
 }

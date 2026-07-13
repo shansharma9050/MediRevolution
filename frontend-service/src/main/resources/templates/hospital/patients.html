@@ -1,149 +1,936 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
+	<meta charset="UTF-8">
+
 	<title>MediRevolution | Hospital Patients</title>
+
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+
 	<link rel="manifest" href="/manifest.json">
+
 	<meta name="theme-color" content="#05285f">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
+
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
+
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
 	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.hospital-patients-page {
+			position: relative;
+		}
+
+		.hospital-patients-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 230px;
+			margin-bottom: 28px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg, #05285f 0%, #076a9c 52%, #08c7d4 100%);
+			box-shadow: 0 25px 65px rgba(5, 40, 95, .22);
+			animation: hospitalPatientsHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.hospital-patients-hero::before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation: hospitalPatientsHeroFloat 9s ease-in-out infinite;
+		}
+
+		.hospital-patients-hero::after {
+			position: absolute;
+			bottom: -175px;
+			left: 28%;
+			width: 350px;
+			height: 350px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(123, 214, 0, .23), transparent 68%);
+		}
+
+		.hospital-patients-hero-content,
+		.hospital-patients-hero-action {
+			position: relative;
+			z-index: 2;
+		}
+
+		.hospital-patients-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.hospital-patients-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px;
+		}
+
+		.hospital-patients-hero h1 span {
+			color: #b8f267;
+		}
+
+		.hospital-patients-hero p {
+			max-width: 720px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .78);
+			line-height: 1.75;
+		}
+
+		.hospital-patients-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px;
+		}
+
+		.hospital-patients-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.hospital-patients-hero-action {
+			display: flex;
+			min-width: 210px;
+			flex-direction: column;
+			align-items: center;
+			padding: 22px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px);
+		}
+
+		.hospital-patients-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 68px;
+			height: 68px;
+			margin-bottom: 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 28px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+			animation: hospitalPatientsIconFloat 3s ease-in-out infinite;
+		}
+
+		.hospital-patients-add-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 46px;
+			margin-top: 13px;
+			padding: 0 18px;
+			border: none;
+			border-radius: 15px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 12px;
+			font-weight: 800;
+			transition: transform .3s ease, box-shadow .3s ease;
+		}
+
+		.hospital-patients-add-button:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 14px 30px rgba(0, 0, 0, .18);
+		}
+
+		.hospital-patients-summary-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px;
+		}
+
+		.hospital-patients-summary-card {
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .95);
+			box-shadow: 0 14px 35px rgba(5, 40, 95, .08);
+			transition: transform .35s ease, box-shadow .35s ease;
+		}
+
+		.hospital-patients-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 22px 48px rgba(5, 40, 95, .14);
+		}
+
+		.hospital-patients-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+		}
+
+		.hospital-patients-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700;
+		}
+
+		.hospital-patients-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 29px;
+			font-weight: 900;
+		}
+
+		.hospital-patient-form-card {
+			position: relative;
+			overflow: hidden;
+			animation: hospitalPatientPanelReveal .45s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.hospital-patient-form-card::after {
+			position: absolute;
+			top: -90px;
+			right: -90px;
+			width: 190px;
+			height: 190px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(8, 199, 212, .11), transparent 68%);
+			pointer-events: none;
+		}
+
+		.hospital-patient-form-header,
+		.hospital-patient-list-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5;
+		}
+
+		.hospital-patient-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px;
+		}
+
+		.hospital-patient-title-icon {
+			display: flex;
+			flex: 0 0 46px;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+			box-shadow: 0 12px 26px rgba(5, 40, 95, .16);
+		}
+
+		.hospital-patient-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		.hospital-patient-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.hospital-patient-control-wrap {
+			position: relative;
+			z-index: 2;
+		}
+
+		.hospital-patient-control-wrap>i {
+			position: absolute;
+			top: 39px;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			pointer-events: none;
+		}
+
+		.hospital-patient-control-wrap .form-control,
+		.hospital-patient-control-wrap .form-select {
+			padding-left: 41px;
+		}
+
+		.hospital-patient-form-actions {
+			display: flex;
+			justify-content: flex-end;
+			gap: 10px;
+			margin-top: 18px;
+			padding-top: 18px;
+			border-top: 1px solid #edf3f6;
+		}
+
+		.hospital-patient-filter-group {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+		}
+
+		.hospital-patient-filter-wrap,
+		.hospital-patient-search-wrap {
+			position: relative;
+		}
+
+		.hospital-patient-filter-wrap {
+			min-width: 170px;
+		}
+
+		.hospital-patient-search-wrap {
+			min-width: 300px;
+		}
+
+		.hospital-patient-filter-wrap i,
+		.hospital-patient-search-wrap i {
+			position: absolute;
+			top: 50%;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			transform: translateY(-50%);
+		}
+
+		.hospital-patient-filter-wrap .form-select,
+		.hospital-patient-search-wrap .form-control {
+			padding-left: 41px;
+		}
+
+		.hospital-patient-table-wrap {
+			overflow: hidden;
+			border: 1px solid #e6eef4;
+			border-radius: 18px;
+		}
+
+		.hospital-patient-table-wrap table {
+			margin-bottom: 0;
+		}
+
+		.hospital-patient-table-wrap thead th {
+			padding: 15px 16px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 12px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.hospital-patient-table-wrap tbody td {
+			padding: 15px 16px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 13px;
+			vertical-align: middle;
+		}
+
+		.hospital-patient-table-wrap tbody tr {
+			opacity: 0;
+			transform: translateY(12px);
+			animation: hospitalPatientRowReveal .45s var(--row-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards;
+		}
+
+		.hospital-patient-profile {
+			display: flex;
+			align-items: center;
+			gap: 11px;
+		}
+
+		.hospital-patient-avatar {
+			display: flex;
+			flex: 0 0 42px;
+			align-items: center;
+			justify-content: center;
+			width: 42px;
+			height: 42px;
+			border-radius: 14px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 17px;
+		}
+
+		.hospital-patient-type {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			font-size: 11px;
+			font-weight: 800;
+		}
+
+		.hospital-patient-type.opd {
+			color: #055160;
+			background: #cff4fc;
+		}
+
+		.hospital-patient-type.ipd {
+			color: #ffffff;
+			background: #0d6efd;
+		}
+
+		.hospital-patient-diagnosis {
+			display: -webkit-box;
+			max-width: 280px;
+			overflow: hidden;
+			-webkit-line-clamp: 2;
+			-webkit-box-orient: vertical;
+			line-height: 1.5;
+		}
+
+		.hospital-patient-actions {
+			display: inline-flex;
+			flex-wrap: wrap;
+			gap: 7px;
+		}
+
+		.hospital-patients-state {
+			padding: 50px 20px;
+			text-align: center;
+		}
+
+		.hospital-patients-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 70px;
+			height: 70px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 27px;
+			box-shadow: 0 15px 32px rgba(5, 40, 95, .17);
+		}
+
+		.hospital-patients-loading-icon {
+			animation: hospitalPatientsLoadingPulse 1.3s ease-in-out infinite;
+		}
+
+		@keyframes hospitalPatientsHeroReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes hospitalPatientsHeroFloat {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(25px) rotate(8deg);
+			}
+		}
+
+		@keyframes hospitalPatientsIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-7px);
+			}
+		}
+
+		@keyframes hospitalPatientPanelReveal {
+			from {
+				opacity: 0;
+				transform: translateY(-12px) scale(.985);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0) scale(1);
+			}
+		}
+
+		@keyframes hospitalPatientRowReveal {
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes hospitalPatientsLoadingPulse {
+
+			0%,
+			100% {
+				transform: scale(.94);
+				opacity: .72;
+			}
+
+			50% {
+				transform: scale(1.06);
+				opacity: 1;
+			}
+		}
+
+		@media (max-width: 1100px) {
+			.hospital-patients-summary-grid {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+		}
+
+		@media (max-width: 992px) {
+			.hospital-patients-hero {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.hospital-patients-hero-action {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 768px) {
+			.hospital-patient-list-header {
+				align-items: stretch;
+				flex-direction: column;
+			}
+
+			.hospital-patient-filter-group {
+				width: 100%;
+			}
+
+			.hospital-patient-filter-wrap,
+			.hospital-patient-search-wrap {
+				width: 100%;
+				min-width: 0;
+			}
+		}
+
+		@media (max-width: 576px) {
+			.hospital-patients-hero {
+				padding: 26px 21px;
+				border-radius: 24px;
+			}
+
+			.hospital-patients-summary-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.hospital-patient-form-actions {
+				flex-direction: column-reverse;
+			}
+
+			.hospital-patient-form-actions .btn {
+				width: 100% !important;
+			}
+		}
+	</style>
 </head>
 
-<body class="dashboard-body">
+<body class="dashboard-body platform-dashboard-body">
 
-	<nav class="navbar fixed-top mr-navbar px-3 px-lg-4">
-		<div class="d-flex align-items-center gap-3">
-			<button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-			<a href="/dashboard" class="mr-navbar-brand d-flex align-items-center gap-2">
-				<img th:src="@{/images/logo.png}" class="mr-nav-logo">
-				Medi<span>Revolution</span>
-			</a>
-		</div>
+	<div th:replace="~{layout/platform-topnavbar :: platformTopnavbar}"></div>
+	<div th:replace="~{layout/platform-sidebar :: platformSidebar}"></div>
 
-		<div class="d-flex align-items-center gap-3">
-			<div class="mr-user-pill"><span id="userEmail">hospital@email.com</span></div>
-			<button class="btn btn-light position-relative" onclick="window.location='/notifications'">
-				🔔 <span id="notificationCount"
-					class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
-			</button>
-			<button class="btn btn-outline-light" onclick="logout()">Logout</button>
-		</div>
-	</nav>
+	<main class="mr-main platform-main hospital-patients-page">
 
-	<aside class="mr-sidebar" id="sidebar">
-		<a href="/dashboard">🏠 Main Dashboard</a>
-		<a href="/hospital/dashboard">🏥 Hospital Dashboard</a>
-		<a href="/hospital/patients" class="active">🧑‍⚕️ OPD / IPD Patients</a>
-		<a href="/hospital/staff">👥 Staff Management</a>
-		<a href="/hospital/inventory">📦 Inventory</a>
-		<a href="/hospital/billing">💳 Billing</a>
-		<a href="/hospital/reports">📊 Reports</a>
-		<a href="/notifications">🔔 Notifications</a>
-		<a href="/profile">👤 Profile</a>
-	</aside>
+		<section class="hospital-patients-hero">
 
-	<main class="mr-main">
+			<div class="hospital-patients-hero-content">
 
-		<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
-			<div>
-				<h1 class="mr-page-title">OPD / IPD Patient Management</h1>
-				<p class="mr-page-subtitle">Register OPD and IPD patients with department, doctor and diagnosis.</p>
+				<span class="hospital-patients-kicker">
+					<i class="bi bi-person-vcard-fill"></i>
+					Hospital Patient Registry
+				</span>
+
+				<h1>
+					OPD / IPD
+					<span>patients</span>
+				</h1>
+
+				<p>
+					Register and manage hospital patients with department,
+					doctor, admission, discharge and diagnosis information.
+				</p>
+
+				<div class="hospital-patients-meta">
+
+					<span>
+						<i class="bi bi-person-check-fill"></i>
+						Patient registration
+					</span>
+
+					<span>
+						<i class="bi bi-hospital-fill"></i>
+						OPD / IPD tracking
+					</span>
+
+					<span>
+						<i class="bi bi-file-medical-fill"></i>
+						Diagnosis records
+					</span>
+
+				</div>
+
 			</div>
 
-			<button class="btn btn-medi" style="width:auto;" onclick="togglePatientForm()">+ Add Patient</button>
-		</div>
+			<div class="hospital-patients-hero-action">
+
+				<div class="hospital-patients-hero-icon">
+					<i class="bi bi-person-plus-fill"></i>
+				</div>
+
+				<strong>Add Hospital Patient</strong>
+
+				<button type="button" class="hospital-patients-add-button" onclick="openCreatePatientForm()">
+
+					<i class="bi bi-plus-circle-fill"></i>
+					Add Patient
+				</button>
+
+			</div>
+
+		</section>
 
 		<div id="msg"></div>
 
-		<div class="mr-card mb-4" id="patientFormPanel" style="display:none;">
-			<h5 class="fw-bold text-primary mb-3">Add OPD/IPD Patient</h5>
+		<section class="hospital-patients-summary-grid">
+
+			<article class="hospital-patients-summary-card">
+
+				<div class="hospital-patients-summary-icon">
+					<i class="bi bi-people-fill"></i>
+				</div>
+
+				<small>Total Patients</small>
+				<strong id="totalHospitalPatientCount">0</strong>
+
+			</article>
+
+			<article class="hospital-patients-summary-card">
+
+				<div class="hospital-patients-summary-icon">
+					<i class="bi bi-person-walking"></i>
+				</div>
+
+				<small>OPD Patients</small>
+				<strong id="opdHospitalPatientCount">0</strong>
+
+			</article>
+
+			<article class="hospital-patients-summary-card">
+
+				<div class="hospital-patients-summary-icon">
+					<i class="bi bi-hospital-fill"></i>
+				</div>
+
+				<small>IPD Patients</small>
+				<strong id="ipdHospitalPatientCount">0</strong>
+
+			</article>
+
+			<article class="hospital-patients-summary-card">
+
+				<div class="hospital-patients-summary-icon">
+					<i class="bi bi-person-check-fill"></i>
+				</div>
+
+				<small>Currently Admitted</small>
+				<strong id="admittedHospitalPatientCount">0</strong>
+
+			</article>
+
+		</section>
+
+		<section class="mr-card hospital-patient-form-card mb-4" id="patientFormPanel" style="display:none;">
+
+			<div class="hospital-patient-form-header">
+
+				<div class="hospital-patient-title-wrap">
+
+					<div class="hospital-patient-title-icon">
+						<i class="bi bi-person-plus-fill"></i>
+					</div>
+
+					<div>
+						<small>Patient Record</small>
+						<h5 id="patientFormTitle">Add OPD/IPD Patient</h5>
+					</div>
+
+				</div>
+
+				<button type="button" class="btn btn-sm btn-outline-secondary" onclick="closePatientForm()">
+
+					<i class="bi bi-x-lg"></i>
+				</button>
+
+			</div>
 
 			<div class="row g-3">
-				<div class="col-md-6">
-					<label class="form-label">Patient Name</label>
-					<input type="text" id="patientName" class="form-control">
+
+				<div class="col-lg-6 hospital-patient-control-wrap">
+
+					<label for="patientName" class="form-label">
+						Patient Name
+					</label>
+
+					<i class="bi bi-person-fill"></i>
+
+					<input type="text" id="patientName" class="form-control" placeholder="Enter patient name">
+
 				</div>
 
-				<div class="col-md-3">
-					<label class="form-label">Mobile</label>
-					<input type="text" id="mobile" class="form-control">
+				<div class="col-lg-3 col-md-6 hospital-patient-control-wrap">
+
+					<label for="mobile" class="form-label">
+						Mobile
+					</label>
+
+					<i class="bi bi-telephone-fill"></i>
+
+					<input type="text" id="mobile" class="form-control" placeholder="9876543210">
+
 				</div>
 
-				<div class="col-md-3">
-					<label class="form-label">Gender</label>
+				<div class="col-lg-3 col-md-6 hospital-patient-control-wrap">
+
+					<label for="gender" class="form-label">
+						Gender
+					</label>
+
+					<i class="bi bi-gender-ambiguous"></i>
+
 					<select id="gender" class="form-select">
+
 						<option value="">Select</option>
-						<option>Male</option>
-						<option>Female</option>
-						<option>Other</option>
+						<option value="Male">Male</option>
+						<option value="Female">Female</option>
+						<option value="Other">Other</option>
 					</select>
+
 				</div>
 
-				<div class="col-md-3">
-					<label class="form-label">Age</label>
-					<input type="number" id="age" class="form-control">
+				<div class="col-lg-3 col-md-6 hospital-patient-control-wrap">
+
+					<label for="age" class="form-label">
+						Age
+					</label>
+
+					<i class="bi bi-calendar2-heart-fill"></i>
+
+					<input type="number" min="0" id="age" class="form-control" placeholder="Age">
+
 				</div>
 
-				<div class="col-md-3">
-					<label class="form-label">Patient Type</label>
+				<div class="col-lg-3 col-md-6 hospital-patient-control-wrap">
+
+					<label for="patientType" class="form-label">
+						Patient Type
+					</label>
+
+					<i class="bi bi-hospital-fill"></i>
+
 					<select id="patientType" class="form-select">
+
 						<option value="">Select</option>
 						<option value="OPD">OPD</option>
 						<option value="IPD">IPD</option>
 					</select>
+
 				</div>
 
-				<div class="col-md-3">
-					<label class="form-label">Department</label>
+				<div class="col-lg-3 col-md-6 hospital-patient-control-wrap">
+
+					<label for="department" class="form-label">
+						Department
+					</label>
+
+					<i class="bi bi-building-fill"></i>
+
 					<input type="text" id="department" class="form-control" placeholder="Cardiology">
+
 				</div>
 
-				<div class="col-md-3">
-					<label class="form-label">Doctor Name</label>
-					<input type="text" id="doctorName" class="form-control">
+				<div class="col-lg-3 col-md-6 hospital-patient-control-wrap">
+
+					<label for="doctorName" class="form-label">
+						Doctor Name
+					</label>
+
+					<i class="bi bi-person-badge-fill"></i>
+
+					<input type="text" id="doctorName" class="form-control" placeholder="Doctor name">
+
 				</div>
 
-				<div class="col-md-3">
-					<label class="form-label">Admission Date</label>
+				<div class="col-lg-3 col-md-6 hospital-patient-control-wrap">
+
+					<label for="admissionDate" class="form-label">
+						Admission Date
+					</label>
+
+					<i class="bi bi-calendar-event-fill"></i>
+
 					<input type="date" id="admissionDate" class="form-control">
+
 				</div>
 
-				<div class="col-md-3">
-					<label class="form-label">Discharge Date</label>
+				<div class="col-lg-3 col-md-6 hospital-patient-control-wrap">
+
+					<label for="dischargeDate" class="form-label">
+						Discharge Date
+					</label>
+
+					<i class="bi bi-calendar-check-fill"></i>
+
 					<input type="date" id="dischargeDate" class="form-control">
+
 				</div>
 
-				<div class="col-md-12">
-					<label class="form-label">Diagnosis</label>
-					<textarea id="diagnosis" class="form-control" rows="3"></textarea>
+				<div class="col-12">
+
+					<label for="diagnosis" class="form-label">
+						Diagnosis
+					</label>
+
+					<textarea id="diagnosis" class="form-control" rows="3"
+						placeholder="Enter diagnosis or treatment details"></textarea>
+
 				</div>
 
-				<div class="col-md-12 text-end">
-					<button class="btn btn-medi" style="width:auto;" onclick="createHospitalPatient()">Save
-						Patient</button>
-				</div>
-			</div>
-		</div>
-
-		<div class="mr-card">
-			<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
-				<h5 class="fw-bold text-primary mb-0">Hospital Patient List</h5>
-
-				<div class="d-flex gap-2 flex-wrap">
-					<select id="typeFilter" class="form-select" style="max-width:160px;" onchange="filterPatients()">
-						<option value="">All</option>
-						<option value="OPD">OPD</option>
-						<option value="IPD">IPD</option>
-					</select>
-
-					<input type="text" id="searchBox" class="form-control" style="max-width:280px;"
-						placeholder="Search patient/department/doctor" onkeyup="filterPatients()">
-				</div>
 			</div>
 
-			<div class="table-responsive">
+			<div class="hospital-patient-form-actions">
+
+				<button type="button" class="btn btn-outline-secondary" style="width:auto;" onclick="clearForm()">
+
+					<i class="bi bi-eraser-fill me-1"></i>
+					Clear
+				</button>
+
+				<button type="button" id="saveHospitalPatientBtn" class="btn btn-medi" style="width:auto;"
+					onclick="createHospitalPatient()">
+
+					<i class="bi bi-check2-circle me-1"></i>
+					Save Patient
+				</button>
+
+			</div>
+
+		</section>
+
+		<section class="mr-card">
+
+			<div class="hospital-patient-list-header">
+
+				<div class="hospital-patient-title-wrap">
+
+					<div class="hospital-patient-title-icon">
+						<i class="bi bi-people-fill"></i>
+					</div>
+
+					<div>
+						<small>Hospital Registry</small>
+						<h5>Hospital Patient List</h5>
+					</div>
+
+				</div>
+
+				<div class="hospital-patient-filter-group">
+
+					<div class="hospital-patient-filter-wrap">
+
+						<i class="bi bi-funnel-fill"></i>
+
+						<select id="typeFilter" class="form-select" onchange="filterPatients()">
+
+							<option value="">All Types</option>
+							<option value="OPD">OPD</option>
+							<option value="IPD">IPD</option>
+						</select>
+
+					</div>
+
+					<div class="hospital-patient-search-wrap">
+
+						<i class="bi bi-search"></i>
+
+						<input type="text" id="searchBox" class="form-control"
+							placeholder="Search patient, department or doctor" onkeyup="filterPatients()">
+
+					</div>
+
+				</div>
+
+			</div>
+
+			<div class="table-responsive hospital-patient-table-wrap">
+
 				<table class="table table-hover align-middle">
+
 					<thead>
 						<tr>
 							<th>#</th>
@@ -157,15 +944,70 @@
 							<th>Action</th>
 						</tr>
 					</thead>
-					<tbody id="patientTable"></tbody>
+
+					<tbody id="patientTable">
+
+						<tr>
+							<td colspan="9">
+
+								<div class="hospital-patients-state">
+
+									<div class="hospital-patients-state-icon hospital-patients-loading-icon">
+										<i class="bi bi-people-fill"></i>
+									</div>
+
+									<h5 class="fw-bold text-primary">
+										Loading patients
+									</h5>
+
+									<p class="text-muted mb-0">
+										Please wait while we prepare hospital patient records.
+									</p>
+
+								</div>
+
+							</td>
+						</tr>
+
+					</tbody>
+
 				</table>
+
 			</div>
-		</div>
+
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
 
 	</main>
 
+	<div class="module-exit-overlay" id="moduleExitOverlay">
+
+		<div class="module-exit-content">
+
+			<div class="module-exit-icon">
+				<i class="bi bi-arrow-left-right"></i>
+			</div>
+
+			<h2>Switching Experience</h2>
+
+			<p>
+				Returning to MediRevolution module selection...
+			</p>
+
+			<div class="module-exit-progress">
+				<span></span>
+			</div>
+
+		</div>
+
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script th:src="@{/js/module-switch.js}"></script>
 	<script th:src="@{/js/common-dashboard.js}"></script>
-	<script th:src="@{/js/hospital-patients.js}"></script>
+	<script th:src="@{/js/hospital-patients.js?v=2}"></script>
 	<script th:src="@{/js/pwa.js}"></script>
 
 </body>

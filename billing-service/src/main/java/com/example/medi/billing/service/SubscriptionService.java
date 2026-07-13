@@ -1,7 +1,9 @@
 package com.example.medi.billing.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -9,11 +11,16 @@ import com.example.medi.billing.dto.ActivateSubscriptionRequest;
 import com.example.medi.billing.dto.SubscribePlanRequest;
 import com.example.medi.billing.dto.SubscribePlanResponse;
 import com.example.medi.billing.dto.SubscriptionCheckResponse;
+import com.example.medi.billing.dto.SubscriptionPaymentVerifyResponse;
+import com.example.medi.billing.entity.SubscriptionPayment;
 import com.example.medi.billing.entity.SubscriptionPlan;
 import com.example.medi.billing.entity.UserSubscription;
 import com.example.medi.billing.enums.BillingCycle;
+import com.example.medi.billing.enums.PaymentGateway;
+import com.example.medi.billing.enums.SubscriptionPaymentStatus;
 import com.example.medi.billing.enums.SubscriptionRole;
 import com.example.medi.billing.enums.SubscriptionStatus;
+import com.example.medi.billing.repository.SubscriptionPaymentRepository;
 import com.example.medi.billing.repository.SubscriptionPlanRepository;
 import com.example.medi.billing.repository.UserSubscriptionRepository;
 import com.example.medi.billing.security.CurrentUserUtil;
@@ -23,13 +30,19 @@ public class SubscriptionService {
 
     private final SubscriptionPlanRepository planRepository;
     private final UserSubscriptionRepository subscriptionRepository;
+    private final SubscriptionPaymentRepository paymentRepository;
+    private final PhonePeSubscriptionService phonePeSubscriptionService;
 
     public SubscriptionService(
             SubscriptionPlanRepository planRepository,
-            UserSubscriptionRepository subscriptionRepository
+            UserSubscriptionRepository subscriptionRepository,
+            SubscriptionPaymentRepository paymentRepository,
+            PhonePeSubscriptionService phonePeSubscriptionService
     ) {
         this.planRepository = planRepository;
         this.subscriptionRepository = subscriptionRepository;
+        this.paymentRepository = paymentRepository;
+        this.phonePeSubscriptionService = phonePeSubscriptionService;
     }
 
     public SubscriptionPlan createPlan(SubscriptionPlan plan) {
@@ -141,37 +154,51 @@ public class SubscriptionService {
             throw new RuntimeException("Selected plan does not belong to your role");
         }
 
-        LocalDate startDate = LocalDate.now();
+        BigDecimal amount = plan.getPrice();
 
-        Integer durationDays = plan.getDurationDays();
-        if (durationDays == null || durationDays <= 0) {
-            durationDays = billingCycle == BillingCycle.YEARLY ? 365 : 30;
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            if (plan.getBillingCycle() == BillingCycle.YEARLY) {
+                amount = plan.getYearlyPrice();
+            } else {
+                amount = plan.getMonthlyPrice();
+            }
         }
 
-        LocalDate endDate = startDate.plusDays(durationDays);
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Plan amount is not configured");
+        }
 
-        UserSubscription subscription = new UserSubscription();
-        subscription.setAuthUserId(authUserId);
-        subscription.setRole(userRole);
-        subscription.setPlan(plan);
-        subscription.setStartDate(startDate);
-        subscription.setEndDate(endDate);
-        subscription.setStatus(SubscriptionStatus.ACTIVE);
+        String merchantOrderId = "MR-SUB-" + UUID.randomUUID();
 
-        UserSubscription saved = subscriptionRepository.save(subscription);
+        SubscriptionPayment payment = new SubscriptionPayment();
+        payment.setAuthUserId(authUserId);
+        payment.setUserRole(currentRole);
+        payment.setPlanId(plan.getId());
+        payment.setPlanCode(plan.getPlanCode());
+        payment.setAmount(amount);
+        payment.setBillingCycle(billingCycle);
+        payment.setMerchantOrderId(merchantOrderId);
+        payment.setPaymentStatus(SubscriptionPaymentStatus.INITIATED);
+        payment.setPaymentGateway(PaymentGateway.PHONEPE);
+
+        SubscriptionPayment savedPayment = paymentRepository.save(payment);
+
+        Long amountInPaise = amount.multiply(BigDecimal.valueOf(100)).longValue();
+
+        String redirectUrl = phonePeSubscriptionService.createCheckoutPayment(
+                merchantOrderId,
+                amountInPaise,
+                savedPayment.getId()
+        );
 
         return new SubscribePlanResponse(
                 true,
-                "Subscription activated successfully",
-                saved.getId(),
-                plan.getPlanCode(),
-                plan.getPlanName(),
-                saved.getStartDate(),
-                saved.getEndDate(),
-                null
+                "Subscription payment initiated",
+                savedPayment.getId(),
+                merchantOrderId,
+                redirectUrl
         );
     }
-
     public SubscriptionCheckResponse checkSubscription(Long authUserId) {
 
         return subscriptionRepository
@@ -216,5 +243,145 @@ public class SubscriptionService {
     public UserSubscription getLatestSubscription(Long authUserId) {
         return subscriptionRepository.findTopByAuthUserIdOrderByCreatedAtDesc(authUserId)
                 .orElseThrow(() -> new RuntimeException("No subscription found"));
+    }
+    
+    public SubscriptionPaymentVerifyResponse verifySubscriptionPayment(
+            Long paymentId,
+            String merchantOrderId
+    ) {
+        if (paymentId == null) {
+            throw new RuntimeException("paymentId is required");
+        }
+
+        if (merchantOrderId == null || merchantOrderId.isBlank()) {
+            throw new RuntimeException("merchantOrderId is required");
+        }
+
+        SubscriptionPayment payment = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new RuntimeException("Subscription payment not found"));
+
+        if (!merchantOrderId.equals(payment.getMerchantOrderId())) {
+            throw new RuntimeException("Invalid merchant order id");
+        }
+
+        if (SubscriptionPaymentStatus.SUCCESS.equals(payment.getPaymentStatus())
+                && payment.getSubscriptionId() != null) {
+
+            UserSubscription existingSubscription = subscriptionRepository.findById(payment.getSubscriptionId())
+                    .orElseThrow(() -> new RuntimeException("Subscription not found"));
+
+            SubscriptionPlan existingPlan = existingSubscription.getPlan();
+
+            return new SubscriptionPaymentVerifyResponse(
+                    true,
+                    "Subscription already activated",
+                    existingSubscription.getId(),
+                    payment.getId(),
+                    payment.getMerchantOrderId(),
+                    existingPlan.getPlanCode(),
+                    existingPlan.getPlanName(),
+                    existingSubscription.getStartDate(),
+                    existingSubscription.getEndDate()
+            );
+        }
+
+        String phonePeStatus = phonePeSubscriptionService.checkPaymentStatus(merchantOrderId);
+
+        System.out.println("PhonePe subscription payment status = " + phonePeStatus);
+
+        if (!isPhonePePaymentSuccess(phonePeStatus)) {
+            payment.setPaymentStatus(SubscriptionPaymentStatus.FAILED);
+            payment.touch();
+            paymentRepository.save(payment);
+
+            return new SubscriptionPaymentVerifyResponse(
+                    false,
+                    "Payment not successful. Current status: " + phonePeStatus,
+                    null,
+                    payment.getId(),
+                    payment.getMerchantOrderId(),
+                    payment.getPlanCode(),
+                    null,
+                    null,
+                    null
+            );
+        }
+
+        SubscriptionPlan plan = planRepository.findById(payment.getPlanId())
+                .orElseThrow(() -> new RuntimeException("Subscription plan not found"));
+
+        LocalDate startDate = LocalDate.now();
+
+        Integer durationDays = plan.getDurationDays();
+
+        if (durationDays == null || durationDays <= 0) {
+            durationDays = plan.getBillingCycle() == BillingCycle.YEARLY ? 365 : 30;
+        }
+
+        LocalDate endDate = startDate.plusDays(durationDays);
+
+        subscriptionRepository
+                .findTopByAuthUserIdAndStatusAndEndDateGreaterThanEqualOrderByEndDateDesc(
+                        payment.getAuthUserId(),
+                        SubscriptionStatus.ACTIVE,
+                        LocalDate.now()
+                )
+                .ifPresent(oldSubscription -> {
+                    oldSubscription.setStatus(SubscriptionStatus.CANCELLED);
+                    subscriptionRepository.save(oldSubscription);
+                });
+
+        UserSubscription subscription = new UserSubscription();
+        subscription.setAuthUserId(payment.getAuthUserId());
+        subscription.setRole(SubscriptionRole.valueOf(payment.getUserRole()));
+        subscription.setPlan(plan);
+        subscription.setStartDate(startDate);
+        subscription.setEndDate(endDate);
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
+        subscription.setPaymentOrderId(payment.getMerchantOrderId());
+        subscription.setPaymentTransactionId(payment.getTransactionId());
+
+        UserSubscription savedSubscription = subscriptionRepository.save(subscription);
+
+        payment.setSubscriptionId(savedSubscription.getId());
+        payment.setPaymentStatus(SubscriptionPaymentStatus.SUCCESS);
+        payment.touch();
+        paymentRepository.save(payment);
+
+        return new SubscriptionPaymentVerifyResponse(
+                true,
+                "Subscription activated successfully",
+                savedSubscription.getId(),
+                payment.getId(),
+                payment.getMerchantOrderId(),
+                plan.getPlanCode(),
+                plan.getPlanName(),
+                savedSubscription.getStartDate(),
+                savedSubscription.getEndDate()
+        );
+    }
+
+    private boolean isPhonePePaymentSuccess(String status) {
+        if (status == null) {
+            return false;
+        }
+
+        String normalized = status.trim().toUpperCase();
+
+        return normalized.equals("COMPLETED")
+                || normalized.equals("SUCCESS")
+                || normalized.equals("PAYMENT_SUCCESS")
+                || normalized.equals("PAID");
+    }
+    
+    public UserSubscription getCurrentActiveSubscription(Long authUserId) {
+
+        return subscriptionRepository
+                .findTopByAuthUserIdAndStatusAndEndDateGreaterThanEqualOrderByEndDateDesc(
+                        authUserId,
+                        SubscriptionStatus.ACTIVE,
+                        LocalDate.now()
+                )
+                .orElseThrow(() -> new RuntimeException("No active subscription found."));
     }
 }

@@ -1,222 +1,616 @@
 let cart = [];
 
-/*const API_BASE = "http://localhost:8080";*/
-
 document.addEventListener("DOMContentLoaded", function() {
-
+	requireRetailerRole();
 	loadCart();
-
 });
 
-function loadCart() {
+function requireRetailerRole() {
+	const role =
+		localStorage.getItem("role");
 
-	cart =
-		JSON.parse(
-			localStorage.getItem("mr_cart") || "[]"
+	if (role !== "RETAILER") {
+		alert("Access denied. Only RETAILER can access this page.");
+		window.location.href = "/dashboard";
+	}
+}
+
+function loadCart() {
+	try {
+		const storedCart =
+			localStorage.getItem("mr_cart");
+
+		cart =
+			storedCart
+				? JSON.parse(storedCart)
+				: [];
+
+		if (!Array.isArray(cart)) {
+			cart = [];
+		}
+
+	} catch (error) {
+		console.error(
+			"Invalid cart data:",
+			error
 		);
+
+		cart = [];
+
+		localStorage.removeItem(
+			"mr_cart"
+		);
+	}
 
 	renderCart();
 }
 
 function renderCart() {
-
 	const table =
-		document.getElementById("cartTable");
+		document.getElementById(
+			"cartTable"
+		);
 
-	if (cart.length === 0) {
+	if (!table) {
+		return;
+	}
 
-		table.innerHTML =
-			`
-            <tr>
-                <td colspan="6"
-                    class="text-center text-muted">
-                    Cart Empty
-                </td>
-            </tr>
-        `;
+	let subtotal = 0;
+	let gst = 0;
+
+	if (!cart.length) {
+		table.innerHTML = `
+			<tr>
+				<td colspan="7">
+
+					<div class="cart-state">
+
+						<div class="cart-state-icon">
+							<i class="bi bi-cart-x-fill"></i>
+						</div>
+
+						<h5 class="fw-bold text-primary">
+							Your cart is empty
+						</h5>
+
+						<p class="text-muted mb-3">
+							Search medicines and add items before placing an order.
+						</p>
+
+						<a href="/retailer/search-medicines"
+						   class="btn btn-medi"
+						   style="width:auto;">
+
+							<i class="bi bi-search me-1"></i>
+							Search Medicines
+						</a>
+
+					</div>
+
+				</td>
+			</tr>
+		`;
+
+		updateSummary(
+			0,
+			0,
+			0
+		);
+
+		updatePlaceOrderButton();
 
 		return;
 	}
 
 	let html = "";
 
-	let subtotal = 0;
-	let gst = 0;
+	cart.forEach(
+		function(item, index) {
 
-	cart.forEach((item, index) => {
+			const quantity =
+				Number(item.quantity || 0);
 
-		const lineTotal =
-			item.quantity *
-			item.wholesalePrice;
+			const price =
+				Number(item.wholesalePrice || 0);
 
-		const gstAmount =
-			lineTotal *
-			item.gstPercentage / 100;
+			const gstPercentage =
+				Number(item.gstPercentage || 0);
 
-		subtotal += lineTotal;
-		gst += gstAmount;
+			const lineTotal =
+				quantity * price;
 
-		html += `
-        
-        <tr>
+			const gstAmount =
+				lineTotal *
+				gstPercentage /
+				100;
 
-            <td>
-                <strong>${item.medicineName}</strong>
-            </td>
+			subtotal += lineTotal;
+			gst += gstAmount;
 
-            <td>
-                ${item.batchNumber}
-            </td>
+			html += `
+				<tr style="--row-delay:${Math.min(index * 55, 330)}ms">
 
-            <td>
-                ${item.quantity}
-            </td>
+					<td>
+						<div class="cart-medicine">
 
-            <td>
-                ₹ ${item.wholesalePrice}
-            </td>
+							<div class="cart-medicine-icon">
+								<i class="bi bi-capsule-pill"></i>
+							</div>
 
-            <td>
-                ₹ ${(lineTotal + gstAmount).toFixed(2)}
-            </td>
+							<div>
+								<strong class="text-primary">
+									${safe(item.medicineName)}
+								</strong>
 
-            <td>
+								<div class="text-muted small">
+									Stock ID: ${safe(item.stockId)}
+								</div>
+							</div>
 
-                <button class="btn btn-danger btn-sm"
-                        onclick="removeItem(${index})">
-                    Remove
-                </button>
+						</div>
+					</td>
 
-            </td>
+					<td>
+						${safe(item.batchNumber)}
+					</td>
 
-        </tr>
-        
-        `;
-	});
+					<td>
+
+						<div class="cart-quantity-control">
+
+							<button type="button"
+									onclick="changeQuantity(${index}, -1)"
+									title="Decrease quantity">
+
+								<i class="bi bi-dash"></i>
+							</button>
+
+							<strong>${quantity}</strong>
+
+							<button type="button"
+									onclick="changeQuantity(${index}, 1)"
+									title="Increase quantity">
+
+								<i class="bi bi-plus"></i>
+							</button>
+
+						</div>
+
+					</td>
+
+					<td>
+						₹${formatMoney(price)}
+					</td>
+
+					<td>
+						${formatMoney(gstPercentage)}%
+					</td>
+
+					<td>
+						<span class="cart-line-total">
+							₹${formatMoney(lineTotal + gstAmount)}
+						</span>
+					</td>
+
+					<td>
+
+						<button type="button"
+								class="btn btn-sm btn-outline-danger"
+								onclick="removeItem(${index})">
+
+							<i class="bi bi-trash-fill me-1"></i>
+							Remove
+						</button>
+
+					</td>
+
+				</tr>
+			`;
+
+		}
+	);
 
 	table.innerHTML = html;
 
-	document.getElementById("itemCount").innerText =
-		cart.length;
+	updateSummary(
+		cart.length,
+		subtotal,
+		gst
+	);
 
-	document.getElementById("subTotal").innerText =
-		subtotal.toFixed(2);
+	updatePlaceOrderButton();
+}
 
-	document.getElementById("gstTotal").innerText =
-		gst.toFixed(2);
+function changeQuantity(
+	index,
+	change
+) {
+	const item =
+		cart[index];
 
-	document.getElementById("grandTotal").innerText =
-		(subtotal + gst).toFixed(2);
+	if (!item) {
+		return;
+	}
+
+	const currentQuantity =
+		Number(item.quantity || 0);
+
+	const nextQuantity =
+		currentQuantity + change;
+
+	if (nextQuantity <= 0) {
+		removeItem(index);
+		return;
+	}
+
+	if (
+		item.availableQuantity !== undefined &&
+		item.availableQuantity !== null &&
+		nextQuantity >
+		Number(item.availableQuantity)
+	) {
+		showMessage(
+			"Requested quantity exceeds available stock"
+		);
+
+		return;
+	}
+
+	item.quantity =
+		nextQuantity;
+
+	saveCart();
+	renderCart();
 }
 
 function removeItem(index) {
+	if (
+		index < 0 ||
+		index >= cart.length
+	) {
+		return;
+	}
 
 	cart.splice(index, 1);
 
+	saveCart();
+	renderCart();
+
+	showMessage(
+		"Item removed from cart",
+		"success"
+	);
+}
+
+function saveCart() {
 	localStorage.setItem(
 		"mr_cart",
 		JSON.stringify(cart)
 	);
+}
 
-	renderCart();
+function updateSummary(
+	itemCount,
+	subtotal,
+	gst
+) {
+	setText(
+		"itemCount",
+		itemCount
+	);
+
+	setText(
+		"subTotal",
+		formatMoney(subtotal)
+	);
+
+	setText(
+		"gstTotal",
+		formatMoney(gst)
+	);
+
+	setText(
+		"grandTotal",
+		formatMoney(
+			Number(subtotal || 0) +
+			Number(gst || 0)
+		)
+	);
+}
+
+function updatePlaceOrderButton() {
+	const button =
+		document.getElementById(
+			"placeOrderBtn"
+		);
+
+	if (!button) {
+		return;
+	}
+
+	button.disabled =
+		cart.length === 0;
 }
 
 async function placeOrder() {
+	if (!cart.length) {
+		showMessage(
+			"Cart is empty"
+		);
 
-    if (cart.length === 0) {
+		return;
+	}
 
-        showMessage("Cart is empty");
+	const wholesalerId =
+		cart[0].wholesalerAuthUserId;
 
-        return;
-    }
+	if (!wholesalerId) {
+		showMessage(
+			"Wholesaler information is missing"
+		);
 
-    const wholesalerId =
-        cart[0].wholesalerAuthUserId;
+		return;
+	}
 
-    const payload = {
+	const mixedWholesaler =
+		cart.some(
+			item =>
+				String(
+					item.wholesalerAuthUserId
+				) !==
+				String(wholesalerId)
+		);
 
-        wholesalerAuthUserId:
-            wholesalerId,
+	if (mixedWholesaler) {
+		showMessage(
+			"All cart items must belong to the same wholesaler"
+		);
 
-        items:
-            cart.map(item => ({
+		return;
+	}
 
-                stockId:
-                    item.stockId,
+	const invalidItem =
+		cart.some(
+			item =>
+				!item.stockId ||
+				Number(item.quantity || 0) <= 0
+		);
 
-                quantity:
-                    item.quantity
+	if (invalidItem) {
+		showMessage(
+			"Cart contains invalid item data"
+		);
 
-            }))
-    };
+		return;
+	}
 
-    const token =
-        localStorage.getItem("token");
+	const payload = {
+		wholesalerAuthUserId:
+			wholesalerId,
 
-    try {
+		items:
+			cart.map(
+				item => ({
+					stockId:
+						item.stockId,
 
-        const response =
-            await fetch(
-                `${API_BASE}/orders`,
-                {
-                    method: "POST",
+					quantity:
+						Number(item.quantity)
+				})
+			)
+	};
 
-                    headers: {
-                        "Content-Type":
-                            "application/json",
+	const token =
+		localStorage.getItem("token");
 
-                        "Authorization":
-                            "Bearer " + token
-                    },
+	setButtonLoading(
+		"placeOrderBtn",
+		"Placing Order...",
+		true
+	);
 
-                    body:
-                        JSON.stringify(payload)
-                }
-            );
+	try {
+		const response =
+			await fetch(
+				`${API_BASE}/orders`,
+				{
+					method: "POST",
 
-        const result =
-            await response.json();
+					headers: {
+						"Content-Type":
+							"application/json",
 
-        if (!response.ok) {
+						"Authorization":
+							"Bearer " + token
+					},
 
-            showMessage(
-                result.message ||
-                "Order failed"
-            );
+					body:
+						JSON.stringify(payload)
+				}
+			);
 
-            return;
-        }
+		const result =
+			await readJsonSafely(response);
 
-        localStorage.removeItem("mr_cart");
+		if (!response.ok) {
+			showMessage(
+				getErrorMessage(
+					result,
+					"Order failed"
+				)
+			);
 
-        showMessage(
-            "Order placed successfully",
-            "success"
-        );
+			return;
+		}
 
-        setTimeout(() => {
+		localStorage.removeItem(
+			"mr_cart"
+		);
 
-            window.location.href =
-                "/dashboard";
+		cart = [];
 
-        }, 2000);
+		renderCart();
 
-    } catch (e) {
+		showMessage(
+			"Order placed successfully",
+			"success"
+		);
 
-        showMessage(
-            "Server unavailable"
-        );
-    }
+		setTimeout(
+			function() {
+				window.location.href =
+					"/orders";
+			},
+			1800
+		);
+
+	} catch (error) {
+		console.error(
+			"Place order error:",
+			error
+		);
+
+		showMessage(
+			"Server unavailable"
+		);
+
+	} finally {
+		setButtonLoading(
+			"placeOrderBtn",
+			"Place Order",
+			false
+		);
+
+		updatePlaceOrderButton();
+	}
+}
+
+function setButtonLoading(
+	buttonId,
+	loadingText,
+	isLoading
+) {
+	const button =
+		document.getElementById(buttonId);
+
+	if (!button) {
+		return;
+	}
+
+	if (isLoading) {
+		button.dataset.originalHtml =
+			button.innerHTML;
+
+		button.innerHTML = `
+			<span class="spinner-border spinner-border-sm me-2"
+				  role="status"
+				  aria-hidden="true"></span>
+			${escapeHtml(loadingText)}
+		`;
+
+		button.disabled = true;
+
+	} else {
+		button.innerHTML =
+			button.dataset.originalHtml ||
+			button.innerHTML;
+
+		button.disabled = false;
+	}
+}
+
+function setText(id, value) {
+	const element =
+		document.getElementById(id);
+
+	if (element) {
+		element.innerText =
+			value ?? "";
+	}
 }
 
 function showMessage(
-    message,
-    type = "danger"
+	message,
+	type = "danger"
 ) {
+	const msg =
+		document.getElementById("msg");
 
-    document.getElementById("msg")
-        .innerHTML =
-        `<div class="alert alert-${type}">
-            ${message}
-        </div>`;
+	if (!msg) {
+		return;
+	}
+
+	msg.innerHTML = `
+		<div class="alert alert-${type}">
+			${escapeHtml(message)}
+		</div>
+	`;
+
+	setTimeout(
+		function() {
+			if (msg) {
+				msg.innerHTML = "";
+			}
+		},
+		3500
+	);
+}
+
+async function readJsonSafely(response) {
+	try {
+		return await response.json();
+	} catch (error) {
+		return null;
+	}
+}
+
+function getErrorMessage(
+	data,
+	fallback
+) {
+	if (!data) {
+		return fallback;
+	}
+
+	if (data.message) {
+		return data.message;
+	}
+
+	if (data.error) {
+		return data.error;
+	}
+
+	if (typeof data === "string") {
+		return data;
+	}
+
+	return fallback;
+}
+
+function formatMoney(value) {
+	const numericValue =
+		Number(value);
+
+	return Number.isFinite(numericValue)
+		? numericValue.toFixed(2)
+		: "0.00";
+}
+
+function safe(value) {
+	return (
+		value === null ||
+		value === undefined ||
+		value === ""
+	)
+		? "-"
+		: escapeHtml(value);
+}
+
+function escapeHtml(value) {
+	return String(value || "")
+		.replace(/&/g, "&amp;")
+		.replace(/'/g, "&#39;")
+		.replace(/"/g, "&quot;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;");
 }

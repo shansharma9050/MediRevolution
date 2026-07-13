@@ -1,632 +1,1450 @@
 let currentProfile = null;
+let currentLogoObjectUrl = null;
 
-document.addEventListener("DOMContentLoaded", function () {
-    applyRoleBasedMenuForProfile();
-    setupProfileByRole();
-    loadMyProfile();
+document.addEventListener("DOMContentLoaded", function() {
+	applyRoleBasedMenuForProfile();
+	setupProfileByRole();
+	loadMyProfile();
 });
 
 function applyRoleBasedMenuForProfile() {
-    const role = localStorage.getItem("role");
+	const role =
+		localStorage.getItem("role");
 
-    document.querySelectorAll("[data-role]").forEach(item => {
-        const allowedRoles = item.getAttribute("data-role").split(" ");
-        if (!allowedRoles.includes(role)) {
-            item.style.display = "none";
-        }
-    });
+	document
+		.querySelectorAll("[data-role]")
+		.forEach(
+			function(item) {
+
+				const allowedRoles =
+					item
+						.getAttribute("data-role")
+						.split(" ");
+
+				if (!allowedRoles.includes(role)) {
+					item.style.display = "none";
+				}
+
+			}
+		);
 }
 
 function setupProfileByRole() {
-    const role = localStorage.getItem("role");
+	const role =
+		localStorage.getItem("role");
 
-    const profileRole = document.getElementById("profileRole");
-    if (profileRole) {
-        profileRole.innerText = role || "-";
-    }
+	const profileRole =
+		document.getElementById(
+			"profileRole"
+		);
 
-    const allowed = ["WHOLESALER", "RETAILER", "DOCTOR", "HOSPITAL", "PATIENT"];
+	if (profileRole) {
+		profileRole.innerText =
+			role || "-";
+	}
 
-    if (!allowed.includes(role)) {
-        alert("Profile management is available for Wholesaler, Retailer, Doctor, Hospital and Patient only.");
-        window.location.href = "/dashboard";
-        return;
-    }
+	const allowed = [
+		"WHOLESALER",
+		"RETAILER",
+		"DOCTOR",
+		"HOSPITAL",
+		"PATIENT"
+	];
 
-    // First hide all role based fields
-    hideAllRoleFields();
+	if (!allowed.includes(role)) {
+		alert(
+			"Profile management is available for Wholesaler, Retailer, Doctor, Hospital and Patient only."
+		);
 
-    // Reset common blocks
-    showElement("businessNameBlock");
-    showElement("ownerNameBlock");
-    showElement("drugLicenseBlock");
-    showElement("gstBlock");
-    hideElement("registrationBlock");
-    hideElement("specializationBlock");
-    showElement("bankDetailsBlock");
-    showElement("documentBlock");
+		window.location.href =
+			"/dashboard";
 
-    if (role === "WHOLESALER") {
-        setText("businessNameLabel", "Wholesaler Business Name");
-    }
+		return;
+	}
 
-    if (role === "RETAILER") {
-        setText("businessNameLabel", "Medical Store Name");
-    }
+	hideAllRoleFields();
 
-    if (role === "DOCTOR") {
-        setText("businessNameLabel", "Hospital / Clinic Name");
+	showElement("businessNameBlock");
+	showElement("ownerNameBlock");
+	showElement("drugLicenseBlock");
+	showElement("gstBlock");
+	hideElement("registrationBlock");
+	hideElement("specializationBlock");
+	showElement("bankDetailsBlock");
+	showElement("documentBlock");
+	showElement("contactPersonNameBlock");
+	showElement("contactPersonMobileBlock");
+	showElement("experienceYearsBlock");
 
-        hideElement("drugLicenseBlock");
-        hideElement("gstBlock");
+	if (role === "WHOLESALER") {
+		setText(
+			"businessNameLabel",
+			"Wholesaler Business Name"
+		);
+	}
 
-        showElement("registrationBlock");
-        showElement("specializationBlock");
+	if (role === "RETAILER") {
+		setText(
+			"businessNameLabel",
+			"Medical Store Name"
+		);
+	}
 
-        const specializationLabel = document.querySelector("#specializationBlock label");
-        if (specializationLabel) {
-            specializationLabel.innerText = "Specialization";
-        }
-    }
+	if (role === "DOCTOR") {
+		setText(
+			"businessNameLabel",
+			"Hospital / Clinic Name"
+		);
 
-    if (role === "HOSPITAL") {
-        setText("businessNameLabel", "Hospital Name");
+		hideElement("drugLicenseBlock");
+		hideElement("gstBlock");
 
-        hideElement("drugLicenseBlock");
+		showElement("registrationBlock");
+		showElement("specializationBlock");
 
-        showElement("registrationBlock");
-        showElement("specializationBlock");
+		const specializationLabel =
+			document.querySelector(
+				"#specializationBlock label"
+			);
 
-        const specializationLabel = document.querySelector("#specializationBlock label");
-        if (specializationLabel) {
-            specializationLabel.innerText = "Hospital Type";
-        }
-    }
+		if (specializationLabel) {
+			specializationLabel.innerText =
+				"Specialization";
+		}
+	}
 
-    if (role === "PATIENT") {
-        showFields("field-patient");
+	if (role === "HOSPITAL") {
+		setText(
+			"businessNameLabel",
+			"Hospital Name"
+		);
 
-        hideElement("businessNameBlock");
-        hideElement("ownerNameBlock");
-        hideElement("drugLicenseBlock");
-        hideElement("gstBlock");
-        hideElement("registrationBlock");
-        hideElement("specializationBlock");
-        hideElement("bankDetailsBlock");
-        hideElement("documentBlock");
+		hideElement("drugLicenseBlock");
 
-        const pageSubtitle = document.querySelector(".mr-page-subtitle");
-        if (pageSubtitle) {
-            pageSubtitle.innerText = "Manage your patient profile, medical history and emergency contact details.";
-        }
-    }
+		showElement("registrationBlock");
+		showElement("specializationBlock");
+
+		const specializationLabel =
+			document.querySelector(
+				"#specializationBlock label"
+			);
+
+		if (specializationLabel) {
+			specializationLabel.innerText =
+				"Hospital Type";
+		}
+	}
+
+	if (role === "PATIENT") {
+		showFields("field-patient");
+
+		hideElement("businessNameBlock");
+		hideElement("ownerNameBlock");
+		hideElement("drugLicenseBlock");
+		hideElement("gstBlock");
+		hideElement("registrationBlock");
+		hideElement("specializationBlock");
+		hideElement("bankDetailsBlock");
+		hideElement("documentBlock");
+		hideElement("contactPersonNameBlock");
+		hideElement("contactPersonMobileBlock");
+		hideElement("experienceYearsBlock");
+
+		const pageSubtitle =
+			document.querySelector(
+				".mr-page-subtitle"
+			);
+
+		if (pageSubtitle) {
+			pageSubtitle.innerText =
+				"Manage your patient profile, medical history and emergency contact details.";
+		}
+	}
 }
 
 function hideAllRoleFields() {
-    document
-        .querySelectorAll(".field-wholesaler, .field-retailer, .field-doctor, .field-hospital, .field-patient")
-        .forEach(field => {
-            field.style.display = "none";
-        });
+	document
+		.querySelectorAll(
+			".field-wholesaler, .field-retailer, .field-doctor, .field-hospital, .field-patient"
+		)
+		.forEach(
+			function(field) {
+				field.style.display = "none";
+			}
+		);
 }
 
 function showFields(className) {
-    document.querySelectorAll("." + className).forEach(field => {
-        field.style.display = "block";
-    });
+	document
+		.querySelectorAll("." + className)
+		.forEach(
+			function(field) {
+				field.style.display = "block";
+			}
+		);
 }
 
 function showElement(id) {
-    const el = document.getElementById(id);
-    if (el) {
-        el.style.display = "block";
-    }
+	const element =
+		document.getElementById(id);
+
+	if (element) {
+		element.style.display = "block";
+	}
 }
 
 function hideElement(id) {
-    const el = document.getElementById(id);
-    if (el) {
-        el.style.display = "none";
-    }
+	const element =
+		document.getElementById(id);
+
+	if (element) {
+		element.style.display = "none";
+	}
 }
 
 function setText(id, value) {
-    const el = document.getElementById(id);
-    if (el) {
-        el.innerText = value;
-    }
-}
-function getProfileEndpoint(role) {
-    if (role === "WHOLESALER") return "wholesaler";
-    if (role === "RETAILER") return "retailer";
-    if (role === "DOCTOR") return "doctor";
-    if (role === "HOSPITAL") return "hospital";
+	const element =
+		document.getElementById(id);
+
+	if (element) {
+		element.innerText = value;
+	}
 }
 
 async function loadMyProfile() {
-    const token = localStorage.getItem("token");
-    const endpoint = getMyProfileEndpoint();
+	const token =
+		localStorage.getItem("token");
 
-    if (!endpoint) {
-        showProfileMessage("Invalid role. Unable to load profile.");
-        return;
-    }
+	const endpoint =
+		getMyProfileEndpoint();
 
-    try {
-        const response = await fetch(`${API_BASE}${endpoint}`, {
-            headers: {
-                "Authorization": "Bearer " + token
-            }
-        });
+	if (!endpoint) {
+		showProfileMessage(
+			"Invalid role. Unable to load profile."
+		);
 
-        const result = await response.json();
+		return;
+	}
 
-        if (!response.ok) {
-            showProfileMessage("Profile not found. Please fill and save your profile.", "warning");
-            prefillBasicUser();
-            return;
-        }
+	setProfileLoading(true);
 
-        currentProfile = result;
-        fillProfile(result);
+	try {
+		const response =
+			await fetch(
+				`${API_BASE}${endpoint}`,
+				{
+					headers: {
+						"Authorization":
+							"Bearer " + token
+					}
+				}
+			);
 
-    } catch (error) {
-        showProfileMessage("User service not reachable.");
-    }
+		const result =
+			await readJsonSafely(response);
+
+		if (!response.ok) {
+			currentProfile = null;
+
+			showProfileMessage(
+				"Profile not found. Please fill and save your profile.",
+				"warning"
+			);
+
+			prefillBasicUser();
+			return;
+		}
+
+		currentProfile = result;
+		fillProfile(result || {});
+
+	} catch (error) {
+		console.error(
+			"Load profile error:",
+			error
+		);
+
+		showProfileMessage(
+			"User service not reachable."
+		);
+
+	} finally {
+		setProfileLoading(false);
+	}
 }
 
 function fillForm(profile) {
-    const role = localStorage.getItem("role");
+	const role =
+		localStorage.getItem("role");
 
-    if (role === "WHOLESALER") {
-        setValue("businessName", profile.businessName);
-        setValue("ownerName", profile.ownerName);
-    }
+	if (role === "WHOLESALER") {
+		setValue(
+			"businessName",
+			profile.businessName
+		);
 
-    if (role === "RETAILER") {
-        setValue("businessName", profile.storeName);
-        setValue("ownerName", profile.ownerName);
-    }
+		setValue(
+			"ownerName",
+			profile.ownerName
+		);
+	}
 
-    if (role === "DOCTOR") {
-        // IMPORTANT FIX
-        // businessName field is used for clinic name
-        // ownerName field is used for doctor name
-        setValue("businessName", profile.clinicName);
-        setValue("ownerName", profile.doctorName);
-        setValue("experienceYears", profile.experienceYears);
+	if (role === "RETAILER") {
+		setValue(
+			"businessName",
+			profile.storeName
+		);
 
-        setValue("registrationNumber", profile.registrationNumber);
-        setValue("specialization", profile.specialization);
-    }
+		setValue(
+			"ownerName",
+			profile.ownerName
+		);
+	}
 
-    if (role === "HOSPITAL") {
-        setValue("businessName", profile.hospitalName);
-        setValue("ownerName", profile.contactPersonName);
-        setValue("registrationNumber", profile.registrationNumber);
-        setValue("specialization", profile.hospitalType);
-    }
+	if (role === "DOCTOR") {
+		setValue(
+			"businessName",
+			profile.clinicName
+		);
 
-    if (role === "PATIENT") {
-        setValue("patientName", profile.patientName);
-        setValue("gender", profile.gender);
-        setValue("dateOfBirth", profile.dateOfBirth);
-        setValue("bloodGroup", profile.bloodGroup);
-        setValue("medicalHistory", profile.medicalHistory);
-        setValue("emergencyContactName", profile.emergencyContactName);
-        setValue("emergencyContactMobile", profile.emergencyContactMobile);
-    }
+		setValue(
+			"ownerName",
+			profile.doctorName
+		);
 
-    setValue("drugLicenseNumber", profile.drugLicenseNumber);
-    setValue("gstNumber", profile.gstNumber);
-    setValue("email", profile.email);
-    setValue("mobile", profile.mobile);
-    setValue("address", profile.address);
-    setValue("state", profile.state);
-    setValue("district", profile.district);
-    setValue("pincode", profile.pincode);
-    setValue("contactPersonName", profile.contactPersonName);
-    setValue("contactPersonMobile", profile.contactPersonMobile);
-    setValue("bankName", profile.bankName);
-    setValue("accountHolderName", profile.accountHolderName);
-    setValue("accountNumber", profile.accountNumber);
-    setValue("ifscCode", profile.ifscCode);
-    setValue("branchName", profile.branchName);
-    setValue("profileLogoUrl", profile.profileLogoUrl);
-    setValue("documentUrl", profile.documentUrl);
+		setValue(
+			"experienceYears",
+			profile.experienceYears
+		);
 
-    const profileNamePreview = document.getElementById("profileNamePreview");
-    if (profileNamePreview) {
-        profileNamePreview.innerText =
-            getValue("patientName") ||
-            getValue("businessName") ||
-            "MediRevolution Profile";
-    }
+		setValue(
+			"registrationNumber",
+			profile.registrationNumber
+		);
 
-    const profileEmailPreview = document.getElementById("profileEmailPreview");
-    if (profileEmailPreview) {
-        profileEmailPreview.innerText =
-            getValue("email") || localStorage.getItem("email") || "";
-    }
+		setValue(
+			"specialization",
+			profile.specialization
+		);
+	}
 
-    const verificationStatus = document.getElementById("verificationStatus");
-    if (verificationStatus) {
-        verificationStatus.innerText = profile.verificationStatus || "PENDING";
-    }
+	if (role === "HOSPITAL") {
+		setValue(
+			"businessName",
+			profile.hospitalName
+		);
 
-    updateLogoPreview();
-    updateDocumentPreview();
+		setValue(
+			"ownerName",
+			profile.contactPersonName
+		);
+
+		setValue(
+			"registrationNumber",
+			profile.registrationNumber
+		);
+
+		setValue(
+			"specialization",
+			profile.hospitalType
+		);
+	}
+
+	if (role === "PATIENT") {
+		setValue(
+			"patientName",
+			profile.patientName
+		);
+
+		setValue(
+			"gender",
+			profile.gender
+		);
+
+		setValue(
+			"dateOfBirth",
+			profile.dateOfBirth
+		);
+
+		setValue(
+			"bloodGroup",
+			profile.bloodGroup
+		);
+
+		setValue(
+			"medicalHistory",
+			profile.medicalHistory
+		);
+
+		setValue(
+			"emergencyContactName",
+			profile.emergencyContactName
+		);
+
+		setValue(
+			"emergencyContactMobile",
+			profile.emergencyContactMobile
+		);
+	}
+
+	setValue(
+		"drugLicenseNumber",
+		profile.drugLicenseNumber
+	);
+
+	setValue(
+		"gstNumber",
+		profile.gstNumber
+	);
+
+	setValue(
+		"email",
+		profile.email
+	);
+
+	setValue(
+		"mobile",
+		profile.mobile
+	);
+
+	setValue(
+		"address",
+		profile.address
+	);
+
+	setValue(
+		"state",
+		profile.state
+	);
+
+	setValue(
+		"district",
+		profile.district
+	);
+
+	setValue(
+		"pincode",
+		profile.pincode
+	);
+
+	setValue(
+		"contactPersonName",
+		profile.contactPersonName
+	);
+
+	setValue(
+		"contactPersonMobile",
+		profile.contactPersonMobile
+	);
+
+	setValue(
+		"bankName",
+		profile.bankName
+	);
+
+	setValue(
+		"accountHolderName",
+		profile.accountHolderName
+	);
+
+	setValue(
+		"accountNumber",
+		profile.accountNumber
+	);
+
+	setValue(
+		"ifscCode",
+		profile.ifscCode
+	);
+
+	setValue(
+		"branchName",
+		profile.branchName
+	);
+
+	setValue(
+		"profileLogoUrl",
+		profile.profileLogoUrl
+	);
+
+	setValue(
+		"documentUrl",
+		profile.documentUrl
+	);
+
+	updateProfilePreview(profile);
+	updateLogoPreview();
+	updateDocumentPreview();
 }
+
 function fillProfile(profile) {
-    fillForm(profile);
+	fillForm(profile);
+}
+
+function updateProfilePreview(profile = {}) {
+	const profileNamePreview =
+		document.getElementById(
+			"profileNamePreview"
+		);
+
+	if (profileNamePreview) {
+		profileNamePreview.innerText =
+			getValue("patientName") ||
+			getValue("businessName") ||
+			getValue("ownerName") ||
+			"MediRevolution Profile";
+	}
+
+	const profileEmailPreview =
+		document.getElementById(
+			"profileEmailPreview"
+		);
+
+	if (profileEmailPreview) {
+		profileEmailPreview.innerText =
+			getValue("email") ||
+			localStorage.getItem("email") ||
+			"";
+	}
+
+	const verificationStatus =
+		document.getElementById(
+			"verificationStatus"
+		);
+
+	if (verificationStatus) {
+		const status =
+			profile.verificationStatus ||
+			"PENDING";
+
+		verificationStatus.innerHTML = `
+			<i class="bi ${status === "APPROVED" ? "bi-patch-check-fill" : "bi-hourglass-split"}"></i>
+			${escapeHtml(status)}
+		`;
+
+		verificationStatus.className =
+			"profile-verification-badge " +
+			(
+				status === "APPROVED"
+					? "bg-success text-white"
+					: status === "REJECTED"
+						? "bg-danger text-white"
+						: "bg-warning text-dark"
+			);
+	}
 }
 
 async function saveProfile() {
-    const token = localStorage.getItem("token");
-    const payload = buildProfilePayload();
+	const token =
+		localStorage.getItem("token");
 
-    if (!validateProfile()) {
-        return;
-    }
+	if (!validateProfile()) {
+		return false;
+	}
 
-    try {
-        const method = currentProfile ? "PUT" : "POST";
-        const endpoint = currentProfile ? getUpdateProfileEndpoint() : getCreateProfileEndpoint();
+	const payload =
+		buildProfilePayload();
 
-        if (!endpoint) {
-            showProfileMessage("Invalid role. Unable to save profile.");
-            return;
-        }
+	const method =
+		currentProfile
+			? "PUT"
+			: "POST";
 
-        const response = await fetch(`${API_BASE}${endpoint}`, {
-            method: method,
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
-            },
-            body: JSON.stringify(payload)
-        });
+	const endpoint =
+		currentProfile
+			? getUpdateProfileEndpoint()
+			: getCreateProfileEndpoint();
 
-        const result = await response.json();
+	if (!endpoint) {
+		showProfileMessage(
+			"Invalid role. Unable to save profile."
+		);
 
-        if (!response.ok) {
-            showProfileMessage(result.message || "Unable to save profile");
-            return;
-        }
+		return false;
+	}
 
-        currentProfile = result;
-        fillProfile(result);
-        showProfileMessage("Profile saved successfully", "success");
+	setButtonLoading(
+		"saveProfileBtn",
+		currentProfile
+			? "Updating Profile..."
+			: "Saving Profile...",
+		true
+	);
 
-    } catch (error) {
-        showProfileMessage("User service not reachable.");
-    }
+	try {
+		const response =
+			await fetch(
+				`${API_BASE}${endpoint}`,
+				{
+					method: method,
+
+					headers: {
+						"Content-Type":
+							"application/json",
+
+						"Authorization":
+							"Bearer " + token
+					},
+
+					body:
+						JSON.stringify(payload)
+				}
+			);
+
+		const result =
+			await readJsonSafely(response);
+
+		if (!response.ok) {
+			showProfileMessage(
+				getErrorMessage(
+					result,
+					"Unable to save profile"
+				)
+			);
+
+			return false;
+		}
+
+		currentProfile = result || payload;
+
+		fillProfile(
+			currentProfile
+		);
+
+		showProfileMessage(
+			"Profile saved successfully",
+			"success"
+		);
+
+		return true;
+
+	} catch (error) {
+		console.error(
+			"Save profile error:",
+			error
+		);
+
+		showProfileMessage(
+			"User service not reachable."
+		);
+
+		return false;
+
+	} finally {
+		setButtonLoading(
+			"saveProfileBtn",
+			"Save Profile",
+			false
+		);
+	}
 }
 
-
 function buildProfilePayload() {
-    const role = localStorage.getItem("role");
+	const role =
+		localStorage.getItem("role");
 
-    if (role === "PATIENT") {
-        return {
-            patientName: getValue("patientName"),
-            email: getValue("email"),
-            mobile: getValue("mobile"),
-            gender: getValue("gender"),
-            dateOfBirth: getValue("dateOfBirth"),
-            bloodGroup: getValue("bloodGroup"),
-            address: getValue("address"),
-            state: getValue("state"),
-            district: getValue("district"),
-            pincode: getValue("pincode"),
-            medicalHistory: getValue("medicalHistory"),
-            emergencyContactName: getValue("emergencyContactName"),
-            emergencyContactMobile: getValue("emergencyContactMobile")
-        };
-    }
+	if (role === "PATIENT") {
+		return {
+			patientName:
+				getValue("patientName"),
 
-    let payload = {
-        email: getValue("email"),
-        mobile: getValue("mobile"),
-        address: getValue("address"),
-        state: getValue("state"),
-        district: getValue("district"),
-        pincode: getValue("pincode"),
-        contactPersonName: getValue("contactPersonName"),
-        contactPersonMobile: getValue("contactPersonMobile"),
-        bankName: getValue("bankName"),
-        accountHolderName: getValue("accountHolderName"),
-        accountNumber: getValue("accountNumber"),
-        ifscCode: getValue("ifscCode"),
-        branchName: getValue("branchName"),
-        profileLogoUrl: getValue("profileLogoUrl"),
-        documentUrl: getValue("documentUrl")
-    };
+			email:
+				getValue("email"),
 
-    if (role === "WHOLESALER") {
-        payload.businessName = getValue("businessName");
-        payload.ownerName = getValue("ownerName");
-        payload.drugLicenseNumber = getValue("drugLicenseNumber");
-        payload.gstNumber = getValue("gstNumber");
-    }
+			mobile:
+				getValue("mobile"),
 
-    if (role === "RETAILER") {
-        payload.storeName = getValue("businessName");
-        payload.ownerName = getValue("ownerName");
-        payload.drugLicenseNumber = getValue("drugLicenseNumber");
-        payload.gstNumber = getValue("gstNumber");
-    }
+			gender:
+				getValue("gender"),
 
-    if (role === "DOCTOR") {
-        payload.doctorName = getValue("ownerName") || getValue("businessName");
-        payload.clinicName = getValue("businessName");
-        payload.registrationNumber = getValue("registrationNumber");
-        payload.specialization = getValue("specialization");
-        payload.experienceYears = getValue("experienceYears");
-    }
+			dateOfBirth:
+				getValue("dateOfBirth"),
 
-    if (role === "HOSPITAL") {
-        payload.hospitalName = getValue("businessName");
-        payload.registrationNumber = getValue("registrationNumber");
-        payload.hospitalType = getValue("specialization");
-    }
+			bloodGroup:
+				getValue("bloodGroup"),
 
-    return payload;
+			address:
+				getValue("address"),
+
+			state:
+				getValue("state"),
+
+			district:
+				getValue("district"),
+
+			pincode:
+				getValue("pincode"),
+
+			medicalHistory:
+				getValue("medicalHistory"),
+
+			emergencyContactName:
+				getValue("emergencyContactName"),
+
+			emergencyContactMobile:
+				getValue("emergencyContactMobile"),
+
+			profileLogoUrl:
+				getValue("profileLogoUrl")
+		};
+	}
+
+	const payload = {
+		email:
+			getValue("email"),
+
+		mobile:
+			getValue("mobile"),
+
+		address:
+			getValue("address"),
+
+		state:
+			getValue("state"),
+
+		district:
+			getValue("district"),
+
+		pincode:
+			getValue("pincode"),
+
+		contactPersonName:
+			getValue("contactPersonName"),
+
+		contactPersonMobile:
+			getValue("contactPersonMobile"),
+
+		bankName:
+			getValue("bankName"),
+
+		accountHolderName:
+			getValue("accountHolderName"),
+
+		accountNumber:
+			getValue("accountNumber"),
+
+		ifscCode:
+			getValue("ifscCode"),
+
+		branchName:
+			getValue("branchName"),
+
+		profileLogoUrl:
+			getValue("profileLogoUrl"),
+
+		documentUrl:
+			getValue("documentUrl")
+	};
+
+	if (role === "WHOLESALER") {
+		payload.businessName =
+			getValue("businessName");
+
+		payload.ownerName =
+			getValue("ownerName");
+
+		payload.drugLicenseNumber =
+			getValue("drugLicenseNumber");
+
+		payload.gstNumber =
+			getValue("gstNumber");
+	}
+
+	if (role === "RETAILER") {
+		payload.storeName =
+			getValue("businessName");
+
+		payload.ownerName =
+			getValue("ownerName");
+
+		payload.drugLicenseNumber =
+			getValue("drugLicenseNumber");
+
+		payload.gstNumber =
+			getValue("gstNumber");
+	}
+
+	if (role === "DOCTOR") {
+		payload.doctorName =
+			getValue("ownerName") ||
+			getValue("businessName");
+
+		payload.clinicName =
+			getValue("businessName");
+
+		payload.registrationNumber =
+			getValue("registrationNumber");
+
+		payload.specialization =
+			getValue("specialization");
+
+		payload.experienceYears =
+			toIntegerOrNull(
+				getValue("experienceYears")
+			);
+	}
+
+	if (role === "HOSPITAL") {
+		payload.hospitalName =
+			getValue("businessName");
+
+		payload.registrationNumber =
+			getValue("registrationNumber");
+
+		payload.hospitalType =
+			getValue("specialization");
+	}
+
+	return payload;
 }
 
 function validateProfile() {
-    const role = localStorage.getItem("role");
+	const role =
+		localStorage.getItem("role");
 
-    if (role === "PATIENT") {
-        if (!getValue("patientName")) {
-            showProfileMessage("Patient name is required");
-            return false;
-        }
+	if (role === "PATIENT") {
+		if (!getValue("patientName")) {
+			showProfileMessage(
+				"Patient name is required"
+			);
 
-        if (!getValue("email")) {
-            showProfileMessage("Email is required");
-            return false;
-        }
+			return false;
+		}
 
-        if (!getValue("mobile")) {
-            showProfileMessage("Mobile number is required");
-            return false;
-        }
+		if (!getValue("email")) {
+			showProfileMessage(
+				"Email is required"
+			);
 
-        if (!getValue("gender")) {
-            showProfileMessage("Gender is required");
-            return false;
-        }
+			return false;
+		}
 
-        if (!getValue("dateOfBirth")) {
-            showProfileMessage("Date of birth is required");
-            return false;
-        }
+		if (!getValue("mobile")) {
+			showProfileMessage(
+				"Mobile number is required"
+			);
 
-        return true;
-    }
+			return false;
+		}
 
-    if (!getValue("businessName")) {
-        showProfileMessage("Business/Profile name is required");
-        return false;
-    }
+		if (!getValue("gender")) {
+			showProfileMessage(
+				"Gender is required"
+			);
 
-    if (!getValue("email")) {
-        showProfileMessage("Email is required");
-        return false;
-    }
+			return false;
+		}
 
-    return true;
+		if (!getValue("dateOfBirth")) {
+			showProfileMessage(
+				"Date of birth is required"
+			);
+
+			return false;
+		}
+
+		return true;
+	}
+
+	if (!getValue("businessName")) {
+		showProfileMessage(
+			"Business/Profile name is required"
+		);
+
+		return false;
+	}
+
+	if (!getValue("email")) {
+		showProfileMessage(
+			"Email is required"
+		);
+
+		return false;
+	}
+
+	return true;
 }
+
 function getCreateProfileEndpoint() {
-    const role = localStorage.getItem("role");
+	const role =
+		localStorage.getItem("role");
 
-    if (role === "WHOLESALER") return "/users/profiles/wholesaler";
-    if (role === "RETAILER") return "/users/profiles/retailer";
-    if (role === "DOCTOR") return "/users/profiles/doctor";
-    if (role === "HOSPITAL") return "/users/profiles/hospital";
-    if (role === "PATIENT") return "/users/profiles/patient";
+	if (role === "WHOLESALER") {
+		return "/users/profiles/wholesaler";
+	}
 
-    return "";
+	if (role === "RETAILER") {
+		return "/users/profiles/retailer";
+	}
+
+	if (role === "DOCTOR") {
+		return "/users/profiles/doctor";
+	}
+
+	if (role === "HOSPITAL") {
+		return "/users/profiles/hospital";
+	}
+
+	if (role === "PATIENT") {
+		return "/users/profiles/patient";
+	}
+
+	return "";
 }
 
 function getUpdateProfileEndpoint() {
-    const role = localStorage.getItem("role");
+	const role =
+		localStorage.getItem("role");
 
-    if (role === "WHOLESALER") return "/users/profiles/me/wholesaler";
-    if (role === "RETAILER") return "/users/profiles/me/retailer";
-    if (role === "DOCTOR") return "/users/profiles/me/doctor";
-    if (role === "HOSPITAL") return "/users/profiles/me/hospital";
-    if (role === "PATIENT") return "/users/profiles/me/patient";
+	if (role === "WHOLESALER") {
+		return "/users/profiles/me/wholesaler";
+	}
 
-    return "";
+	if (role === "RETAILER") {
+		return "/users/profiles/me/retailer";
+	}
+
+	if (role === "DOCTOR") {
+		return "/users/profiles/me/doctor";
+	}
+
+	if (role === "HOSPITAL") {
+		return "/users/profiles/me/hospital";
+	}
+
+	if (role === "PATIENT") {
+		return "/users/profiles/me/patient";
+	}
+
+	return "";
 }
 
 function getMyProfileEndpoint() {
-    const role = localStorage.getItem("role");
-
-    if (role === "WHOLESALER") return "/users/profiles/me/wholesaler";
-    if (role === "RETAILER") return "/users/profiles/me/retailer";
-    if (role === "DOCTOR") return "/users/profiles/me/doctor";
-    if (role === "HOSPITAL") return "/users/profiles/me/hospital";
-    if (role === "PATIENT") return "/users/profiles/me/patient";
-
-    return "";
+	return getUpdateProfileEndpoint();
 }
 
 function prefillBasicUser() {
-    setValue("email", localStorage.getItem("email"));
-    document.getElementById("profileEmailPreview").innerText = localStorage.getItem("email");
+	setValue(
+		"email",
+		localStorage.getItem("email")
+	);
+
+	const profileEmailPreview =
+		document.getElementById(
+			"profileEmailPreview"
+		);
+
+	if (profileEmailPreview) {
+		profileEmailPreview.innerText =
+			localStorage.getItem("email") ||
+			"";
+	}
 }
 
 async function updateLogoPreview() {
-    const logoUrl = getValue("profileLogoUrl");
-    const img = document.getElementById("profileLogoPreview");
+	const logoUrl =
+		getValue("profileLogoUrl");
 
-    if (!logoUrl) return;
+	const image =
+		document.getElementById(
+			"profileLogoPreview"
+		);
 
-    const token = localStorage.getItem("token");
+	if (!image || !logoUrl) {
+		return;
+	}
 
-    const response = await fetch(API_BASE + logoUrl, {
-        headers: {
-            "Authorization": "Bearer " + token
-        }
-    });
+	const token =
+		localStorage.getItem("token");
 
-    const blob = await response.blob();
-    img.src = URL.createObjectURL(blob);
+	try {
+		const response =
+			await fetch(
+				buildFileUrl(logoUrl),
+				{
+					headers: {
+						"Authorization":
+							"Bearer " + token
+					}
+				}
+			);
+
+		if (!response.ok) {
+			return;
+		}
+
+		const blob =
+			await response.blob();
+
+		if (currentLogoObjectUrl) {
+			URL.revokeObjectURL(
+				currentLogoObjectUrl
+			);
+		}
+
+		currentLogoObjectUrl =
+			URL.createObjectURL(blob);
+
+		image.src =
+			currentLogoObjectUrl;
+
+	} catch (error) {
+		console.error(
+			"Profile logo preview error:",
+			error
+		);
+	}
 }
 
 function getValue(id) {
-    const el = document.getElementById(id);
-    if (!el) {
-        return "";
-    }
-    return el.value ? el.value.trim() : "";
+	const element =
+		document.getElementById(id);
+
+	if (!element) {
+		return "";
+	}
+
+	return element.value
+		? element.value.trim()
+		: "";
 }
 
 function setValue(id, value) {
-    const el = document.getElementById(id);
-    if (el) {
-        el.value = value || "";
-    }
+	const element =
+		document.getElementById(id);
+
+	if (element) {
+		element.value =
+			value ?? "";
+	}
 }
 
-function showProfileMessage(message, type = "danger") {
-    document.getElementById("msg").innerHTML =
-        `<div class="alert alert-${type}">${message}</div>`;
+function showProfileMessage(
+	message,
+	type = "danger"
+) {
+	const msg =
+		document.getElementById("msg");
 
-    setTimeout(() => {
-        document.getElementById("msg").innerHTML = "";
-    }, 4000);
+	if (!msg) {
+		return;
+	}
+
+	msg.innerHTML = `
+		<div class="alert alert-${type}">
+			${escapeHtml(message)}
+		</div>
+	`;
+
+	setTimeout(
+		function() {
+			if (msg) {
+				msg.innerHTML = "";
+			}
+		},
+		4000
+	);
 }
 
 async function uploadProfileLogo() {
-    const fileInput = document.getElementById("profileLogoFile");
+	const fileInput =
+		document.getElementById(
+			"profileLogoFile"
+		);
 
-    if (!fileInput.files || fileInput.files.length === 0) {
-        showProfileMessage("Please select logo file");
-        return;
-    }
+	if (
+		!fileInput ||
+		!fileInput.files ||
+		!fileInput.files.length
+	) {
+		showProfileMessage(
+			"Please select logo file"
+		);
 
-    const file = fileInput.files[0];
+		return;
+	}
 
-    if (!file.type.startsWith("image/")) {
-        showProfileMessage("Only image file allowed for logo");
-        return;
-    }
+	const file =
+		fileInput.files[0];
 
-    const response = await uploadFile("/users/files/upload/logo", file);
+	if (!file.type.startsWith("image/")) {
+		showProfileMessage(
+			"Only image file allowed for logo"
+		);
 
-    if (response) {
-        document.getElementById("profileLogoUrl").value = response.fileUrl;
-        updateLogoPreview();
-        await saveProfile();
-        showProfileMessage("Logo uploaded successfully", "success");
-    }
+		return;
+	}
+
+	setButtonLoading(
+		"uploadProfileLogoBtn",
+		"Uploading Logo...",
+		true
+	);
+
+	try {
+		const response =
+			await uploadFile(
+				"/users/files/upload/logo",
+				file
+			);
+
+		if (response) {
+			setValue(
+				"profileLogoUrl",
+				response.fileUrl
+			);
+
+			await updateLogoPreview();
+
+			const saved =
+				await saveProfile();
+
+			if (saved) {
+				showProfileMessage(
+					"Logo uploaded successfully",
+					"success"
+				);
+			}
+		}
+
+	} finally {
+		setButtonLoading(
+			"uploadProfileLogoBtn",
+			"Upload Logo",
+			false
+		);
+	}
 }
 
 async function uploadDocument() {
-    const fileInput = document.getElementById("documentFile");
+	const fileInput =
+		document.getElementById(
+			"documentFile"
+		);
 
-    if (!fileInput.files || fileInput.files.length === 0) {
-        showProfileMessage("Please select document file");
-        return;
-    }
+	if (
+		!fileInput ||
+		!fileInput.files ||
+		!fileInput.files.length
+	) {
+		showProfileMessage(
+			"Please select document file"
+		);
 
-    const file = fileInput.files[0];
+		return;
+	}
 
-    const allowed = [
-        "application/pdf",
-        "image/png",
-        "image/jpeg",
-        "image/jpg",
-        "image/webp"
-    ];
+	const file =
+		fileInput.files[0];
 
-    if (!allowed.includes(file.type)) {
-        showProfileMessage("Only PDF or image document allowed");
-        return;
-    }
+	const allowed = [
+		"application/pdf",
+		"image/png",
+		"image/jpeg",
+		"image/jpg",
+		"image/webp"
+	];
 
-    const response = await uploadFile("/users/files/upload/document", file);
+	if (!allowed.includes(file.type)) {
+		showProfileMessage(
+			"Only PDF or image document allowed"
+		);
 
-    if (response) {
-        document.getElementById("documentUrl").value = response.fileUrl;
-        updateDocumentPreview();
-        await saveProfile();
-        showProfileMessage("Document uploaded successfully", "success");
-    }
+		return;
+	}
+
+	setButtonLoading(
+		"uploadDocumentBtn",
+		"Uploading Document...",
+		true
+	);
+
+	try {
+		const response =
+			await uploadFile(
+				"/users/files/upload/document",
+				file
+			);
+
+		if (response) {
+			setValue(
+				"documentUrl",
+				response.fileUrl
+			);
+
+			updateDocumentPreview();
+
+			const saved =
+				await saveProfile();
+
+			if (saved) {
+				showProfileMessage(
+					"Document uploaded successfully",
+					"success"
+				);
+			}
+		}
+
+	} finally {
+		setButtonLoading(
+			"uploadDocumentBtn",
+			"Upload Document",
+			false
+		);
+	}
 }
 
-async function uploadFile(apiPath, file) {
-    const token = localStorage.getItem("token");
+async function uploadFile(
+	apiPath,
+	file
+) {
+	const token =
+		localStorage.getItem("token");
 
-    const formData = new FormData();
-    formData.append("file", file);
+	const formData =
+		new FormData();
 
-    try {
-        const response = await fetch(`${API_BASE}${apiPath}`, {
-            method: "POST",
-            headers: {
-                "Authorization": "Bearer " + token
-            },
-            body: formData
-        });
+	formData.append(
+		"file",
+		file
+	);
 
-        const result = await response.json();
+	try {
+		const response =
+			await fetch(
+				`${API_BASE}${apiPath}`,
+				{
+					method: "POST",
 
-        if (!response.ok) {
-            showProfileMessage(result.message || "File upload failed");
-            return null;
-        }
+					headers: {
+						"Authorization":
+							"Bearer " + token
+					},
 
-        return result;
+					body: formData
+				}
+			);
 
-    } catch (error) {
-        showProfileMessage("Upload service not reachable");
-        return null;
-    }
+		const result =
+			await readJsonSafely(response);
+
+		if (!response.ok) {
+			showProfileMessage(
+				getErrorMessage(
+					result,
+					"File upload failed"
+				)
+			);
+
+			return null;
+		}
+
+		return result;
+
+	} catch (error) {
+		console.error(
+			"Upload file error:",
+			error
+		);
+
+		showProfileMessage(
+			"Upload service not reachable"
+		);
+
+		return null;
+	}
 }
 
 function updateDocumentPreview() {
-    const documentUrl = getValue("documentUrl");
-    const link = document.getElementById("documentPreviewLink");
+	const documentUrl =
+		getValue("documentUrl");
 
-    if (documentUrl) {
-        link.style.display = "block";
-    } else {
-        link.style.display = "none";
-    }
+	const link =
+		document.getElementById(
+			"documentPreviewLink"
+		);
+
+	if (!link) {
+		return;
+	}
+
+	link.style.display =
+		documentUrl
+			? "flex"
+			: "none";
 }
 
 async function viewUploadedDocument() {
-    const documentUrl = getValue("documentUrl");
-    const token = localStorage.getItem("token");
+	const documentUrl =
+		getValue("documentUrl");
 
-    if (!documentUrl) {
-        showProfileMessage("Document not found");
-        return;
-    }
+	const token =
+		localStorage.getItem("token");
 
-    try {
-        const response = await fetch(API_BASE + documentUrl, {
-            headers: {
-                "Authorization": "Bearer " + token
-            }
-        });
+	if (!documentUrl) {
+		showProfileMessage(
+			"Document not found"
+		);
 
-        if (!response.ok) {
-            showProfileMessage("Unable to open document");
-            return;
-        }
+		return;
+	}
 
-        const blob = await response.blob();
-        const fileUrl = window.URL.createObjectURL(blob);
+	try {
+		const response =
+			await fetch(
+				buildFileUrl(documentUrl),
+				{
+					headers: {
+						"Authorization":
+							"Bearer " + token
+					}
+				}
+			);
 
-        window.open(fileUrl, "_blank");
+		if (!response.ok) {
+			showProfileMessage(
+				"Unable to open document"
+			);
 
-    } catch (error) {
-        showProfileMessage("File service not reachable");
-    }
+			return;
+		}
+
+		const blob =
+			await response.blob();
+
+		const fileUrl =
+			window.URL.createObjectURL(blob);
+
+		window.open(
+			fileUrl,
+			"_blank",
+			"noopener"
+		);
+
+		window.setTimeout(
+			function() {
+				window.URL.revokeObjectURL(
+					fileUrl
+				);
+			},
+			60000
+		);
+
+	} catch (error) {
+		console.error(
+			"Open document error:",
+			error
+		);
+
+		showProfileMessage(
+			"File service not reachable"
+		);
+	}
+}
+
+function buildFileUrl(fileUrl) {
+	if (
+		/^https?:\/\//i.test(fileUrl)
+	) {
+		return fileUrl;
+	}
+
+	return `${API_BASE}${fileUrl}`;
+}
+
+function setProfileLoading(isLoading) {
+	const overlay =
+		document.getElementById(
+			"profileLoadingOverlay"
+		);
+
+	if (overlay) {
+		overlay.classList.toggle(
+			"active",
+			Boolean(isLoading)
+		);
+	}
+}
+
+function setButtonLoading(
+	buttonId,
+	loadingText,
+	isLoading
+) {
+	const button =
+		document.getElementById(buttonId);
+
+	if (!button) {
+		return;
+	}
+
+	if (isLoading) {
+		button.dataset.originalHtml =
+			button.innerHTML;
+
+		button.innerHTML = `
+			<span class="spinner-border spinner-border-sm me-2"
+				  role="status"
+				  aria-hidden="true"></span>
+			${escapeHtml(loadingText)}
+		`;
+
+		button.disabled = true;
+
+	} else {
+		button.innerHTML =
+			button.dataset.originalHtml ||
+			button.innerHTML;
+
+		button.disabled = false;
+	}
+}
+
+function toIntegerOrNull(value) {
+	const numberValue =
+		parseInt(value, 10);
+
+	return Number.isFinite(numberValue)
+		? numberValue
+		: null;
+}
+
+async function readJsonSafely(response) {
+	try {
+		return await response.json();
+	} catch (error) {
+		return null;
+	}
+}
+
+function getErrorMessage(
+	data,
+	fallback
+) {
+	if (!data) {
+		return fallback;
+	}
+
+	if (data.message) {
+		return data.message;
+	}
+
+	if (data.error) {
+		return data.error;
+	}
+
+	if (typeof data === "string") {
+		return data;
+	}
+
+	return fallback;
+}
+
+function escapeHtml(value) {
+	return String(value || "")
+		.replace(/&/g, "&amp;")
+		.replace(/'/g, "&#39;")
+		.replace(/"/g, "&quot;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;");
 }

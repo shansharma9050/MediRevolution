@@ -14,236 +14,1038 @@ function requireHospitalRole() {
 }
 
 function toggleInventoryForm() {
-	const panel = document.getElementById("inventoryFormPanel");
-	panel.style.display = panel.style.display === "none" ? "block" : "none";
+	const panel =
+		document.getElementById(
+			"inventoryFormPanel"
+		);
+
+	if (!panel) {
+		return;
+	}
+
+	const isHidden =
+		panel.style.display === "none" ||
+		window.getComputedStyle(panel).display === "none";
+
+	panel.style.display =
+		isHidden
+			? "block"
+			: "none";
+}
+
+function openCreateInventoryForm() {
+	clearForm();
+
+	const title =
+		document.getElementById(
+			"inventoryFormTitle"
+		);
+
+	if (title) {
+		title.innerText =
+			"Add Inventory Item";
+	}
+
+	setSaveInventoryButtonLabel(
+		"Save Item"
+	);
+
+	const panel =
+		document.getElementById(
+			"inventoryFormPanel"
+		);
+
+	if (panel) {
+		panel.style.display = "block";
+
+		window.setTimeout(function() {
+			panel.scrollIntoView({
+				behavior: "smooth",
+				block: "center"
+			});
+		}, 80);
+	}
+}
+
+function closeInventoryForm() {
+	clearForm();
+
+	const panel =
+		document.getElementById(
+			"inventoryFormPanel"
+		);
+
+	if (panel) {
+		panel.style.display = "none";
+	}
 }
 
 async function loadInventory() {
-	const token = localStorage.getItem("token");
+	const token =
+		localStorage.getItem("token");
+
+	showInventoryLoadingState();
 
 	try {
-		const response = await fetch(`${API_BASE}/hospital/inventory`, {
-			headers: { "Authorization": "Bearer " + token }
-		});
+		const response =
+			await fetch(
+				`${API_BASE}/hospital/inventory`,
+				{
+					headers: {
+						"Authorization":
+							"Bearer " + token
+					}
+				}
+			);
 
-		const result = await response.json();
+		const result =
+			await readJsonSafely(response);
 
 		if (!response.ok) {
-			showMsg(result.message || "Unable to load inventory");
+			hospitalInventory = [];
+
+			updateInventorySummary();
+
+			showInventoryErrorState(
+				getErrorMessage(
+					result,
+					"Unable to load inventory"
+				)
+			);
+
+			showMsg(
+				getErrorMessage(
+					result,
+					"Unable to load inventory"
+				)
+			);
+
 			return;
 		}
 
-		hospitalInventory = result;
-		renderInventory();
+		hospitalInventory =
+			Array.isArray(result)
+				? result
+				: [];
+
+		renderInventory(
+			hospitalInventory
+		);
+
+		updateInventorySummary();
 
 	} catch (e) {
-		showMsg("Hospital service not reachable.");
+		console.error(
+			"Load hospital inventory error:",
+			e
+		);
+
+		hospitalInventory = [];
+
+		updateInventorySummary();
+
+		showInventoryErrorState(
+			"Hospital service not reachable."
+		);
+
+		showMsg(
+			"Hospital service not reachable."
+		);
 	}
 }
 
 async function createInventory() {
-    const payload = {
-        itemName: getVal("itemName"),
-        category: getVal("category"),
-        quantity: toInt(getVal("quantity")),
-        minimumQuantity: toInt(getVal("minimumQuantity")),
-        unitPrice: toDecimal(getVal("unitPrice"))
-    };
+	const payload = {
+		itemName:
+			getVal("itemName"),
 
-    if (!payload.itemName || !payload.category || !payload.quantity) {
-        showMsg("Item name, category and quantity are required");
-        return;
-    }
+		category:
+			getVal("category"),
 
-    const token = localStorage.getItem("token");
+		quantity:
+			toInt(
+				getVal("quantity")
+			),
 
-    const url = editingInventoryId
-        ? `${API_BASE}/hospital/inventory/${editingInventoryId}`
-        : `${API_BASE}/hospital/inventory`;
+		minimumQuantity:
+			toInt(
+				getVal("minimumQuantity")
+			),
 
-    const method = editingInventoryId ? "PUT" : "POST";
+		unitPrice:
+			toDecimal(
+				getVal("unitPrice")
+			)
+	};
 
-    try {
-        const response = await fetch(url, {
-            method: method,
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
-            },
-            body: JSON.stringify(payload)
-        });
+	if (
+		!payload.itemName ||
+		!payload.category ||
+		payload.quantity === null ||
+		payload.quantity < 0
+	) {
+		showMsg(
+			"Item name, category and valid quantity are required"
+		);
 
-        const result = await response.json();
+		return;
+	}
 
-        if (!response.ok) {
-            showMsg(result.message || "Unable to save inventory");
-            return;
-        }
+	const token =
+		localStorage.getItem("token");
 
-        showMsg(editingInventoryId ? "Inventory updated successfully" : "Inventory item saved successfully", "success");
+	const url =
+		editingInventoryId
+			? `${API_BASE}/hospital/inventory/${editingInventoryId}`
+			: `${API_BASE}/hospital/inventory`;
 
-        editingInventoryId = null;
-        clearForm();
-        document.getElementById("inventoryFormPanel").style.display = "none";
-        loadInventory();
+	const method =
+		editingInventoryId
+			? "PUT"
+			: "POST";
 
-    } catch (e) {
-        showMsg("Hospital service not reachable.");
-    }
+	setButtonLoading(
+		"saveHospitalInventoryBtn",
+		editingInventoryId
+			? "Updating Item..."
+			: "Saving Item...",
+		true
+	);
+
+	try {
+		const response =
+			await fetch(
+				url,
+				{
+					method: method,
+
+					headers: {
+						"Content-Type":
+							"application/json",
+
+						"Authorization":
+							"Bearer " + token
+					},
+
+					body:
+						JSON.stringify(payload)
+				}
+			);
+
+		const result =
+			await readJsonSafely(response);
+
+		if (!response.ok) {
+			showMsg(
+				getErrorMessage(
+					result,
+					"Unable to save inventory"
+				)
+			);
+
+			return;
+		}
+
+		showMsg(
+			editingInventoryId
+				? "Inventory updated successfully"
+				: "Inventory item saved successfully",
+			"success"
+		);
+
+		clearForm();
+
+		const panel =
+			document.getElementById(
+				"inventoryFormPanel"
+			);
+
+		if (panel) {
+			panel.style.display = "none";
+		}
+
+		loadInventory();
+
+	} catch (e) {
+		console.error(
+			"Save hospital inventory error:",
+			e
+		);
+
+		showMsg(
+			"Hospital service not reachable."
+		);
+
+	} finally {
+		setButtonLoading(
+			"saveHospitalInventoryBtn",
+			editingInventoryId
+				? "Update Item"
+				: "Save Item",
+			false
+		);
+	}
 }
 
-function renderInventory() {
-	const table = document.getElementById("inventoryTable");
+function renderInventory(list = hospitalInventory) {
+	const table =
+		document.getElementById(
+			"inventoryTable"
+		);
 
-	const totalQty = hospitalInventory.reduce((sum, i) => sum + Number(i.quantity || 0), 0);
-	const low = hospitalInventory.filter(i => Number(i.quantity || 0) <= Number(i.minimumQuantity || 0)).length;
+	if (!table) {
+		return;
+	}
 
-	document.getElementById("itemCount").innerText = hospitalInventory.length;
-	document.getElementById("totalQuantity").innerText = totalQty;
-	document.getElementById("lowStock").innerText = low;
+	const items =
+		Array.isArray(list)
+			? list
+			: [];
 
-	if (!hospitalInventory.length) {
-		table.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No inventory items found</td></tr>`;
+	if (!items.length) {
+		table.innerHTML = `
+			<tr>
+				<td colspan="8">
+
+					<div class="hospital-inventory-state">
+
+						<div class="hospital-inventory-state-icon">
+							<i class="bi bi-box-seam"></i>
+						</div>
+
+						<h5 class="fw-bold text-primary">
+							No inventory items found
+						</h5>
+
+						<p class="text-muted mb-0">
+							Add the first item to begin hospital inventory management.
+						</p>
+
+					</div>
+
+				</td>
+			</tr>
+		`;
+
 		return;
 	}
 
 	let html = "";
 
-	hospitalInventory.forEach((i, index) => {
-		const isLow = Number(i.quantity || 0) <= Number(i.minimumQuantity || 0);
+	items.forEach(
+		function(item, index) {
 
-		html += `
-            <tr>
-                <td>${index + 1}</td>
-                <td><strong>${safe(i.itemName)}</strong></td>
-                <td>${safe(i.category)}</td>
-                <td>${safe(i.quantity)}</td>
-                <td>${safe(i.minimumQuantity)}</td>
-                <td>Rs. ${formatMoney(i.unitPrice)}</td>
-                <td>
-    <button class="btn btn-sm btn-outline-primary me-1"
-            onclick="editInventory(${i.id})">
-        Edit
-    </button>
+			const isLow =
+				Number(item.quantity || 0) <=
+				Number(item.minimumQuantity || 0);
 
-    <button class="btn btn-sm btn-outline-warning me-1"
-            onclick="useInventory(${i.id})">
-        Use
-    </button>
+			html += `
+				<tr style="--row-delay:${Math.min(index * 55, 330)}ms">
 
-    <button class="btn btn-sm btn-outline-danger"
-            onclick="deleteInventory(${i.id})">
-        Delete
-    </button>
-</td>
-            </tr>
-        `;
-	});
+					<td>
+						<strong>${index + 1}</strong>
+					</td>
+
+					<td>
+						<div class="hospital-inventory-item">
+
+							<div class="hospital-inventory-avatar">
+								<i class="bi bi-box-fill"></i>
+							</div>
+
+							<strong class="text-primary">
+								${safe(item.itemName)}
+							</strong>
+
+						</div>
+					</td>
+
+					<td>
+						<span class="hospital-inventory-category">
+							<i class="bi bi-tag-fill"></i>
+							${safe(item.category)}
+						</span>
+					</td>
+
+					<td>
+						<strong>
+							${safe(item.quantity)}
+						</strong>
+					</td>
+
+					<td>
+						${safe(item.minimumQuantity)}
+					</td>
+
+					<td>
+						₹${formatMoney(item.unitPrice)}
+					</td>
+
+					<td>
+						${inventoryStatusBadge(isLow)}
+					</td>
+
+					<td>
+
+						<div class="hospital-inventory-actions">
+
+							<button type="button"
+									class="btn btn-sm btn-outline-primary"
+									onclick="editInventory(${safeNumber(item.id)})">
+
+								<i class="bi bi-pencil-square me-1"></i>
+								Edit
+							</button>
+
+							<button type="button"
+									class="btn btn-sm btn-outline-warning"
+									onclick="useInventory(${safeNumber(item.id)})">
+
+								<i class="bi bi-dash-circle me-1"></i>
+								Use
+							</button>
+
+							<button type="button"
+									class="btn btn-sm btn-outline-danger"
+									onclick="deleteInventory(${safeNumber(item.id)})">
+
+								<i class="bi bi-trash-fill me-1"></i>
+								Delete
+							</button>
+
+						</div>
+
+					</td>
+
+				</tr>
+			`;
+
+		}
+	);
 
 	table.innerHTML = html;
 }
 
+function inventoryStatusBadge(isLow) {
+	if (isLow) {
+		return `
+			<span class="hospital-inventory-status low">
+				<i class="bi bi-exclamation-triangle-fill"></i>
+				LOW STOCK
+			</span>
+		`;
+	}
+
+	return `
+		<span class="hospital-inventory-status normal">
+			<i class="bi bi-check2-circle"></i>
+			IN STOCK
+		</span>
+	`;
+}
+
+function showInventoryLoadingState() {
+	const table =
+		document.getElementById(
+			"inventoryTable"
+		);
+
+	if (!table) {
+		return;
+	}
+
+	table.innerHTML = `
+		<tr>
+			<td colspan="8">
+
+				<div class="hospital-inventory-state">
+
+					<div class="hospital-inventory-state-icon hospital-inventory-loading-icon">
+						<i class="bi bi-box-seam-fill"></i>
+					</div>
+
+					<h5 class="fw-bold text-primary">
+						Loading inventory
+					</h5>
+
+					<p class="text-muted mb-0">
+						Please wait while we prepare inventory records.
+					</p>
+
+				</div>
+
+			</td>
+		</tr>
+	`;
+}
+
+function showInventoryErrorState(message) {
+	const table =
+		document.getElementById(
+			"inventoryTable"
+		);
+
+	if (!table) {
+		return;
+	}
+
+	table.innerHTML = `
+		<tr>
+			<td colspan="8">
+
+				<div class="hospital-inventory-state">
+
+					<div class="hospital-inventory-state-icon bg-danger">
+						<i class="bi bi-exclamation-triangle-fill"></i>
+					</div>
+
+					<h5 class="fw-bold text-danger">
+						Unable to load inventory
+					</h5>
+
+					<p class="text-muted mb-0">
+						${escapeHtml(message)}
+					</p>
+
+				</div>
+
+			</td>
+		</tr>
+	`;
+}
+
 function editInventory(id) {
-    const i = hospitalInventory.find(item => item.id === id);
+	const item =
+		hospitalInventory.find(
+			inventoryItem =>
+				Number(inventoryItem.id) ===
+				Number(id)
+		);
 
-    if (!i) {
-        showMsg("Inventory item not found");
-        return;
-    }
+	if (!item) {
+		showMsg(
+			"Inventory item not found"
+		);
 
-    editingInventoryId = id;
+		return;
+	}
 
-    document.getElementById("itemName").value = i.itemName || "";
-    document.getElementById("category").value = i.category || "";
-    document.getElementById("quantity").value = i.quantity || "";
-    document.getElementById("minimumQuantity").value = i.minimumQuantity || "";
-    document.getElementById("unitPrice").value = i.unitPrice || "";
+	editingInventoryId = id;
 
-    document.getElementById("inventoryFormPanel").style.display = "block";
+	setInputValue(
+		"itemName",
+		item.itemName || ""
+	);
+
+	setInputValue(
+		"category",
+		item.category || ""
+	);
+
+	setInputValue(
+		"quantity",
+		item.quantity ?? ""
+	);
+
+	setInputValue(
+		"minimumQuantity",
+		item.minimumQuantity ?? ""
+	);
+
+	setInputValue(
+		"unitPrice",
+		item.unitPrice ?? ""
+	);
+
+	const title =
+		document.getElementById(
+			"inventoryFormTitle"
+		);
+
+	if (title) {
+		title.innerText =
+			"Edit Inventory Item";
+	}
+
+	setSaveInventoryButtonLabel(
+		"Update Item"
+	);
+
+	const panel =
+		document.getElementById(
+			"inventoryFormPanel"
+		);
+
+	if (panel) {
+		panel.style.display = "block";
+
+		panel.scrollIntoView({
+			behavior: "smooth",
+			block: "center"
+		});
+	}
 }
 
 async function deleteInventory(id) {
-    if (!confirm("Are you sure you want to delete this inventory item?")) {
-        return;
-    }
+	if (
+		!confirm(
+			"Are you sure you want to delete this inventory item?"
+		)
+	) {
+		return;
+	}
 
-    const token = localStorage.getItem("token");
+	const token =
+		localStorage.getItem("token");
 
-    try {
-        const response = await fetch(`${API_BASE}/hospital/inventory/${id}`, {
-            method: "DELETE",
-            headers: {
-                "Authorization": "Bearer " + token
-            }
-        });
+	try {
+		const response =
+			await fetch(
+				`${API_BASE}/hospital/inventory/${id}`,
+				{
+					method: "DELETE",
 
-        const resultText = await response.text();
+					headers: {
+						"Authorization":
+							"Bearer " + token
+					}
+				}
+			);
 
-        if (!response.ok) {
-            showMsg(resultText || "Unable to delete inventory item");
-            return;
-        }
+		const resultText =
+			await response.text();
 
-        showMsg("Inventory item deleted successfully", "success");
-        loadInventory();
+		if (!response.ok) {
+			showMsg(
+				resultText ||
+				"Unable to delete inventory item"
+			);
 
-    } catch (e) {
-        showMsg("Hospital service not reachable.");
-    }
+			return;
+		}
+
+		showMsg(
+			"Inventory item deleted successfully",
+			"success"
+		);
+
+		loadInventory();
+
+	} catch (e) {
+		console.error(
+			"Delete hospital inventory error:",
+			e
+		);
+
+		showMsg(
+			"Hospital service not reachable."
+		);
+	}
 }
 
 async function useInventory(id) {
-    const quantity = prompt("Enter used quantity:");
+	const quantity =
+		prompt(
+			"Enter used quantity:"
+		);
 
-    if (!quantity || Number(quantity) <= 0) {
-        showMsg("Please enter valid quantity");
-        return;
-    }
+	const numericQuantity =
+		Number(quantity);
 
-    const token = localStorage.getItem("token");
+	if (
+		!quantity ||
+		!Number.isFinite(numericQuantity) ||
+		numericQuantity <= 0
+	) {
+		showMsg(
+			"Please enter valid quantity"
+		);
 
-    try {
-        const response = await fetch(`${API_BASE}/hospital/inventory/${id}/use?quantity=${quantity}`, {
-            method: "PUT",
-            headers: {
-                "Authorization": "Bearer " + token
-            }
-        });
+		return;
+	}
 
-        const result = await response.json();
+	const token =
+		localStorage.getItem("token");
 
-        if (!response.ok) {
-            showMsg(result.message || "Unable to update inventory");
-            return;
-        }
+	try {
+		const response =
+			await fetch(
+				`${API_BASE}/hospital/inventory/${id}/use?quantity=${encodeURIComponent(numericQuantity)}`,
+				{
+					method: "PUT",
 
-        showMsg("Inventory quantity updated successfully", "success");
-        loadInventory();
+					headers: {
+						"Authorization":
+							"Bearer " + token
+					}
+				}
+			);
 
-    } catch (e) {
-        showMsg("Hospital service not reachable.");
-    }
+		const result =
+			await readJsonSafely(response);
+
+		if (!response.ok) {
+			showMsg(
+				getErrorMessage(
+					result,
+					"Unable to update inventory"
+				)
+			);
+
+			return;
+		}
+
+		showMsg(
+			"Inventory quantity updated successfully",
+			"success"
+		);
+
+		loadInventory();
+
+	} catch (e) {
+		console.error(
+			"Use hospital inventory error:",
+			e
+		);
+
+		showMsg(
+			"Hospital service not reachable."
+		);
+	}
+}
+
+function filterInventory() {
+	const keyword =
+		document
+			.getElementById("searchBox")
+			?.value
+			.trim()
+			.toLowerCase() || "";
+
+	const filtered =
+		hospitalInventory.filter(
+			item =>
+				JSON.stringify(item)
+					.toLowerCase()
+					.includes(keyword)
+		);
+
+	renderInventory(filtered);
+}
+
+function updateInventorySummary() {
+	const list =
+		Array.isArray(hospitalInventory)
+			? hospitalInventory
+			: [];
+
+	const totalQty =
+		list.reduce(
+			(sum, item) =>
+				sum +
+				Number(item.quantity || 0),
+			0
+		);
+
+	const low =
+		list.filter(
+			item =>
+				Number(item.quantity || 0) <=
+				Number(item.minimumQuantity || 0)
+		).length;
+
+	const totalValue =
+		list.reduce(
+			(sum, item) =>
+				sum +
+				(
+					Number(item.quantity || 0) *
+					Number(item.unitPrice || 0)
+				),
+			0
+		);
+
+	setSummaryValue(
+		"itemCount",
+		list.length
+	);
+
+	setSummaryValue(
+		"totalQuantity",
+		totalQty
+	);
+
+	setSummaryValue(
+		"lowStock",
+		low
+	);
+
+	const inventoryValue =
+		document.getElementById(
+			"inventoryValue"
+		);
+
+	if (inventoryValue) {
+		inventoryValue.textContent =
+			`₹${formatMoney(totalValue)}`;
+	}
 }
 
 function clearForm() {
-    editingInventoryId = null;
+	editingInventoryId = null;
 
-    ["itemName", "category", "quantity", "minimumQuantity", "unitPrice"]
-        .forEach(id => document.getElementById(id).value = "");
+	[
+		"itemName",
+		"category",
+		"quantity",
+		"minimumQuantity",
+		"unitPrice"
+	].forEach(
+		function(id) {
+			setInputValue(id, "");
+		}
+	);
+
+	const title =
+		document.getElementById(
+			"inventoryFormTitle"
+		);
+
+	if (title) {
+		title.innerText =
+			"Add Inventory Item";
+	}
+
+	setSaveInventoryButtonLabel(
+		"Save Item"
+	);
 }
 
-function getVal(id) { return document.getElementById(id).value.trim(); }
-function toInt(v) { return v ? parseInt(v) : null; }
-function toDecimal(v) { return v ? parseFloat(v) : null; }
+function setInputValue(id, value) {
+	const element =
+		document.getElementById(id);
 
-function showMsg(message, type = "danger") {
-	document.getElementById("msg").innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+	if (element) {
+		element.value = value;
+	}
+}
+
+function setSaveInventoryButtonLabel(label) {
+	const button =
+		document.getElementById(
+			"saveHospitalInventoryBtn"
+		);
+
+	if (!button) {
+		return;
+	}
+
+	button.innerHTML = `
+		<i class="bi bi-check2-circle me-1"></i>
+		${escapeHtml(label)}
+	`;
+}
+
+function setButtonLoading(
+	buttonId,
+	loadingText,
+	isLoading
+) {
+	const button =
+		document.getElementById(buttonId);
+
+	if (!button) {
+		return;
+	}
+
+	if (isLoading) {
+		button.dataset.originalHtml =
+			button.innerHTML;
+
+		button.innerHTML = `
+			<span class="spinner-border spinner-border-sm me-2"
+				  role="status"
+				  aria-hidden="true">
+			</span>
+			${escapeHtml(loadingText)}
+		`;
+
+		button.disabled = true;
+
+	} else {
+		button.innerHTML =
+			button.dataset.originalHtml ||
+			button.innerHTML;
+
+		button.disabled = false;
+	}
+}
+
+function setSummaryValue(id, value) {
+	const element =
+		document.getElementById(id);
+
+	if (!element) {
+		return;
+	}
+
+	const target =
+		Number(value) || 0;
+
+	const start =
+		Number(element.textContent) || 0;
+
+	const difference =
+		target - start;
+
+	const duration = 500;
+	const startTime = performance.now();
+
+	if (
+		window.matchMedia(
+			"(prefers-reduced-motion: reduce)"
+		).matches ||
+		difference === 0
+	) {
+		element.textContent = target;
+		return;
+	}
+
+	function update(currentTime) {
+		const progress =
+			Math.min(
+				(currentTime - startTime) /
+				duration,
+				1
+			);
+
+		const eased =
+			1 - Math.pow(1 - progress, 3);
+
+		element.textContent =
+			Math.round(
+				start +
+				difference * eased
+			);
+
+		if (progress < 1) {
+			requestAnimationFrame(update);
+		}
+	}
+
+	requestAnimationFrame(update);
+}
+
+function getVal(id) {
+	const element =
+		document.getElementById(id);
+
+	return element
+		? element.value.trim()
+		: "";
+}
+
+function toInt(value) {
+	const numberValue =
+		parseInt(value, 10);
+
+	return Number.isFinite(numberValue)
+		? numberValue
+		: null;
+}
+
+function toDecimal(value) {
+	const numberValue =
+		parseFloat(value);
+
+	return Number.isFinite(numberValue)
+		? numberValue
+		: null;
+}
+
+function showMsg(
+	message,
+	type = "danger"
+) {
+	const msg =
+		document.getElementById("msg");
+
+	if (!msg) {
+		return;
+	}
+
+	msg.innerHTML =
+		`<div class="alert alert-${type}">${escapeHtml(message)}</div>`;
+
+	setTimeout(function() {
+		if (msg) {
+			msg.innerHTML = "";
+		}
+	}, 4000);
 }
 
 function formatMoney(value) {
-	return value === null || value === undefined ? "0.00" : Number(value).toFixed(2);
+	return value === null ||
+		value === undefined
+		? "0.00"
+		: Number(value).toFixed(2);
+}
+
+async function readJsonSafely(response) {
+	try {
+		return await response.json();
+	} catch (error) {
+		return null;
+	}
+}
+
+function getErrorMessage(
+	data,
+	fallback
+) {
+	if (!data) {
+		return fallback;
+	}
+
+	if (data.message) {
+		return data.message;
+	}
+
+	if (data.error) {
+		return data.error;
+	}
+
+	if (typeof data === "string") {
+		return data;
+	}
+
+	return fallback;
 }
 
 function safe(value) {
-	return value === null || value === undefined || value === "" ? "-" : value;
+	return (
+		value === null ||
+		value === undefined ||
+		value === ""
+	)
+		? "-"
+		: escapeHtml(value);
+}
+
+function safeNumber(value) {
+	const numberValue =
+		Number(value);
+
+	return Number.isFinite(numberValue)
+		? numberValue
+		: 0;
+}
+
+function escapeHtml(value) {
+	return String(value || "")
+		.replace(/&/g, "&amp;")
+		.replace(/'/g, "&#39;")
+		.replace(/"/g, "&quot;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;");
 }

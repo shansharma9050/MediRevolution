@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>MediRevolution | SaaS Notifications</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link rel="manifest" href="/manifest.json">
+	<meta name="theme-color" content="#05285f">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.saas-notifications-page {
+			position: relative
+		}
+
+		.notifications-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 225px;
+			margin-bottom: 28px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f 0%, #08739f 48%, #08c7d4 100%);
+			box-shadow: 0 25px 65px rgba(5, 40, 95, .22);
+			animation: notifReveal .75s cubic-bezier(.22, 1, .36, 1) both
+		}
+
+		.notifications-hero:before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation: notifFloat 9s ease-in-out infinite
+		}
+
+		.notifications-hero:after {
+			position: absolute;
+			bottom: -180px;
+			left: 28%;
+			width: 360px;
+			height: 360px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(123, 214, 0, .23), transparent 68%)
+		}
+
+		.notifications-hero-content,
+		.notifications-hero-action {
+			position: relative;
+			z-index: 2
+		}
+
+		.notifications-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px)
+		}
+
+		.notifications-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px
+		}
+
+		.notifications-hero h1 span {
+			color: #b8f267
+		}
+
+		.notifications-hero p {
+			max-width: 760px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .8);
+			line-height: 1.75
+		}
+
+		.notifications-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px
+		}
+
+		.notifications-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700
+		}
+
+		.notifications-hero-action {
+			display: flex;
+			min-width: 240px;
+			flex-direction: column;
+			align-items: center;
+			padding: 22px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px)
+		}
+
+		.notifications-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 68px;
+			height: 68px;
+			margin-bottom: 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #fff;
+			font-size: 28px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+			animation: notifIcon 3s ease-in-out infinite
+		}
+
+		.notifications-hero-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 46px;
+			margin-top: 13px;
+			padding: 0 18px;
+			border: none;
+			border-radius: 15px;
+			color: #05285f;
+			background: #fff;
+			font-size: 12px;
+			font-weight: 800;
+			transition: .3s
+		}
+
+		.notifications-hero-button:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 14px 30px rgba(0, 0, 0, .18)
+		}
+
+		.notifications-summary-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px
+		}
+
+		.notifications-summary-card {
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .96);
+			box-shadow: 0 14px 35px rgba(5, 40, 95, .08);
+			transition: .35s
+		}
+
+		.notifications-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 22px 48px rgba(5, 40, 95, .14)
+		}
+
+		.notifications-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px
+		}
+
+		.notifications-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700
+		}
+
+		.notifications-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 29px;
+			font-weight: 900
+		}
+
+		.notifications-card {
+			position: relative;
+			overflow: hidden
+		}
+
+		.notifications-card:after {
+			position: absolute;
+			top: -90px;
+			right: -90px;
+			width: 190px;
+			height: 190px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(8, 199, 212, .1), transparent 68%);
+			pointer-events: none
+		}
+
+		.notifications-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5
+		}
+
+		.notifications-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px
+		}
+
+		.notifications-title-icon {
+			display: flex;
+			flex: 0 0 46px;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px
+		}
+
+		.notifications-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase
+		}
+
+		.notifications-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900
+		}
+
+		.notifications-filters {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px
+		}
+
+		.notifications-filter-wrap {
+			position: relative;
+			min-width: 210px
+		}
+
+		.notifications-filter-wrap i {
+			position: absolute;
+			top: 50%;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			transform: translateY(-50%);
+			pointer-events: none
+		}
+
+		.notifications-filter-wrap .form-control,
+		.notifications-filter-wrap .form-select {
+			padding-left: 41px
+		}
+
+		.notification-list {
+			position: relative;
+			z-index: 2;
+			display: grid;
+			gap: 14px
+		}
+
+		.notification-item {
+			position: relative;
+			overflow: hidden;
+			padding: 20px;
+			border: 1px solid #e3edf2;
+			border-radius: 20px;
+			background: #fff;
+			box-shadow: 0 12px 30px rgba(5, 40, 95, .07);
+			opacity: 0;
+			transform: translateY(12px);
+			animation: notifRow .45s var(--row-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards;
+			transition: .3s
+		}
+
+		.notification-item:hover {
+			transform: translateY(-4px);
+			box-shadow: 0 20px 42px rgba(5, 40, 95, .13)
+		}
+
+		.notification-item.notification-unread {
+			border-left: 5px solid #08c7d4;
+			background: linear-gradient(90deg, #f0fcfe 0%, #fff 18%)
+		}
+
+		.notification-item.priority-high {
+			border-top: 3px solid #dc3545
+		}
+
+		.notification-item.priority-medium {
+			border-top: 3px solid #ffc107
+		}
+
+		.notification-item.priority-low {
+			border-top: 3px solid #198754
+		}
+
+		.notification-main {
+			display: flex;
+			align-items: flex-start;
+			gap: 14px
+		}
+
+		.notification-icon {
+			display: flex;
+			flex: 0 0 48px;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			border-radius: 16px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px
+		}
+
+		.notification-content {
+			flex: 1;
+			min-width: 0
+		}
+
+		.notification-title {
+			color: #05285f;
+			font-size: 15px;
+			font-weight: 900
+		}
+
+		.notification-message {
+			margin: 8px 0 12px;
+			color: #5f7385;
+			line-height: 1.65
+		}
+
+		.notification-meta-line {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+			color: #718496;
+			font-size: 10px;
+			font-weight: 700
+		}
+
+		.notification-meta-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 5px;
+			padding: 6px 9px;
+			border-radius: 999px;
+			background: #f1f6f8
+		}
+
+		.notification-actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 7px;
+			margin-top: 14px
+		}
+
+		.notifications-state {
+			padding: 54px 20px;
+			text-align: center
+		}
+
+		.notifications-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 72px;
+			height: 72px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 28px;
+			box-shadow: 0 15px 32px rgba(5, 40, 95, .17)
+		}
+
+		.notifications-loading {
+			animation: notifPulse 1.3s ease-in-out infinite
+		}
+
+		@keyframes notifReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px)
+			}
+
+			to {
+				opacity: 1;
+				transform: none
+			}
+		}
+
+		@keyframes notifFloat {
+
+			0%,
+			100% {
+				transform: none
+			}
+
+			50% {
+				transform: translateY(25px) rotate(8deg)
+			}
+		}
+
+		@keyframes notifIcon {
+
+			0%,
+			100% {
+				transform: none
+			}
+
+			50% {
+				transform: translateY(-7px)
+			}
+		}
+
+		@keyframes notifRow {
+			to {
+				opacity: 1;
+				transform: none
+			}
+		}
+
+		@keyframes notifPulse {
+
+			0%,
+			100% {
+				transform: scale(.94);
+				opacity: .72
+			}
+
+			50% {
+				transform: scale(1.06);
+				opacity: 1
+			}
+		}
+
+		@media(max-width:1150px) {
+			.notifications-summary-grid {
+				grid-template-columns: repeat(2, minmax(0, 1fr))
+			}
+		}
+
+		@media(max-width:992px) {
+			.notifications-hero {
+				align-items: flex-start;
+				flex-direction: column
+			}
+
+			.notifications-hero-action {
+				width: 100%
+			}
+		}
+
+		@media(max-width:768px) {
+			.notifications-header {
+				align-items: stretch;
+				flex-direction: column
+			}
+
+			.notifications-filters,
+			.notifications-filter-wrap {
+				width: 100%
+			}
+
+			.notification-main {
+				flex-direction: column
+			}
+		}
+
+		@media(max-width:576px) {
+			.notifications-hero {
+				padding: 26px 21px;
+				border-radius: 24px
+			}
+
+			.notifications-summary-grid {
+				grid-template-columns: 1fr
+			}
+		}
+	</style>
+</head>
+
+<body class="dashboard-body saas-dashboard-body">
+
+	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
+	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
+
+	<main class="mr-main saas-main saas-notifications-page">
+
+		<section class="notifications-hero">
+			<div class="notifications-hero-content">
+				<span class="notifications-kicker">
+					<i class="bi bi-bell-fill"></i>
+					SaaS Alerts & Activity Center
+				</span>
+
+				<h1>SaaS <span>notifications</span></h1>
+
+				<p>
+					Tenant notifications for
+					<strong id="tenantNameText">your workspace</strong>.
+				</p>
+
+				<div class="notifications-meta">
+					<span><i class="bi bi-lightning-charge-fill"></i>Operational alerts</span>
+					<span><i class="bi bi-shield-check"></i>Permission controlled</span>
+					<span><i class="bi bi-clock-history"></i>Recent activity</span>
+				</div>
+			</div>
+
+			<div class="notifications-hero-action">
+				<div class="notifications-hero-icon">
+					<i class="bi bi-bell-fill"></i>
+				</div>
+
+				<strong>Notification Center</strong>
+
+				<button type="button" id="markAllReadBtn" class="notifications-hero-button" onclick="markAllRead()">
+					<i class="bi bi-check2-all"></i>
+					Mark All Read
+				</button>
+			</div>
+		</section>
+
+		<div id="msg"></div>
+
+		<section class="notifications-summary-grid">
+			<article class="notifications-summary-card">
+				<div class="notifications-summary-icon">
+					<i class="bi bi-bell-fill"></i>
+				</div>
+				<small>Total Notifications</small>
+				<strong id="totalNotificationCount">0</strong>
+			</article>
+
+			<article class="notifications-summary-card">
+				<div class="notifications-summary-icon">
+					<i class="bi bi-envelope-exclamation-fill"></i>
+				</div>
+				<small>Unread</small>
+				<strong id="unreadCountText">0</strong>
+			</article>
+
+			<article class="notifications-summary-card">
+				<div class="notifications-summary-icon">
+					<i class="bi bi-exclamation-triangle-fill"></i>
+				</div>
+				<small>High Priority</small>
+				<strong id="highPriorityCount">0</strong>
+			</article>
+
+			<article class="notifications-summary-card">
+				<div class="notifications-summary-icon">
+					<i class="bi bi-calendar-event-fill"></i>
+				</div>
+				<small>Today</small>
+				<strong id="todayNotificationCount">0</strong>
+			</article>
+		</section>
+
+		<section class="mr-card notifications-card">
+
+			<div class="notifications-header">
+				<div class="notifications-title-wrap">
+					<div class="notifications-title-icon">
+						<i class="bi bi-inboxes-fill"></i>
+					</div>
+
+					<div>
+						<small>Workspace Activity</small>
+						<h5>Notification Feed</h5>
+					</div>
+				</div>
+
+				<div class="notifications-filters">
+					<div class="notifications-filter-wrap">
+						<i class="bi bi-search"></i>
+						<input type="text" id="notificationSearchBox" class="form-control"
+							placeholder="Search title or message" oninput="filterNotificationsClientSide()">
+					</div>
+
+					<div class="notifications-filter-wrap">
+						<i class="bi bi-tags-fill"></i>
+						<select id="filterType" class="form-select" onchange="applyTypeFilter()">
+							<option value="">All Types</option>
+							<option value="APPOINTMENT">Appointment</option>
+							<option value="BILLING">Billing</option>
+							<option value="LOW_STOCK">Low Stock</option>
+							<option value="LAB_REPORT">Lab Report</option>
+							<option value="RADIOLOGY_REPORT">Radiology Report</option>
+							<option value="IPD">IPD</option>
+							<option value="PHARMACY">Pharmacy</option>
+							<option value="SYSTEM">System</option>
+						</select>
+					</div>
+
+					<div class="notifications-filter-wrap">
+						<i class="bi bi-flag-fill"></i>
+						<select id="priorityFilter" class="form-select" onchange="filterNotificationsClientSide()">
+							<option value="">All Priority</option>
+							<option value="HIGH">High</option>
+							<option value="MEDIUM">Medium</option>
+							<option value="LOW">Low</option>
+						</select>
+					</div>
+
+					<button type="button" id="unreadOnlyBtn" class="btn btn-outline-primary"
+						onclick="loadUnreadNotifications()">
+						<i class="bi bi-envelope-exclamation-fill me-1"></i>
+						Unread
+					</button>
+
+					<button type="button" id="allNotificationsBtn" class="btn btn-outline-secondary"
+						onclick="loadNotifications()">
+						<i class="bi bi-inboxes-fill me-1"></i>
+						All
+					</button>
+				</div>
+			</div>
+
+			<div id="notificationList" class="notification-list">
+				<div class="notifications-state">
+					<div class="notifications-state-icon notifications-loading">
+						<i class="bi bi-bell-fill"></i>
+					</div>
+
+					<h5 class="fw-bold text-primary">Loading notifications</h5>
+					<p class="text-muted mb-0">Please wait while workspace alerts are prepared.</p>
+				</div>
+			</div>
+
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
+	</main>
+
+	<div class="module-exit-overlay" id="moduleExitOverlay">
+		<div class="module-exit-content">
+			<div class="module-exit-icon">
+				<i class="bi bi-arrow-left-right"></i>
+			</div>
+			<h2>Switching Experience</h2>
+			<p>Returning to MediRevolution module selection...</p>
+			<div class="module-exit-progress"><span></span></div>
+		</div>
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+	<script th:src="@{/js/common-dashboard.js}"></script>
+	<script th:src="@{/js/module-switch.js}"></script>
+	<script th:src="@{/js/saas-auth-guard.js}"></script>
+	<script th:src="@{/js/saas-notifications.js?v=20260713_1}"></script>
+	<script th:src="@{/js/pwa.js}"></script>
+
+</body>
+
+</html>

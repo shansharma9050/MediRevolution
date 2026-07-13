@@ -1,95 +1,680 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
+	<meta charset="UTF-8">
 	<title>MediRevolution | Doctor Patients</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-
 	<link rel="manifest" href="/manifest.json">
 	<meta name="theme-color" content="#05285f">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
 
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 	<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+
 	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.doctor-patients-page {
+			position: relative
+		}
+
+		.doctor-patients-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 230px;
+			margin-bottom: 28px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f 0%, #076a9c 52%, #08c7d4 100%);
+			box-shadow: 0 25px 65px rgba(5, 40, 95, .22);
+			animation: patientsHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both
+		}
+
+		.doctor-patients-hero:before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation: patientsHeroFloat 9s ease-in-out infinite
+		}
+
+		.doctor-patients-hero:after {
+			position: absolute;
+			bottom: -175px;
+			left: 28%;
+			width: 350px;
+			height: 350px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(123, 214, 0, .23), transparent 68%)
+		}
+
+		.doctor-patients-hero-content,
+		.doctor-patients-hero-action {
+			position: relative;
+			z-index: 2
+		}
+
+		.doctor-patients-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px)
+		}
+
+		.doctor-patients-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px
+		}
+
+		.doctor-patients-hero h1 span {
+			color: #b8f267
+		}
+
+		.doctor-patients-hero p {
+			max-width: 720px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .78);
+			line-height: 1.75
+		}
+
+		.doctor-patients-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px
+		}
+
+		.doctor-patients-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700
+		}
+
+		.doctor-patients-hero-action {
+			display: flex;
+			min-width: 210px;
+			flex-direction: column;
+			align-items: center;
+			padding: 22px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px)
+		}
+
+		.doctor-patients-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 68px;
+			height: 68px;
+			margin-bottom: 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #fff;
+			font-size: 28px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+			animation: patientsIconFloat 3s ease-in-out infinite
+		}
+
+		.doctor-patients-add-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 46px;
+			margin-top: 13px;
+			padding: 0 18px;
+			border: 0;
+			border-radius: 15px;
+			color: #05285f;
+			background: #fff;
+			font-size: 12px;
+			font-weight: 800;
+			transition: .3s ease
+		}
+
+		.doctor-patients-add-button:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 14px 30px rgba(0, 0, 0, .18)
+		}
+
+		.doctor-patients-summary-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px
+		}
+
+		.doctor-patients-summary-card {
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .95);
+			box-shadow: 0 14px 35px rgba(5, 40, 95, .08);
+			transition: .35s ease
+		}
+
+		.doctor-patients-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 22px 48px rgba(5, 40, 95, .14)
+		}
+
+		.doctor-patients-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px
+		}
+
+		.doctor-patients-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700
+		}
+
+		.doctor-patients-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 29px;
+			font-weight: 900
+		}
+
+		.doctor-patient-form-card {
+			position: relative;
+			overflow: hidden;
+			animation: patientPanelReveal .45s cubic-bezier(.22, 1, .36, 1) both
+		}
+
+		.doctor-patient-form-header,
+		.doctor-patient-list-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5
+		}
+
+		.doctor-patient-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px
+		}
+
+		.doctor-patient-title-icon {
+			display: flex;
+			flex: 0 0 46px;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+			box-shadow: 0 12px 26px rgba(5, 40, 95, .16)
+		}
+
+		.doctor-patient-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase
+		}
+
+		.doctor-patient-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900
+		}
+
+		.doctor-patient-control-wrap {
+			position: relative
+		}
+
+		.doctor-patient-control-wrap>i {
+			position: absolute;
+			top: 39px;
+			left: 14px;
+			z-index: 4;
+			color: #0577b8;
+			pointer-events: none
+		}
+
+		.doctor-patient-control-wrap .form-control,
+		.doctor-patient-control-wrap .form-select {
+			padding-left: 41px
+		}
+
+		.doctor-patient-actions {
+			display: flex;
+			justify-content: flex-end;
+			gap: 10px;
+			margin-top: 18px;
+			padding-top: 18px;
+			border-top: 1px solid #edf3f6
+		}
+
+		.doctor-patient-search-wrap {
+			position: relative;
+			min-width: 310px
+		}
+
+		.doctor-patient-search-wrap i {
+			position: absolute;
+			top: 50%;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			transform: translateY(-50%)
+		}
+
+		.doctor-patient-search-wrap .form-control {
+			padding-left: 41px
+		}
+
+		.doctor-patient-table-wrap {
+			overflow: hidden;
+			border: 1px solid #e6eef4;
+			border-radius: 18px
+		}
+
+		.doctor-patient-table-wrap table {
+			margin-bottom: 0
+		}
+
+		.doctor-patient-table-wrap thead th {
+			padding: 15px 16px;
+			border-bottom: 0;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 12px;
+			font-weight: 900;
+			white-space: nowrap
+		}
+
+		.doctor-patient-table-wrap tbody td {
+			padding: 15px 16px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 13px;
+			vertical-align: middle
+		}
+
+		.doctor-patient-table-wrap tbody tr {
+			opacity: 0;
+			transform: translateY(12px);
+			animation: patientRowReveal .45s var(--row-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards
+		}
+
+		.doctor-patient-profile {
+			display: flex;
+			align-items: center;
+			gap: 11px
+		}
+
+		.doctor-patient-avatar {
+			display: flex;
+			flex: 0 0 42px;
+			align-items: center;
+			justify-content: center;
+			width: 42px;
+			height: 42px;
+			border-radius: 14px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 17px
+		}
+
+		.doctor-patient-blood-pill,
+		.doctor-patient-gender-pill {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			font-size: 11px;
+			font-weight: 800
+		}
+
+		.doctor-patient-blood-pill {
+			color: #842029;
+			background: #f8d7da
+		}
+
+		.doctor-patient-gender-pill {
+			color: #05285f;
+			background: #eaf7fb
+		}
+
+		.doctor-patient-history {
+			display: -webkit-box;
+			max-width: 280px;
+			overflow: hidden;
+			-webkit-line-clamp: 2;
+			-webkit-box-orient: vertical;
+			line-height: 1.5
+		}
+
+		.doctor-patient-action-group {
+			display: inline-flex;
+			flex-wrap: wrap;
+			gap: 7px
+		}
+
+		.doctor-patients-state {
+			padding: 50px 20px;
+			text-align: center
+		}
+
+		.doctor-patients-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 70px;
+			height: 70px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #fff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 27px;
+			box-shadow: 0 15px 32px rgba(5, 40, 95, .17)
+		}
+
+		.doctor-patients-loading-icon {
+			animation: patientsLoadingPulse 1.3s ease-in-out infinite
+		}
+
+		.select2-container--default .select2-selection--single {
+			height: 38px;
+			border: 1px solid #dee2e6;
+			border-radius: .375rem
+		}
+
+		.select2-container--default .select2-selection--single .select2-selection__rendered {
+			padding-left: 40px;
+			line-height: 36px
+		}
+
+		.select2-container--default .select2-selection--single .select2-selection__arrow {
+			height: 36px
+		}
+
+		@keyframes patientsHeroReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px)
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0)
+			}
+		}
+
+		@keyframes patientsHeroFloat {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0)
+			}
+
+			50% {
+				transform: translateY(25px) rotate(8deg)
+			}
+		}
+
+		@keyframes patientsIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0)
+			}
+
+			50% {
+				transform: translateY(-7px)
+			}
+		}
+
+		@keyframes patientPanelReveal {
+			from {
+				opacity: 0;
+				transform: translateY(-12px) scale(.985)
+			}
+
+			to {
+				opacity: 1;
+				transform: none
+			}
+		}
+
+		@keyframes patientRowReveal {
+			to {
+				opacity: 1;
+				transform: translateY(0)
+			}
+		}
+
+		@keyframes patientsLoadingPulse {
+
+			0%,
+			100% {
+				transform: scale(.94);
+				opacity: .72
+			}
+
+			50% {
+				transform: scale(1.06);
+				opacity: 1
+			}
+		}
+
+		@media(max-width:1100px) {
+			.doctor-patients-summary-grid {
+				grid-template-columns: repeat(2, minmax(0, 1fr))
+			}
+		}
+
+		@media(max-width:992px) {
+			.doctor-patients-hero {
+				align-items: flex-start;
+				flex-direction: column
+			}
+
+			.doctor-patients-hero-action {
+				width: 100%
+			}
+		}
+
+		@media(max-width:768px) {
+			.doctor-patient-list-header {
+				align-items: stretch;
+				flex-direction: column
+			}
+
+			.doctor-patient-search-wrap {
+				width: 100%;
+				min-width: 0
+			}
+		}
+
+		@media(max-width:576px) {
+			.doctor-patients-hero {
+				padding: 26px 21px;
+				border-radius: 24px
+			}
+
+			.doctor-patients-summary-grid {
+				grid-template-columns: 1fr
+			}
+
+			.doctor-patient-actions {
+				flex-direction: column-reverse
+			}
+
+			.doctor-patient-actions .btn {
+				width: 100% !important
+			}
+		}
+	</style>
 </head>
 
-<body class="dashboard-body">
+<body class="dashboard-body platform-dashboard-body">
 
-	<nav class="navbar fixed-top mr-navbar px-3 px-lg-4">
-		<div class="d-flex align-items-center gap-3">
-			<button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-			<a href="/dashboard" class="mr-navbar-brand d-flex align-items-center gap-2">
-				<img th:src="@{/images/logo.png}" class="mr-nav-logo">
-				Medi<span>Revolution</span>
-			</a>
-		</div>
+	<div th:replace="~{layout/platform-topnavbar :: platformTopnavbar}"></div>
+	<div th:replace="~{layout/platform-sidebar :: platformSidebar}"></div>
 
-		<div class="d-flex align-items-center gap-3">
-			<div class="mr-user-pill"><span id="userEmail">doctor@email.com</span></div>
+	<main class="mr-main platform-main doctor-patients-page">
 
-			<button class="btn btn-light position-relative" onclick="window.location='/notifications'">
-				🔔
-				<span id="notificationCount"
-					class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
-			</button>
+		<section class="doctor-patients-hero">
+			<div class="doctor-patients-hero-content">
+				<span class="doctor-patients-kicker">
+					<i class="bi bi-people-fill"></i>
+					Doctor Patient Registry
+				</span>
 
-			<button class="btn btn-outline-light" onclick="logout()">Logout</button>
-		</div>
-	</nav>
+				<h1>Patient <span>management</span></h1>
 
-	<aside class="mr-sidebar" id="sidebar">
-		<a href="/dashboard">🏠 Main Dashboard</a>
-		<a href="/doctor/dashboard">🩺 Doctor Dashboard</a>
-		<a href="/doctor/patients" class="active">👨‍⚕️ Patients</a>
-		<a href="/doctor/prescriptions">💊 Prescriptions</a>
-		<a href="/doctor/appointments">📅 Appointments</a>
-		<a href="/doctor/reports">📊 Doctor Reports</a>
-		<a href="/notifications">🔔 Notifications</a>
-		<a href="/profile">👤 Profile</a>
-	</aside>
+				<p>
+					Maintain registered patient information, medical history,
+					contact details and clinical profiles from one secure workspace.
+				</p>
 
-	<main class="mr-main">
-
-		<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
-			<div>
-				<h1 class="mr-page-title">Patient Management</h1>
-				<p class="mr-page-subtitle">Maintain patient details, medical history and contact information.</p>
+				<div class="doctor-patients-meta">
+					<span><i class="bi bi-person-check-fill"></i> Registered patients</span>
+					<span><i class="bi bi-file-medical-fill"></i> Medical history</span>
+					<span><i class="bi bi-shield-check"></i> Doctor-only access</span>
+				</div>
 			</div>
 
-			<button class="btn btn-medi" style="width:auto;" onclick="openCreateForm()">+ Add Patient</button>
-		</div>
+			<div class="doctor-patients-hero-action">
+				<div class="doctor-patients-hero-icon">
+					<i class="bi bi-person-plus-fill"></i>
+				</div>
+				<strong>Add Patient Record</strong>
+				<button type="button" class="doctor-patients-add-button" onclick="openCreateForm()">
+					<i class="bi bi-plus-circle-fill"></i>
+					Add Patient
+				</button>
+			</div>
+		</section>
 
 		<div id="msg"></div>
 
-		<div class="mr-card mb-4" id="patientFormPanel" style="display:none;">
-			<h5 class="fw-bold text-primary mb-3" id="formTitle">Add New Patient</h5>
+		<section class="doctor-patients-summary-grid">
+			<article class="doctor-patients-summary-card">
+				<div class="doctor-patients-summary-icon"><i class="bi bi-people-fill"></i></div>
+				<small>Total Patients</small>
+				<strong id="totalDoctorPatientCount">0</strong>
+			</article>
+
+			<article class="doctor-patients-summary-card">
+				<div class="doctor-patients-summary-icon"><i class="bi bi-person-vcard-fill"></i></div>
+				<small>Registered Accounts</small>
+				<strong id="registeredPatientCount">0</strong>
+			</article>
+
+			<article class="doctor-patients-summary-card">
+				<div class="doctor-patients-summary-icon"><i class="bi bi-droplet-fill"></i></div>
+				<small>Blood Group Recorded</small>
+				<strong id="bloodGroupPatientCount">0</strong>
+			</article>
+
+			<article class="doctor-patients-summary-card">
+				<div class="doctor-patients-summary-icon"><i class="bi bi-journal-medical"></i></div>
+				<small>History Recorded</small>
+				<strong id="historyPatientCount">0</strong>
+			</article>
+		</section>
+
+		<section class="mr-card doctor-patient-form-card mb-4" id="patientFormPanel" style="display:none;">
+			<div class="doctor-patient-form-header">
+				<div class="doctor-patient-title-wrap">
+					<div class="doctor-patient-title-icon"><i class="bi bi-person-plus-fill"></i></div>
+					<div>
+						<small>Patient Record</small>
+						<h5 id="formTitle">Add New Patient</h5>
+					</div>
+				</div>
+
+				<button type="button" class="btn btn-sm btn-outline-secondary" onclick="cancelEdit()">
+					<i class="bi bi-x-lg"></i>
+				</button>
+			</div>
 
 			<input type="hidden" id="patientId">
+			<input type="hidden" id="patientAuthUserId">
+			<input type="hidden" id="patientName">
 
 			<div class="row g-3">
-				<div class="col-md-6">
-				    <label class="form-label">Search Registered Patient</label>
-
-				    <select id="registeredPatientSelect"
-				            class="form-select"
-				            onchange="selectRegisteredPatient()">
-				        <option value="">Select registered patient</option>
-				    </select>
-
-				    <input type="hidden" id="patientAuthUserId">
-				    <input type="hidden" id="patientName">
-				</div>
-				<div class="col-md-6">
-				    <label class="form-label">Mobile</label>
-				    <input type="text" id="mobile" class="form-control" readonly>
+				<div class="col-lg-6 doctor-patient-control-wrap">
+					<label for="registeredPatientSelect" class="form-label">Search Registered Patient</label>
+					<i class="bi bi-search"></i>
+					<select id="registeredPatientSelect" class="form-select" onchange="selectRegisteredPatient()">
+						<option value="">Select registered patient</option>
+					</select>
 				</div>
 
-				<div class="col-md-6">
-				    <label class="form-label">Email</label>
-				    <input type="email" id="email" class="form-control" readonly>
+				<div class="col-lg-3 col-md-6 doctor-patient-control-wrap">
+					<label for="mobile" class="form-label">Mobile</label>
+					<i class="bi bi-telephone-fill"></i>
+					<input type="text" id="mobile" class="form-control" readonly>
 				</div>
-				<div class="col-md-3">
-					<label class="form-label">Gender</label>
+
+				<div class="col-lg-3 col-md-6 doctor-patient-control-wrap">
+					<label for="email" class="form-label">Email</label>
+					<i class="bi bi-envelope-fill"></i>
+					<input type="email" id="email" class="form-control" readonly>
+				</div>
+
+				<div class="col-lg-3 col-md-6 doctor-patient-control-wrap">
+					<label for="gender" class="form-label">Gender</label>
+					<i class="bi bi-gender-ambiguous"></i>
 					<select id="gender" class="form-select">
 						<option value="">Select</option>
 						<option value="Male">Male</option>
@@ -98,48 +683,63 @@
 					</select>
 				</div>
 
-				<div class="col-md-3">
-					<label class="form-label">Date of Birth</label>
+				<div class="col-lg-3 col-md-6 doctor-patient-control-wrap">
+					<label for="dateOfBirth" class="form-label">Date of Birth</label>
+					<i class="bi bi-calendar-event-fill"></i>
 					<input type="date" id="dateOfBirth" class="form-control">
 				</div>
 
-				<div class="col-md-4">
-					<label class="form-label">Blood Group</label>
-					<input type="text" id="bloodGroup" class="form-control" placeholder="B+">
+				<div class="col-lg-3 col-md-6 doctor-patient-control-wrap">
+					<label for="bloodGroup" class="form-label">Blood Group</label>
+					<i class="bi bi-droplet-fill"></i>
+					<input type="text" id="bloodGroup" class="form-control" placeholder="Example: B+">
 				</div>
 
-				<div class="col-md-8">
-					<label class="form-label">Address</label>
-					<input type="text" id="address" class="form-control">
+				<div class="col-lg-3 col-md-6 doctor-patient-control-wrap">
+					<label for="address" class="form-label">Address</label>
+					<i class="bi bi-geo-alt-fill"></i>
+					<input type="text" id="address" class="form-control" placeholder="Patient address">
 				</div>
 
-				<div class="col-md-12">
-					<label class="form-label">Medical History</label>
-					<textarea id="medicalHistory" class="form-control" rows="3"></textarea>
-				</div>
-
-				<div class="col-md-12 text-end">
-					<button class="btn btn-secondary me-2" style="width:auto; display:none;" id="cancelEditBtn"
-						onclick="cancelEdit()">
-						Cancel
-					</button>
-
-					<button class="btn btn-medi" style="width:auto;" id="saveBtn" onclick="savePatient()">
-						Save Patient
-					</button>
+				<div class="col-12">
+					<label for="medicalHistory" class="form-label">Medical History</label>
+					<textarea id="medicalHistory" class="form-control" rows="3"
+						placeholder="Enter allergies, previous diagnosis, chronic conditions or treatment history"></textarea>
 				</div>
 			</div>
-		</div>
 
-		<div class="mr-card">
-			<div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
-				<h5 class="fw-bold text-primary mb-0">My Patients</h5>
+			<div class="doctor-patient-actions">
+				<button type="button" class="btn btn-secondary" style="width:auto;display:none;" id="cancelEditBtn"
+					onclick="cancelEdit()">
+					<i class="bi bi-x-circle me-1"></i>
+					Cancel
+				</button>
 
-				<input type="text" id="searchBox" class="form-control" style="max-width:300px;"
-					placeholder="Search patient/mobile/history" onkeyup="filterPatients()">
+				<button type="button" class="btn btn-medi" style="width:auto;" id="saveBtn" onclick="savePatient()">
+					<i class="bi bi-check2-circle me-1"></i>
+					Save Patient
+				</button>
+			</div>
+		</section>
+
+		<section class="mr-card">
+			<div class="doctor-patient-list-header">
+				<div class="doctor-patient-title-wrap">
+					<div class="doctor-patient-title-icon"><i class="bi bi-people-fill"></i></div>
+					<div>
+						<small>Patient Registry</small>
+						<h5>My Patients</h5>
+					</div>
+				</div>
+
+				<div class="doctor-patient-search-wrap">
+					<i class="bi bi-search"></i>
+					<input type="text" id="searchBox" class="form-control"
+						placeholder="Search patient, mobile, email or history" onkeyup="filterPatients()">
+				</div>
 			</div>
 
-			<div class="table-responsive">
+			<div class="table-responsive doctor-patient-table-wrap">
 				<table class="table table-hover align-middle">
 					<thead>
 						<tr>
@@ -154,20 +754,43 @@
 						</tr>
 					</thead>
 
-					<tbody id="patientTable"></tbody>
+					<tbody id="patientTable">
+						<tr>
+							<td colspan="8">
+								<div class="doctor-patients-state">
+									<div class="doctor-patients-state-icon doctor-patients-loading-icon">
+										<i class="bi bi-people-fill"></i>
+									</div>
+									<h5 class="fw-bold text-primary">Loading patients</h5>
+									<p class="text-muted mb-0">Please wait while we prepare patient records.</p>
+								</div>
+							</td>
+						</tr>
+					</tbody>
 				</table>
 			</div>
-		</div>
+		</section>
 
+		<div th:replace="~{layout/footer :: footer}"></div>
 	</main>
-	
+
+	<div class="module-exit-overlay" id="moduleExitOverlay">
+		<div class="module-exit-content">
+			<div class="module-exit-icon"><i class="bi bi-arrow-left-right"></i></div>
+			<h2>Switching Experience</h2>
+			<p>Returning to MediRevolution module selection...</p>
+			<div class="module-exit-progress"><span></span></div>
+		</div>
+	</div>
+
 	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+	<script th:src="@{/js/module-switch.js}"></script>
 	<script th:src="@{/js/common-dashboard.js}"></script>
-	<script th:src="@{/js/doctor-patients.js}"></script>
+	<script th:src="@{/js/doctor-patients.js?v=2}"></script>
 	<script th:src="@{/js/pwa.js}"></script>
-
 </body>
 
 </html>

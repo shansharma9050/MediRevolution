@@ -1,0 +1,207 @@
+<aside th:fragment="platformSidebar" class="mr-sidebar platform-sidebar" id="platformSidebar">
+
+	<div class="sidebar-module-header">
+
+		<div class="sidebar-module-icon platform-sidebar-icon">
+			<i class="bi bi-globe2"></i>
+		</div>
+
+		<div>
+			<strong>Main Platform</strong>
+			<small>Healthcare Ecosystem</small>
+		</div>
+
+	</div>
+
+	<div class="sidebar-section-title">
+		Navigation
+	</div>
+
+	<a th:href="@{/dashboard}" data-platform-link="dashboard">
+		<i class="bi bi-house-door-fill"></i>
+		<span>Dashboard</span>
+	</a>
+
+	<a th:href="@{/approvals}" data-role="SUPER_ADMIN">
+		<i class="bi bi-person-check-fill"></i>
+		<span>Pending Approvals</span>
+	</a>
+
+	<a href="#" data-role="SUPER_ADMIN">
+		<i class="bi bi-people-fill"></i>
+		<span>Users</span>
+	</a>
+
+	<a th:href="@{/wholesaler/medicines}" data-role="SUPER_ADMIN WHOLESALER">
+		<i class="bi bi-capsule-pill"></i>
+		<span>Medicine Master</span>
+	</a>
+
+	<a th:href="@{/wholesaler/inventory}" data-role="WHOLESALER">
+		<i class="bi bi-box-seam-fill"></i>
+		<span>Inventory</span>
+	</a>
+
+	<a th:href="@{/retailer/search-medicines}" data-role="RETAILER">
+		<i class="bi bi-search"></i>
+		<span>Search Medicines</span>
+	</a>
+
+	<a th:href="@{/retailer/cart}" data-role="RETAILER">
+		<i class="bi bi-cart-fill"></i>
+		<span>Cart</span>
+	</a>
+
+	<a th:href="@{/orders}" data-role="SUPER_ADMIN WHOLESALER RETAILER">
+		<i class="bi bi-clipboard-data-fill"></i>
+		<span>Orders</span>
+	</a>
+
+	<a th:href="@{/invoices}" data-role="SUPER_ADMIN WHOLESALER RETAILER">
+		<i class="bi bi-receipt-cutoff"></i>
+		<span>Invoices</span>
+	</a>
+
+	<a th:href="@{/reports}" data-role="SUPER_ADMIN WHOLESALER RETAILER">
+		<i class="bi bi-bar-chart-fill"></i>
+		<span>Reports</span>
+	</a>
+
+	<div class="sidebar-section-title" data-role="PATIENT">
+		Patient Services
+	</div>
+
+	<a th:href="@{/appointments/book}" data-role="PATIENT">
+		<i class="bi bi-calendar-plus-fill"></i>
+		<span>Book Appointment</span>
+	</a>
+
+	<a th:href="@{/appointments/my}" data-role="PATIENT">
+		<i class="bi bi-calendar-check-fill"></i>
+		<span>My Appointments</span>
+	</a>
+
+	<a th:href="@{/patient/prescriptions}" data-role="PATIENT">
+		<i class="bi bi-file-medical-fill"></i>
+		<span>My Prescriptions</span>
+	</a>
+
+	<div class="sidebar-section-title" data-role="DOCTOR">
+		Doctor Services
+	</div>
+
+	<a th:href="@{/doctor/dashboard}" data-role="DOCTOR">
+		<i class="bi bi-speedometer2"></i>
+		<span>Doctor Dashboard</span>
+	</a>
+
+	<a th:href="@{/doctor/patients}" data-role="DOCTOR">
+		<i class="bi bi-people-fill"></i>
+		<span>Patients</span>
+	</a>
+
+	<a th:href="@{/doctor/prescriptions}" data-role="DOCTOR">
+		<i class="bi bi-file-medical-fill"></i>
+		<span>Prescriptions</span>
+	</a>
+
+	<a th:href="@{/doctor/appointments}" data-role="DOCTOR">
+		<i class="bi bi-calendar-event-fill"></i>
+		<span>Appointments</span>
+	</a>
+
+	<a th:href="@{/doctor/reports}" data-role="DOCTOR">
+		<i class="bi bi-graph-up-arrow"></i>
+		<span>Doctor Reports</span>
+	</a>
+
+	<a th:href="@{/doctor/availability}" data-role="DOCTOR">
+		<i class="bi bi-clock-fill"></i>
+		<span>Doctor Availability</span>
+	</a>
+
+	<a th:href="@{/doctor/appointment-requests}" data-role="DOCTOR">
+		<i class="bi bi-calendar2-heart-fill"></i>
+		<span>Appointment Requests</span>
+	</a>
+
+	<div class="sidebar-section-title" data-role="HOSPITAL">
+		Hospital Services
+	</div>
+
+	<a th:href="@{/hospital/dashboard}" data-role="HOSPITAL">
+		<i class="bi bi-speedometer2"></i>
+		<span>Hospital Dashboard</span>
+	</a>
+
+	<a th:href="@{/hospital/patients}" data-role="HOSPITAL">
+		<i class="bi bi-person-vcard-fill"></i>
+		<span>OPD / IPD</span>
+	</a>
+
+	<a th:href="@{/hospital/staff}" data-role="HOSPITAL">
+		<i class="bi bi-people-fill"></i>
+		<span>Staff</span>
+	</a>
+
+	<a th:href="@{/hospital/inventory}" data-role="HOSPITAL">
+		<i class="bi bi-box-seam-fill"></i>
+		<span>Hospital Inventory</span>
+	</a>
+
+	<a th:href="@{/hospital/billing}" data-role="HOSPITAL">
+		<i class="bi bi-credit-card-fill"></i>
+		<span>Hospital Billing</span>
+	</a>
+
+	<a th:href="@{/hospital/reports}" data-role="HOSPITAL">
+		<i class="bi bi-bar-chart-line-fill"></i>
+		<span>Hospital Reports</span>
+	</a>
+
+	<a th:href="@{/hospital/doctors}" data-role="HOSPITAL">
+		<i class="bi bi-person-badge-fill"></i>
+		<span>Hospital Doctors</span>
+	</a>
+
+	<a th:href="@{/hospital/doctor-availability}" data-role="HOSPITAL">
+		<i class="bi bi-clock-history"></i>
+		<span>Doctor Availability</span>
+	</a>
+
+	<a th:href="@{/hospital/appointment-requests}" data-role="HOSPITAL">
+		<i class="bi bi-calendar2-heart-fill"></i>
+		<span>Appointment Requests</span>
+	</a>
+
+	<div class="sidebar-section-title">
+		Account
+	</div>
+
+	<a th:href="@{/subscription/current}" data-role="WHOLESALER DOCTOR HOSPITAL">
+		<i class="bi bi-credit-card-2-front-fill"></i>
+		<span>Subscription</span>
+	</a>
+
+	<a th:href="@{/subscription/plans}" data-role="WHOLESALER DOCTOR HOSPITAL">
+		<i class="bi bi-stars"></i>
+		<span>Plans</span>
+	</a>
+
+	<a th:href="@{/notifications}" data-role="SUPER_ADMIN WHOLESALER RETAILER DOCTOR HOSPITAL PATIENT">
+		<i class="bi bi-bell-fill"></i>
+		<span>Notifications</span>
+	</a>
+
+	<a th:href="@{/profile}" data-role="SUPER_ADMIN WHOLESALER RETAILER DOCTOR HOSPITAL PATIENT">
+		<i class="bi bi-person-circle"></i>
+		<span>Profile</span>
+	</a>
+
+	<button type="button" class="sidebar-switch-button" onclick="switchMediRevolutionModule()">
+
+		<i class="bi bi-arrow-left-right"></i>
+		<span>Switch Module</span>
+	</button>
+
+</aside>

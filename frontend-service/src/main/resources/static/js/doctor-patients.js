@@ -1,7 +1,7 @@
 let doctorPatients = [];
 let registeredPatients = [];
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function() {
 	requireDoctorRole();
 	loadRegisteredPatients();
 	loadPatients();
@@ -17,15 +17,22 @@ function requireDoctorRole() {
 function openCreateForm() {
 	clearPatientForm();
 
-	document.getElementById("patientFormPanel").style.display = "block";
+	const panel = document.getElementById("patientFormPanel");
+	if (panel) {
+		panel.style.display = "block";
+		panel.scrollIntoView({ behavior: "smooth", block: "center" });
+	}
+
 	document.getElementById("formTitle").innerText = "Add New Patient";
-	document.getElementById("saveBtn").innerText = "Save Patient";
+	setSaveButtonLabel("Save Patient");
 	document.getElementById("cancelEditBtn").style.display = "none";
 
 	enableRegisteredPatientSelect();
 
 	setTimeout(() => {
-		$("#registeredPatientSelect").select2("open");
+		if (window.jQuery && $.fn.select2 && $("#registeredPatientSelect").length) {
+			$("#registeredPatientSelect").select2("open");
+		}
 	}, 200);
 }
 
@@ -35,40 +42,41 @@ async function loadRegisteredPatients() {
 	try {
 		const response = await fetch(`${API_BASE}/auth/registered-patients`, {
 			method: "GET",
-			headers: {
-				"Authorization": "Bearer " + token
-			}
+			headers: { "Authorization": "Bearer " + token }
 		});
 
-		const result = await response.json();
+		const result = await readJsonSafely(response);
 
 		if (!response.ok) {
-			showDoctorMsg(result.message || "Unable to load registered patients");
+			registeredPatients = [];
+			renderRegisteredPatientSelect();
+			updatePatientSummary();
+			showDoctorMsg(getErrorMessage(result, "Unable to load registered patients"));
 			return;
 		}
 
-		registeredPatients = result || [];
-
+		registeredPatients = Array.isArray(result) ? result : [];
 		renderRegisteredPatientSelect();
+		updatePatientSummary();
 
 	} catch (e) {
 		console.error(e);
+		registeredPatients = [];
+		renderRegisteredPatientSelect();
+		updatePatientSummary();
 		showDoctorMsg("Unable to load registered patient list.");
 	}
 }
 
 function renderRegisteredPatientSelect() {
 	const select = document.getElementById("registeredPatientSelect");
-
-	if (!select) {
-		return;
-	}
+	if (!select) return;
 
 	let html = `<option value="">Select registered patient</option>`;
 
 	registeredPatients.forEach(patient => {
 		html += `
-			<option value="${patient.userId}">
+			<option value="${safeAttribute(patient.userId)}">
 				${safe(patient.fullName)} - ${safe(patient.email)} - ${safe(patient.mobile)}
 			</option>
 		`;
@@ -76,34 +84,36 @@ function renderRegisteredPatientSelect() {
 
 	select.innerHTML = html;
 
-	if ($.fn.select2 && $("#registeredPatientSelect").hasClass("select2-hidden-accessible")) {
-		$("#registeredPatientSelect").select2("destroy");
+	if (window.jQuery && $.fn.select2) {
+		if ($("#registeredPatientSelect").hasClass("select2-hidden-accessible")) {
+			$("#registeredPatientSelect").select2("destroy");
+		}
+
+		$("#registeredPatientSelect").select2({
+			placeholder: "Search patient by name, email or mobile",
+			allowClear: true,
+			width: "100%"
+		});
+
+		$("#registeredPatientSelect")
+			.off("change")
+			.on("change", selectRegisteredPatient);
 	}
-
-	$("#registeredPatientSelect").select2({
-		placeholder: "Search patient by name, email or mobile",
-		allowClear: true,
-		width: "100%"
-	});
-
-	$("#registeredPatientSelect").off("change").on("change", function () {
-		selectRegisteredPatient();
-	});
 }
 
 function selectRegisteredPatient() {
-	const selectedUserId = document.getElementById("registeredPatientSelect").value;
+	const selectedUserId = document.getElementById("registeredPatientSelect")?.value || "";
 
 	if (!selectedUserId) {
-		document.getElementById("patientAuthUserId").value = "";
-		document.getElementById("patientName").value = "";
-		document.getElementById("email").value = "";
-		document.getElementById("mobile").value = "";
+		setInputValue("patientAuthUserId", "");
+		setInputValue("patientName", "");
+		setInputValue("email", "");
+		setInputValue("mobile", "");
 		return;
 	}
 
-	const selectedPatient = registeredPatients.find(patient =>
-		Number(patient.userId) === Number(selectedUserId)
+	const selectedPatient = registeredPatients.find(
+		patient => Number(patient.userId) === Number(selectedUserId)
 	);
 
 	if (!selectedPatient) {
@@ -111,48 +121,53 @@ function selectRegisteredPatient() {
 		return;
 	}
 
-	document.getElementById("patientAuthUserId").value = selectedPatient.userId || "";
-	document.getElementById("patientName").value = selectedPatient.fullName || "";
-	document.getElementById("email").value = selectedPatient.email || "";
-	document.getElementById("mobile").value = selectedPatient.mobile || "";
+	setInputValue("patientAuthUserId", selectedPatient.userId || "");
+	setInputValue("patientName", selectedPatient.fullName || "");
+	setInputValue("email", selectedPatient.email || "");
+	setInputValue("mobile", selectedPatient.mobile || "");
 }
 
 function enableRegisteredPatientSelect() {
-	if ($("#registeredPatientSelect").length) {
-		$("#registeredPatientSelect").prop("disabled", false);
-		$("#registeredPatientSelect").val("").trigger("change");
+	if (window.jQuery && $("#registeredPatientSelect").length) {
+		$("#registeredPatientSelect").prop("disabled", false).val("").trigger("change");
 	}
 }
 
 function disableRegisteredPatientSelect() {
-	if ($("#registeredPatientSelect").length) {
+	if (window.jQuery && $("#registeredPatientSelect").length) {
 		$("#registeredPatientSelect").prop("disabled", true);
 	}
 }
 
 async function loadPatients() {
 	const token = localStorage.getItem("token");
+	showPatientsLoadingState();
 
 	try {
 		const response = await fetch(`${API_BASE}/doctor/patients`, {
 			method: "GET",
-			headers: {
-				"Authorization": "Bearer " + token
-			}
+			headers: { "Authorization": "Bearer " + token }
 		});
 
-		const result = await response.json();
+		const result = await readJsonSafely(response);
 
 		if (!response.ok) {
-			showDoctorMsg(result.message || "Unable to load patients");
+			doctorPatients = [];
+			updatePatientSummary();
+			showPatientsErrorState(getErrorMessage(result, "Unable to load patients"));
+			showDoctorMsg(getErrorMessage(result, "Unable to load patients"));
 			return;
 		}
 
-		doctorPatients = result || [];
+		doctorPatients = Array.isArray(result) ? result : [];
 		renderPatients(doctorPatients);
+		updatePatientSummary();
 
 	} catch (e) {
 		console.error(e);
+		doctorPatients = [];
+		updatePatientSummary();
+		showPatientsErrorState("Doctor service not reachable.");
 		showDoctorMsg("Doctor service not reachable.");
 	}
 }
@@ -169,13 +184,9 @@ async function savePatient() {
 
 async function createPatient() {
 	const payload = buildPatientPayload();
-
-	if (!validatePatient(payload)) {
-		return;
-	}
+	if (!validatePatient(payload)) return;
 
 	const token = localStorage.getItem("token");
-
 	setButtonLoading("saveBtn", "Saving...", true);
 
 	try {
@@ -188,18 +199,16 @@ async function createPatient() {
 			body: JSON.stringify(payload)
 		});
 
-		const result = await response.json();
+		const result = await readJsonSafely(response);
 
 		if (!response.ok) {
-			showDoctorMsg(result.message || "Unable to create patient");
+			showDoctorMsg(getErrorMessage(result, "Unable to create patient"));
 			return;
 		}
 
 		showDoctorMsg("Patient added successfully", "success");
-
 		clearPatientForm();
 		document.getElementById("patientFormPanel").style.display = "none";
-
 		loadPatients();
 
 	} catch (e) {
@@ -218,46 +227,39 @@ function editPatient(patientId) {
 		return;
 	}
 
-	document.getElementById("patientId").value = patient.id || "";
-	document.getElementById("patientAuthUserId").value = patient.patientAuthUserId || "";
-	document.getElementById("patientName").value = patient.patientName || "";
+	setInputValue("patientId", patient.id || "");
+	setInputValue("patientAuthUserId", patient.patientAuthUserId || "");
+	setInputValue("patientName", patient.patientName || "");
 
-	if ($("#registeredPatientSelect").length) {
+	if (window.jQuery && $("#registeredPatientSelect").length) {
 		$("#registeredPatientSelect")
 			.val(String(patient.patientAuthUserId || ""))
 			.trigger("change");
-
 		disableRegisteredPatientSelect();
 	}
 
-	document.getElementById("mobile").value = patient.mobile || "";
-	document.getElementById("email").value = patient.email || "";
-	document.getElementById("gender").value = patient.gender || "";
-	document.getElementById("dateOfBirth").value = patient.dateOfBirth || "";
-	document.getElementById("bloodGroup").value = patient.bloodGroup || "";
-	document.getElementById("address").value = patient.address || "";
-	document.getElementById("medicalHistory").value = patient.medicalHistory || "";
+	setInputValue("mobile", patient.mobile || "");
+	setInputValue("email", patient.email || "");
+	setInputValue("gender", patient.gender || "");
+	setInputValue("dateOfBirth", patient.dateOfBirth || "");
+	setInputValue("bloodGroup", patient.bloodGroup || "");
+	setInputValue("address", patient.address || "");
+	setInputValue("medicalHistory", patient.medicalHistory || "");
 
-	document.getElementById("patientFormPanel").style.display = "block";
+	const panel = document.getElementById("patientFormPanel");
+	panel.style.display = "block";
 	document.getElementById("formTitle").innerText = "Edit Patient";
-	document.getElementById("saveBtn").innerText = "Update Patient";
+	setSaveButtonLabel("Update Patient");
 	document.getElementById("cancelEditBtn").style.display = "inline-block";
 
-	document.getElementById("patientFormPanel").scrollIntoView({
-		behavior: "smooth",
-		block: "start"
-	});
+	panel.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 async function updatePatient(patientId) {
 	const payload = buildPatientPayload();
-
-	if (!validatePatient(payload)) {
-		return;
-	}
+	if (!validatePatient(payload)) return;
 
 	const token = localStorage.getItem("token");
-
 	setButtonLoading("saveBtn", "Updating...", true);
 
 	try {
@@ -270,18 +272,16 @@ async function updatePatient(patientId) {
 			body: JSON.stringify(payload)
 		});
 
-		const result = await response.json();
+		const result = await readJsonSafely(response);
 
 		if (!response.ok) {
-			showDoctorMsg(result.message || "Unable to update patient");
+			showDoctorMsg(getErrorMessage(result, "Unable to update patient"));
 			return;
 		}
 
 		showDoctorMsg("Patient updated successfully", "success");
-
 		clearPatientForm();
 		document.getElementById("patientFormPanel").style.display = "none";
-
 		loadPatients();
 
 	} catch (e) {
@@ -293,37 +293,24 @@ async function updatePatient(patientId) {
 }
 
 async function deletePatient(patientId) {
-	const confirmDelete = confirm("Are you sure you want to delete this patient?");
-
-	if (!confirmDelete) {
-		return;
-	}
+	if (!confirm("Are you sure you want to delete this patient?")) return;
 
 	const token = localStorage.getItem("token");
 
 	try {
 		const response = await fetch(`${API_BASE}/doctor/patients/${patientId}`, {
 			method: "DELETE",
-			headers: {
-				"Authorization": "Bearer " + token
-			}
+			headers: { "Authorization": "Bearer " + token }
 		});
 
-		let result = {};
-
-		try {
-			result = await response.json();
-		} catch (e) {
-			result = {};
-		}
+		const result = await readJsonSafely(response);
 
 		if (!response.ok) {
-			showDoctorMsg(result.message || "Unable to delete patient");
+			showDoctorMsg(getErrorMessage(result, "Unable to delete patient"));
 			return;
 		}
 
 		showDoctorMsg("Patient deleted successfully", "success");
-
 		loadPatients();
 
 	} catch (e) {
@@ -334,70 +321,161 @@ async function deletePatient(patientId) {
 
 function renderPatients(patients) {
 	const table = document.getElementById("patientTable");
+	if (!table) return;
 
-	if (!table) {
-		return;
-	}
+	const list = Array.isArray(patients) ? patients : [];
 
-	if (!patients || patients.length === 0) {
+	if (!list.length) {
 		table.innerHTML = `
 			<tr>
-				<td colspan="8" class="text-center text-muted py-4">
-					No patients found
+				<td colspan="8">
+					<div class="doctor-patients-state">
+						<div class="doctor-patients-state-icon">
+							<i class="bi bi-person-x-fill"></i>
+						</div>
+						<h5 class="fw-bold text-primary">No patients found</h5>
+						<p class="text-muted mb-0">
+							Add a registered patient to begin maintaining clinical records.
+						</p>
+					</div>
 				</td>
 			</tr>
 		`;
 		return;
 	}
 
-	let html = "";
-
-	patients.forEach((p, index) => {
-		html += `
-            <tr>
-                <td>${index + 1}</td>
-
-                <td>
-					<strong>${safe(p.patientName)}</strong><br>
-					<span class="text-muted small">${safe(p.email)}</span>
-				</td>
-
-                <td>${safe(p.mobile)}</td>
-                <td>${safe(p.gender)}</td>
-                <td>${formatDate(p.dateOfBirth)}</td>
-                <td>${safe(p.bloodGroup)}</td>
-                <td>${safe(p.medicalHistory)}</td>
-
-				<td>
-					<button class="btn btn-sm btn-warning me-1" onclick="editPatient(${p.id})">
-						Edit
+	table.innerHTML = list.map((p, index) => `
+		<tr style="--row-delay:${Math.min(index * 55, 330)}ms">
+			<td><strong>${index + 1}</strong></td>
+			<td>
+				<div class="doctor-patient-profile">
+					<div class="doctor-patient-avatar">
+						<i class="bi bi-person-fill"></i>
+					</div>
+					<div>
+						<strong class="text-primary">${safe(p.patientName)}</strong>
+						<div class="text-muted small">${safe(p.email)}</div>
+					</div>
+				</div>
+			</td>
+			<td><i class="bi bi-telephone-fill text-primary me-1"></i>${safe(p.mobile)}</td>
+			<td>
+				<span class="doctor-patient-gender-pill">
+					<i class="bi bi-gender-ambiguous"></i>${safe(p.gender)}
+				</span>
+			</td>
+			<td>${formatDate(p.dateOfBirth)}</td>
+			<td>
+				<span class="doctor-patient-blood-pill">
+					<i class="bi bi-droplet-fill"></i>${safe(p.bloodGroup)}
+				</span>
+			</td>
+			<td>
+				<div class="doctor-patient-history" title="${safeAttribute(p.medicalHistory)}">
+					${safe(p.medicalHistory)}
+				</div>
+			</td>
+			<td>
+				<div class="doctor-patient-action-group">
+					<button type="button" class="btn btn-sm btn-warning"
+							onclick="editPatient(${safeNumber(p.id)})">
+						<i class="bi bi-pencil-square me-1"></i>Edit
 					</button>
-
-					<button class="btn btn-sm btn-danger" onclick="deletePatient(${p.id})">
-						Delete
+					<button type="button" class="btn btn-sm btn-danger"
+							onclick="deletePatient(${safeNumber(p.id)})">
+						<i class="bi bi-trash-fill me-1"></i>Delete
 					</button>
-				</td>
-            </tr>
-        `;
-	});
+				</div>
+			</td>
+		</tr>
+	`).join("");
+}
 
-	table.innerHTML = html;
+function showPatientsLoadingState() {
+	const table = document.getElementById("patientTable");
+	if (!table) return;
+
+	table.innerHTML = `
+		<tr>
+			<td colspan="8">
+				<div class="doctor-patients-state">
+					<div class="doctor-patients-state-icon doctor-patients-loading-icon">
+						<i class="bi bi-people-fill"></i>
+					</div>
+					<h5 class="fw-bold text-primary">Loading patients</h5>
+					<p class="text-muted mb-0">Please wait while we prepare patient records.</p>
+				</div>
+			</td>
+		</tr>
+	`;
+}
+
+function showPatientsErrorState(message) {
+	const table = document.getElementById("patientTable");
+	if (!table) return;
+
+	table.innerHTML = `
+		<tr>
+			<td colspan="8">
+				<div class="doctor-patients-state">
+					<div class="doctor-patients-state-icon bg-danger">
+						<i class="bi bi-exclamation-triangle-fill"></i>
+					</div>
+					<h5 class="fw-bold text-danger">Unable to load patients</h5>
+					<p class="text-muted mb-0">${escapeHtml(message)}</p>
+				</div>
+			</td>
+		</tr>
+	`;
 }
 
 function filterPatients() {
-	const searchBox = document.getElementById("searchBox");
+	const keyword = document.getElementById("searchBox")?.value.trim().toLowerCase() || "";
 
-	if (!searchBox) {
-		return;
-	}
-
-	const keyword = searchBox.value.toLowerCase();
-
-	const filtered = doctorPatients.filter(p =>
-		JSON.stringify(p).toLowerCase().includes(keyword)
+	const filtered = doctorPatients.filter(
+		p => JSON.stringify(p).toLowerCase().includes(keyword)
 	);
 
 	renderPatients(filtered);
+}
+
+function updatePatientSummary() {
+	const list = Array.isArray(doctorPatients) ? doctorPatients : [];
+
+	setSummaryValue("totalDoctorPatientCount", list.length);
+	setSummaryValue("registeredPatientCount", Array.isArray(registeredPatients) ? registeredPatients.length : 0);
+	setSummaryValue("bloodGroupPatientCount", list.filter(p => p.bloodGroup && String(p.bloodGroup).trim()).length);
+	setSummaryValue("historyPatientCount", list.filter(p => p.medicalHistory && String(p.medicalHistory).trim()).length);
+}
+
+function setSummaryValue(id, value) {
+	const element = document.getElementById(id);
+	if (!element) return;
+
+	const target = Number(value) || 0;
+	const start = Number(element.textContent) || 0;
+	const difference = target - start;
+
+	if (
+		difference === 0 ||
+		window.matchMedia("(prefers-reduced-motion: reduce)").matches
+	) {
+		element.textContent = target;
+		return;
+	}
+
+	const duration = 500;
+	const startTime = performance.now();
+
+	function update(currentTime) {
+		const progress = Math.min((currentTime - startTime) / duration, 1);
+		const eased = 1 - Math.pow(1 - progress, 3);
+		element.textContent = Math.round(start + difference * eased);
+
+		if (progress < 1) requestAnimationFrame(update);
+	}
+
+	requestAnimationFrame(update);
 }
 
 function buildPatientPayload() {
@@ -418,10 +496,9 @@ function validatePatient(payload) {
 	if (!payload.patientAuthUserId) {
 		showDoctorMsg("Please select registered patient");
 
-		if ($("#registeredPatientSelect").length) {
+		if (window.jQuery && $.fn.select2 && $("#registeredPatientSelect").length) {
 			$("#registeredPatientSelect").select2("open");
 		}
-
 		return false;
 	}
 
@@ -435,7 +512,7 @@ function validatePatient(payload) {
 		return false;
 	}
 
-	if (payload.mobile.length < 10) {
+	if (String(payload.mobile).length < 10) {
 		showDoctorMsg("Please enter valid mobile number");
 		return false;
 	}
@@ -445,37 +522,37 @@ function validatePatient(payload) {
 
 function clearPatientForm() {
 	[
-		"patientId",
-		"patientAuthUserId",
-		"patientName",
-		"mobile",
-		"email",
-		"gender",
-		"dateOfBirth",
-		"bloodGroup",
-		"address",
-		"medicalHistory"
-	].forEach(id => {
-		const element = document.getElementById(id);
+		"patientId", "patientAuthUserId", "patientName", "mobile", "email",
+		"gender", "dateOfBirth", "bloodGroup", "address", "medicalHistory"
+	].forEach(id => setInputValue(id, ""));
 
-		if (element) {
-			element.value = "";
-		}
-	});
-
-	if ($("#registeredPatientSelect").length) {
-		$("#registeredPatientSelect").prop("disabled", false);
-		$("#registeredPatientSelect").val("").trigger("change");
+	if (window.jQuery && $("#registeredPatientSelect").length) {
+		$("#registeredPatientSelect").prop("disabled", false).val("").trigger("change");
 	}
 
 	document.getElementById("formTitle").innerText = "Add New Patient";
-	document.getElementById("saveBtn").innerText = "Save Patient";
+	setSaveButtonLabel("Save Patient");
 	document.getElementById("cancelEditBtn").style.display = "none";
 }
 
 function cancelEdit() {
 	clearPatientForm();
 	document.getElementById("patientFormPanel").style.display = "none";
+}
+
+function setInputValue(id, value) {
+	const element = document.getElementById(id);
+	if (element) element.value = value;
+}
+
+function setSaveButtonLabel(label) {
+	const button = document.getElementById("saveBtn");
+	if (!button) return;
+
+	button.innerHTML = `
+		<i class="bi bi-check2-circle me-1"></i>
+		${escapeHtml(label)}
+	`;
 }
 
 function getVal(id) {
@@ -485,40 +562,83 @@ function getVal(id) {
 
 function showDoctorMsg(message, type = "danger") {
 	const msg = document.getElementById("msg");
-
-	if (!msg) {
-		return;
-	}
+	if (!msg) return;
 
 	msg.innerHTML = `
 		<div class="alert alert-${type} alert-dismissible fade show">
-			${message}
+			${escapeHtml(message)}
 			<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
 		</div>
 	`;
 }
 
 function formatDate(value) {
-	return value ? new Date(value).toLocaleDateString() : "-";
-}
+	if (!value) return "-";
 
-function safe(value) {
-	return value === null || value === undefined || value === "" ? "-" : value;
+	const date = new Date(value);
+
+	if (Number.isNaN(date.getTime())) return safe(value);
+
+	return date.toLocaleDateString("en-IN", {
+		day: "2-digit",
+		month: "short",
+		year: "numeric"
+	});
 }
 
 function setButtonLoading(buttonId, loadingText, isLoading) {
 	const button = document.getElementById(buttonId);
-
-	if (!button) {
-		return;
-	}
+	if (!button) return;
 
 	if (isLoading) {
 		button.dataset.originalText = button.innerHTML;
-		button.innerHTML = loadingText;
+		button.innerHTML = `
+			<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
+			${escapeHtml(loadingText)}
+		`;
 		button.disabled = true;
 	} else {
 		button.innerHTML = button.dataset.originalText || button.innerHTML;
 		button.disabled = false;
 	}
+}
+
+async function readJsonSafely(response) {
+	try {
+		return await response.json();
+	} catch (error) {
+		return null;
+	}
+}
+
+function getErrorMessage(data, fallback) {
+	if (!data) return fallback;
+	if (data.message) return data.message;
+	if (data.error) return data.error;
+	if (typeof data === "string") return data;
+	return fallback;
+}
+
+function safe(value) {
+	return value === null || value === undefined || value === ""
+		? "-"
+		: escapeHtml(value);
+}
+
+function safeAttribute(value) {
+	return escapeHtml(value).replace(/`/g, "&#96;");
+}
+
+function safeNumber(value) {
+	const numberValue = Number(value);
+	return Number.isFinite(numberValue) ? numberValue : 0;
+}
+
+function escapeHtml(value) {
+	return String(value || "")
+		.replace(/&/g, "&amp;")
+		.replace(/'/g, "&#39;")
+		.replace(/"/g, "&quot;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;");
 }

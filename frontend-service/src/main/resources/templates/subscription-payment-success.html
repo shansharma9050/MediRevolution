@@ -1,40 +1,438 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-
+<html lang="en">
 <head>
-    <title>MediRevolution | Subscription Payment Success</title>
+    <meta charset="UTF-8">
+    <title>MediRevolution | Subscription Payment</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#05285f">
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #063f7c;
+            --primary-dark: #05366b;
+            --cyan: #08b8c8;
+            --card-bg: #f4fbff;
+            --text-muted: #5f728a;
+            --success: #18b957;
+            --success-soft: #cfeedd;
+            --danger: #ef3d3d;
+            --danger-soft: #f8d7da;
+            --warning: #ffc107;
+            --warning-soft: #fff3cd;
+            --info-bg: #eaf9ff;
+            --info-border: #91dfef;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: 24px;
+            font-family: "Segoe UI", Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                radial-gradient(circle at 80% 5%, rgba(255,255,255,0.15) 0 115px, transparent 118px),
+                radial-gradient(circle at 14% 98%, rgba(255,255,255,0.14) 0 90px, transparent 93px),
+                linear-gradient(135deg, #0a4b85 0%, #10b9bf 100%);
+        }
+
+        .payment-card {
+            width: 100%;
+            max-width: 466px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 32px 30px;
+            text-align: center;
+            box-shadow: 0 24px 70px rgba(2, 43, 78, 0.30);
+        }
+
+        .brand-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 20px;
+            margin-bottom: 30px;
+            border-radius: 999px;
+            background: #dff3fb;
+            color: var(--primary);
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .status-icon {
+            width: 66px;
+            height: 66px;
+            margin: 0 auto 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 34px;
+        }
+
+        .success-icon {
+            background: var(--success);
+            color: #ffffff;
+            box-shadow:
+                0 0 0 16px rgba(24, 185, 87, 0.17),
+                0 16px 36px rgba(24, 185, 87, 0.24);
+        }
+
+        .failed-icon {
+            background: var(--danger);
+            color: #ffffff;
+            box-shadow:
+                0 0 0 16px rgba(239, 61, 61, 0.15),
+                0 16px 36px rgba(239, 61, 61, 0.24);
+        }
+
+        .pending-icon {
+            background: var(--warning);
+            color: #111827;
+            box-shadow:
+                0 0 0 16px rgba(255, 193, 7, 0.20),
+                0 16px 36px rgba(255, 193, 7, 0.20);
+        }
+
+        .title {
+            margin: 0 0 10px;
+            color: var(--primary);
+            font-size: 28px;
+            font-weight: 900;
+            line-height: 1.2;
+            letter-spacing: -0.3px;
+        }
+
+        .subtitle {
+            max-width: 380px;
+            margin: 0 auto 22px;
+            color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.55;
+        }
+
+        .info-box {
+            margin-bottom: 14px;
+            padding: 18px;
+            background: var(--info-bg);
+            border: 1px solid var(--info-border);
+            border-radius: 16px;
+            text-align: left;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 10px 0;
+            border-bottom: 1px dashed #b9d9e7;
+            font-size: 14px;
+        }
+
+        .info-row:first-child {
+            padding-top: 0;
+        }
+
+        .info-row:last-child {
+            padding-bottom: 0;
+            border-bottom: 0;
+        }
+
+        .info-label {
+            min-width: 128px;
+            color: var(--text-muted);
+            font-weight: 650;
+        }
+
+        .info-value {
+            color: #101b2d;
+            font-weight: 900;
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .message-box {
+            margin: 14px 0 22px;
+            padding: 16px 18px;
+            border-radius: 13px;
+            font-size: 15px;
+            font-weight: 800;
+            line-height: 1.45;
+        }
+
+        .msg-success {
+            background: var(--success-soft);
+            color: #0c5c2c;
+        }
+
+        .msg-failed {
+            background: var(--danger-soft);
+            color: #761525;
+        }
+
+        .msg-pending {
+            background: var(--warning-soft);
+            color: #6d5200;
+        }
+
+        .btn-main {
+            display: block;
+            width: 100%;
+            padding: 14px 18px;
+            border: none;
+            border-radius: 13px;
+            background: linear-gradient(135deg, #064f8e, #08b8c8);
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 900;
+            text-decoration: none;
+            box-shadow: 0 13px 30px rgba(5, 76, 137, 0.28);
+            transition: all 0.2s ease;
+        }
+
+        .btn-main:hover {
+            color: #ffffff;
+            transform: translateY(-1px);
+            box-shadow: 0 16px 34px rgba(5, 76, 137, 0.34);
+        }
+
+        .secure-text {
+            margin-top: 20px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        @media (max-width: 520px) {
+            body {
+                padding: 18px;
+            }
+
+            .payment-card {
+                padding: 28px 20px;
+            }
+
+            .title {
+                font-size: 24px;
+            }
+
+            .info-row {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .info-value {
+                text-align: left;
+            }
+        }
+    </style>
 </head>
 
-<body class="dashboard-body">
+<body>
 
-<div th:replace="~{layout/topnavbar :: topnavbar}"></div>
-<div th:replace="~{layout/sidebar :: sidebar}"></div>
+<div class="payment-card">
 
-<main class="mr-main">
-
-    <div class="mr-card text-center">
-        <h1 class="text-success">Subscription Payment Success</h1>
-        <p class="text-muted">Activating your subscription...</p>
-
-        <div id="msg"></div>
-
-        <a href="/subscription/current" class="btn btn-medi mt-3">
-            View Current Subscription
-        </a>
+    <div class="brand-pill">
+        <i class="fa-solid fa-stethoscope"></i>
+        MediRevolution
     </div>
 
-    <div th:replace="~{layout/footer :: footer}"></div>
-</main>
+    <div id="statusIcon" class="status-icon pending-icon">
+        <i id="statusIconClass" class="fa-solid fa-spinner fa-spin"></i>
+    </div>
 
-<script th:src="@{/js/common-dashboard.js}"></script>
-<script th:src="@{/js/subscription-payment-success.js}"></script>
+    <h2 id="pageTitle" class="title">Verifying Payment...</h2>
+
+    <p id="pageSubtitle" class="subtitle">
+        Please wait while we verify your subscription payment.
+    </p>
+
+    <div class="info-box">
+        <div class="info-row">
+            <span class="info-label">Payment For</span>
+            <span class="info-value">Subscription</span>
+        </div>
+
+        <div class="info-row">
+            <span class="info-label">Payment ID</span>
+            <span id="paymentIdText" class="info-value">-</span>
+        </div>
+
+        <div class="info-row">
+            <span class="info-label">Merchant Order ID</span>
+            <span id="merchantOrderIdText" class="info-value">-</span>
+        </div>
+    </div>
+
+    <div id="messageBox" class="message-box msg-pending">
+        Payment verification is in progress.
+    </div>
+
+    <a href="/dashboard" id="mainButton" class="btn-main">
+        Go to Dashboard →
+    </a>
+
+    <div class="secure-text">
+        🔒 Secure payment verification powered by MediRevolution
+    </div>
+
+</div>
+
+<script>
+    const API_GATEWAY_BASE_URL = "http://localhost:8080";
+
+    const params = new URLSearchParams(window.location.search);
+
+    const paymentId = params.get("paymentId");
+    const merchantOrderId = params.get("merchantOrderId");
+
+    document.getElementById("paymentIdText").innerText = paymentId || "-";
+    document.getElementById("merchantOrderIdText").innerText = merchantOrderId || "-";
+
+    const token = localStorage.getItem("token");
+
+    function setStatus(type, title, subtitle, message) {
+        const statusIcon = document.getElementById("statusIcon");
+        const statusIconClass = document.getElementById("statusIconClass");
+        const messageBox = document.getElementById("messageBox");
+
+        statusIcon.className = "status-icon";
+        messageBox.className = "message-box";
+
+        if (type === "SUCCESS") {
+            statusIcon.classList.add("success-icon");
+            statusIconClass.className = "fa-solid fa-check";
+            messageBox.classList.add("msg-success");
+        } else if (type === "FAILED") {
+            statusIcon.classList.add("failed-icon");
+            statusIconClass.className = "fa-solid fa-xmark";
+            messageBox.classList.add("msg-failed");
+        } else {
+            statusIcon.classList.add("pending-icon");
+            statusIconClass.className = "fa-solid fa-spinner fa-spin";
+            messageBox.classList.add("msg-pending");
+        }
+
+        document.getElementById("pageTitle").innerText = title;
+        document.getElementById("pageSubtitle").innerText = subtitle;
+        messageBox.innerText = message;
+    }
+
+    function parseResponse(text) {
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            return {
+                success: false,
+                message: text || "Unable to verify payment."
+            };
+        }
+    }
+
+    async function verifySubscriptionPayment() {
+        if (!paymentId || !merchantOrderId) {
+            setStatus(
+                "FAILED",
+                "Payment Verification Failed",
+                "Payment response is missing paymentId or merchantOrderId.",
+                "Payment response is missing paymentId or merchantOrderId."
+            );
+            return;
+        }
+
+        if (!token) {
+            setStatus(
+                "FAILED",
+                "Login Required",
+                "Please login again to verify your subscription payment.",
+                "JWT token not found. Please login again."
+            );
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `${API_GATEWAY_BASE_URL}/billing/subscriptions/payments/verify?paymentId=${encodeURIComponent(paymentId)}&merchantOrderId=${encodeURIComponent(merchantOrderId)}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + token,
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+
+            const resultText = await response.text();
+            const result = parseResponse(resultText);
+
+            if (!response.ok) {
+                setStatus(
+                    "FAILED",
+                    "Payment Verification Failed",
+                    "Unable to verify your subscription payment.",
+                    result.message || "Payment verification failed."
+                );
+                return;
+            }
+
+            if (result.success === true) {
+                setStatus(
+                    "SUCCESS",
+                    "Payment Successful",
+                    "Your subscription payment has been verified successfully. Your subscription is now active.",
+                    result.message || "Subscription activated successfully."
+                );
+                return;
+            }
+
+            const status = (result.status || result.paymentStatus || result.state || "").toString().toUpperCase();
+
+            if (status === "SUCCESS" || status === "COMPLETED" || status === "ACTIVE") {
+                setStatus(
+                    "SUCCESS",
+                    "Payment Successful",
+                    "Your subscription payment has been verified successfully. Your subscription is now active.",
+                    result.message || "Subscription activated successfully."
+                );
+                return;
+            }
+
+            if (status === "FAILED" || status === "PAYMENT_FAILED" || result.success === false) {
+                setStatus(
+                    "FAILED",
+                    "Payment Failed",
+                    "Your subscription payment could not be verified.",
+                    result.message || "Payment failed. Please try again."
+                );
+                return;
+            }
+
+            setStatus(
+                "PENDING",
+                "Payment Pending",
+                "Your payment is still pending.",
+                result.message || "Payment verification is pending."
+            );
+
+        } catch (error) {
+            setStatus(
+                "FAILED",
+                "Verification Error",
+                "Something went wrong while verifying your subscription payment.",
+                error.message || "Unable to verify payment."
+            );
+        }
+    }
+
+    verifySubscriptionPayment();
+</script>
 
 </body>
 </html>

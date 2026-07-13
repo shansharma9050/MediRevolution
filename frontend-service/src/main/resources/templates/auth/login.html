@@ -1,168 +1,505 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <title>MediRevolution | Login</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-	
+	<meta charset="UTF-8">
+
+	<title>MediRevolution | Login</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
 	<link rel="manifest" href="/manifest.json">
 
 	<meta name="theme-color" content="#05285f">
-
 	<meta name="mobile-web-app-capable" content="yes">
-
 	<meta name="apple-mobile-web-app-capable" content="yes">
-
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
 	<meta name="apple-mobile-web-app-title" content="MediRevolution">
 
 	<link rel="apple-touch-icon" href="/images/icon-192.png">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+
+	<style>
+		.login-experience {
+			position: relative;
+			min-height: 100vh;
+			overflow: hidden;
+		}
+
+		.login-experience::before,
+		.login-experience::after {
+			position: fixed;
+			z-index: 0;
+			border-radius: 50%;
+			content: "";
+			filter: blur(4px);
+			pointer-events: none;
+		}
+
+		.login-experience::before {
+			top: -170px;
+			right: -130px;
+			width: 390px;
+			height: 390px;
+			background: radial-gradient(circle, rgba(8, 199, 212, .22), transparent 70%);
+			animation: loginAmbientFloat 10s ease-in-out infinite;
+		}
+
+		.login-experience::after {
+			bottom: -210px;
+			left: 30%;
+			width: 430px;
+			height: 430px;
+			background: radial-gradient(circle, rgba(123, 214, 0, .18), transparent 70%);
+			animation: loginAmbientFloat 12s ease-in-out infinite reverse;
+		}
+
+		.login-left-content {
+			position: relative;
+			z-index: 2;
+			animation: loginLeftReveal .85s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.login-hero-badge {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		.login-hero-logo-wrap {
+			position: relative;
+			display: inline-flex;
+			margin: 26px 0 18px;
+		}
+
+		.login-hero-logo-wrap::after {
+			position: absolute;
+			inset: -14px;
+			z-index: -1;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(255, 255, 255, .18), transparent 70%);
+			animation: loginLogoPulse 3.2s ease-in-out infinite;
+		}
+
+		.login-stat-card {
+			position: relative;
+			overflow: hidden;
+			transition: transform .35s ease, box-shadow .35s ease;
+		}
+
+		.login-stat-card:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 18px 34px rgba(0, 0, 0, .16);
+		}
+
+		.login-feature-list>div {
+			display: flex;
+			align-items: center;
+			gap: 9px;
+			opacity: 0;
+			transform: translateX(-16px);
+			animation: loginFeatureReveal .48s var(--feature-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards;
+		}
+
+		.login-feature-list i {
+			color: #b8f267;
+			font-size: 16px;
+		}
+
+		.login-auth-right {
+			position: relative;
+			z-index: 2;
+		}
+
+		.login-auth-card {
+			position: relative;
+			overflow: hidden;
+			animation: loginCardReveal .75s .12s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.login-auth-card::before {
+			position: absolute;
+			top: -100px;
+			right: -95px;
+			width: 210px;
+			height: 210px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(8, 199, 212, .12), transparent 68%);
+			pointer-events: none;
+		}
+
+		.login-header-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 56px;
+			height: 56px;
+			margin: 0 auto 12px;
+			border-radius: 18px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 23px;
+			box-shadow: 0 14px 30px rgba(5, 40, 95, .18);
+			animation: loginHeaderIconFloat 3s ease-in-out infinite;
+		}
+
+		.login-input-wrap {
+			position: relative;
+		}
+
+		.login-input-wrap>i {
+			position: absolute;
+			top: 50%;
+			left: 15px;
+			z-index: 4;
+			color: #0577b8;
+			transform: translateY(-50%);
+			pointer-events: none;
+		}
+
+		.login-input-wrap .form-control {
+			padding-left: 44px;
+		}
+
+		.login-password-toggle {
+			min-width: 52px;
+			border-left: 0;
+		}
+
+		.login-password-toggle i {
+			pointer-events: none;
+		}
+
+		.login-security-strip {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			margin: 18px 0 0;
+			padding: 12px 14px;
+			border: 1px solid #dff0f4;
+			border-radius: 14px;
+			color: #5f7489;
+			background: #f5fbfd;
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.login-security-strip i {
+			color: #08a9bd;
+			font-size: 18px;
+		}
+
+		.login-submit-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 52px;
+		}
+
+		.login-install-button {
+			display: none;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+		}
+
+		@keyframes loginLeftReveal {
+			from {
+				opacity: 0;
+				transform: translateX(-30px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateX(0);
+			}
+		}
+
+		@keyframes loginCardReveal {
+			from {
+				opacity: 0;
+				transform: translateY(28px) scale(.985);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0) scale(1);
+			}
+		}
+
+		@keyframes loginFeatureReveal {
+			to {
+				opacity: 1;
+				transform: translateX(0);
+			}
+		}
+
+		@keyframes loginAmbientFloat {
+
+			0%,
+			100% {
+				transform: translateY(0) translateX(0);
+			}
+
+			50% {
+				transform: translateY(24px) translateX(-18px);
+			}
+		}
+
+		@keyframes loginLogoPulse {
+
+			0%,
+			100% {
+				transform: scale(.94);
+				opacity: .55;
+			}
+
+			50% {
+				transform: scale(1.08);
+				opacity: 1;
+			}
+		}
+
+		@keyframes loginHeaderIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-6px);
+			}
+		}
+
+		@media (max-width: 991px) {
+
+			.login-experience::before,
+			.login-experience::after {
+				display: none;
+			}
+		}
+
+		@media (max-width: 576px) {
+			.login-auth-card {
+				border-radius: 22px;
+			}
+
+			.login-security-strip {
+				align-items: flex-start;
+			}
+		}
+	</style>
 </head>
+
 <body>
 
-<div class="auth-page">
+	<div class="auth-page login-experience">
 
-    <div class="auth-left">
-		<div class="auth-left-content">
+		<div class="auth-left">
 
-		    <div class="hero-badge">
-		        Healthcare Supply Chain Platform
-		    </div>
+			<div class="auth-left-content login-left-content">
 
-		    <img th:src="@{/images/logo.png}"
-		         class="hero-logo"
-		         alt="MediRevolution Logo">
+				<div class="hero-badge login-hero-badge">
+					<i class="bi bi-heart-pulse-fill"></i>
+					Healthcare Supply Chain Platform
+				</div>
 
-		    <h1 class="hero-title">
-		        Medi<span>Revolution</span>
-		    </h1>
+				<div class="login-hero-logo-wrap">
 
-		    <p class="hero-description">
-		        Connecting Wholesalers, Retailers, Hospitals and Doctors
-		        through one intelligent medicine commerce ecosystem.
-		    </p>
+					<img th:src="@{/images/logo.png}" class="hero-logo" alt="MediRevolution Logo">
 
-		    <div class="hero-stats">
+				</div>
 
-		        <div class="stat-card">
-		            <h2>10K+</h2>
-		            <span>Medicines</span>
-		        </div>
+				<h1 class="hero-title">
+					Medi<span>Revolution</span>
+				</h1>
 
-		        <div class="stat-card">
-		            <h2>500+</h2>
-		            <span>Retailers</span>
-		        </div>
+				<p class="hero-description">
+					Connecting wholesalers, retailers, hospitals, doctors and patients
+					through one intelligent healthcare ecosystem.
+				</p>
 
-		        <div class="stat-card">
-		            <h2>24/7</h2>
-		            <span>Support</span>
-		        </div>
+				<div class="hero-stats">
 
-		    </div>
+					<div class="stat-card login-stat-card">
+						<h2>10K+</h2>
+						<span>Medicines</span>
+					</div>
 
-		    <div class="feature-list">
+					<div class="stat-card login-stat-card">
+						<h2>500+</h2>
+						<span>Retailers</span>
+					</div>
 
-		        <div>✔ Inventory Management</div>
-		        <div>✔ Smart Order Processing</div>
-		        <div>✔ GST Billing</div>
-		        <div>✔ Real-Time Notifications</div>
+					<div class="stat-card login-stat-card">
+						<h2>24/7</h2>
+						<span>Support</span>
+					</div>
 
-		    </div>
+				</div>
 
-		</div>
-    </div>
+				<div class="feature-list login-feature-list">
 
-    <div class="auth-right">
-		<div class="auth-card">
+					<div style="--feature-delay:100ms;">
+						<i class="bi bi-check-circle-fill"></i>
+						Inventory Management
+					</div>
 
-		    <div class="login-header">
+					<div style="--feature-delay:180ms;">
+						<i class="bi bi-check-circle-fill"></i>
+						Smart Order Processing
+					</div>
 
-		        <img th:src="@{/images/logo.png}"
-		             class="auth-logo-small">
+					<div style="--feature-delay:260ms;">
+						<i class="bi bi-check-circle-fill"></i>
+						GST Billing
+					</div>
 
-		        <h2>Welcome Back</h2>
+					<div style="--feature-delay:340ms;">
+						<i class="bi bi-check-circle-fill"></i>
+						Real-Time Notifications
+					</div>
 
-		        <p>
-		            Sign in to access your healthcare dashboard
-		        </p>
+				</div>
 
-		    </div>
-
-		    <div id="msg"></div>
-
-		    <div class="mb-3">
-		        <label>Email Address</label>
-		        <input type="email"
-		               id="email"
-		               class="form-control form-control-lg"
-		               placeholder="Enter your email">
-		    </div>
-
-			<div class="mb-3">
-			    <label>Password</label>
-
-			    <div class="input-group">
-			        <input type="password"
-			               id="password"
-			               class="form-control form-control-lg"
-			               placeholder="Enter password">
-
-			        <button type="button"
-			                class="btn btn-outline-secondary"
-			                onclick="togglePassword()">
-			            👁
-			        </button>
-			    </div>
 			</div>
 
-			<div class="d-flex justify-content-between align-items-center mb-3">
-			    <div class="form-check">
-			        <input class="form-check-input"
-			               type="checkbox"
-			               id="rememberPassword">
+		</div>
 
-			        <label class="form-check-label" for="rememberPassword">
-			            Remember password
-			        </label>
-			    </div>
+		<div class="auth-right login-auth-right">
 
-			    <a href="/forgot-password" class="text-decoration-none">
-			        Forgot Password?
-			    </a>
+			<div class="auth-card login-auth-card">
+
+				<div class="login-header">
+
+					<div class="login-header-icon">
+						<i class="bi bi-shield-lock-fill"></i>
+					</div>
+
+					<img th:src="@{/images/logo.png}" class="auth-logo-small" alt="MediRevolution Logo">
+
+					<h2>Welcome Back</h2>
+
+					<p>
+						Sign in to access your healthcare dashboard
+					</p>
+
+				</div>
+
+				<div id="msg"></div>
+
+				<div class="mb-3">
+
+					<label for="email" class="form-label">
+						Email Address
+					</label>
+
+					<div class="login-input-wrap">
+
+						<i class="bi bi-envelope-fill"></i>
+
+						<input type="email" id="email" class="form-control form-control-lg"
+							placeholder="Enter your email" autocomplete="email">
+
+					</div>
+
+				</div>
+
+				<div class="mb-3">
+
+					<label for="password" class="form-label">
+						Password
+					</label>
+
+					<div class="input-group login-input-wrap">
+
+						<i class="bi bi-lock-fill"></i>
+
+						<input type="password" id="password" class="form-control form-control-lg"
+							placeholder="Enter password" autocomplete="current-password">
+
+						<button type="button" class="btn btn-outline-secondary login-password-toggle"
+							onclick="togglePassword()" aria-label="Show or hide password">
+
+							<i id="passwordToggleIcon" class="bi bi-eye-fill"></i>
+						</button>
+
+					</div>
+
+				</div>
+
+				<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+
+					<div class="form-check">
+
+						<input class="form-check-input" type="checkbox" id="rememberPassword">
+
+						<label class="form-check-label" for="rememberPassword">
+
+							Remember password
+						</label>
+
+					</div>
+
+					<a href="/forgot-password" class="text-decoration-none">
+
+						Forgot Password?
+					</a>
+
+				</div>
+
+				<button type="button" id="loginBtn" class="btn btn-login login-submit-button" onclick="login()">
+
+					<i class="bi bi-box-arrow-in-right"></i>
+					<span>Login to Dashboard</span>
+				</button>
+
+				<div class="login-security-strip">
+
+					<i class="bi bi-shield-check"></i>
+
+					<span>
+						Secure authentication with role-based access and protected sessions.
+					</span>
+
+				</div>
+
+				<div class="divider">
+					<span>OR</span>
+				</div>
+
+				<button id="installAppBtn" type="button" class="btn btn-outline-primary w-100 mt-3 login-install-button"
+					onclick="installMediRevolutionApp()">
+
+					<i class="bi bi-download"></i>
+					Install MediRevolution App
+				</button>
+
+				<p class="text-center mt-3 mb-0">
+					New to MediRevolution?
+					<a href="/register">
+						Create Account
+					</a>
+				</p>
+
 			</div>
 
-		    <button class="btn btn-login"
-		            onclick="login()">
-
-		        Login to Dashboard
-
-		    </button>
-
-		    <div class="divider">
-		        <span>OR</span>
-		    </div>
-			<button id="installAppBtn"
-			        class="btn btn-outline-primary w-100 mt-3"
-			        style="display:none;"
-			        onclick="installMediRevolutionApp()">
-			    Install MediRevolution App
-			</button>
-		    <p class="text-center mt-3">
-		        New to MediRevolution?
-		        <a href="/register">
-		            Create Account
-		        </a>
-		    </p>
 		</div>
-    </div>
 
-</div>
+	</div>
 
-<script th:src="@{/js/auth.js}"></script>
-<script th:src="@{/js/pwa.js}"></script>
+	<script th:src="@{/js/auth.js?v=20260713_1}"></script>
+	<script th:src="@{/js/pwa.js}"></script>
+
 </body>
+
 </html>

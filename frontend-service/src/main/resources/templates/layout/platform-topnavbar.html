@@ -1,0 +1,86 @@
+<nav th:fragment="platformTopnavbar"
+     class="navbar fixed-top mr-navbar platform-navbar px-3 px-lg-4">
+
+    <div class="d-flex align-items-center gap-3">
+
+        <button type="button"
+                class="mobile-menu-btn"
+                onclick="togglePlatformSidebar()"
+                aria-label="Open navigation menu">
+            ☰
+        </button>
+
+        <a th:href="@{/dashboard}"
+           class="mr-navbar-brand d-flex align-items-center gap-2">
+
+            <img th:src="@{/images/logo.png}"
+                 class="mr-nav-logo"
+                 alt="MediRevolution">
+
+            <span class="platform-brand-text">
+                Medi<span>Revolution</span>
+            </span>
+
+            <span class="module-navbar-badge platform-badge">
+                Platform
+            </span>
+        </a>
+
+    </div>
+
+    <div class="d-flex align-items-center gap-2 gap-lg-3">
+
+        <div class="mr-user-pill d-none d-md-flex">
+            <i class="bi bi-person-circle"></i>
+            <span id="userEmail">user@email.com</span>
+        </div>
+
+        <button type="button"
+                class="module-switch-navbar-button platform-module-switch"
+                onclick="switchMediRevolutionModule()">
+
+            <span class="module-switch-icon">
+                <i class="bi bi-arrow-left-right"></i>
+            </span>
+
+            <span class="d-none d-lg-inline">
+                Switch Module
+            </span>
+        </button>
+
+        <button type="button"
+                class="navbar-icon-button position-relative"
+                onclick="window.location.href='/notifications'"
+                aria-label="Notifications">
+
+            <i class="bi bi-bell-fill"></i>
+
+            <span id="notificationCount"
+                  class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                0
+            </span>
+        </button>
+
+        <button id="installAppBtn"
+                type="button"
+                class="navbar-icon-button d-none"
+                onclick="installMediRevolutionApp()"
+                aria-label="Install application">
+
+            <i class="bi bi-download"></i>
+        </button>
+
+        <button type="button"
+                class="navbar-logout-button"
+                onclick="logout()">
+
+            <i class="bi bi-box-arrow-right"></i>
+
+            <span class="d-none d-lg-inline">
+                Logout
+            </span>
+        </button>
+
+    </div>
+
+</nav>

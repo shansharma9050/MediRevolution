@@ -1,417 +1,1294 @@
 let medicineOptions = [];
 let stockList = [];
+let isLoadingStock = false;
+let isSavingStock = false;
 
-document.addEventListener("DOMContentLoaded", function () {
-    allowOnlyWholesaler();
-    applyRoleBasedMenuForInventory();
-    loadMedicineDropdown();
-    loadMyStock();
+document.addEventListener("DOMContentLoaded", function() {
+	allowOnlyWholesaler();
+	applyRoleBasedMenuForInventory();
+	setInventoryDateLimits();
+	loadMedicineDropdown();
+	loadMyStock();
 });
 
 function allowOnlyWholesaler() {
-    const role = localStorage.getItem("role");
+	const role =
+		localStorage.getItem("role");
 
-    if (role !== "WHOLESALER") {
-        alert("Access denied. Only WHOLESALER can access Inventory.");
-        window.location.href = "/dashboard";
-    }
+	if (role !== "WHOLESALER") {
+		alert("Access denied. Only WHOLESALER can access Inventory.");
+		window.location.href = "/dashboard";
+	}
 }
 
 function applyRoleBasedMenuForInventory() {
-    const role = localStorage.getItem("role");
+	const role =
+		localStorage.getItem("role");
 
-    document.querySelectorAll("[data-role]").forEach(item => {
-        const allowedRoles = item.getAttribute("data-role").split(" ");
+	document
+		.querySelectorAll("[data-role]")
+		.forEach(
+			function(item) {
 
-        if (!allowedRoles.includes(role)) {
-            item.style.display = "none";
-        }
-    });
+				const allowedRoles =
+					item
+						.getAttribute("data-role")
+						.split(" ");
+
+				if (!allowedRoles.includes(role)) {
+					item.style.display = "none";
+				}
+
+			}
+		);
+}
+
+function setInventoryDateLimits() {
+	const today =
+		new Date();
+
+	const todayText =
+		[
+			today.getFullYear(),
+			String(today.getMonth() + 1).padStart(2, "0"),
+			String(today.getDate()).padStart(2, "0")
+		].join("-");
+
+	const manufacturingDate =
+		document.getElementById(
+			"manufacturingDate"
+		);
+
+	const expiryDate =
+		document.getElementById(
+			"expiryDate"
+		);
+
+	if (manufacturingDate) {
+		manufacturingDate.max =
+			todayText;
+	}
+
+	if (expiryDate) {
+		const tomorrow =
+			new Date(today);
+
+		tomorrow.setDate(
+			tomorrow.getDate() + 1
+		);
+
+		expiryDate.min =
+			[
+				tomorrow.getFullYear(),
+				String(tomorrow.getMonth() + 1).padStart(2, "0"),
+				String(tomorrow.getDate()).padStart(2, "0")
+			].join("-");
+	}
 }
 
 function openAddStockPanel() {
-    document.getElementById("addStockPanel").style.display = "block";
+	const panel =
+		document.getElementById(
+			"addStockPanel"
+		);
+
+	if (!panel) {
+		return;
+	}
+
+	panel.style.display = "block";
+
+	window.setTimeout(
+		function() {
+			panel.scrollIntoView({
+				behavior: "smooth",
+				block: "center"
+			});
+		},
+		80
+	);
 }
 
 function closeAddStockPanel() {
-    document.getElementById("addStockPanel").style.display = "none";
-    clearStockForm();
+	const panel =
+		document.getElementById(
+			"addStockPanel"
+		);
+
+	if (panel) {
+		panel.style.display = "none";
+	}
+
+	clearStockForm();
 }
 
 async function loadMedicineDropdown() {
-    const token = localStorage.getItem("token");
+	const token =
+		localStorage.getItem("token");
 
-    const dropdown = document.getElementById("medicineId");
-    dropdown.innerHTML = `<option value="">Loading medicines...</option>`;
+	const dropdown =
+		document.getElementById(
+			"medicineId"
+		);
 
-    try {
-        const response = await fetch(`${API_BASE}/medicines`, {
-            method: "GET",
-            headers: {
-                "Authorization": "Bearer " + token
-            }
-        });
+	if (!dropdown) {
+		return;
+	}
 
-        const result = await response.json();
+	dropdown.innerHTML =
+		`<option value="">Loading medicines...</option>`;
 
-        if (!response.ok) {
-            dropdown.innerHTML = `<option value="">Unable to load medicines</option>`;
-            showInventoryMessage(result.message || "Unable to load medicines");
-            return;
-        }
+	try {
+		const response =
+			await fetch(
+				`${API_BASE}/medicines`,
+				{
+					method: "GET",
 
-        medicineOptions = result;
+					headers: {
+						"Authorization":
+							"Bearer " + token
+					}
+				}
+			);
 
-        if (!medicineOptions || medicineOptions.length === 0) {
-            dropdown.innerHTML = `<option value="">No medicine master found</option>`;
-            return;
-        }
+		const result =
+			await readJsonSafely(response);
 
-        let html = `<option value="">Select Medicine</option>`;
+		if (!response.ok) {
+			dropdown.innerHTML =
+				`<option value="">Unable to load medicines</option>`;
 
-        medicineOptions.forEach(medicine => {
-            html += `
-                <option value="${medicine.id}">
-                    ${safe(medicine.medicineName)} - ${safe(medicine.brandName)}
-                </option>
-            `;
-        });
+			showInventoryMessage(
+				getErrorMessage(
+					result,
+					"Unable to load medicines"
+				)
+			);
 
-        dropdown.innerHTML = html;
+			return;
+		}
 
-    } catch (error) {
-        dropdown.innerHTML = `<option value="">Medicine service unavailable</option>`;
-        showInventoryMessage("Medicine service not reachable.");
-    }
+		medicineOptions =
+			Array.isArray(result)
+				? result
+				: [];
+
+		if (!medicineOptions.length) {
+			dropdown.innerHTML =
+				`<option value="">No medicine master found</option>`;
+
+			return;
+		}
+
+		let html =
+			`<option value="">Select Medicine</option>`;
+
+		medicineOptions.forEach(
+			function(medicine) {
+
+				html += `
+					<option value="${safeNumber(medicine.id)}">
+						${safe(medicine.medicineName)}
+						-
+						${safe(medicine.brandName)}
+					</option>
+				`;
+
+			}
+		);
+
+		dropdown.innerHTML = html;
+
+	} catch (error) {
+		console.error(
+			"Load medicine dropdown error:",
+			error
+		);
+
+		dropdown.innerHTML =
+			`<option value="">Medicine service unavailable</option>`;
+
+		showInventoryMessage(
+			"Medicine service not reachable."
+		);
+	}
 }
 
 async function loadMyStock() {
-    const token = localStorage.getItem("token");
+	if (isLoadingStock) {
+		return;
+	}
 
-    document.getElementById("stockTable").innerHTML = `
-        <tr>
-            <td colspan="10" class="text-center text-muted py-4">
-                Loading inventory...
-            </td>
-        </tr>
-    `;
+	isLoadingStock = true;
 
-    try {
-        const response = await fetch(`${API_BASE}/medicines/stock/my`, {
-            method: "GET",
-            headers: {
-                "Authorization": "Bearer " + token
-            }
-        });
+	const token =
+		localStorage.getItem("token");
 
-        const result = await response.json();
+	showInventoryLoadingState();
 
-        if (!response.ok) {
-            showInventoryMessage(result.message || "Unable to load inventory");
-            return;
-        }
+	try {
+		const response =
+			await fetch(
+				`${API_BASE}/medicines/stock/my`,
+				{
+					method: "GET",
 
-        stockList = result;
-        renderStock(stockList);
+					headers: {
+						"Authorization":
+							"Bearer " + token
+					}
+				}
+			);
 
-    } catch (error) {
-        showInventoryMessage("Server not reachable. Please check medicine-service/api-gateway.");
-    }
+		const result =
+			await readJsonSafely(response);
+
+		if (!response.ok) {
+			stockList = [];
+
+			showInventoryMessage(
+				getErrorMessage(
+					result,
+					"Unable to load inventory"
+				)
+			);
+
+			showInventoryErrorState(
+				getErrorMessage(
+					result,
+					"Unable to load inventory"
+				)
+			);
+
+			updateInventorySummary([]);
+			return;
+		}
+
+		stockList =
+			Array.isArray(result)
+				? result
+				: [];
+
+		renderStock(stockList);
+
+	} catch (error) {
+		console.error(
+			"Load wholesaler stock error:",
+			error
+		);
+
+		stockList = [];
+
+		showInventoryMessage(
+			"Server not reachable. Please check medicine-service/api-gateway."
+		);
+
+		showInventoryErrorState(
+			"Medicine stock service is currently unavailable."
+		);
+
+		updateInventorySummary([]);
+
+	} finally {
+		isLoadingStock = false;
+	}
 }
 
 async function addStock() {
-    const medicineId = document.getElementById("medicineId").value;
+	if (isSavingStock) {
+		return;
+	}
 
-    const data = {
-        batchNumber: document.getElementById("batchNumber").value.trim(),
-        manufacturingDate: document.getElementById("manufacturingDate").value,
-        expiryDate: document.getElementById("expiryDate").value,
-        availableQuantity: toInt(document.getElementById("availableQuantity").value),
-        minimumStockLevel: toInt(document.getElementById("minimumStockLevel").value),
-        mrp: toDecimal(document.getElementById("mrp").value),
-        wholesalePrice: toDecimal(document.getElementById("wholesalePrice").value),
-        ptr: toDecimal(document.getElementById("ptr").value),
-        gstPercentage: toDecimal(document.getElementById("gstPercentage").value)
-    };
+	const medicineId =
+		document.getElementById(
+			"medicineId"
+		)?.value || "";
 
-    if (!medicineId) {
-        showInventoryMessage("Please select medicine");
-        return;
-    }
+	const data = {
+		batchNumber:
+			getValue("batchNumber"),
 
-    if (!data.batchNumber) {
-        showInventoryMessage("Batch number is required");
-        return;
-    }
+		manufacturingDate:
+			getValue("manufacturingDate") || null,
 
-    if (!data.expiryDate) {
-        showInventoryMessage("Expiry date is required");
-        return;
-    }
+		expiryDate:
+			getValue("expiryDate"),
 
-    if (!data.availableQuantity || data.availableQuantity <= 0) {
-        showInventoryMessage("Available quantity must be greater than zero");
-        return;
-    }
+		availableQuantity:
+			toInt(
+				getValue("availableQuantity")
+			),
 
-    if (!data.minimumStockLevel || data.minimumStockLevel < 0) {
-        showInventoryMessage("Minimum stock level is required");
-        return;
-    }
+		minimumStockLevel:
+			toInt(
+				getValue("minimumStockLevel")
+			),
 
-    if (!data.mrp || data.mrp <= 0) {
-        showInventoryMessage("MRP must be greater than zero");
-        return;
-    }
+		mrp:
+			toDecimal(
+				getValue("mrp")
+			),
 
-    if (!data.wholesalePrice || data.wholesalePrice <= 0) {
-        showInventoryMessage("Wholesale price must be greater than zero");
-        return;
-    }
+		wholesalePrice:
+			toDecimal(
+				getValue("wholesalePrice")
+			),
 
-    if (data.wholesalePrice > data.mrp) {
-        showInventoryMessage("Wholesale price cannot be greater than MRP");
-        return;
-    }
+		ptr:
+			toDecimal(
+				getValue("ptr")
+			),
 
-    const today = new Date().toISOString().split("T")[0];
+		gstPercentage:
+			toDecimal(
+				getValue("gstPercentage")
+			)
+	};
 
-    if (data.expiryDate <= today) {
-        showInventoryMessage("Expiry date must be a future date");
-        return;
-    }
+	if (!medicineId) {
+		showInventoryMessage(
+			"Please select medicine"
+		);
 
-    const token = localStorage.getItem("token");
+		return;
+	}
 
-    try {
-        const response = await fetch(`${API_BASE}/medicines/stock/${medicineId}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
-            },
-            body: JSON.stringify(data)
-        });
+	if (!data.batchNumber) {
+		showInventoryMessage(
+			"Batch number is required"
+		);
 
-        const result = await response.json();
+		return;
+	}
 
-        if (!response.ok) {
-            showInventoryMessage(result.message || "Unable to add stock");
-            return;
-        }
+	if (!data.expiryDate) {
+		showInventoryMessage(
+			"Expiry date is required"
+		);
 
-        showInventoryMessage("Stock added successfully", "success");
-        closeAddStockPanel();
-        loadMyStock();
+		return;
+	}
 
-    } catch (error) {
-        showInventoryMessage("Server not reachable. Please try again.");
-    }
+	if (
+		data.availableQuantity === null ||
+		data.availableQuantity <= 0
+	) {
+		showInventoryMessage(
+			"Available quantity must be greater than zero"
+		);
+
+		return;
+	}
+
+	if (
+		data.minimumStockLevel === null ||
+		data.minimumStockLevel < 0
+	) {
+		showInventoryMessage(
+			"Minimum stock level is required"
+		);
+
+		return;
+	}
+
+	if (
+		data.mrp === null ||
+		data.mrp <= 0
+	) {
+		showInventoryMessage(
+			"MRP must be greater than zero"
+		);
+
+		return;
+	}
+
+	if (
+		data.wholesalePrice === null ||
+		data.wholesalePrice <= 0
+	) {
+		showInventoryMessage(
+			"Wholesale price must be greater than zero"
+		);
+
+		return;
+	}
+
+	if (
+		data.wholesalePrice >
+		data.mrp
+	) {
+		showInventoryMessage(
+			"Wholesale price cannot be greater than MRP"
+		);
+
+		return;
+	}
+
+	if (
+		data.ptr !== null &&
+		data.ptr < 0
+	) {
+		showInventoryMessage(
+			"PTR cannot be negative"
+		);
+
+		return;
+	}
+
+	if (
+		data.gstPercentage !== null &&
+		(
+			data.gstPercentage < 0 ||
+			data.gstPercentage > 100
+		)
+	) {
+		showInventoryMessage(
+			"GST percentage must be between 0 and 100"
+		);
+
+		return;
+	}
+
+	const today =
+		getLocalDateText(
+			new Date()
+		);
+
+	if (
+		data.expiryDate <= today
+	) {
+		showInventoryMessage(
+			"Expiry date must be a future date"
+		);
+
+		return;
+	}
+
+	if (
+		data.manufacturingDate &&
+		data.manufacturingDate > today
+	) {
+		showInventoryMessage(
+			"Manufacturing date cannot be in the future"
+		);
+
+		return;
+	}
+
+	if (
+		data.manufacturingDate &&
+		data.manufacturingDate >=
+		data.expiryDate
+	) {
+		showInventoryMessage(
+			"Manufacturing date must be before expiry date"
+		);
+
+		return;
+	}
+
+	const token =
+		localStorage.getItem("token");
+
+	isSavingStock = true;
+
+	setButtonLoading(
+		"saveStockBtn",
+		"Saving Stock...",
+		true
+	);
+
+	try {
+		const response =
+			await fetch(
+				`${API_BASE}/medicines/stock/${encodeURIComponent(medicineId)}`,
+				{
+					method: "POST",
+
+					headers: {
+						"Content-Type":
+							"application/json",
+
+						"Authorization":
+							"Bearer " + token
+					},
+
+					body:
+						JSON.stringify(data)
+				}
+			);
+
+		const result =
+			await readJsonSafely(response);
+
+		if (!response.ok) {
+			showInventoryMessage(
+				getErrorMessage(
+					result,
+					"Unable to add stock"
+				)
+			);
+
+			return;
+		}
+
+		showInventoryMessage(
+			"Stock added successfully",
+			"success"
+		);
+
+		closeAddStockPanel();
+
+		await loadMyStock();
+
+	} catch (error) {
+		console.error(
+			"Add stock error:",
+			error
+		);
+
+		showInventoryMessage(
+			"Server not reachable. Please try again."
+		);
+
+	} finally {
+		isSavingStock = false;
+
+		setButtonLoading(
+			"saveStockBtn",
+			"Save Stock",
+			false
+		);
+	}
 }
 
 function renderStock(stocks) {
-    const table = document.getElementById("stockTable");
+	const table =
+		document.getElementById(
+			"stockTable"
+		);
 
-    document.getElementById("totalStockItems").innerText = stocks.length;
+	if (!table) {
+		return;
+	}
 
-    let totalQty = 0;
-    let lowStock = 0;
-    let expiryRisk = 0;
+	const list =
+		Array.isArray(stocks)
+			? stocks
+			: [];
 
-    if (!stocks || stocks.length === 0) {
-        table.innerHTML = `
-            <tr>
-                <td colspan="10" class="text-center text-muted py-4">
-                    No stock found. Add your first batch.
-                </td>
-            </tr>
-        `;
+	updateInventorySummary(list);
 
-        document.getElementById("totalQuantity").innerText = 0;
-        document.getElementById("lowStockCount").innerText = 0;
-        document.getElementById("expiryCount").innerText = 0;
+	if (!list.length) {
+		table.innerHTML = `
+			<tr>
+				<td colspan="10">
 
-        return;
-    }
+					<div class="inventory-state">
 
-    let html = "";
+						<div class="inventory-state-icon">
+							<i class="bi bi-box-seam"></i>
+						</div>
 
-    stocks.forEach((stock, index) => {
-        const medicine = stock.medicine || {};
-        const qty = stock.availableQuantity || 0;
-        const min = stock.minimumStockLevel || 0;
+						<h5 class="fw-bold text-primary">
+							No stock found
+						</h5>
 
-        totalQty += qty;
+						<p class="text-muted mb-3">
+							Add your first medicine batch to start inventory management.
+						</p>
 
-        const low = qty <= min;
-        if (low) {
-            lowStock++;
-        }
+						<button type="button"
+								class="btn btn-medi"
+								style="width:auto;"
+								onclick="openAddStockPanel()">
 
-        const expiryStatus = getExpiryStatus(stock.expiryDate);
-        if (expiryStatus.type !== "success") {
-            expiryRisk++;
-        }
+							<i class="bi bi-plus-circle-fill me-1"></i>
+							Add Stock
+						</button>
 
-        html += `
-            <tr>
-                <td>${index + 1}</td>
+					</div>
 
-                <td>
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="medicine-icon">💊</div>
-                        <div>
-                            <strong>${safe(medicine.medicineName)}</strong>
-                            <div class="text-muted small">
-                                ${safe(medicine.brandName)} | ${safe(medicine.manufacturer)}
-                            </div>
-                        </div>
-                    </div>
-                </td>
+				</td>
+			</tr>
+		`;
 
-                <td>${safe(stock.batchNumber)}</td>
+		return;
+	}
 
-                <td>
-                    <strong>${qty}</strong>
-                </td>
+	let html = "";
 
-                <td>${min}</td>
+	list.forEach(
+		function(stock, index) {
 
-                <td>Rs. ${formatMoney(stock.mrp)}</td>
+			const medicine =
+				stock.medicine || {};
 
-                <td>
-                    <strong>Rs. ${formatMoney(stock.wholesalePrice)}</strong>
-                </td>
+			const qty =
+				Number(
+					stock.availableQuantity || 0
+				);
 
-                <td>${formatMoney(stock.gstPercentage)}%</td>
+			const min =
+				Number(
+					stock.minimumStockLevel || 0
+				);
 
-                <td>${formatDate(stock.expiryDate)}</td>
+			const low =
+				qty <= min;
 
-                <td>
-                    ${low
-                        ? '<span class="badge bg-danger mb-1">Low Stock</span><br>'
-                        : '<span class="badge bg-success mb-1">Stock OK</span><br>'
-                    }
-                    <span class="badge bg-${expiryStatus.type}">
-                        ${expiryStatus.label}
-                    </span>
-                </td>
-            </tr>
-        `;
-    });
+			const expiryStatus =
+				getExpiryStatus(
+					stock.expiryDate
+				);
 
-    table.innerHTML = html;
+			html += `
+				<tr style="--row-delay:${Math.min(index * 55, 330)}ms">
 
-    document.getElementById("totalQuantity").innerText = totalQty;
-    document.getElementById("lowStockCount").innerText = lowStock;
-    document.getElementById("expiryCount").innerText = expiryRisk;
+					<td>
+						<strong>${index + 1}</strong>
+					</td>
+
+					<td>
+
+						<div class="inventory-medicine">
+
+							<div class="inventory-medicine-icon">
+								<i class="bi bi-capsule-pill"></i>
+							</div>
+
+							<div>
+
+								<strong class="text-primary">
+									${safe(medicine.medicineName)}
+								</strong>
+
+								<div class="text-muted small">
+									${safe(medicine.brandName)}
+									|
+									${safe(medicine.manufacturer)}
+								</div>
+
+							</div>
+
+						</div>
+
+					</td>
+
+					<td>
+						${safe(stock.batchNumber)}
+					</td>
+
+					<td>
+						<strong>${qty}</strong>
+					</td>
+
+					<td>
+						${min}
+					</td>
+
+					<td>
+						₹${formatMoney(stock.mrp)}
+					</td>
+
+					<td>
+						<span class="inventory-price">
+							₹${formatMoney(stock.wholesalePrice)}
+						</span>
+					</td>
+
+					<td>
+						${formatMoney(stock.gstPercentage)}%
+					</td>
+
+					<td>
+						${formatDate(stock.expiryDate)}
+					</td>
+
+					<td>
+
+						<div class="inventory-status-stack">
+
+							${inventoryStatusPill(
+				low
+					? "Low Stock"
+					: "Stock OK",
+				low
+					? "danger"
+					: "success",
+				low
+					? "bi bi-exclamation-triangle-fill"
+					: "bi bi-check2-circle"
+			)}
+
+							${inventoryStatusPill(
+				expiryStatus.label,
+				expiryStatus.type,
+				expiryStatus.icon
+			)}
+
+						</div>
+
+					</td>
+
+				</tr>
+			`;
+
+		}
+	);
+
+	table.innerHTML = html;
+}
+
+function updateInventorySummary(stocks) {
+	const list =
+		Array.isArray(stocks)
+			? stocks
+			: [];
+
+	const totalQty =
+		list.reduce(
+			(total, stock) =>
+				total +
+				Number(
+					stock.availableQuantity || 0
+				),
+			0
+		);
+
+	const lowStock =
+		list.filter(
+			stock =>
+				Number(
+					stock.availableQuantity || 0
+				) <=
+				Number(
+					stock.minimumStockLevel || 0
+				)
+		).length;
+
+	const expiryRisk =
+		list.filter(
+			stock =>
+				getExpiryStatus(
+					stock.expiryDate
+				).risk
+		).length;
+
+	setSummaryValue(
+		"totalStockItems",
+		list.length
+	);
+
+	setSummaryValue(
+		"totalQuantity",
+		totalQty
+	);
+
+	setSummaryValue(
+		"lowStockCount",
+		lowStock
+	);
+
+	setSummaryValue(
+		"expiryCount",
+		expiryRisk
+	);
 }
 
 function filterStockTable() {
-    const keyword = document.getElementById("searchBox").value.toLowerCase();
+	const keyword =
+		document
+			.getElementById("searchBox")
+			?.value
+			.trim()
+			.toLowerCase() || "";
 
-    const filtered = stockList.filter(stock => {
-        const medicine = stock.medicine || {};
+	const filtered =
+		stockList.filter(
+			function(stock) {
 
-        return (
-            (medicine.medicineName || "").toLowerCase().includes(keyword) ||
-            (medicine.brandName || "").toLowerCase().includes(keyword) ||
-            (medicine.manufacturer || "").toLowerCase().includes(keyword) ||
-            (stock.batchNumber || "").toLowerCase().includes(keyword)
-        );
-    });
+				const medicine =
+					stock.medicine || {};
 
-    renderStock(filtered);
+				return (
+					String(
+						medicine.medicineName || ""
+					)
+						.toLowerCase()
+						.includes(keyword) ||
+
+					String(
+						medicine.brandName || ""
+					)
+						.toLowerCase()
+						.includes(keyword) ||
+
+					String(
+						medicine.manufacturer || ""
+					)
+						.toLowerCase()
+						.includes(keyword) ||
+
+					String(
+						stock.batchNumber || ""
+					)
+						.toLowerCase()
+						.includes(keyword)
+				);
+
+			}
+		);
+
+	renderStock(filtered);
 }
 
 function getExpiryStatus(expiryDate) {
-    if (!expiryDate) {
-        return {
-            label: "No Expiry",
-            type: "secondary"
-        };
-    }
+	if (!expiryDate) {
+		return {
+			label: "No Expiry",
+			type: "secondary",
+			icon: "bi bi-info-circle-fill",
+			risk: true
+		};
+	}
 
-    const today = new Date();
-    const expiry = new Date(expiryDate);
+	const today =
+		new Date();
 
-    const diffTime = expiry.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+	today.setHours(
+		0,
+		0,
+		0,
+		0
+	);
 
-    if (diffDays < 0) {
-        return {
-            label: "Expired",
-            type: "danger"
-        };
-    }
+	const expiry =
+		new Date(expiryDate);
 
-    if (diffDays <= 60) {
-        return {
-            label: "Near Expiry",
-            type: "warning text-dark"
-        };
-    }
+	if (Number.isNaN(expiry.getTime())) {
+		return {
+			label: "Invalid Expiry",
+			type: "danger",
+			icon: "bi bi-x-circle-fill",
+			risk: true
+		};
+	}
 
-    return {
-        label: "Valid",
-        type: "success"
-    };
+	expiry.setHours(
+		0,
+		0,
+		0,
+		0
+	);
+
+	const diffTime =
+		expiry.getTime() -
+		today.getTime();
+
+	const diffDays =
+		Math.ceil(
+			diffTime /
+			(1000 * 60 * 60 * 24)
+		);
+
+	if (diffDays < 0) {
+		return {
+			label: "Expired",
+			type: "danger",
+			icon: "bi bi-calendar-x-fill",
+			risk: true
+		};
+	}
+
+	if (diffDays <= 60) {
+		return {
+			label: "Near Expiry",
+			type: "warning",
+			icon: "bi bi-exclamation-triangle-fill",
+			risk: true
+		};
+	}
+
+	return {
+		label: "Valid",
+		type: "success",
+		icon: "bi bi-calendar-check-fill",
+		risk: false
+	};
+}
+
+function inventoryStatusPill(
+	label,
+	type,
+	icon
+) {
+	return `
+		<span class="inventory-status-pill ${escapeHtml(type)}">
+
+			<i class="${escapeHtml(icon)}"></i>
+
+			${escapeHtml(label)}
+
+		</span>
+	`;
 }
 
 function clearStockForm() {
-    document.getElementById("medicineId").value = "";
-    document.getElementById("batchNumber").value = "";
-    document.getElementById("manufacturingDate").value = "";
-    document.getElementById("expiryDate").value = "";
-    document.getElementById("availableQuantity").value = "";
-    document.getElementById("minimumStockLevel").value = "";
-    document.getElementById("mrp").value = "";
-    document.getElementById("wholesalePrice").value = "";
-    document.getElementById("ptr").value = "";
-    document.getElementById("gstPercentage").value = "";
+	[
+		"medicineId",
+		"batchNumber",
+		"manufacturingDate",
+		"expiryDate",
+		"availableQuantity",
+		"minimumStockLevel",
+		"mrp",
+		"wholesalePrice",
+		"ptr",
+		"gstPercentage"
+	].forEach(
+		function(id) {
+
+			const element =
+				document.getElementById(id);
+
+			if (element) {
+				element.value = "";
+			}
+
+		}
+	);
 }
 
-function showInventoryMessage(message, type = "danger") {
-    document.getElementById("msg").innerHTML =
-        `<div class="alert alert-${type}">${message}</div>`;
+function showInventoryLoadingState() {
+	const table =
+		document.getElementById(
+			"stockTable"
+		);
 
-    setTimeout(() => {
-        document.getElementById("msg").innerHTML = "";
-    }, 3500);
+	if (!table) {
+		return;
+	}
+
+	table.innerHTML = `
+		<tr>
+			<td colspan="10">
+
+				<div class="inventory-state">
+
+					<div class="inventory-state-icon inventory-loading-icon">
+						<i class="bi bi-boxes"></i>
+					</div>
+
+					<h5 class="fw-bold text-primary">
+						Loading inventory
+					</h5>
+
+					<p class="text-muted mb-0">
+						Please wait while we prepare your stock records.
+					</p>
+
+				</div>
+
+			</td>
+		</tr>
+	`;
+}
+
+function showInventoryErrorState(message) {
+	const table =
+		document.getElementById(
+			"stockTable"
+		);
+
+	if (!table) {
+		return;
+	}
+
+	table.innerHTML = `
+		<tr>
+			<td colspan="10">
+
+				<div class="inventory-state">
+
+					<div class="inventory-state-icon bg-danger">
+						<i class="bi bi-exclamation-triangle-fill"></i>
+					</div>
+
+					<h5 class="fw-bold text-danger">
+						Unable to load inventory
+					</h5>
+
+					<p class="text-muted mb-0">
+						${escapeHtml(message)}
+					</p>
+
+				</div>
+
+			</td>
+		</tr>
+	`;
+}
+
+function showInventoryMessage(
+	message,
+	type = "danger"
+) {
+	const msg =
+		document.getElementById("msg");
+
+	if (!msg) {
+		return;
+	}
+
+	msg.innerHTML = `
+		<div class="alert alert-${type}">
+			${escapeHtml(message)}
+		</div>
+	`;
+
+	setTimeout(
+		function() {
+			if (msg) {
+				msg.innerHTML = "";
+			}
+		},
+		3500
+	);
+}
+
+function setButtonLoading(
+	buttonId,
+	loadingText,
+	isLoading
+) {
+	const button =
+		document.getElementById(buttonId);
+
+	if (!button) {
+		return;
+	}
+
+	if (isLoading) {
+		button.dataset.originalHtml =
+			button.innerHTML;
+
+		button.innerHTML = `
+			<span class="spinner-border spinner-border-sm me-2"
+				  role="status"
+				  aria-hidden="true"></span>
+
+			${escapeHtml(loadingText)}
+		`;
+
+		button.disabled = true;
+
+	} else {
+		button.innerHTML =
+			button.dataset.originalHtml ||
+			button.innerHTML;
+
+		button.disabled = false;
+	}
+}
+
+function setSummaryValue(
+	id,
+	value
+) {
+	const element =
+		document.getElementById(id);
+
+	if (!element) {
+		return;
+	}
+
+	const target =
+		Number(value) || 0;
+
+	const start =
+		Number(element.textContent) || 0;
+
+	const difference =
+		target - start;
+
+	const duration = 500;
+	const startTime =
+		performance.now();
+
+	if (
+		difference === 0 ||
+		window.matchMedia(
+			"(prefers-reduced-motion: reduce)"
+		).matches
+	) {
+		element.textContent = target;
+		return;
+	}
+
+	function update(currentTime) {
+		const progress =
+			Math.min(
+				(currentTime - startTime) /
+				duration,
+				1
+			);
+
+		const eased =
+			1 - Math.pow(1 - progress, 3);
+
+		element.textContent =
+			Math.round(
+				start +
+				difference * eased
+			);
+
+		if (progress < 1) {
+			requestAnimationFrame(update);
+		}
+	}
+
+	requestAnimationFrame(update);
+}
+
+function getValue(id) {
+	const element =
+		document.getElementById(id);
+
+	return element
+		? element.value.trim()
+		: "";
 }
 
 function toInt(value) {
-    if (value === null || value === undefined || value === "") {
-        return null;
-    }
+	if (
+		value === null ||
+		value === undefined ||
+		value === ""
+	) {
+		return null;
+	}
 
-    return parseInt(value);
+	const numericValue =
+		parseInt(value, 10);
+
+	return Number.isFinite(numericValue)
+		? numericValue
+		: null;
 }
 
 function toDecimal(value) {
-    if (value === null || value === undefined || value === "") {
-        return null;
-    }
+	if (
+		value === null ||
+		value === undefined ||
+		value === ""
+	) {
+		return null;
+	}
 
-    return parseFloat(value);
+	const numericValue =
+		parseFloat(value);
+
+	return Number.isFinite(numericValue)
+		? numericValue
+		: null;
 }
 
 function formatMoney(value) {
-    if (value === null || value === undefined) {
-        return "0.00";
-    }
+	const numericValue =
+		Number(value);
 
-    return Number(value).toFixed(2);
+	return Number.isFinite(numericValue)
+		? numericValue.toFixed(2)
+		: "0.00";
 }
 
 function formatDate(value) {
-    if (!value) {
-        return "-";
-    }
+	if (!value) {
+		return "-";
+	}
 
-    return new Date(value).toLocaleDateString();
+	const date =
+		new Date(value);
+
+	if (Number.isNaN(date.getTime())) {
+		return safe(value);
+	}
+
+	return date.toLocaleDateString(
+		"en-IN",
+		{
+			day: "2-digit",
+			month: "short",
+			year: "numeric"
+		}
+	);
+}
+
+function getLocalDateText(date) {
+	return [
+		date.getFullYear(),
+		String(date.getMonth() + 1).padStart(2, "0"),
+		String(date.getDate()).padStart(2, "0")
+	].join("-");
+}
+
+async function readJsonSafely(response) {
+	try {
+		return await response.json();
+	} catch (error) {
+		return null;
+	}
+}
+
+function getErrorMessage(
+	data,
+	fallback
+) {
+	if (!data) {
+		return fallback;
+	}
+
+	if (data.message) {
+		return data.message;
+	}
+
+	if (data.error) {
+		return data.error;
+	}
+
+	if (typeof data === "string") {
+		return data;
+	}
+
+	return fallback;
 }
 
 function safe(value) {
-    return value === null || value === undefined || value === "" ? "-" : value;
+	return (
+		value === null ||
+		value === undefined ||
+		value === ""
+	)
+		? "-"
+		: escapeHtml(value);
+}
+
+function safeNumber(value) {
+	const numericValue =
+		Number(value);
+
+	return Number.isFinite(numericValue)
+		? numericValue
+		: 0;
+}
+
+function escapeHtml(value) {
+	return String(value || "")
+		.replace(/&/g, "&amp;")
+		.replace(/'/g, "&#39;")
+		.replace(/"/g, "&quot;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;");
 }

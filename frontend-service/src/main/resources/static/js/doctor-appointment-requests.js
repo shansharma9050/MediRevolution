@@ -1,465 +1,640 @@
 let doctorAppointmentsOnline = [];
 
-document.addEventListener("DOMContentLoaded", function () {
-    requireDoctorRole();
-    loadDoctorAppointments();
+document.addEventListener("DOMContentLoaded", function() {
+	requireDoctorRole();
+	loadDoctorAppointments();
 });
 
 function requireDoctorRole() {
-    if (localStorage.getItem("role") !== "DOCTOR") {
-        alert("Access denied. Only DOCTOR can access this page.");
-        window.location.href = "/dashboard";
-    }
+	if (localStorage.getItem("role") !== "DOCTOR") {
+		alert("Access denied. Only DOCTOR can access this page.");
+		window.location.href = "/dashboard";
+	}
 }
 
 async function loadDoctorAppointments() {
-    const token = localStorage.getItem("token");
+	const token = localStorage.getItem("token");
 
-    try {
-        const response = await fetch(`${API_BASE}/doctor/appointments/doctor`, {
-            headers: {
-                "Authorization": "Bearer " + token
-            }
-        });
+	showDoctorAppointmentLoadingState();
 
-        let result = [];
+	try {
+		const response = await fetch(`${API_BASE}/doctor/appointments/doctor`, {
+			headers: {
+				"Authorization": "Bearer " + token
+			}
+		});
 
-        try {
-            result = await response.json();
-        } catch (e) {
-            result = [];
-        }
+		let result = [];
 
-        if (!response.ok) {
-            showMsg(result.message || "Unable to load appointments");
-            return;
-        }
+		try {
+			result = await response.json();
+		} catch (e) {
+			result = [];
+		}
 
-        doctorAppointmentsOnline = result;
-        renderAppointments(doctorAppointmentsOnline);
+		if (!response.ok) {
+			showMsg(result.message || "Unable to load appointments");
+			renderAppointments([]);
+			updateDoctorAppointmentSummary([]);
+			return;
+		}
 
-    } catch (e) {
-        console.error("Doctor appointments load error:", e);
-        showMsg("Doctor service not reachable.");
-    }
+		doctorAppointmentsOnline = Array.isArray(result)
+			? result
+			: [];
+
+		updateDoctorAppointmentSummary(doctorAppointmentsOnline);
+		renderAppointments(doctorAppointmentsOnline);
+
+	} catch (e) {
+		console.error("Doctor appointments load error:", e);
+		showMsg("Doctor service not reachable.");
+		renderAppointments([]);
+		updateDoctorAppointmentSummary([]);
+	}
 }
 
 function filterAppointments() {
-    const status = document.getElementById("statusFilter").value;
+	const status = document.getElementById("statusFilter").value;
 
-    if (!status) {
-        renderAppointments(doctorAppointmentsOnline);
-        return;
-    }
+	if (!status) {
+		renderAppointments(doctorAppointmentsOnline);
+		return;
+	}
 
-    renderAppointments(doctorAppointmentsOnline.filter(a => a.status === status));
+	renderAppointments(
+		doctorAppointmentsOnline.filter(a => a.status === status)
+	);
 }
 
 function renderAppointments(list) {
-    const container = document.getElementById("appointmentList");
+	const container = document.getElementById("appointmentList");
 
-    if (!container) {
-        return;
-    }
+	if (!container) {
+		return;
+	}
 
-    if (!list || !list.length) {
-        container.innerHTML = `<div class="text-center text-muted py-5">No appointments found</div>`;
-        return;
-    }
+	if (!list || !list.length) {
+		container.innerHTML = `
+			<div class="doctor-empty-state">
+				<div class="doctor-empty-icon">
+					<i class="bi bi-calendar-x"></i>
+				</div>
+				<h5 class="fw-bold text-primary">No appointments found</h5>
+				<p class="text-muted mb-0">
+					No doctor appointments match the selected status.
+				</p>
+			</div>
+		`;
+		return;
+	}
 
-    let html = "";
+	let html = "";
 
-    list.forEach(a => {
-        html += `
-            <div class="order-card mb-3">
-                <div class="d-flex justify-content-between flex-wrap gap-3">
+	list.forEach((a, index) => {
+		html += `
+			<article class="order-card doctor-appointment-card mb-3"
+					 style="--card-delay:${Math.min(index * 65, 390)}ms">
 
-                    <div>
-                        <h5 class="fw-bold text-primary">${safe(a.patientName)}</h5>
+				<div class="d-flex justify-content-between flex-wrap gap-4">
 
-                        <div class="text-muted small">
-                            Mobile: ${safe(a.patientMobile)}
-                        </div>
+					<div class="flex-grow-1">
 
-                        <div class="text-muted small">
-                            Date: ${formatDate(a.appointmentDate)} | Time: ${safe(a.appointmentTime)}
-                        </div>
+						<div class="doctor-primary-info">
 
-                        <div class="text-muted small mt-1">
-                            Consultation Type: ${consultationBadge(a.consultationType)}
-                        </div>
+							<div class="doctor-patient-avatar">
+								<i class="bi bi-person-fill"></i>
+							</div>
 
-                        ${a.paymentStatus ? `
-                            <div class="text-muted small mt-1">
-                                Payment: ${paymentBadge(a.paymentStatus)}
-                            </div>
-                        ` : ""}
+							<div>
+								<h5 class="fw-bold text-primary mb-1">
+									${safe(a.patientName)}
+								</h5>
 
-                        <div class="mt-2">
-                            <strong>Symptoms:</strong> ${safe(a.symptoms || a.purpose)}
-                        </div>
+								<div class="text-muted small">
+									Patient appointment #${safe(a.id)}
+								</div>
+							</div>
 
-                        ${meetingInfo(a)}
-                    </div>
+						</div>
 
-                    <div class="text-end">
-                        ${statusBadge(a.status)}
-                        <div class="mt-2">
-                            ${actionButtons(a)}
-                        </div>
-                    </div>
+						<div class="doctor-detail-grid">
 
-                </div>
-            </div>
-        `;
-    });
+							<div class="doctor-detail-item">
+								<i class="bi bi-telephone-fill"></i>
+								<span>Mobile: ${safe(a.patientMobile)}</span>
+							</div>
 
-    container.innerHTML = html;
+							<div class="doctor-detail-item">
+								<i class="bi bi-calendar-event-fill"></i>
+								<span>${formatDate(a.appointmentDate)} at ${safe(a.appointmentTime)}</span>
+							</div>
+
+							<div class="doctor-detail-item">
+								<i class="bi bi-camera-video-fill"></i>
+								<span>Consultation: ${consultationBadge(a.consultationType)}</span>
+							</div>
+
+							${a.paymentStatus ? `
+								<div class="doctor-detail-item">
+									<i class="bi bi-credit-card-fill"></i>
+									<span>Payment: ${paymentBadge(a.paymentStatus)}</span>
+								</div>
+							` : ""}
+
+						</div>
+
+						<div class="doctor-symptoms-box">
+							<strong>Symptoms:</strong>
+							${safe(a.symptoms || a.purpose)}
+						</div>
+
+						${meetingInfo(a)}
+
+					</div>
+
+					<div class="doctor-action-column">
+
+						${statusBadge(a.status)}
+
+						<div class="mt-3">
+							${actionButtons(a)}
+						</div>
+
+					</div>
+
+				</div>
+
+			</article>
+		`;
+	});
+
+	container.innerHTML = html;
+}
+
+function showDoctorAppointmentLoadingState() {
+	const container = document.getElementById("appointmentList");
+
+	if (!container) {
+		return;
+	}
+
+	container.innerHTML = `
+		<div class="doctor-loading-state">
+			<div class="doctor-loading-orb">
+				<i class="bi bi-calendar2-heart-fill"></i>
+			</div>
+			<h5 class="fw-bold text-primary">Loading appointments</h5>
+			<p class="text-muted mb-0">
+				Please wait while we prepare doctor appointment requests.
+			</p>
+		</div>
+	`;
+}
+
+function updateDoctorAppointmentSummary(list) {
+	const appointments = Array.isArray(list) ? list : [];
+
+	setDoctorSummaryValue("totalDoctorAppointmentCount", appointments.length);
+
+	setDoctorSummaryValue(
+		"pendingDoctorAppointmentCount",
+		appointments.filter(a =>
+			a.status === "PENDING" ||
+			a.status === "REQUESTED" ||
+			a.status === "PAYMENT_PENDING"
+		).length
+	);
+
+	setDoctorSummaryValue(
+		"onlineDoctorAppointmentCount",
+		appointments.filter(a => a.consultationType === "ONLINE").length
+	);
+
+	setDoctorSummaryValue(
+		"completedDoctorAppointmentCount",
+		appointments.filter(a => a.status === "COMPLETED").length
+	);
+}
+
+function setDoctorSummaryValue(id, value) {
+	const element = document.getElementById(id);
+
+	if (!element) {
+		return;
+	}
+
+	const target = Number(value) || 0;
+	const start = Number(element.textContent) || 0;
+	const difference = target - start;
+	const duration = 500;
+	const startTime = performance.now();
+
+	if (
+		window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+		difference === 0
+	) {
+		element.textContent = target;
+		return;
+	}
+
+	function update(currentTime) {
+		const progress = Math.min((currentTime - startTime) / duration, 1);
+		const eased = 1 - Math.pow(1 - progress, 3);
+
+		element.textContent = Math.round(start + difference * eased);
+
+		if (progress < 1) {
+			requestAnimationFrame(update);
+		}
+	}
+
+	requestAnimationFrame(update);
 }
 
 function meetingInfo(a) {
-    if (a.consultationType !== "ONLINE") {
-        return "";
-    }
+	if (a.consultationType !== "ONLINE") {
+		return "";
+	}
 
-    if (a.status === "PAYMENT_PENDING") {
-        return `
-            <div class="mt-2 text-warning small">
-                Payment pending. Meeting link will be generated after payment success.
-            </div>
-        `;
-    }
+	if (a.status === "PAYMENT_PENDING") {
+		return `
+			<div class="doctor-status-message text-warning">
+				<i class="bi bi-hourglass-split me-1"></i>
+				Payment pending. Meeting link will be generated after payment success.
+			</div>
+		`;
+	}
 
-    if (a.status === "PAYMENT_FAILED") {
-        return `
-            <div class="mt-2 text-danger small">
-                Payment failed. Meeting link is not available.
-            </div>
-        `;
-    }
+	if (a.status === "PAYMENT_FAILED") {
+		return `
+			<div class="doctor-status-message text-danger">
+				<i class="bi bi-exclamation-triangle-fill me-1"></i>
+				Payment failed. Meeting link is not available.
+			</div>
+		`;
+	}
 
-    if (a.status === "CONFIRMED" && isValidMeetingUrl(a.meetingUrl)) {
-        return `
-            <div class="mt-2 text-success small">
-                <strong>Meeting:</strong> Link generated. Click Join Meeting to start consultation.
-            </div>
-        `;
-    }
+	if (a.status === "CONFIRMED" && isValidMeetingUrl(a.meetingUrl)) {
+		return `
+			<div class="doctor-status-message text-success">
+				<i class="bi bi-camera-video-fill me-1"></i>
+				<strong>Meeting:</strong> Link generated. Click Join Meeting to start consultation.
+			</div>
+		`;
+	}
 
-    if (a.status === "CONFIRMED" && !isValidMeetingUrl(a.meetingUrl)) {
-        return `
-            <div class="mt-2 text-muted small">
-                Meeting link is not generated yet. Please refresh after payment verification.
-            </div>
-        `;
-    }
+	if (a.status === "CONFIRMED" && !isValidMeetingUrl(a.meetingUrl)) {
+		return `
+			<div class="doctor-status-message text-muted">
+				<i class="bi bi-link-45deg me-1"></i>
+				Meeting link is not generated yet. Please refresh after payment verification.
+			</div>
+		`;
+	}
 
-    if (a.status === "IN_CONSULTATION") {
-        return `
-            <div class="mt-2 text-primary small">
-                Consultation is in progress.
-            </div>
-        `;
-    }
+	if (a.status === "IN_CONSULTATION") {
+		return `
+			<div class="doctor-status-message text-primary">
+				<i class="bi bi-broadcast me-1"></i>
+				Consultation is in progress.
+			</div>
+		`;
+	}
 
-    if (a.status === "COMPLETED") {
-        return `
-            <div class="mt-2 text-success small">
-                Consultation completed.
-            </div>
-        `;
-    }
+	if (a.status === "COMPLETED") {
+		return `
+			<div class="doctor-status-message text-success">
+				<i class="bi bi-check2-circle me-1"></i>
+				Consultation completed.
+			</div>
+		`;
+	}
 
-    if (a.status === "CANCELLED") {
-        return `
-            <div class="mt-2 text-muted small">
-                Appointment cancelled.
-            </div>
-        `;
-    }
+	if (a.status === "CANCELLED") {
+		return `
+			<div class="doctor-status-message text-muted">
+				<i class="bi bi-x-circle me-1"></i>
+				Appointment cancelled.
+			</div>
+		`;
+	}
 
-    return "";
+	return "";
 }
 
 function actionButtons(a) {
-    if (a.status === "PAYMENT_PENDING") {
-        return `<div class="text-warning small">Payment pending</div>`;
-    }
+	if (a.status === "PAYMENT_PENDING") {
+		return `
+			<div class="text-warning small fw-bold">
+				<i class="bi bi-hourglass-split me-1"></i>
+				Payment pending
+			</div>
+		`;
+	}
 
-    if (a.status === "PAYMENT_FAILED") {
-        return `<div class="text-danger small">Payment failed</div>`;
-    }
+	if (a.status === "PAYMENT_FAILED") {
+		return `
+			<div class="text-danger small fw-bold">
+				<i class="bi bi-exclamation-circle me-1"></i>
+				Payment failed
+			</div>
+		`;
+	}
 
-    if (a.status === "PENDING" || a.status === "REQUESTED") {
-        return `
-            <button class="btn btn-sm btn-success me-1"
-                    onclick="updateStatus(${a.id}, 'CONFIRMED')">
-                Confirm
-            </button>
+	if (a.status === "PENDING" || a.status === "REQUESTED") {
+		return `
+			<button class="btn btn-sm btn-success me-1"
+					onclick="updateStatus(${a.id}, 'CONFIRMED')">
+				<i class="bi bi-check2-circle me-1"></i>
+				Confirm
+			</button>
 
-            <button class="btn btn-sm btn-danger"
-                    onclick="updateStatus(${a.id}, 'REJECTED')">
-                Reject
-            </button>
-        `;
-    }
+			<button class="btn btn-sm btn-danger"
+					onclick="updateStatus(${a.id}, 'REJECTED')">
+				<i class="bi bi-x-circle me-1"></i>
+				Reject
+			</button>
+		`;
+	}
 
-    if (a.status === "CONFIRMED") {
-        if (a.consultationType === "ONLINE") {
-            if (isValidMeetingUrl(a.meetingUrl)) {
-                return `
-                    <button class="btn btn-sm btn-success me-1"
-                            onclick="startConsultation(${a.id}, '${escapeJs(a.meetingUrl)}')">
-                        Join Meeting
-                    </button>
+	if (a.status === "CONFIRMED") {
+		if (a.consultationType === "ONLINE") {
+			if (isValidMeetingUrl(a.meetingUrl)) {
+				return `
+					<button class="btn btn-sm btn-success me-1"
+							onclick="startConsultation(${a.id}, '${escapeJs(a.meetingUrl)}')">
+						<i class="bi bi-camera-video-fill me-1"></i>
+						Join Meeting
+					</button>
 
-                    <button class="btn btn-sm btn-outline-danger"
-                            onclick="updateStatus(${a.id}, 'CANCELLED')">
-                        Cancel
-                    </button>
-                `;
-            }
+					<button class="btn btn-sm btn-outline-danger"
+							onclick="updateStatus(${a.id}, 'CANCELLED')">
+						Cancel
+					</button>
+				`;
+			}
 
-            return `<div class="text-muted small">Waiting for valid meeting link</div>`;
-        }
+			return `
+				<div class="text-muted small">
+					<i class="bi bi-link-45deg me-1"></i>
+					Waiting for valid meeting link
+				</div>
+			`;
+		}
 
-        return `
-            <button class="btn btn-sm btn-medi me-1"
-                    style="width:auto;"
-                    onclick="updateStatus(${a.id}, 'COMPLETED')">
-                Mark Completed
-            </button>
+		return `
+			<button class="btn btn-sm btn-medi me-1"
+					style="width:auto;"
+					onclick="updateStatus(${a.id}, 'COMPLETED')">
+				<i class="bi bi-check2-circle me-1"></i>
+				Mark Completed
+			</button>
 
-            <button class="btn btn-sm btn-outline-danger"
-                    onclick="updateStatus(${a.id}, 'CANCELLED')">
-                Cancel
-            </button>
-        `;
-    }
+			<button class="btn btn-sm btn-outline-danger"
+					onclick="updateStatus(${a.id}, 'CANCELLED')">
+				Cancel
+			</button>
+		`;
+	}
 
-    if (a.status === "IN_CONSULTATION") {
-        if (a.consultationType === "ONLINE" && isValidMeetingUrl(a.meetingUrl)) {
-            return `
-                <button class="btn btn-sm btn-primary me-1"
-                        onclick="openMeeting('${escapeJs(a.meetingUrl)}')">
-                    Rejoin Meeting
-                </button>
+	if (a.status === "IN_CONSULTATION") {
+		if (a.consultationType === "ONLINE" && isValidMeetingUrl(a.meetingUrl)) {
+			return `
+				<button class="btn btn-sm btn-primary me-1"
+						onclick="openMeeting('${escapeJs(a.meetingUrl)}')">
+					<i class="bi bi-camera-video-fill me-1"></i>
+					Rejoin Meeting
+				</button>
 
-                <button class="btn btn-sm btn-medi"
-                        style="width:auto;"
-                        onclick="updateStatus(${a.id}, 'COMPLETED')">
-                    Mark Completed
-                </button>
-            `;
-        }
+				<button class="btn btn-sm btn-medi"
+						style="width:auto;"
+						onclick="updateStatus(${a.id}, 'COMPLETED')">
+					Mark Completed
+				</button>
+			`;
+		}
 
-        return `
-            <button class="btn btn-sm btn-medi"
-                    style="width:auto;"
-                    onclick="updateStatus(${a.id}, 'COMPLETED')">
-                Mark Completed
-            </button>
-        `;
-    }
+		return `
+			<button class="btn btn-sm btn-medi"
+					style="width:auto;"
+					onclick="updateStatus(${a.id}, 'COMPLETED')">
+				Mark Completed
+			</button>
+		`;
+	}
 
-    return "";
+	return "";
 }
 
 async function startConsultation(id, meetingUrl) {
-    if (!isValidMeetingUrl(meetingUrl)) {
-        showMsg("Meeting link is not generated yet.");
-        return;
-    }
+	if (!isValidMeetingUrl(meetingUrl)) {
+		showMsg("Meeting link is not generated yet.");
+		return;
+	}
 
-    const meetingWindow = window.open("about:blank", "_blank");
-    const token = localStorage.getItem("token");
+	const meetingWindow = window.open("about:blank", "_blank");
+	const token = localStorage.getItem("token");
 
-    try {
-        const response = await fetch(`${API_BASE}/doctor/appointments/${id}/status?status=IN_CONSULTATION`, {
-            method: "PUT",
-            headers: {
-                "Authorization": "Bearer " + token
-            }
-        });
+	try {
+		const response = await fetch(`${API_BASE}/doctor/appointments/${id}/status?status=IN_CONSULTATION`, {
+			method: "PUT",
+			headers: {
+				"Authorization": "Bearer " + token
+			}
+		});
 
-        let result = {};
+		let result = {};
 
-        try {
-            result = await response.json();
-        } catch (e) {
-            result = {};
-        }
+		try {
+			result = await response.json();
+		} catch (e) {
+			result = {};
+		}
 
-        if (!response.ok) {
-            if (meetingWindow) {
-                meetingWindow.close();
-            }
+		if (!response.ok) {
+			if (meetingWindow) {
+				meetingWindow.close();
+			}
 
-            showMsg(result.message || "Unable to start consultation");
-            return;
-        }
+			showMsg(result.message || "Unable to start consultation");
+			return;
+		}
 
-        if (meetingWindow) {
-            meetingWindow.location.href = meetingUrl;
-        } else {
-            window.location.href = meetingUrl;
-        }
+		if (meetingWindow) {
+			meetingWindow.location.href = meetingUrl;
+		} else {
+			window.location.href = meetingUrl;
+		}
 
-        loadDoctorAppointments();
+		loadDoctorAppointments();
 
-    } catch (e) {
-        console.error("Start consultation error:", e);
+	} catch (e) {
+		console.error("Start consultation error:", e);
 
-        if (meetingWindow) {
-            meetingWindow.close();
-        }
+		if (meetingWindow) {
+			meetingWindow.close();
+		}
 
-        showMsg("Doctor service not reachable.");
-    }
+		showMsg("Doctor service not reachable.");
+	}
 }
 
 async function updateStatus(id, status) {
-    if (!confirm("Update appointment status to " + status + "?")) {
-        return;
-    }
+	if (!confirm("Update appointment status to " + status + "?")) {
+		return;
+	}
 
-    const token = localStorage.getItem("token");
+	const token = localStorage.getItem("token");
 
-    try {
-        const response = await fetch(`${API_BASE}/doctor/appointments/${id}/status?status=${status}`, {
-            method: "PUT",
-            headers: {
-                "Authorization": "Bearer " + token
-            }
-        });
+	try {
+		const response = await fetch(`${API_BASE}/doctor/appointments/${id}/status?status=${status}`, {
+			method: "PUT",
+			headers: {
+				"Authorization": "Bearer " + token
+			}
+		});
 
-        let result = {};
+		let result = {};
 
-        try {
-            result = await response.json();
-        } catch (e) {
-            result = {};
-        }
+		try {
+			result = await response.json();
+		} catch (e) {
+			result = {};
+		}
 
-        if (!response.ok) {
-            showMsg(result.message || "Unable to update appointment");
-            return;
-        }
+		if (!response.ok) {
+			showMsg(result.message || "Unable to update appointment");
+			return;
+		}
 
-        showMsg("Appointment updated successfully", "success");
-        loadDoctorAppointments();
+		showMsg("Appointment updated successfully", "success");
+		loadDoctorAppointments();
 
-    } catch (e) {
-        console.error("Update appointment status error:", e);
-        showMsg("Doctor service not reachable.");
-    }
+	} catch (e) {
+		console.error("Update appointment status error:", e);
+		showMsg("Doctor service not reachable.");
+	}
 }
 
 function openMeeting(url) {
-    if (!isValidMeetingUrl(url)) {
-        showMsg("Meeting link is not generated yet.");
-        return;
-    }
+	if (!isValidMeetingUrl(url)) {
+		showMsg("Meeting link is not generated yet.");
+		return;
+	}
 
-    window.open(url, "_blank");
+	window.open(url, "_blank");
 }
 
 function isValidMeetingUrl(url) {
-    return url
-        && typeof url === "string"
-        && (url.startsWith("http://") || url.startsWith("https://"));
+	return url
+		&& typeof url === "string"
+		&& (url.startsWith("http://") || url.startsWith("https://"));
 }
 
 function consultationBadge(type) {
-    if (type === "ONLINE") {
-        return `<span class="badge bg-success">ONLINE VIDEO</span>`;
-    }
+	if (type === "ONLINE") {
+		return `<span class="badge bg-success">ONLINE VIDEO</span>`;
+	}
 
-    if (type === "OFFLINE") {
-        return `<span class="badge bg-secondary">OFFLINE VISIT</span>`;
-    }
+	if (type === "OFFLINE") {
+		return `<span class="badge bg-secondary">OFFLINE VISIT</span>`;
+	}
 
-    return `<span class="badge bg-light text-dark">-</span>`;
+	return `<span class="badge bg-light text-dark">-</span>`;
 }
 
 function paymentBadge(paymentStatus) {
-    if (paymentStatus === "SUCCESS") {
-        return `<span class="badge bg-success">SUCCESS</span>`;
-    }
+	if (paymentStatus === "SUCCESS") {
+		return `<span class="badge bg-success">SUCCESS</span>`;
+	}
 
-    if (paymentStatus === "INITIATED" || paymentStatus === "PENDING") {
-        return `<span class="badge bg-warning text-dark">PENDING</span>`;
-    }
+	if (paymentStatus === "INITIATED" || paymentStatus === "PENDING") {
+		return `<span class="badge bg-warning text-dark">PENDING</span>`;
+	}
 
-    if (paymentStatus === "FAILED") {
-        return `<span class="badge bg-danger">FAILED</span>`;
-    }
+	if (paymentStatus === "FAILED") {
+		return `<span class="badge bg-danger">FAILED</span>`;
+	}
 
-    return `<span class="badge bg-secondary">${safe(paymentStatus)}</span>`;
+	return `<span class="badge bg-secondary">${safe(paymentStatus)}</span>`;
 }
 
 function statusBadge(status) {
-    if (status === "PAYMENT_PENDING") {
-        return `<span class="badge bg-warning text-dark">PAYMENT PENDING</span>`;
-    }
+	if (status === "PAYMENT_PENDING") {
+		return `<span class="badge bg-warning text-dark">PAYMENT PENDING</span>`;
+	}
 
-    if (status === "PAYMENT_FAILED") {
-        return `<span class="badge bg-danger">PAYMENT FAILED</span>`;
-    }
+	if (status === "PAYMENT_FAILED") {
+		return `<span class="badge bg-danger">PAYMENT FAILED</span>`;
+	}
 
-    if (status === "PENDING") {
-        return `<span class="badge bg-warning text-dark">PENDING</span>`;
-    }
+	if (status === "PENDING") {
+		return `<span class="badge bg-warning text-dark">PENDING</span>`;
+	}
 
-    if (status === "REQUESTED") {
-        return `<span class="badge bg-warning text-dark">REQUESTED</span>`;
-    }
+	if (status === "REQUESTED") {
+		return `<span class="badge bg-warning text-dark">REQUESTED</span>`;
+	}
 
-    if (status === "CONFIRMED") {
-        return `<span class="badge bg-info text-dark">CONFIRMED</span>`;
-    }
+	if (status === "CONFIRMED") {
+		return `<span class="badge bg-info text-dark">CONFIRMED</span>`;
+	}
 
-    if (status === "IN_CONSULTATION") {
-        return `<span class="badge bg-primary">IN CONSULTATION</span>`;
-    }
+	if (status === "IN_CONSULTATION") {
+		return `<span class="badge bg-primary">IN CONSULTATION</span>`;
+	}
 
-    if (status === "REJECTED") {
-        return `<span class="badge bg-danger">REJECTED</span>`;
-    }
+	if (status === "REJECTED") {
+		return `<span class="badge bg-danger">REJECTED</span>`;
+	}
 
-    if (status === "COMPLETED") {
-        return `<span class="badge bg-success">COMPLETED</span>`;
-    }
+	if (status === "COMPLETED") {
+		return `<span class="badge bg-success">COMPLETED</span>`;
+	}
 
-    if (status === "CANCELLED") {
-        return `<span class="badge bg-secondary">CANCELLED</span>`;
-    }
+	if (status === "CANCELLED") {
+		return `<span class="badge bg-secondary">CANCELLED</span>`;
+	}
 
-    return `<span class="badge bg-secondary">${safe(status)}</span>`;
+	return `<span class="badge bg-secondary">${safe(status)}</span>`;
 }
 
 function showMsg(message, type = "danger") {
-    const msgBox = document.getElementById("msg");
+	const msgBox = document.getElementById("msg");
 
-    if (!msgBox) {
-        alert(message);
-        return;
-    }
+	if (!msgBox) {
+		alert(message);
+		return;
+	}
 
-    msgBox.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+	msgBox.innerHTML = `<div class="alert alert-${type}">${escapeHtml(message)}</div>`;
 }
 
 function formatDate(value) {
-    return value ? new Date(value).toLocaleDateString() : "-";
+	return value ? new Date(value).toLocaleDateString("en-IN", {
+		day: "2-digit",
+		month: "short",
+		year: "numeric"
+	}) : "-";
 }
 
 function safe(value) {
-    return value === null || value === undefined || value === "" ? "-" : value;
+	return value === null || value === undefined || value === "" ? "-" : escapeHtml(value);
+}
+
+function escapeHtml(value) {
+	return String(value || "")
+		.replace(/&/g, "&amp;")
+		.replace(/'/g, "&#39;")
+		.replace(/"/g, "&quot;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;");
 }
 
 function escapeJs(value) {
-    return String(value || "")
-        .replace(/\\/g, "\\\\")
-        .replace(/'/g, "\\'")
-        .replace(/"/g, "&quot;");
+	return String(value || "")
+		.replace(/\\/g, "\\\\")
+		.replace(/'/g, "\\'")
+		.replace(/"/g, "&quot;");
 }

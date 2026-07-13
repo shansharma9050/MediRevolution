@@ -8,8 +8,10 @@ import com.example.medi.billing.dto.ActivateSubscriptionRequest;
 import com.example.medi.billing.dto.SubscribePlanRequest;
 import com.example.medi.billing.dto.SubscribePlanResponse;
 import com.example.medi.billing.dto.SubscriptionCheckResponse;
+import com.example.medi.billing.dto.SubscriptionPaymentVerifyResponse;
 import com.example.medi.billing.entity.SubscriptionPlan;
 import com.example.medi.billing.entity.UserSubscription;
+import com.example.medi.billing.security.CurrentUserUtil;
 import com.example.medi.billing.service.SubscriptionService;
 
 @RestController
@@ -52,8 +54,35 @@ public class SubscriptionController {
         return subscriptionService.getLatestSubscription(authUserId);
     }
     
+    @GetMapping("/current")
+    public UserSubscription getCurrentSubscription() {
+        Long authUserId = CurrentUserUtil.getUserId();
+
+        if (authUserId == null) {
+            throw new RuntimeException("User not found from token");
+        }
+
+        return subscriptionService.getCurrentActiveSubscription(authUserId);
+    }
+    
     @PostMapping("/subscribe")
     public SubscribePlanResponse subscribePlan(@RequestBody SubscribePlanRequest request) {
         return subscriptionService.subscribePlan(request);
+    }
+    
+    @PostMapping("/payments/verify")
+    public SubscriptionPaymentVerifyResponse verifySubscriptionPayment(
+            @RequestParam Long paymentId,
+            @RequestParam String merchantOrderId
+    ) {
+        return subscriptionService.verifySubscriptionPayment(paymentId, merchantOrderId);
+    }
+    
+    @GetMapping("/payments/verify")
+    public SubscriptionPaymentVerifyResponse verifySubscriptionPaymentGet(
+            @RequestParam Long paymentId,
+            @RequestParam String merchantOrderId
+    ) {
+        return subscriptionService.verifySubscriptionPayment(paymentId, merchantOrderId);
     }
 }

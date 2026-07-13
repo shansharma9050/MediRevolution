@@ -112,9 +112,15 @@ function switchConsultationType() {
 	}
 
 	if (consultationType === "ONLINE") {
-		button.innerText = "Pay & Book Video Consultation";
+		button.innerHTML = `
+			<i class="bi bi-credit-card-fill"></i>
+			<span>Pay & Book Video Consultation</span>
+		`;
 	} else {
-		button.innerText = "Book Offline Appointment";
+		button.innerHTML = `
+			<i class="bi bi-calendar-check-fill"></i>
+			<span>Book Offline Appointment</span>
+		`;
 	}
 }
 
@@ -126,6 +132,10 @@ function renderProfileCards() {
 	const container = document.getElementById("profileCards");
 	const keyword = document.getElementById("searchKeyword").value.toLowerCase();
 
+	if (!container) {
+		return;
+	}
+
 	let html = "";
 
 	if (selectedType === "DOCTOR") {
@@ -135,12 +145,23 @@ function renderProfileCards() {
 		);
 
 		if (!filteredDoctors.length) {
-			container.innerHTML =
-				`<div class="col-12 text-center text-muted py-4">No doctors found.</div>`;
+			container.innerHTML = `
+				<div class="col-12">
+					<div class="profile-empty-state">
+						<div class="profile-empty-icon">
+							<i class="bi bi-person-x-fill"></i>
+						</div>
+						<h5 class="fw-bold text-primary">No doctors found</h5>
+						<p class="text-muted mb-0">
+							Try another doctor name, clinic or specialization.
+						</p>
+					</div>
+				</div>
+			`;
 			return;
 		}
 
-		filteredDoctors.forEach(d => {
+		filteredDoctors.forEach((d, index) => {
 
 			const doctorId = getAuthUserId(d);
 
@@ -151,7 +172,8 @@ function renderProfileCards() {
 
 			html += `
                 <div class="col-xl-4 col-md-6">
-                    <div class="appointment-profile-card ${selectedClass}">
+                    <div class="appointment-profile-card ${selectedClass}"
+						 style="--profile-delay:${Math.min(index * 70, 350)}ms">
                         <div class="d-flex gap-3 align-items-start">
                             <div class="profile-avatar-circle">👨‍⚕️</div>
 
@@ -202,14 +224,23 @@ function renderProfileCards() {
 		);
 
 		if (!filteredHospitalDoctors.length) {
-			container.innerHTML =
-				`<div class="col-12 text-center text-muted py-4">
-                    No hospital doctors found. Please add hospital doctors first.
-                </div>`;
+			container.innerHTML = `
+				<div class="col-12">
+					<div class="profile-empty-state">
+						<div class="profile-empty-icon">
+							<i class="bi bi-hospital-fill"></i>
+						</div>
+						<h5 class="fw-bold text-primary">No hospital doctors found</h5>
+						<p class="text-muted mb-0">
+							Try another hospital, department or specialization.
+						</p>
+					</div>
+				</div>
+			`;
 			return;
 		}
 
-		filteredHospitalDoctors.forEach(d => {
+		filteredHospitalDoctors.forEach((d, index) => {
 
 			const hospitalId = Number(d.hospitalAuthUserId);
 			const hospitalDoctorId = Number(d.id);
@@ -532,8 +563,17 @@ function renderSlots(slots) {
 	document.getElementById("selectedTime").value = "";
 
 	if (!slots || !slots.length) {
-		container.innerHTML =
-			`<span class="text-muted">No slots available for selected date.</span>`;
+		container.innerHTML = `
+			<div class="slot-empty-state w-100">
+				<div class="slot-empty-icon">
+					<i class="bi bi-calendar-x"></i>
+				</div>
+				<h6 class="fw-bold text-primary">No slots available</h6>
+				<p class="text-muted mb-0">
+					Please choose another date or healthcare provider.
+				</p>
+			</div>
+		`;
 		return;
 	}
 
@@ -787,23 +827,33 @@ function setButtonLoading(buttonId, loadingText, isLoading) {
 }
 
 function showMsg(message, type = "danger") {
-	document.getElementById("msg").innerHTML =
-		`<div class="alert alert-${type}">${message}</div>`;
+	const msgBox = document.getElementById("msg");
+
+	if (!msgBox) {
+		return;
+	}
+
+	msgBox.innerHTML =
+		`<div class="alert alert-${type}">${escapeHtml(message)}</div>`;
 
 	setTimeout(() => {
-		document.getElementById("msg").innerHTML = "";
+		if (msgBox) {
+			msgBox.innerHTML = "";
+		}
 	}, 4000);
 }
 
 function safe(value) {
-	return value === null || value === undefined || value === "" ? "-" : value;
+	return value === null || value === undefined || value === ""
+		? "-"
+		: escapeHtml(value);
 }
 
 function escapeHtml(value) {
-    return String(value || "")
-        .replace(/&/g, "&amp;")
-        .replace(/'/g, "&#39;")
-        .replace(/"/g, "&quot;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
+	return String(value || "")
+		.replace(/&/g, "&amp;")
+		.replace(/'/g, "&#39;")
+		.replace(/"/g, "&quot;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;");
 }

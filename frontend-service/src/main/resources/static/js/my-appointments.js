@@ -7,8 +7,10 @@ let myHospitalAppointments = [];
 let doctorLoadError = "";
 let hospitalLoadError = "";
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function() {
 	requirePatientRole();
+	updateTypeButtons();
+	showAppointmentsLoadingState();
 	loadMyAppointments();
 });
 
@@ -22,10 +24,40 @@ function requirePatientRole() {
 function setType(type) {
 	currentType = type;
 
-	document.getElementById("listTitle").innerText =
-		type === "DOCTOR" ? "Doctor Appointments" : "Hospital Appointments";
+	const listTitle =
+		document.getElementById("listTitle");
 
+	if (listTitle) {
+		listTitle.innerText =
+			type === "DOCTOR"
+				? "Doctor Appointments"
+				: "Hospital Appointments";
+	}
+
+	updateTypeButtons();
 	renderAppointments();
+}
+
+function updateTypeButtons() {
+	const doctorButton =
+		document.getElementById("doctorTypeButton");
+
+	const hospitalButton =
+		document.getElementById("hospitalTypeButton");
+
+	if (doctorButton) {
+		doctorButton.classList.toggle(
+			"active",
+			currentType === "DOCTOR"
+		);
+	}
+
+	if (hospitalButton) {
+		hospitalButton.classList.toggle(
+			"active",
+			currentType === "HOSPITAL"
+		);
+	}
 }
 
 async function loadMyAppointments() {
@@ -36,6 +68,8 @@ async function loadMyAppointments() {
 
 	doctorLoadError = "";
 	hospitalLoadError = "";
+
+	showAppointmentsLoadingState();
 
 	try {
 		const doctorPromise = fetch(`${API_BASE}/doctor/appointments/patient?t=${Date.now()}`, {
@@ -66,12 +100,25 @@ async function loadMyAppointments() {
 			if (doctorRes.ok) {
 				myDoctorAppointments = normalizeList(doctorData).map(normalizeAppointment);
 			} else {
-				doctorLoadError = getErrorMessage(doctorData, `Doctor appointment API failed. Status: ${doctorRes.status}`);
-				console.error("Doctor appointment API failed:", doctorRes.status, doctorData);
+				doctorLoadError = getErrorMessage(
+					doctorData,
+					`Doctor appointment API failed. Status: ${doctorRes.status}`
+				);
+
+				console.error(
+					"Doctor appointment API failed:",
+					doctorRes.status,
+					doctorData
+				);
 			}
 		} else {
-			doctorLoadError = "Doctor appointment service not reachable.";
-			console.error("Doctor appointment service error:", doctorResult.reason);
+			doctorLoadError =
+				"Doctor appointment service not reachable.";
+
+			console.error(
+				"Doctor appointment service error:",
+				doctorResult.reason
+			);
 		}
 
 		if (hospitalResult.status === "fulfilled") {
@@ -81,113 +128,373 @@ async function loadMyAppointments() {
 			if (hospitalRes.ok) {
 				myHospitalAppointments = normalizeList(hospitalData).map(normalizeAppointment);
 			} else {
-				hospitalLoadError = getErrorMessage(hospitalData, `Hospital appointment API failed. Status: ${hospitalRes.status}`);
-				console.error("Hospital appointment API failed:", hospitalRes.status, hospitalData);
+				hospitalLoadError = getErrorMessage(
+					hospitalData,
+					`Hospital appointment API failed. Status: ${hospitalRes.status}`
+				);
+
+				console.error(
+					"Hospital appointment API failed:",
+					hospitalRes.status,
+					hospitalData
+				);
 			}
 		} else {
-			hospitalLoadError = "Hospital appointment service not reachable.";
-			console.error("Hospital appointment service error:", hospitalResult.reason);
+			hospitalLoadError =
+				"Hospital appointment service not reachable.";
+
+			console.error(
+				"Hospital appointment service error:",
+				hospitalResult.reason
+			);
 		}
 
-		console.log("Doctor appointments:", myDoctorAppointments);
-		console.log("Hospital appointments:", myHospitalAppointments);
+		console.log(
+			"Doctor appointments:",
+			myDoctorAppointments
+		);
 
+		console.log(
+			"Hospital appointments:",
+			myHospitalAppointments
+		);
+
+		updateAppointmentSummary();
 		renderAppointments();
 
-		if (!myDoctorAppointments.length && !myHospitalAppointments.length) {
-			if (currentType === "DOCTOR" && doctorLoadError) {
-				showMsg(doctorLoadError, "danger");
-			} else if (currentType === "HOSPITAL" && hospitalLoadError) {
-				showMsg(hospitalLoadError, "danger");
+		if (
+			!myDoctorAppointments.length &&
+			!myHospitalAppointments.length
+		) {
+			if (
+				currentType === "DOCTOR" &&
+				doctorLoadError
+			) {
+				showMsg(
+					doctorLoadError,
+					"danger"
+				);
+			} else if (
+				currentType === "HOSPITAL" &&
+				hospitalLoadError
+			) {
+				showMsg(
+					hospitalLoadError,
+					"danger"
+				);
 			} else {
-				showMsg("No appointments found.", "warning");
+				showMsg(
+					"No appointments found.",
+					"warning"
+				);
 			}
 		} else {
 			clearMsg();
 		}
 
 	} catch (e) {
-		console.error("Appointment load error:", e);
-		showMsg("Appointment services not reachable.");
+		console.error(
+			"Appointment load error:",
+			e
+		);
+
+		updateAppointmentSummary();
+		renderAppointments();
+
+		showMsg(
+			"Appointment services not reachable."
+		);
 	}
 }
 
 function renderAppointments() {
-	const container = document.getElementById("appointmentList");
+	const container =
+		document.getElementById(
+			"appointmentList"
+		);
 
 	if (!container) {
 		return;
 	}
 
-	const list = currentType === "DOCTOR" ? myDoctorAppointments : myHospitalAppointments;
-	const error = currentType === "DOCTOR" ? doctorLoadError : hospitalLoadError;
+	const list =
+		currentType === "DOCTOR"
+			? myDoctorAppointments
+			: myHospitalAppointments;
+
+	const error =
+		currentType === "DOCTOR"
+			? doctorLoadError
+			: hospitalLoadError;
 
 	if (error && !list.length) {
 		container.innerHTML = `
-			<div class="text-center text-danger py-5">
-				${escapeHtml(error)}
+			<div class="my-appointments-error-state">
+
+				<div class="my-appointments-error-icon">
+					<i class="bi bi-exclamation-triangle-fill"></i>
+				</div>
+
+				<h5 class="fw-bold text-danger">
+					Unable to load appointments
+				</h5>
+
+				<p class="text-muted mb-0">
+					${escapeHtml(error)}
+				</p>
+
 			</div>
 		`;
+
 		return;
 	}
 
 	if (!list.length) {
-		container.innerHTML = `<div class="text-center text-muted py-5">No appointments found</div>`;
+		container.innerHTML = `
+			<div class="my-appointments-empty-state">
+
+				<div class="my-appointments-empty-icon">
+					<i class="bi bi-calendar-x"></i>
+				</div>
+
+				<h5 class="fw-bold text-primary">
+					No appointments found
+				</h5>
+
+				<p class="text-muted mb-0">
+					No ${currentType === "DOCTOR" ? "doctor" : "hospital"} appointments are available.
+				</p>
+
+			</div>
+		`;
+
 		return;
 	}
 
 	let html = "";
 
-	list.forEach(a => {
+	list.forEach(function(a, index) {
+
 		html += `
-            <div class="order-card mb-3">
-                <div class="d-flex justify-content-between flex-wrap gap-3">
+			<article class="order-card patient-appointment-card mb-3"
+					 style="--card-delay:${Math.min(index * 65, 390)}ms">
 
-                    <div>
-                        <h5 class="fw-bold text-primary">
-                            ${appointmentTitle(a)}
-                        </h5>
+				<div class="d-flex justify-content-between flex-wrap gap-4">
 
-                        ${appointmentSubTitle(a)}
+					<div class="flex-grow-1">
 
-                        <div class="text-muted small">
-                            Date: ${formatDate(a.appointmentDate)} | Time: ${safe(a.appointmentTime)}
-                        </div>
+						<div class="patient-appointment-primary">
 
-                        <div class="text-muted small mt-1">
-                            Consultation Type: ${consultationBadge(a.consultationType)}
-                        </div>
+							<div class="patient-appointment-avatar">
+								<i class="bi ${currentType === "DOCTOR" ? "bi-person-badge-fill" : "bi-hospital-fill"}"></i>
+							</div>
 
-                        ${a.paymentStatus ? `
-                            <div class="text-muted small mt-1">
-                                Payment: ${paymentBadge(a.paymentStatus)}
-                            </div>
-                        ` : ""}
+							<div>
 
-                        ${a.consultationFee !== null && a.consultationFee !== undefined ? `
-                            <div class="text-muted small mt-1">
-                                Fee: ₹${safe(a.consultationFee)}
-                            </div>
-                        ` : ""}
+								<h5 class="fw-bold text-primary mb-1">
+									${appointmentTitle(a)}
+								</h5>
 
-                        <div class="mt-2">
-                            <strong>Symptoms:</strong> ${safe(a.symptoms || a.purpose)}
-                        </div>
+								${appointmentSubTitle(a)}
 
-                        ${videoJoinButton(a)}
-                    </div>
+							</div>
 
-                    <div class="text-end">
-   					 	${combinedStatusBadge(a)}
-    					${cancelButton(a)}
+						</div>
+
+						<div class="patient-appointment-detail-grid">
+
+							<div class="patient-appointment-detail">
+								<i class="bi bi-calendar-event-fill"></i>
+								<span>
+									${formatDate(a.appointmentDate)}
+								</span>
+							</div>
+
+							<div class="patient-appointment-detail">
+								<i class="bi bi-clock-fill"></i>
+								<span>
+									${safe(a.appointmentTime)}
+								</span>
+							</div>
+
+							<div class="patient-appointment-detail">
+								<i class="bi bi-camera-video-fill"></i>
+								<span>
+									Consultation: ${consultationBadge(a.consultationType)}
+								</span>
+							</div>
+
+							${a.paymentStatus ? `
+								<div class="patient-appointment-detail">
+									<i class="bi bi-credit-card-fill"></i>
+									<span>
+										Payment: ${paymentStatusInlineBadge(a.paymentStatus)}
+									</span>
+								</div>
+							` : ""}
+
+							${a.consultationFee !== null && a.consultationFee !== undefined ? `
+								<div class="patient-appointment-detail">
+									<i class="bi bi-currency-rupee"></i>
+									<span>
+										Fee: ₹${safe(a.consultationFee)}
+									</span>
+								</div>
+							` : ""}
+
+						</div>
+
+						<div class="patient-appointment-symptoms">
+							<strong>Symptoms:</strong>
+							${safe(a.symptoms || a.purpose)}
+						</div>
+
+						${videoJoinButton(a)}
+
 					</div>
 
-                </div>
-            </div>
-        `;
+					<div class="patient-appointment-action">
+
+						${combinedStatusBadge(a)}
+						${cancelButton(a)}
+
+					</div>
+
+				</div>
+
+			</article>
+		`;
+
 	});
 
 	container.innerHTML = html;
+}
+
+function showAppointmentsLoadingState() {
+	const container =
+		document.getElementById(
+			"appointmentList"
+		);
+
+	if (!container) {
+		return;
+	}
+
+	container.innerHTML = `
+		<div class="my-appointments-loading-state">
+
+			<div class="my-appointments-loading-icon">
+				<i class="bi bi-calendar2-heart-fill"></i>
+			</div>
+
+			<h5 class="fw-bold text-primary">
+				Loading appointments
+			</h5>
+
+			<p class="text-muted mb-0">
+				Please wait while we prepare your appointments.
+			</p>
+
+		</div>
+	`;
+}
+
+function updateAppointmentSummary() {
+	const doctorAppointments =
+		Array.isArray(myDoctorAppointments)
+			? myDoctorAppointments
+			: [];
+
+	const hospitalAppointments =
+		Array.isArray(myHospitalAppointments)
+			? myHospitalAppointments
+			: [];
+
+	const allAppointments = [
+		...doctorAppointments,
+		...hospitalAppointments
+	];
+
+	const completedCount =
+		allAppointments.filter(
+			a => a.status === "COMPLETED"
+		).length;
+
+	setSummaryValue(
+		"totalMyAppointmentCount",
+		allAppointments.length
+	);
+
+	setSummaryValue(
+		"doctorAppointmentCount",
+		doctorAppointments.length
+	);
+
+	setSummaryValue(
+		"hospitalAppointmentCount",
+		hospitalAppointments.length
+	);
+
+	setSummaryValue(
+		"completedMyAppointmentCount",
+		completedCount
+	);
+}
+
+function setSummaryValue(id, value) {
+	const element =
+		document.getElementById(id);
+
+	if (!element) {
+		return;
+	}
+
+	const target =
+		Number(value) || 0;
+
+	const start =
+		Number(element.textContent) || 0;
+
+	const difference =
+		target - start;
+
+	const duration = 500;
+	const startTime = performance.now();
+
+	if (
+		window.matchMedia(
+			"(prefers-reduced-motion: reduce)"
+		).matches ||
+		difference === 0
+	) {
+		element.textContent = target;
+		return;
+	}
+
+	function update(currentTime) {
+		const progress =
+			Math.min(
+				(currentTime - startTime) /
+				duration,
+				1
+			);
+
+		const eased =
+			1 - Math.pow(1 - progress, 3);
+
+		element.textContent =
+			Math.round(
+				start +
+				difference *
+				eased
+			);
+
+		if (progress < 1) {
+			requestAnimationFrame(update);
+		}
+	}
+
+	requestAnimationFrame(update);
 }
 
 function appointmentTitle(a) {
@@ -196,10 +503,16 @@ function appointmentTitle(a) {
 			return safe(a.doctorName);
 		}
 
-		return "Doctor ID: " + safe(a.doctorAuthUserId);
+		return (
+			"Doctor ID: " +
+			safe(a.doctorAuthUserId)
+		);
 	}
 
-	return safe(a.doctorName || "Hospital Doctor");
+	return safe(
+		a.doctorName ||
+		"Hospital Doctor"
+	);
 }
 
 function appointmentSubTitle(a) {
@@ -222,17 +535,27 @@ function appointmentSubTitle(a) {
 
 function combinedStatusBadge(a) {
 	if (a.status === "PAYMENT_PENDING") {
-		return `<span class="badge bg-warning text-dark">PAYMENT PENDING</span>`;
+		return `
+			<span class="badge bg-warning text-dark">
+				PAYMENT PENDING
+			</span>
+		`;
 	}
 
 	if (a.status === "PAYMENT_FAILED") {
-		return `<span class="badge bg-danger">PAYMENT FAILED</span>`;
+		return `
+			<span class="badge bg-danger">
+				PAYMENT FAILED
+			</span>
+		`;
 	}
 
-	let html = statusBadge(a.status);
+	let html =
+		statusBadge(a.status);
 
 	if (a.paymentStatus) {
-		html += paymentBadge(a.paymentStatus);
+		html +=
+			paymentBadge(a.paymentStatus);
 	}
 
 	return html;
@@ -245,57 +568,77 @@ function videoJoinButton(a) {
 
 	if (a.status === "PAYMENT_PENDING") {
 		return `
-            <div class="mt-3 text-warning small">
-                Payment pending. Video link will be available after payment confirmation.
-            </div>
-        `;
+			<div class="patient-appointment-message text-warning">
+				<i class="bi bi-hourglass-split me-1"></i>
+				Payment pending. Video link will be available after payment confirmation.
+			</div>
+		`;
 	}
 
 	if (a.status === "PAYMENT_FAILED") {
 		return `
-            <div class="mt-3 text-danger small">
-                Payment failed. Video consultation link is not available.
-            </div>
-        `;
+			<div class="patient-appointment-message text-danger">
+				<i class="bi bi-exclamation-triangle-fill me-1"></i>
+				Payment failed. Video consultation link is not available.
+			</div>
+		`;
 	}
 
-	if ((a.status === "CONFIRMED" || a.status === "IN_CONSULTATION") && isValidMeetingUrl(a.meetingUrl)) {
-		const buttonText = a.status === "IN_CONSULTATION"
-			? "Rejoin Video Consultation"
-			: "Join Video Consultation";
+	if (
+		(
+			a.status === "CONFIRMED" ||
+			a.status === "IN_CONSULTATION"
+		) &&
+		isValidMeetingUrl(a.meetingUrl)
+	) {
+		const buttonText =
+			a.status === "IN_CONSULTATION"
+				? "Rejoin Video Consultation"
+				: "Join Video Consultation";
 
 		return `
-            <div class="mt-3">
-                <button class="btn btn-success btn-sm"
-                        onclick="openMeeting('${escapeJs(a.meetingUrl)}')">
-                    ${buttonText}
-                </button>
-            </div>
-        `;
+			<div class="mt-3">
+				<button class="btn btn-success btn-sm"
+						onclick="openMeeting('${escapeJs(a.meetingUrl)}')">
+
+					<i class="bi bi-camera-video-fill me-1"></i>
+					${buttonText}
+				</button>
+			</div>
+		`;
 	}
 
-	if ((a.status === "CONFIRMED" || a.status === "PENDING") && !isValidMeetingUrl(a.meetingUrl)) {
+	if (
+		(
+			a.status === "CONFIRMED" ||
+			a.status === "PENDING"
+		) &&
+		!isValidMeetingUrl(a.meetingUrl)
+	) {
 		return `
-            <div class="mt-3 text-muted small">
-                Video link is not generated yet. Please refresh this page after payment success/confirmation.
-            </div>
-        `;
+			<div class="patient-appointment-message text-muted">
+				<i class="bi bi-link-45deg me-1"></i>
+				Video link is not generated yet. Please refresh this page after payment success/confirmation.
+			</div>
+		`;
 	}
 
 	if (a.status === "COMPLETED") {
 		return `
-            <div class="mt-3 text-success small">
-                Consultation completed.
-            </div>
-        `;
+			<div class="patient-appointment-message text-success">
+				<i class="bi bi-check2-circle me-1"></i>
+				Consultation completed.
+			</div>
+		`;
 	}
 
 	if (a.status === "CANCELLED") {
 		return `
-            <div class="mt-3 text-muted small">
-                Appointment cancelled.
-            </div>
-        `;
+			<div class="patient-appointment-message text-muted">
+				<i class="bi bi-x-circle me-1"></i>
+				Appointment cancelled.
+			</div>
+		`;
 	}
 
 	return "";
@@ -303,7 +646,10 @@ function videoJoinButton(a) {
 
 function openMeeting(url) {
 	if (!isValidMeetingUrl(url)) {
-		alert("Video meeting link is not generated yet.");
+		alert(
+			"Video meeting link is not generated yet."
+		);
+
 		return;
 	}
 
@@ -311,21 +657,85 @@ function openMeeting(url) {
 }
 
 function isValidMeetingUrl(url) {
-	return url
-		&& typeof url === "string"
-		&& (url.startsWith("http://") || url.startsWith("https://"));
+	return (
+		url &&
+		typeof url === "string" &&
+		(
+			url.startsWith("http://") ||
+			url.startsWith("https://")
+		)
+	);
 }
 
 function consultationBadge(type) {
 	if (type === "ONLINE") {
-		return `<span class="badge bg-success">ONLINE VIDEO</span>`;
+		return `
+			<span class="badge bg-success">
+				ONLINE VIDEO
+			</span>
+		`;
 	}
 
 	if (type === "OFFLINE") {
-		return `<span class="badge bg-secondary">OFFLINE VISIT</span>`;
+		return `
+			<span class="badge bg-secondary">
+				OFFLINE VISIT
+			</span>
+		`;
 	}
 
-	return `<span class="badge bg-light text-dark">-</span>`;
+	return `
+		<span class="badge bg-light text-dark">
+			-
+		</span>
+	`;
+}
+
+function paymentStatusInlineBadge(paymentStatus) {
+	if (!paymentStatus) {
+		return "";
+	}
+
+	if (paymentStatus === "NOT_REQUIRED") {
+		return `
+			<span class="badge bg-secondary">
+				NOT REQUIRED
+			</span>
+		`;
+	}
+
+	if (paymentStatus === "SUCCESS") {
+		return `
+			<span class="badge bg-success">
+				SUCCESS
+			</span>
+		`;
+	}
+
+	if (
+		paymentStatus === "INITIATED" ||
+		paymentStatus === "PENDING"
+	) {
+		return `
+			<span class="badge bg-warning text-dark">
+				PENDING
+			</span>
+		`;
+	}
+
+	if (paymentStatus === "FAILED") {
+		return `
+			<span class="badge bg-danger">
+				FAILED
+			</span>
+		`;
+	}
+
+	return `
+		<span class="badge bg-secondary">
+			${safe(paymentStatus)}
+		</span>
+	`;
 }
 
 function paymentBadge(paymentStatus) {
@@ -334,62 +744,135 @@ function paymentBadge(paymentStatus) {
 	}
 
 	if (paymentStatus === "NOT_REQUIRED") {
-		return `<div class="mt-2"><span class="badge bg-secondary">PAYMENT NOT REQUIRED</span></div>`;
+		return `
+			<div class="mt-2">
+				<span class="badge bg-secondary">
+					PAYMENT NOT REQUIRED
+				</span>
+			</div>
+		`;
 	}
 
 	if (paymentStatus === "SUCCESS") {
-		return `<div class="mt-2"><span class="badge bg-success">PAYMENT SUCCESS</span></div>`;
+		return `
+			<div class="mt-2">
+				<span class="badge bg-success">
+					PAYMENT SUCCESS
+				</span>
+			</div>
+		`;
 	}
 
-	if (paymentStatus === "INITIATED" || paymentStatus === "PENDING") {
-		return `<div class="mt-2"><span class="badge bg-warning text-dark">PAYMENT PENDING</span></div>`;
+	if (
+		paymentStatus === "INITIATED" ||
+		paymentStatus === "PENDING"
+	) {
+		return `
+			<div class="mt-2">
+				<span class="badge bg-warning text-dark">
+					PAYMENT PENDING
+				</span>
+			</div>
+		`;
 	}
 
 	if (paymentStatus === "FAILED") {
-		return `<div class="mt-2"><span class="badge bg-danger">PAYMENT FAILED</span></div>`;
+		return `
+			<div class="mt-2">
+				<span class="badge bg-danger">
+					PAYMENT FAILED
+				</span>
+			</div>
+		`;
 	}
 
-	return `<div class="mt-2"><span class="badge bg-secondary">${safe(paymentStatus)}</span></div>`;
+	return `
+		<div class="mt-2">
+			<span class="badge bg-secondary">
+				${safe(paymentStatus)}
+			</span>
+		</div>
+	`;
 }
 
 function statusBadge(status) {
 	if (status === "PAYMENT_PENDING") {
-		return `<span class="badge bg-warning text-dark">PAYMENT PENDING</span>`;
+		return `
+			<span class="badge bg-warning text-dark">
+				PAYMENT PENDING
+			</span>
+		`;
 	}
 
 	if (status === "PAYMENT_FAILED") {
-		return `<span class="badge bg-danger">PAYMENT FAILED</span>`;
+		return `
+			<span class="badge bg-danger">
+				PAYMENT FAILED
+			</span>
+		`;
 	}
 
 	if (status === "PENDING") {
-		return `<span class="badge bg-warning text-dark">PENDING</span>`;
+		return `
+			<span class="badge bg-warning text-dark">
+				PENDING
+			</span>
+		`;
 	}
 
 	if (status === "REQUESTED") {
-		return `<span class="badge bg-warning text-dark">REQUESTED</span>`;
+		return `
+			<span class="badge bg-warning text-dark">
+				REQUESTED
+			</span>
+		`;
 	}
 
 	if (status === "CONFIRMED") {
-		return `<span class="badge bg-info text-dark">CONFIRMED</span>`;
+		return `
+			<span class="badge bg-info text-dark">
+				CONFIRMED
+			</span>
+		`;
 	}
 
 	if (status === "IN_CONSULTATION") {
-		return `<span class="badge bg-primary">IN CONSULTATION</span>`;
+		return `
+			<span class="badge bg-primary">
+				IN CONSULTATION
+			</span>
+		`;
 	}
 
 	if (status === "REJECTED") {
-		return `<span class="badge bg-danger">REJECTED</span>`;
+		return `
+			<span class="badge bg-danger">
+				REJECTED
+			</span>
+		`;
 	}
 
 	if (status === "COMPLETED") {
-		return `<span class="badge bg-success">COMPLETED</span>`;
+		return `
+			<span class="badge bg-success">
+				COMPLETED
+			</span>
+		`;
 	}
 
 	if (status === "CANCELLED") {
-		return `<span class="badge bg-secondary">CANCELLED</span>`;
+		return `
+			<span class="badge bg-secondary">
+				CANCELLED
+			</span>
+		`;
 	}
 
-	return `<span class="badge bg-secondary">${safe(status)}</span>`;
+	return `
+		<span class="badge bg-secondary">
+			${safe(status)}
+		</span>
+	`;
 }
 
 function cancelButton(a) {
@@ -400,23 +883,27 @@ function cancelButton(a) {
 	) {
 		if (currentType === "DOCTOR") {
 			return `
-                <div class="mt-2">
-                    <button class="btn btn-sm btn-outline-danger"
-                            onclick="cancelDoctorAppointment(${a.id})">
-                        Cancel
-                    </button>
-                </div>
-            `;
+				<div class="mt-3">
+					<button class="btn btn-sm btn-outline-danger"
+							onclick="cancelDoctorAppointment(${a.id})">
+
+						<i class="bi bi-x-circle me-1"></i>
+						Cancel
+					</button>
+				</div>
+			`;
 		}
 
 		return `
-            <div class="mt-2">
-                <button class="btn btn-sm btn-outline-danger"
-                        onclick="cancelHospitalAppointment(${a.id})">
-                    Cancel
-                </button>
-            </div>
-        `;
+			<div class="mt-3">
+				<button class="btn btn-sm btn-outline-danger"
+						onclick="cancelHospitalAppointment(${a.id})">
+
+					<i class="bi bi-x-circle me-1"></i>
+					Cancel
+				</button>
+			</div>
+		`;
 	}
 
 	return "";
@@ -427,29 +914,45 @@ async function cancelDoctorAppointment(id) {
 		return;
 	}
 
-	const token = localStorage.getItem("token");
+	const token =
+		localStorage.getItem("token");
 
 	try {
 		const response = await fetch(`${API_BASE}/doctor/appointments/${id}/cancel`, {
 			method: "PUT",
 			headers: {
-				"Authorization": "Bearer " + token
+				"Authorization":
+					"Bearer " + token
 			}
 		});
 
-		const result = await readJsonSafely(response);
+		const result =
+			await readJsonSafely(response);
 
 		if (!response.ok) {
-			showMsg(getErrorMessage(result, "Unable to cancel appointment"));
+			showMsg(
+				getErrorMessage(
+					result,
+					"Unable to cancel appointment"
+				)
+			);
+
 			return;
 		}
 
-		showMsg("Appointment cancelled successfully", "success");
+		showMsg(
+			"Appointment cancelled successfully",
+			"success"
+		);
+
 		loadMyAppointments();
 
 	} catch (e) {
 		console.error(e);
-		showMsg("Doctor service not reachable.");
+
+		showMsg(
+			"Doctor service not reachable."
+		);
 	}
 }
 
@@ -458,29 +961,45 @@ async function cancelHospitalAppointment(id) {
 		return;
 	}
 
-	const token = localStorage.getItem("token");
+	const token =
+		localStorage.getItem("token");
 
 	try {
 		const response = await fetch(`${API_BASE}/hospital/appointments/${id}/cancel`, {
 			method: "PUT",
 			headers: {
-				"Authorization": "Bearer " + token
+				"Authorization":
+					"Bearer " + token
 			}
 		});
 
-		const result = await readJsonSafely(response);
+		const result =
+			await readJsonSafely(response);
 
 		if (!response.ok) {
-			showMsg(getErrorMessage(result, "Unable to cancel hospital appointment"));
+			showMsg(
+				getErrorMessage(
+					result,
+					"Unable to cancel hospital appointment"
+				)
+			);
+
 			return;
 		}
 
-		showMsg("Hospital appointment cancelled successfully", "success");
+		showMsg(
+			"Hospital appointment cancelled successfully",
+			"success"
+		);
+
 		loadMyAppointments();
 
 	} catch (e) {
 		console.error(e);
-		showMsg("Hospital service not reachable.");
+
+		showMsg(
+			"Hospital service not reachable."
+		);
 	}
 }
 
@@ -511,14 +1030,26 @@ function normalizeAppointment(a) {
 
 	return {
 		...a,
-		status: normalizeStatus(a.status),
-		consultationType: normalizeConsultationType(a.consultationType),
-		paymentStatus: normalizePaymentStatus(a.paymentStatus)
+		status:
+			normalizeStatus(a.status),
+
+		consultationType:
+			normalizeConsultationType(
+				a.consultationType
+			),
+
+		paymentStatus:
+			normalizePaymentStatus(
+				a.paymentStatus
+			)
 	};
 }
 
 function normalizeStatus(status) {
-	if (status === null || status === undefined) {
+	if (
+		status === null ||
+		status === undefined
+	) {
 		return "";
 	}
 
@@ -537,7 +1068,10 @@ function normalizeStatus(status) {
 }
 
 function normalizeConsultationType(type) {
-	if (type === null || type === undefined) {
+	if (
+		type === null ||
+		type === undefined
+	) {
 		return "";
 	}
 
@@ -550,7 +1084,10 @@ function normalizeConsultationType(type) {
 }
 
 function normalizePaymentStatus(status) {
-	if (status === null || status === undefined) {
+	if (
+		status === null ||
+		status === undefined
+	) {
 		return "";
 	}
 
@@ -594,17 +1131,20 @@ function getErrorMessage(data, fallback) {
 }
 
 function showMsg(message, type = "danger") {
-	const msgBox = document.getElementById("msg");
+	const msgBox =
+		document.getElementById("msg");
 
 	if (!msgBox) {
 		return;
 	}
 
-	msgBox.innerHTML = `<div class="alert alert-${type}">${escapeHtml(message)}</div>`;
+	msgBox.innerHTML =
+		`<div class="alert alert-${type}">${escapeHtml(message)}</div>`;
 }
 
 function clearMsg() {
-	const msgBox = document.getElementById("msg");
+	const msgBox =
+		document.getElementById("msg");
 
 	if (msgBox) {
 		msgBox.innerHTML = "";
@@ -612,11 +1152,34 @@ function clearMsg() {
 }
 
 function formatDate(value) {
-	return value ? new Date(value).toLocaleDateString() : "-";
+	if (!value) {
+		return "-";
+	}
+
+	const date = new Date(value);
+
+	if (Number.isNaN(date.getTime())) {
+		return safe(value);
+	}
+
+	return date.toLocaleDateString(
+		"en-IN",
+		{
+			day: "2-digit",
+			month: "short",
+			year: "numeric"
+		}
+	);
 }
 
 function safe(value) {
-	return value === null || value === undefined || value === "" ? "-" : escapeHtml(value);
+	return (
+		value === null ||
+		value === undefined ||
+		value === ""
+	)
+		? "-"
+		: escapeHtml(value);
 }
 
 function escapeHtml(value) {
