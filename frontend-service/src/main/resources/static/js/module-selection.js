@@ -1,19 +1,17 @@
-document.addEventListener(
-	"DOMContentLoaded",
-	function() {
+document.addEventListener("DOMContentLoaded", function() {
 
-		if (!protectModuleSelectionPage()) {
-			return;
-		}
-
-		initializeUserInformation();
-		initializeCurrentYear();
-		configureModulesByRole();
-		initializeModuleCards();
-		initializeLogout();
-
+	if (!protectModuleSelectionPage()) {
+		return;
 	}
-);
+
+	initializeUserInformation();
+	initializeCurrentYear();
+	configureModulesByRole();
+	initializeModuleCards();
+	initializeLogout();
+	initializeCardEntryAnimation();
+	initializePremiumCardInteraction();
+});
 
 
 function protectModuleSelectionPage() {
@@ -22,9 +20,7 @@ function protectModuleSelectionPage() {
 		localStorage.getItem("token");
 
 	if (!token) {
-
 		window.location.replace("/");
-
 		return false;
 	}
 
@@ -53,7 +49,6 @@ function initializeUserInformation() {
 		fullName ||
 		email ||
 		"MediRevolution User";
-
 }
 
 
@@ -65,12 +60,9 @@ function initializeCurrentYear() {
 		);
 
 	if (currentYearElement) {
-
 		currentYearElement.textContent =
 			new Date().getFullYear();
-
 	}
-
 }
 
 
@@ -105,24 +97,17 @@ function configureModulesByRole() {
 		"SAAS_STAFF"
 	];
 
-	const platformAllowed =
-		platformRoles.includes(role);
-
-	const saasAllowed =
-		saasRoles.includes(role);
-
 	configureModuleCardAccess(
 		platformCard,
-		platformAllowed,
+		platformRoles.includes(role),
 		"Main Platform is not available for this account."
 	);
 
 	configureModuleCardAccess(
 		saasCard,
-		saasAllowed,
+		saasRoles.includes(role),
 		"SaaS Workspace is not available for this account."
 	);
-
 }
 
 
@@ -145,6 +130,10 @@ function configureModuleCardAccess(
 
 		card.classList.remove(
 			"module-locked"
+		);
+
+		card.removeAttribute(
+			"aria-disabled"
 		);
 
 		if (button) {
@@ -176,7 +165,6 @@ function configureModuleCardAccess(
 			buttonText.textContent =
 				"Not Available";
 		}
-
 	}
 
 	const description =
@@ -187,7 +175,37 @@ function configureModuleCardAccess(
 	if (description) {
 		description.textContent = message;
 	}
+}
 
+
+function initializeCardEntryAnimation() {
+
+	const cards =
+		document.querySelectorAll(
+			".module-card"
+		);
+
+	cards.forEach(
+		function(card, index) {
+
+			card.style.opacity = "0";
+			card.style.transform =
+				`translateY(${28 + index * 8}px) scale(.98)`;
+
+			window.setTimeout(
+				function() {
+
+					card.style.transition =
+						"opacity .7s ease, transform .75s cubic-bezier(.22, 1, .36, 1), box-shadow .42s ease, border-color .42s ease, filter .42s ease";
+
+					card.style.opacity = "1";
+					card.style.transform = "";
+
+				},
+				220 + index * 140
+			);
+		}
+	);
 }
 
 
@@ -226,16 +244,12 @@ function initializeModuleCards() {
 						return;
 					}
 
-					const button =
+					openSelectedModule(
 						card.querySelector(
 							".module-enter-button"
-						);
-
-					openSelectedModule(
-						button,
+						),
 						card
 					);
-
 				}
 			);
 
@@ -260,19 +274,14 @@ function initializeModuleCards() {
 
 					event.preventDefault();
 
-					const button =
+					openSelectedModule(
 						card.querySelector(
 							".module-enter-button"
-						);
-
-					openSelectedModule(
-						button,
+						),
 						card
 					);
-
 				}
 			);
-
 		}
 	);
 
@@ -289,22 +298,16 @@ function initializeModuleCards() {
 						return;
 					}
 
-					const card =
-						button.closest(
-							".module-card"
-						);
-
 					openSelectedModule(
 						button,
-						card
+						button.closest(
+							".module-card"
+						)
 					);
-
 				}
 			);
-
 		}
 	);
-
 }
 
 
@@ -334,20 +337,12 @@ function openSelectedModule(
 	}
 
 	disableAllModuleButtons();
-
-	saveSelectedModule(
-		moduleName
-	);
-
-	animateSelectedCard(
-		selectedCard
-	);
-
+	saveSelectedModule(moduleName);
+	animateSelectedCard(selectedCard);
 	showModuleTransition(
 		moduleName,
 		targetUrl
 	);
-
 }
 
 
@@ -364,18 +359,6 @@ function saveSelectedModule(moduleName) {
 			? "true"
 			: "false"
 	);
-
-	if (moduleName === "PLATFORM") {
-
-		/*
-		 * Platform में जाने पर SaaS workspace
-		 * delete नहीं करना है।
-		 * User बाद में same workspace पर लौट सकता है।
-		 */
-
-		return;
-	}
-
 }
 
 
@@ -397,12 +380,9 @@ function animateSelectedCard(selectedCard) {
 					card.classList.add(
 						"module-unselected"
 					);
-
 				}
-
 			}
 		);
-
 }
 
 
@@ -482,18 +462,14 @@ function showModuleTransition(
 			icon.innerHTML =
 				'<i class="bi bi-globe2"></i>';
 		}
-
 	}
 
-	window.setTimeout(
+	window.requestAnimationFrame(
 		function() {
-
 			overlay.classList.add(
 				"active"
 			);
-
-		},
-		250
+		}
 	);
 
 	window.setTimeout(
@@ -505,9 +481,8 @@ function showModuleTransition(
 			);
 
 		},
-		1700
+		1600
 	);
-
 }
 
 
@@ -523,12 +498,6 @@ function continueToSelectedModule(
 				"tenantId"
 			);
 
-		/*
-		 * Existing selected workspace हो तो
-		 * सीधे SaaS dashboard।
-		 *
-		 * Workspace नहीं हो तो workspace selection।
-		 */
 		window.location.href =
 			tenantId
 				? "/saas/dashboard"
@@ -539,7 +508,6 @@ function continueToSelectedModule(
 
 	window.location.href =
 		targetUrl || "/dashboard";
-
 }
 
 
@@ -550,9 +518,10 @@ function disableAllModuleButtons() {
 			".module-enter-button"
 		)
 		.forEach(
-			button => button.disabled = true
+			function(button) {
+				button.disabled = true;
+			}
 		);
-
 }
 
 
@@ -571,7 +540,6 @@ function initializeLogout() {
 		"click",
 		performLogout
 	);
-
 }
 
 
@@ -596,7 +564,6 @@ function performLogout() {
 			"rememberedEmail",
 			rememberedEmail
 		);
-
 	}
 
 	if (rememberedPassword) {
@@ -605,9 +572,123 @@ function performLogout() {
 			"rememberedPassword",
 			rememberedPassword
 		);
-
 	}
 
 	window.location.replace("/");
+}
 
+
+function initializePremiumCardInteraction() {
+
+	const cardsContainer =
+		document.querySelector(
+			".module-cards-container"
+		);
+
+	const cards =
+		document.querySelectorAll(
+			".module-card"
+		);
+
+	if (!cardsContainer || !cards.length) {
+		return;
+	}
+
+	cards.forEach(
+		function(card) {
+
+			card.addEventListener(
+				"pointermove",
+				function(event) {
+
+					const bounds =
+						card.getBoundingClientRect();
+
+					const x =
+						((event.clientX - bounds.left) /
+							bounds.width) * 100;
+
+					const y =
+						((event.clientY - bounds.top) /
+							bounds.height) * 100;
+
+					card.style.setProperty(
+						"--spot-x",
+						x + "%"
+					);
+
+					card.style.setProperty(
+						"--spot-y",
+						y + "%"
+					);
+				}
+			);
+
+			card.addEventListener(
+				"pointerenter",
+				function() {
+
+					card.classList.add(
+						"card-hovered"
+					);
+
+					cardsContainer.classList.add(
+						"card-focus-active"
+					);
+				}
+			);
+
+			card.addEventListener(
+				"pointerleave",
+				function() {
+
+					card.classList.remove(
+						"card-hovered"
+					);
+
+					cardsContainer.classList.remove(
+						"card-focus-active"
+					);
+
+					card.style.setProperty(
+						"--spot-x",
+						"20%"
+					);
+
+					card.style.setProperty(
+						"--spot-y",
+						"10%"
+					);
+				}
+			);
+
+			card.addEventListener(
+				"focusin",
+				function() {
+
+					card.classList.add(
+						"card-hovered"
+					);
+
+					cardsContainer.classList.add(
+						"card-focus-active"
+					);
+				}
+			);
+
+			card.addEventListener(
+				"focusout",
+				function() {
+
+					card.classList.remove(
+						"card-hovered"
+					);
+
+					cardsContainer.classList.remove(
+						"card-focus-active"
+					);
+				}
+			);
+		}
+	);
 }

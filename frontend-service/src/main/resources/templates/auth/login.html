@@ -211,6 +211,429 @@
 			gap: 8px;
 		}
 
+		/* ================= PREMIUM LEFT PANEL ONLY ================= */
+
+		.login-experience .auth-left {
+			position: relative;
+			isolation: isolate;
+			overflow: hidden;
+			padding: clamp(44px, 5vw, 78px) !important;
+			background:
+				linear-gradient(135deg, #05285f 0%, #08739f 52%, #08c7d4 100%) !important;
+		}
+
+		.login-experience .auth-left::before {
+			position: absolute;
+			top: -165px;
+			right: -105px;
+			z-index: -2;
+			width: 390px;
+			height: 390px;
+			border: 62px solid rgba(255, 255, 255, .065);
+			border-radius: 50%;
+			content: "";
+			animation: premiumLeftOrbit 11s ease-in-out infinite;
+		}
+
+		.login-experience .auth-left::after {
+			position: absolute;
+			right: 5%;
+			bottom: -215px;
+			z-index: -3;
+			width: 430px;
+			height: 430px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle, rgba(184, 242, 103, .25), transparent 68%);
+			animation: premiumLeftGlow 8s ease-in-out infinite;
+		}
+
+		.premium-left-grid {
+			position: absolute;
+			inset: 0;
+			z-index: -4;
+			opacity: .12;
+			background-image:
+				linear-gradient(rgba(255, 255, 255, .11) 1px, transparent 1px),
+				linear-gradient(90deg, rgba(255, 255, 255, .11) 1px, transparent 1px);
+			background-size: 42px 42px;
+			mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .65), transparent 82%);
+			pointer-events: none;
+		}
+
+		.premium-left-orb {
+			position: absolute;
+			z-index: -1;
+			border-radius: 50%;
+			pointer-events: none;
+		}
+
+		.premium-left-orb-one {
+			top: 14%;
+			left: -70px;
+			width: 180px;
+			height: 180px;
+			background: radial-gradient(circle, rgba(255, 255, 255, .16), transparent 70%);
+			animation: premiumLeftDriftOne 9s ease-in-out infinite;
+		}
+
+		.premium-left-orb-two {
+			right: 18%;
+			bottom: 14%;
+			width: 135px;
+			height: 135px;
+			background: radial-gradient(circle, rgba(184, 242, 103, .18), transparent 70%);
+			animation: premiumLeftDriftTwo 7s ease-in-out infinite;
+		}
+
+		.premium-left-content {
+			position: relative;
+			z-index: 2;
+			width: min(100%, 690px);
+			max-width: 690px;
+			margin: 0 auto;
+		}
+
+		.premium-left-brand-row {
+			display: flex;
+			align-items: center;
+			gap: 24px;
+			margin-bottom: 26px;
+		}
+
+		.premium-left-logo-shell {
+			position: relative;
+			display: flex;
+			flex: 0 0 150px;
+			align-items: center;
+			justify-content: center;
+			width: 150px;
+			height: 150px;
+			border: 1px solid rgba(255, 255, 255, .22);
+			border-radius: 30px;
+			background: rgba(255, 255, 255, .95);
+			box-shadow:
+				0 28px 60px rgba(0, 0, 0, .22),
+				inset 0 1px 0 rgba(255, 255, 255, .8);
+			animation: premiumLeftLogoFloat 4.2s ease-in-out infinite;
+		}
+
+		.premium-left-logo-shell::before {
+			position: absolute;
+			inset: -12px;
+			z-index: -1;
+			border: 1px solid rgba(255, 255, 255, .16);
+			border-radius: 38px;
+			content: "";
+			animation: premiumLeftPulse 3.4s ease-in-out infinite;
+		}
+
+		.premium-left-logo-shell img {
+			width: 118px !important;
+			height: 118px !important;
+			max-width: 118px !important;
+			margin: 0 !important;
+			padding: 0 !important;
+			border-radius: 20px !important;
+			background: transparent !important;
+			box-shadow: none !important;
+			object-fit: contain;
+		}
+
+		.premium-left-copy {
+			min-width: 0;
+		}
+
+		.premium-left-eyebrow {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 14px;
+			padding: 8px 13px;
+			border: 1px solid rgba(255, 255, 255, .2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .1);
+			font-size: 11px;
+			font-weight: 800;
+			letter-spacing: .7px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.premium-left-title {
+			margin: 0 !important;
+			color: #ffffff !important;
+			font-size: clamp(43px, 5vw, 72px) !important;
+			font-weight: 900 !important;
+			letter-spacing: -2.6px;
+			line-height: .98;
+		}
+
+		.premium-left-title span {
+			color: #b8f267 !important;
+			text-shadow: 0 10px 30px rgba(184, 242, 103, .18);
+		}
+
+		.premium-left-description {
+			max-width: 635px !important;
+			margin: 20px 0 0 !important;
+			color: rgba(255, 255, 255, .86) !important;
+			font-size: 16px !important;
+			line-height: 1.8 !important;
+		}
+
+		.premium-left-promise {
+			display: inline-flex;
+			align-items: center;
+			gap: 10px;
+			margin-top: 18px;
+			padding: 10px 14px;
+			border: 1px solid rgba(255, 255, 255, .14);
+			border-radius: 16px;
+			background: rgba(3, 30, 70, .18);
+			color: rgba(255, 255, 255, .92);
+			font-size: 12px;
+			font-weight: 700;
+			backdrop-filter: blur(12px);
+		}
+
+		.premium-left-promise i {
+			color: #b8f267;
+			font-size: 16px;
+		}
+
+		.premium-left-stats {
+			display: grid !important;
+			grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+			gap: 14px !important;
+			margin: 30px 0 0 !important;
+		}
+
+		.premium-left-stat {
+			position: relative;
+			min-width: 0;
+			padding: 18px 16px;
+			overflow: hidden;
+			border: 1px solid rgba(255, 255, 255, .16);
+			border-radius: 20px;
+			background: rgba(255, 255, 255, .12);
+			backdrop-filter: blur(14px);
+			transition: transform .35s ease, background .35s ease, box-shadow .35s ease;
+		}
+
+		.premium-left-stat::after {
+			position: absolute;
+			top: -42px;
+			right: -42px;
+			width: 92px;
+			height: 92px;
+			border-radius: 50%;
+			content: "";
+			background: radial-gradient(circle, rgba(255, 255, 255, .15), transparent 70%);
+		}
+
+		.premium-left-stat:hover {
+			transform: translateY(-6px);
+			background: rgba(255, 255, 255, .17);
+			box-shadow: 0 18px 38px rgba(0, 0, 0, .14);
+		}
+
+		.premium-left-stat-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 42px;
+			height: 42px;
+			margin-bottom: 12px;
+			border-radius: 14px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 18px;
+			box-shadow: 0 10px 24px rgba(0, 0, 0, .14);
+		}
+
+		.premium-left-stat strong {
+			display: block;
+			color: #ffffff;
+			font-size: 20px;
+			font-weight: 900;
+			line-height: 1.2;
+		}
+
+		.premium-left-stat span {
+			display: block;
+			margin-top: 5px;
+			color: rgba(255, 255, 255, .76);
+			font-size: 12px;
+			font-weight: 700;
+			line-height: 1.4;
+		}
+
+		.premium-left-feature-grid {
+			display: grid !important;
+			grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+			gap: 12px !important;
+			margin-top: 24px !important;
+		}
+
+		.premium-left-feature {
+			display: flex;
+			align-items: center;
+			gap: 11px;
+			min-width: 0;
+			padding: 12px 14px;
+			border: 1px solid rgba(255, 255, 255, .12);
+			border-radius: 16px;
+			background: rgba(4, 39, 82, .16);
+			color: rgba(255, 255, 255, .92);
+			font-size: 13px;
+			font-weight: 700;
+			opacity: 0;
+			transform: translateY(14px);
+			animation: premiumLeftFeatureReveal .55s var(--feature-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards;
+			backdrop-filter: blur(10px);
+		}
+
+		.premium-left-feature-icon {
+			display: flex;
+			flex: 0 0 36px;
+			align-items: center;
+			justify-content: center;
+			width: 36px;
+			height: 36px;
+			border-radius: 12px;
+			color: #05285f;
+			background: linear-gradient(135deg, #ffffff, #dfffc4);
+			font-size: 16px;
+		}
+
+		.premium-left-footer {
+			display: flex;
+			align-items: center;
+			gap: 9px;
+			margin-top: 24px;
+			color: rgba(255, 255, 255, .68);
+			font-size: 11px;
+			font-weight: 700;
+			letter-spacing: .3px;
+		}
+
+		.premium-left-footer::before {
+			width: 38px;
+			height: 1px;
+			content: "";
+			background: linear-gradient(90deg, #b8f267, transparent);
+		}
+
+		@keyframes premiumLeftOrbit {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(24px) rotate(8deg);
+			}
+		}
+
+		@keyframes premiumLeftGlow {
+
+			0%,
+			100% {
+				transform: scale(.94);
+				opacity: .75;
+			}
+
+			50% {
+				transform: scale(1.08);
+				opacity: 1;
+			}
+		}
+
+		@keyframes premiumLeftDriftOne {
+
+			0%,
+			100% {
+				transform: translate(0, 0);
+			}
+
+			50% {
+				transform: translate(24px, 18px);
+			}
+		}
+
+		@keyframes premiumLeftDriftTwo {
+
+			0%,
+			100% {
+				transform: translate(0, 0);
+			}
+
+			50% {
+				transform: translate(-18px, -22px);
+			}
+		}
+
+		@keyframes premiumLeftLogoFloat {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(-8px) rotate(-1deg);
+			}
+		}
+
+		@keyframes premiumLeftPulse {
+
+			0%,
+			100% {
+				transform: scale(.96);
+				opacity: .5;
+			}
+
+			50% {
+				transform: scale(1.05);
+				opacity: 1;
+			}
+		}
+
+		@keyframes premiumLeftFeatureReveal {
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@media (max-width: 1200px) {
+			.premium-left-brand-row {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.premium-left-logo-shell {
+				flex-basis: 124px;
+				width: 124px;
+				height: 124px;
+			}
+
+			.premium-left-logo-shell img {
+				width: 98px !important;
+				height: 98px !important;
+				max-width: 98px !important;
+			}
+		}
+
+		@media (max-width: 991px) {
+			.login-experience .auth-left {
+				display: none !important;
+			}
+		}
+
 		@keyframes loginLeftReveal {
 			from {
 				opacity: 0;
@@ -306,69 +729,129 @@
 
 		<div class="auth-left">
 
-			<div class="auth-left-content login-left-content">
+			<div class="premium-left-grid"></div>
+			<div class="premium-left-orb premium-left-orb-one"></div>
+			<div class="premium-left-orb premium-left-orb-two"></div>
 
-				<div class="hero-badge login-hero-badge">
-					<i class="bi bi-heart-pulse-fill"></i>
-					Healthcare Supply Chain Platform
+			<div class="auth-left-content login-left-content premium-left-content">
+
+				<div class="premium-left-brand-row">
+
+					<div class="premium-left-logo-shell">
+
+						<img th:src="@{/images/logo.png}" alt="MediRevolution Logo">
+
+					</div>
+
+					<div class="premium-left-copy">
+
+						<div class="premium-left-eyebrow">
+							<i class="bi bi-heart-pulse-fill"></i>
+							Healthcare Intelligence Platform
+						</div>
+
+						<h1 class="premium-left-title">
+							Medi<span>Revolution</span>
+						</h1>
+
+					</div>
+
 				</div>
 
-				<div class="login-hero-logo-wrap">
-
-					<img th:src="@{/images/logo.png}" class="hero-logo" alt="MediRevolution Logo">
-
-				</div>
-
-				<h1 class="hero-title">
-					Medi<span>Revolution</span>
-				</h1>
-
-				<p class="hero-description">
-					Connecting wholesalers, retailers, hospitals, doctors and patients
-					through one intelligent healthcare ecosystem.
+				<p class="premium-left-description">
+					One connected ecosystem for wholesalers, retailers, hospitals,
+					doctors and patients—built to simplify healthcare operations,
+					improve visibility and help every workspace move faster.
 				</p>
 
-				<div class="hero-stats">
+				<div class="premium-left-promise">
+					<i class="bi bi-stars"></i>
+					Modern workflows. Secure access. Better healthcare coordination.
+				</div>
 
-					<div class="stat-card login-stat-card">
-						<h2>10K+</h2>
-						<span>Medicines</span>
+				<div class="premium-left-stats">
+
+					<article class="premium-left-stat">
+
+						<div class="premium-left-stat-icon">
+							<i class="bi bi-capsule-pill"></i>
+						</div>
+
+						<strong>Unified</strong>
+						<span>Medicine and inventory catalogue</span>
+
+					</article>
+
+					<article class="premium-left-stat">
+
+						<div class="premium-left-stat-icon">
+							<i class="bi bi-diagram-3-fill"></i>
+						</div>
+
+						<strong>Multi-role</strong>
+						<span>Business and clinical workspaces</span>
+
+					</article>
+
+					<article class="premium-left-stat">
+
+						<div class="premium-left-stat-icon">
+							<i class="bi bi-shield-lock-fill"></i>
+						</div>
+
+						<strong>Secure</strong>
+						<span>Permission-based protected access</span>
+
+					</article>
+
+				</div>
+
+				<div class="premium-left-feature-grid">
+
+					<div class="premium-left-feature" style="--feature-delay:100ms;">
+
+						<div class="premium-left-feature-icon">
+							<i class="bi bi-box-seam-fill"></i>
+						</div>
+
+						Inventory and expiry intelligence
+
 					</div>
 
-					<div class="stat-card login-stat-card">
-						<h2>500+</h2>
-						<span>Retailers</span>
+					<div class="premium-left-feature" style="--feature-delay:180ms;">
+
+						<div class="premium-left-feature-icon">
+							<i class="bi bi-cart-check-fill"></i>
+						</div>
+
+						Smart purchase and order flows
+
 					</div>
 
-					<div class="stat-card login-stat-card">
-						<h2>24/7</h2>
-						<span>Support</span>
+					<div class="premium-left-feature" style="--feature-delay:260ms;">
+
+						<div class="premium-left-feature-icon">
+							<i class="bi bi-receipt-cutoff"></i>
+						</div>
+
+						GST-ready billing operations
+
+					</div>
+
+					<div class="premium-left-feature" style="--feature-delay:340ms;">
+
+						<div class="premium-left-feature-icon">
+							<i class="bi bi-bell-fill"></i>
+						</div>
+
+						Real-time alerts and notifications
+
 					</div>
 
 				</div>
 
-				<div class="feature-list login-feature-list">
-
-					<div style="--feature-delay:100ms;">
-						<i class="bi bi-check-circle-fill"></i>
-						Inventory Management
-					</div>
-
-					<div style="--feature-delay:180ms;">
-						<i class="bi bi-check-circle-fill"></i>
-						Smart Order Processing
-					</div>
-
-					<div style="--feature-delay:260ms;">
-						<i class="bi bi-check-circle-fill"></i>
-						GST Billing
-					</div>
-
-					<div style="--feature-delay:340ms;">
-						<i class="bi bi-check-circle-fill"></i>
-						Real-Time Notifications
-					</div>
-
+				<div class="premium-left-footer">
+					Revolutionizing healthcare for a better tomorrow
 				</div>
 
 			</div>

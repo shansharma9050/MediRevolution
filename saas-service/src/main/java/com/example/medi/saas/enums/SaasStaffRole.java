@@ -1,8 +1,11 @@
 package com.example.medi.saas.enums;
 
 public enum SaasStaffRole {
+
     OWNER,
     ADMIN,
+
+    // Doctor/Hospital roles
     DOCTOR,
     NURSE,
     RECEPTIONIST,
@@ -15,5 +18,13 @@ public enum SaasStaffRole {
     MANAGER,
     CLEANING_STAFF,
     SECURITY,
+
+    // Wholesaler/Retailer roles
+    SALES_MANAGER,
+    PURCHASE_MANAGER,
+    WAREHOUSE_MANAGER,
+    CASHIER,
+    SALESPERSON,
+
     OTHER
 }

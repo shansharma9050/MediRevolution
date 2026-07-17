@@ -98,6 +98,12 @@ function switchSaasWorkspace() {
 	localStorage.removeItem("saasMemberRole");
 	localStorage.removeItem("saasOwnerOrAdmin");
 	localStorage.removeItem("saasPermissions");
+	localStorage.removeItem("saasEnabledModules");
+
+	window.SAAS_PERMISSIONS = [];
+	window.SAAS_MEMBER_ROLE = null;
+	window.SAAS_OWNER_OR_ADMIN = false;
+	window.SAAS_ENABLED_MODULES = [];
 
 	const overlay =
 		document.getElementById("moduleExitOverlay");
@@ -139,7 +145,6 @@ function switchSaasWorkspace() {
 	}
 
 	window.location.href = "/saas/workspaces";
-
 }
 
 

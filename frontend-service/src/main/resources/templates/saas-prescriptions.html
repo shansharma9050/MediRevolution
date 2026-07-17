@@ -1,66 +1,771 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
+	<meta charset="UTF-8">
+
 	<title>MediRevolution | SaaS Prescriptions</title>
+
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
 	<link rel="manifest" href="/manifest.json">
+
 	<meta name="theme-color" content="#05285f">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
+
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
 
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
 	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.saas-prescriptions-page {
+			position: relative;
+		}
+
+		.saas-prescriptions-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 235px;
+			margin-bottom: 28px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg, #05285f 0%, #08739f 48%, #08c7d4 100%);
+			box-shadow: 0 25px 65px rgba(5, 40, 95, .22);
+			animation: prescriptionsHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.saas-prescriptions-hero::before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation: prescriptionsHeroFloat 9s ease-in-out infinite;
+		}
+
+		.saas-prescriptions-hero::after {
+			position: absolute;
+			bottom: -180px;
+			left: 28%;
+			width: 360px;
+			height: 360px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle, rgba(123, 214, 0, .23), transparent 68%);
+		}
+
+		.saas-prescriptions-hero-content,
+		.saas-prescriptions-hero-action {
+			position: relative;
+			z-index: 2;
+		}
+
+		.saas-prescriptions-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.saas-prescriptions-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px;
+		}
+
+		.saas-prescriptions-hero h1 span {
+			color: #b8f267;
+		}
+
+		.saas-prescriptions-hero p {
+			max-width: 760px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .8);
+			line-height: 1.75;
+		}
+
+		.saas-prescriptions-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px;
+		}
+
+		.saas-prescriptions-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.saas-prescriptions-hero-action {
+			display: flex;
+			min-width: 220px;
+			flex-direction: column;
+			align-items: center;
+			padding: 22px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px);
+		}
+
+		.saas-prescriptions-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 68px;
+			height: 68px;
+			margin-bottom: 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 28px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+			animation: prescriptionsIconFloat 3s ease-in-out infinite;
+		}
+
+		.saas-prescriptions-create-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 46px;
+			margin-top: 13px;
+			padding: 0 18px;
+			border: none;
+			border-radius: 15px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 12px;
+			font-weight: 800;
+			transition: transform .3s ease, box-shadow .3s ease;
+		}
+
+		.saas-prescriptions-create-button:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 14px 30px rgba(0, 0, 0, .18);
+		}
+
+		.saas-prescriptions-summary-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px;
+		}
+
+		.saas-prescriptions-summary-card {
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .96);
+			box-shadow: 0 14px 35px rgba(5, 40, 95, .08);
+			transition: transform .35s ease, box-shadow .35s ease;
+		}
+
+		.saas-prescriptions-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 22px 48px rgba(5, 40, 95, .14);
+		}
+
+		.saas-prescriptions-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+		}
+
+		.saas-prescriptions-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700;
+		}
+
+		.saas-prescriptions-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 29px;
+			font-weight: 900;
+		}
+
+		.saas-prescriptions-card {
+			position: relative;
+			overflow: hidden;
+		}
+
+		.saas-prescriptions-card::after {
+			position: absolute;
+			top: -90px;
+			right: -90px;
+			width: 190px;
+			height: 190px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle, rgba(8, 199, 212, .1), transparent 68%);
+			pointer-events: none;
+		}
+
+		.saas-prescriptions-section-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5;
+		}
+
+		.saas-prescriptions-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px;
+		}
+
+		.saas-prescriptions-title-icon {
+			display: flex;
+			flex: 0 0 46px;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+			box-shadow: 0 12px 26px rgba(5, 40, 95, .16);
+		}
+
+		.saas-prescriptions-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		.saas-prescriptions-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.saas-prescriptions-filters {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+		}
+
+		.saas-prescriptions-filter-wrap {
+			position: relative;
+			min-width: 200px;
+		}
+
+		.saas-prescriptions-filter-wrap i {
+			position: absolute;
+			top: 50%;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			transform: translateY(-50%);
+			pointer-events: none;
+		}
+
+		.saas-prescriptions-filter-wrap .form-control,
+		.saas-prescriptions-filter-wrap .form-select {
+			padding-left: 41px;
+		}
+
+		.saas-prescriptions-table-wrap {
+			position: relative;
+			z-index: 2;
+			overflow: hidden;
+			border: 1px solid #e6eef4;
+			border-radius: 18px;
+		}
+
+		.saas-prescriptions-table-wrap table {
+			margin-bottom: 0;
+		}
+
+		.saas-prescriptions-table-wrap thead th {
+			padding: 15px 16px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 12px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.saas-prescriptions-table-wrap tbody td {
+			padding: 15px 16px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 13px;
+			vertical-align: middle;
+		}
+
+		.saas-prescriptions-table-wrap tbody tr {
+			opacity: 0;
+			transform: translateY(12px);
+			animation:
+				prescriptionsRowReveal .45s var(--row-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards;
+		}
+
+		.saas-prescription-person {
+			display: flex;
+			align-items: center;
+			gap: 11px;
+		}
+
+		.saas-prescription-avatar {
+			display: flex;
+			flex: 0 0 44px;
+			align-items: center;
+			justify-content: center;
+			width: 44px;
+			height: 44px;
+			border-radius: 14px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 18px;
+		}
+
+		.saas-prescription-actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 7px;
+		}
+
+		.saas-prescriptions-state {
+			padding: 54px 20px;
+			text-align: center;
+		}
+
+		.saas-prescriptions-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 72px;
+			height: 72px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 28px;
+			box-shadow: 0 15px 32px rgba(5, 40, 95, .17);
+		}
+
+		.saas-prescriptions-loading {
+			animation: prescriptionsLoadingPulse 1.3s ease-in-out infinite;
+		}
+
+		.saas-prescriptions-modal .modal-content {
+			overflow: hidden;
+			border: none;
+			border-radius: 26px;
+			box-shadow: 0 28px 75px rgba(5, 40, 95, .22);
+		}
+
+		.saas-prescriptions-modal .modal-header {
+			padding: 21px 24px;
+			color: #ffffff;
+			border-bottom: none;
+			background: linear-gradient(135deg, #05285f, #087aa3);
+		}
+
+		.saas-prescriptions-modal .modal-title {
+			font-weight: 900;
+		}
+
+		.saas-prescriptions-modal .btn-close {
+			filter: invert(1);
+		}
+
+		.saas-prescriptions-modal .modal-body {
+			padding: 25px;
+		}
+
+		.saas-prescriptions-modal .modal-footer {
+			padding: 18px 24px;
+			border-top: 1px solid #e8f1f5;
+			background: #f8fbfc;
+		}
+
+		.saas-prescriptions-medicine-table {
+			overflow: hidden;
+			border: 1px solid #e2ebf0;
+			border-radius: 16px;
+		}
+
+		.saas-prescriptions-medicine-table table {
+			margin: 0;
+		}
+
+		.saas-prescriptions-detail-grid {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 14px;
+		}
+
+		.saas-prescriptions-detail-box {
+			padding: 16px;
+			border: 1px solid #e3edf2;
+			border-radius: 16px;
+			background: #f8fbfc;
+		}
+
+		.saas-prescriptions-detail-box small {
+			display: block;
+			color: #718496;
+			font-size: 9px;
+			font-weight: 800;
+			text-transform: uppercase;
+		}
+
+		.saas-prescriptions-detail-box strong,
+		.saas-prescriptions-detail-box p {
+			display: block;
+			margin: 5px 0 0;
+			color: #05285f;
+		}
+
+		@keyframes prescriptionsHeroReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes prescriptionsHeroFloat {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(25px) rotate(8deg);
+			}
+		}
+
+		@keyframes prescriptionsIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-7px);
+			}
+		}
+
+		@keyframes prescriptionsRowReveal {
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes prescriptionsLoadingPulse {
+
+			0%,
+			100% {
+				transform: scale(.94);
+				opacity: .72;
+			}
+
+			50% {
+				transform: scale(1.06);
+				opacity: 1;
+			}
+		}
+
+		@media (max-width: 1150px) {
+			.saas-prescriptions-summary-grid {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+		}
+
+		@media (max-width: 992px) {
+			.saas-prescriptions-hero {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.saas-prescriptions-hero-action {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 768px) {
+			.saas-prescriptions-section-header {
+				align-items: stretch;
+				flex-direction: column;
+			}
+
+			.saas-prescriptions-filters,
+			.saas-prescriptions-filter-wrap {
+				width: 100%;
+			}
+
+			.saas-prescriptions-detail-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		@media (max-width: 576px) {
+			.saas-prescriptions-hero {
+				padding: 26px 21px;
+				border-radius: 24px;
+			}
+
+			.saas-prescriptions-summary-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+	</style>
 </head>
 
-<body class="dashboard-body">
+<body class="dashboard-body saas-dashboard-body">
 
 	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
 	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
 
-	<main class="mr-main">
+	<main class="mr-main saas-main saas-prescriptions-page">
 
-		<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
-			<div>
-				<h1 class="mr-page-title">SaaS Prescriptions / EMR</h1>
-				<p class="mr-page-subtitle">
+		<section class="saas-prescriptions-hero">
+
+			<div class="saas-prescriptions-hero-content">
+
+				<span class="saas-prescriptions-kicker">
+					<i class="bi bi-file-medical-fill"></i>
+					SaaS Prescription & EMR
+				</span>
+
+				<h1>
+					Prescriptions /
+					<span>EMR</span>
+				</h1>
+
+				<p>
 					Create prescriptions and view EMR history for
 					<strong id="tenantNameText">your workspace</strong>.
 				</p>
+
+				<div class="saas-prescriptions-meta">
+
+					<span>
+						<i class="bi bi-heart-pulse-fill"></i>
+						Clinical vitals
+					</span>
+
+					<span>
+						<i class="bi bi-capsule-pill"></i>
+						Medicine advice
+					</span>
+
+					<span>
+						<i class="bi bi-file-earmark-pdf-fill"></i>
+						Prescription PDF
+					</span>
+
+				</div>
+
 			</div>
 
-			<button id="addPrescriptionBtn" class="btn btn-medi" data-bs-toggle="modal"
-				data-bs-target="#prescriptionModal" onclick="openCreatePrescriptionModal()">
-				Create Prescription
-			</button>
-		</div>
+			<div class="saas-prescriptions-hero-action">
+
+				<div class="saas-prescriptions-hero-icon">
+					<i class="bi bi-file-earmark-medical-fill"></i>
+				</div>
+
+				<strong>Create Prescription</strong>
+
+				<button type="button" id="addPrescriptionBtn" class="saas-prescriptions-create-button"
+					onclick="openCreatePrescriptionModal()">
+
+					<i class="bi bi-plus-circle-fill"></i>
+					New Prescription
+				</button>
+
+			</div>
+
+		</section>
 
 		<div id="msg"></div>
 
-		<div class="mr-card mb-4">
-			<div class="row g-3 align-items-end">
-				<div class="col-md-4">
-					<label class="form-label">Filter by Patient</label>
-					<select id="filterPatientId" class="form-select">
-						<option value="">All Patients</option>
-					</select>
+		<section class="saas-prescriptions-summary-grid">
+
+			<article class="saas-prescriptions-summary-card">
+
+				<div class="saas-prescriptions-summary-icon">
+					<i class="bi bi-files"></i>
 				</div>
 
-				<div class="col-md-4">
-					<label class="form-label">Filter by Doctor</label>
-					<select id="filterDoctorProfileId" class="form-select">
-						<option value="">All Doctors</option>
-					</select>
+				<small>Total Prescriptions</small>
+				<strong id="totalPrescriptionCount">0</strong>
+
+			</article>
+
+			<article class="saas-prescriptions-summary-card">
+
+				<div class="saas-prescriptions-summary-icon">
+					<i class="bi bi-people-fill"></i>
 				</div>
 
-				<div class="col-md-4">
-					<button class="btn btn-medi w-100" onclick="applyFilters()">Apply Filter</button>
+				<small>Unique Patients</small>
+				<strong id="uniquePatientCount">0</strong>
+
+			</article>
+
+			<article class="saas-prescriptions-summary-card">
+
+				<div class="saas-prescriptions-summary-icon">
+					<i class="bi bi-person-badge-fill"></i>
 				</div>
+
+				<small>Doctors</small>
+				<strong id="uniqueDoctorCount">0</strong>
+
+			</article>
+
+			<article class="saas-prescriptions-summary-card">
+
+				<div class="saas-prescriptions-summary-icon">
+					<i class="bi bi-calendar2-check-fill"></i>
+				</div>
+
+				<small>Follow Ups</small>
+				<strong id="followUpCount">0</strong>
+
+			</article>
+
+		</section>
+
+		<section class="mr-card saas-prescriptions-card">
+
+			<div class="saas-prescriptions-section-header">
+
+				<div class="saas-prescriptions-title-wrap">
+
+					<div class="saas-prescriptions-title-icon">
+						<i class="bi bi-journal-medical"></i>
+					</div>
+
+					<div>
+						<small>Electronic Medical Record</small>
+						<h5>Prescription History</h5>
+					</div>
+
+				</div>
+
+				<div class="saas-prescriptions-filters">
+
+					<div class="saas-prescriptions-filter-wrap">
+
+						<i class="bi bi-search"></i>
+
+						<input type="text" id="prescriptionSearchBox" class="form-control"
+							placeholder="Search patient, doctor, diagnosis" oninput="filterPrescriptions()">
+
+					</div>
+
+					<div class="saas-prescriptions-filter-wrap">
+
+						<i class="bi bi-person-fill"></i>
+
+						<select id="filterPatientId" class="form-select"
+							onchange="handleExclusivePrescriptionFilter('patient')">
+							<option value="">All Patients</option>
+						</select>
+
+					</div>
+
+					<div class="saas-prescriptions-filter-wrap">
+
+						<i class="bi bi-person-badge-fill"></i>
+
+						<select id="filterDoctorProfileId" class="form-select"
+							onchange="handleExclusivePrescriptionFilter('doctor')">
+							<option value="">All Doctors</option>
+						</select>
+
+					</div>
+
+					<button type="button" id="applyFilterBtn" class="btn btn-medi" onclick="applyFilters()">
+
+						<i class="bi bi-funnel-fill me-1"></i>
+						Apply
+					</button>
+
+					<button type="button" id="refreshPrescriptionsBtn" class="btn btn-outline-primary"
+						onclick="refreshPrescriptions()">
+
+						<i class="bi bi-arrow-clockwise me-1"></i>
+						Refresh
+					</button>
+
+				</div>
+
 			</div>
-		</div>
 
-		<div class="mr-card">
-			<div class="table-responsive">
+			<div class="table-responsive saas-prescriptions-table-wrap">
+
 				<table class="table table-hover align-middle">
+
 					<thead>
 						<tr>
 							<th>Date</th>
@@ -68,30 +773,66 @@
 							<th>Doctor</th>
 							<th>Diagnosis</th>
 							<th>Follow Up</th>
-							<th style="width:220px;">Action</th>
+							<th style="width:230px;">Action</th>
 						</tr>
 					</thead>
+
 					<tbody id="prescriptionsTableBody">
+
 						<tr>
-							<td colspan="6" class="text-center text-muted py-4">
-								Loading prescriptions...
+							<td colspan="6">
+
+								<div class="saas-prescriptions-state">
+
+									<div class="saas-prescriptions-state-icon saas-prescriptions-loading">
+										<i class="bi bi-file-medical-fill"></i>
+									</div>
+
+									<h5 class="fw-bold text-primary">
+										Loading prescriptions
+									</h5>
+
+									<p class="text-muted mb-0">
+										Please wait while we prepare the EMR history.
+									</p>
+
+								</div>
+
 							</td>
 						</tr>
+
 					</tbody>
+
 				</table>
+
 			</div>
-		</div>
+
+		</section>
 
 		<div th:replace="~{layout/footer :: footer}"></div>
+
 	</main>
 
-	<div class="modal fade" id="prescriptionModal" tabindex="-1">
-		<div class="modal-dialog modal-xl">
+	<div class="modal fade saas-prescriptions-modal" id="prescriptionModal" tabindex="-1">
+
+		<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+
 			<div class="modal-content">
 
 				<div class="modal-header">
-					<h5 class="modal-title" id="prescriptionModalTitle">Create Prescription</h5>
-					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+					<div>
+						<div class="small text-white-50 fw-bold text-uppercase">
+							Clinical Prescription
+						</div>
+
+						<h5 class="modal-title" id="prescriptionModalTitle">
+							Create Prescription
+						</h5>
+					</div>
+
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
 				</div>
 
 				<div class="modal-body">
@@ -100,6 +841,7 @@
 
 						<div class="col-md-4">
 							<label class="form-label">Patient *</label>
+
 							<select id="patientId" class="form-select">
 								<option value="">Select Patient</option>
 							</select>
@@ -107,6 +849,7 @@
 
 						<div class="col-md-4">
 							<label class="form-label">Doctor *</label>
+
 							<select id="doctorProfileId" class="form-select">
 								<option value="">Select Doctor</option>
 							</select>
@@ -114,7 +857,8 @@
 
 						<div class="col-md-4">
 							<label class="form-label">Appointment ID</label>
-							<input type="number" id="appointmentId" class="form-control" placeholder="Optional">
+
+							<input type="number" min="1" id="appointmentId" class="form-control" placeholder="Optional">
 						</div>
 
 						<div class="col-md-3">
@@ -159,39 +903,49 @@
 
 						<div class="col-md-6">
 							<label class="form-label">Diagnosis *</label>
-							<textarea id="diagnosis" class="form-control" rows="2"></textarea>
+							<textarea id="diagnosis" class="form-control" rows="3"></textarea>
 						</div>
 
 						<div class="col-md-6">
 							<label class="form-label">Clinical Notes</label>
-							<textarea id="clinicalNotes" class="form-control" rows="2"></textarea>
+							<textarea id="clinicalNotes" class="form-control" rows="3"></textarea>
 						</div>
 
 						<div class="col-md-6">
 							<label class="form-label">Advice</label>
-							<textarea id="advice" class="form-control" rows="2"></textarea>
+							<textarea id="advice" class="form-control" rows="3"></textarea>
 						</div>
 
 						<div class="col-md-6">
 							<label class="form-label">Lab Tests</label>
-							<textarea id="labTests" class="form-control" rows="2"></textarea>
+							<textarea id="labTests" class="form-control" rows="3"></textarea>
 						</div>
 
 						<div class="col-12">
 							<label class="form-label">Follow Up Advice</label>
-							<textarea id="followUpAdvice" class="form-control" rows="2"></textarea>
+							<textarea id="followUpAdvice" class="form-control" rows="3"></textarea>
 						</div>
 
 						<div class="col-12">
+
 							<div class="d-flex justify-content-between align-items-center mt-3">
-								<h5 class="mb-0">Medicines</h5>
+
+								<h5 class="mb-0">
+									Medicines
+								</h5>
+
 								<button type="button" class="btn btn-sm btn-outline-primary" onclick="addMedicineRow()">
+
+									<i class="bi bi-plus-circle-fill me-1"></i>
 									Add Medicine
 								</button>
+
 							</div>
 
-							<div class="table-responsive mt-2">
+							<div class="table-responsive saas-prescriptions-medicine-table mt-2">
+
 								<table class="table table-bordered align-middle">
+
 									<thead>
 										<tr>
 											<th>Medicine</th>
@@ -202,9 +956,13 @@
 											<th style="width:80px;">Action</th>
 										</tr>
 									</thead>
+
 									<tbody id="medicineRows"></tbody>
+
 								</table>
+
 							</div>
+
 						</div>
 
 					</div>
@@ -212,19 +970,84 @@
 				</div>
 
 				<div class="modal-footer">
-					<button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-					<button class="btn btn-medi" onclick="savePrescription()">Save Prescription</button>
+
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+						Close
+					</button>
+
+					<button type="button" id="savePrescriptionBtn" class="btn btn-medi" onclick="savePrescription()">
+						Save Prescription
+					</button>
+
 				</div>
 
 			</div>
+
 		</div>
+
 	</div>
+
+	<div class="modal fade saas-prescriptions-modal" id="prescriptionViewModal" tabindex="-1">
+
+		<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+
+			<div class="modal-content">
+
+				<div class="modal-header">
+
+					<h5 id="prescriptionViewModalTitle" class="modal-title">
+						Prescription Details
+					</h5>
+
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+				</div>
+
+				<div class="modal-body" id="prescriptionViewBody"></div>
+
+				<div class="modal-footer">
+
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+						Close
+					</button>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+	<div class="module-exit-overlay" id="moduleExitOverlay">
+
+		<div class="module-exit-content">
+
+			<div class="module-exit-icon">
+				<i class="bi bi-arrow-left-right"></i>
+			</div>
+
+			<h2>Switching Experience</h2>
+
+			<p>
+				Returning to MediRevolution module selection...
+			</p>
+
+			<div class="module-exit-progress">
+				<span></span>
+			</div>
+
+		</div>
+
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 	<script th:src="@{/js/common-dashboard.js}"></script>
 	<script th:src="@{/js/module-switch.js}"></script>
 	<script th:src="@{/js/saas-auth-guard.js}"></script>
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 	<script th:src="@{/js/saas-prescriptions.js}"></script>
+	<script th:src="@{/js/pwa.js}"></script>
 
 </body>
 

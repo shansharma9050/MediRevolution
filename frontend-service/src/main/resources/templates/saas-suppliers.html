@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+
+	<title>MediRevolution | SaaS Suppliers</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<meta name="theme-color" content="#05285f">
+
+	<link rel="manifest" href="/manifest.json">
+
+	<meta name="mobile-web-app-capable" content="yes">
+
+	<meta name="apple-mobile-web-app-capable" content="yes">
+
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
+
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.saas-supplier-page {
+			position: relative;
+		}
+
+		.saas-supplier-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 235px;
+			margin-bottom: 26px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#031d48 0%,
+					#05285f 42%,
+					#0877a3 72%,
+					#08c7d4 100%);
+			box-shadow:
+				0 26px 65px rgba(5, 40, 95, 0.23);
+		}
+
+		.saas-supplier-hero::before {
+			position: absolute;
+			top: -155px;
+			right: -100px;
+			width: 360px;
+			height: 360px;
+			border: 60px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+		}
+
+		.saas-supplier-hero::after {
+			position: absolute;
+			bottom: -180px;
+			left: 27%;
+			width: 370px;
+			height: 370px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle,
+					rgba(184, 242, 103, .24),
+					transparent 68%);
+		}
+
+		.supplier-hero-content,
+		.supplier-hero-panel {
+			position: relative;
+			z-index: 2;
+		}
+
+		.supplier-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .20);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 900;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.saas-supplier-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px;
+		}
+
+		.saas-supplier-hero h1 span {
+			color: #b8f267;
+		}
+
+		.saas-supplier-hero p {
+			max-width: 760px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .80);
+			line-height: 1.75;
+		}
+
+		.supplier-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px;
+		}
+
+		.supplier-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.supplier-hero-panel {
+			display: flex;
+			min-width: 235px;
+			flex-direction: column;
+			align-items: center;
+			padding: 23px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px);
+		}
+
+		.supplier-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 70px;
+			height: 70px;
+			margin-bottom: 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 29px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+		}
+
+		.supplier-workspace-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			margin-top: 8px;
+			padding: 7px 11px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .12);
+			font-size: 10px;
+			font-weight: 800;
+		}
+
+		.supplier-add-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 46px;
+			margin-top: 13px;
+			padding: 0 18px;
+			border: none;
+			border-radius: 15px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 12px;
+			font-weight: 900;
+		}
+
+		.supplier-summary-grid {
+			display: grid;
+			grid-template-columns:
+				repeat(4, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px;
+		}
+
+		.supplier-summary-card {
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .96);
+			box-shadow: 0 14px 35px rgba(5, 40, 95, .08);
+		}
+
+		.supplier-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+		}
+
+		.supplier-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700;
+		}
+
+		.supplier-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 28px;
+			font-weight: 900;
+		}
+
+		.supplier-panel {
+			position: relative;
+			overflow: hidden;
+			margin-bottom: 24px;
+			padding: 24px;
+			border: 1px solid rgba(5, 40, 95, .08);
+			border-radius: 24px;
+			background: #ffffff;
+			box-shadow: 0 16px 40px rgba(5, 40, 95, .08);
+		}
+
+		.supplier-panel-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5;
+		}
+
+		.supplier-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px;
+		}
+
+		.supplier-title-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+		}
+
+		.supplier-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 900;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		.supplier-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.supplier-control {
+			position: relative;
+		}
+
+		.supplier-control>i {
+			position: absolute;
+			top: 39px;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			pointer-events: none;
+		}
+
+		.supplier-control .form-control,
+		.supplier-control .form-select {
+			min-height: 46px;
+			padding-left: 41px;
+			border-radius: 13px;
+		}
+
+		.supplier-form-actions {
+			display: flex;
+			justify-content: flex-end;
+			gap: 10px;
+			margin-top: 20px;
+			padding-top: 18px;
+			border-top: 1px solid #edf3f6;
+		}
+
+		.supplier-toolbar {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+		}
+
+		.supplier-search-wrap {
+			position: relative;
+			min-width: 300px;
+		}
+
+		.supplier-search-wrap i {
+			position: absolute;
+			top: 50%;
+			left: 14px;
+			color: #0577b8;
+			transform: translateY(-50%);
+		}
+
+		.supplier-search-wrap .form-control {
+			min-height: 44px;
+			padding-left: 41px;
+			border-radius: 13px;
+		}
+
+		.supplier-table-wrap {
+			overflow: hidden;
+			border: 1px solid #e6eef4;
+			border-radius: 18px;
+		}
+
+		.supplier-table-wrap table {
+			margin-bottom: 0;
+		}
+
+		.supplier-table-wrap thead th {
+			padding: 15px 14px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 11px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.supplier-table-wrap tbody td {
+			padding: 15px 14px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 12px;
+			vertical-align: middle;
+		}
+
+		.supplier-profile {
+			display: flex;
+			align-items: center;
+			gap: 11px;
+			min-width: 210px;
+		}
+
+		.supplier-profile-icon {
+			display: flex;
+			flex: 0 0 auto;
+			align-items: center;
+			justify-content: center;
+			width: 42px;
+			height: 42px;
+			border-radius: 14px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg, #05285f, #08c7d4);
+		}
+
+		.supplier-chip,
+		.supplier-status {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			font-size: 10px;
+			font-weight: 800;
+			white-space: nowrap;
+		}
+
+		.supplier-chip {
+			color: #05285f;
+			background: #eaf7fb;
+		}
+
+		.supplier-status.active {
+			color: #0f5132;
+			background: #d1e7dd;
+		}
+
+		.supplier-status.inactive {
+			color: #842029;
+			background: #f8d7da;
+		}
+
+		.supplier-actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 7px;
+			min-width: 170px;
+		}
+
+		.supplier-state {
+			padding: 52px 20px;
+			text-align: center;
+		}
+
+		.supplier-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 72px;
+			height: 72px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 28px;
+		}
+
+		@media (max-width: 1150px) {
+			.supplier-summary-grid {
+				grid-template-columns:
+					repeat(2, minmax(0, 1fr));
+			}
+		}
+
+		@media (max-width: 992px) {
+			.saas-supplier-hero {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.supplier-hero-panel {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 768px) {
+			.supplier-panel-header {
+				align-items: stretch;
+				flex-direction: column;
+			}
+
+			.supplier-toolbar,
+			.supplier-search-wrap {
+				width: 100%;
+			}
+
+			.supplier-search-wrap {
+				min-width: 0;
+			}
+		}
+
+		@media (max-width: 576px) {
+			.supplier-summary-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.supplier-form-actions {
+				flex-direction: column-reverse;
+			}
+
+			.supplier-form-actions .btn,
+			.supplier-toolbar .btn {
+				width: 100% !important;
+			}
+		}
+	</style>
+</head>
+
+<body class="dashboard-body saas-dashboard-body">
+
+	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
+
+	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
+
+	<main class="mr-main saas-main saas-supplier-page">
+
+		<section class="saas-supplier-hero">
+
+			<div class="supplier-hero-content">
+
+				<span class="supplier-kicker">
+					<i class="bi bi-truck-front-fill"></i>
+					Purchase Partner Management
+				</span>
+
+				<h1>
+					Manage
+					<span>Suppliers</span>
+				</h1>
+
+				<p>
+					Create and manage suppliers, contact information,
+					tax details, credit limits and payment terms for
+					<strong id="tenantNameText">your workspace</strong>.
+				</p>
+
+				<div class="supplier-meta">
+
+					<span>
+						<i class="bi bi-building-check"></i>
+						Tenant-isolated records
+					</span>
+
+					<span>
+						<i class="bi bi-receipt"></i>
+						GST and licence details
+					</span>
+
+					<span>
+						<i class="bi bi-shield-check"></i>
+						Permission controlled
+					</span>
+
+				</div>
+
+			</div>
+
+			<div class="supplier-hero-panel">
+
+				<div class="supplier-hero-icon">
+					<i class="bi bi-truck-front-fill"></i>
+				</div>
+
+				<strong>Supplier Directory</strong>
+
+				<div class="supplier-workspace-chip">
+					<i class="bi bi-building"></i>
+					<span id="tenantTypeText">Workspace</span>
+				</div>
+
+				<button type="button" id="addSupplierBtn" class="supplier-add-button"
+					onclick="openCreateSupplierPanel()">
+
+					<i class="bi bi-plus-circle-fill"></i>
+					Add Supplier
+
+				</button>
+
+			</div>
+
+		</section>
+
+		<div id="msg"></div>
+
+		<section class="supplier-summary-grid">
+
+			<article class="supplier-summary-card">
+
+				<div class="supplier-summary-icon">
+					<i class="bi bi-truck-front-fill"></i>
+				</div>
+
+				<small>Total Suppliers</small>
+				<strong id="totalSupplierCount">0</strong>
+
+			</article>
+
+			<article class="supplier-summary-card">
+
+				<div class="supplier-summary-icon">
+					<i class="bi bi-check-circle-fill"></i>
+				</div>
+
+				<small>Active Suppliers</small>
+				<strong id="activeSupplierCount">0</strong>
+
+			</article>
+
+			<article class="supplier-summary-card">
+
+				<div class="supplier-summary-icon">
+					<i class="bi bi-wallet2"></i>
+				</div>
+
+				<small>Total Credit Limit</small>
+				<strong id="totalCreditLimit">₹0</strong>
+
+			</article>
+
+			<article class="supplier-summary-card">
+
+				<div class="supplier-summary-icon">
+					<i class="bi bi-receipt-cutoff"></i>
+				</div>
+
+				<small>GST Registered</small>
+				<strong id="gstSupplierCount">0</strong>
+
+			</article>
+
+		</section>
+
+		<section class="supplier-panel" id="supplierFormPanel" style="display:none;">
+
+			<input type="hidden" id="supplierId">
+
+			<div class="supplier-panel-header">
+
+				<div class="supplier-title-wrap">
+
+					<div class="supplier-title-icon">
+						<i class="bi bi-truck-front-fill"></i>
+					</div>
+
+					<div>
+						<small id="supplierFormEyebrow">
+							New Supplier Record
+						</small>
+
+						<h5 id="supplierFormTitle">
+							Add Supplier
+						</h5>
+					</div>
+
+				</div>
+
+				<button type="button" class="btn btn-sm btn-outline-secondary" onclick="closeSupplierPanel()">
+
+					<i class="bi bi-x-lg"></i>
+
+				</button>
+
+			</div>
+
+			<div class="row g-3">
+
+				<div class="col-lg-4 supplier-control">
+
+					<label for="supplierCode" class="form-label">
+						Supplier Code *
+					</label>
+
+					<i class="bi bi-upc-scan"></i>
+
+					<input type="text" id="supplierCode" class="form-control" maxlength="40"
+						placeholder="Example: SUP-001">
+
+				</div>
+
+				<div class="col-lg-4 supplier-control">
+
+					<label for="supplierName" class="form-label">
+						Supplier Name *
+					</label>
+
+					<i class="bi bi-building-fill"></i>
+
+					<input type="text" id="supplierName" class="form-control" maxlength="180"
+						placeholder="Supplier business name">
+
+				</div>
+
+				<div class="col-lg-4 supplier-control">
+
+					<label for="contactPersonName" class="form-label">
+						Contact Person
+					</label>
+
+					<i class="bi bi-person-fill"></i>
+
+					<input type="text" id="contactPersonName" class="form-control" maxlength="160"
+						placeholder="Contact person name">
+
+				</div>
+
+				<div class="col-lg-4 supplier-control">
+
+					<label for="mobile" class="form-label">
+						Mobile
+					</label>
+
+					<i class="bi bi-telephone-fill"></i>
+
+					<input type="text" id="mobile" class="form-control" maxlength="20" placeholder="Mobile number">
+
+				</div>
+
+				<div class="col-lg-4 supplier-control">
+
+					<label for="email" class="form-label">
+						Email
+					</label>
+
+					<i class="bi bi-envelope-fill"></i>
+
+					<input type="email" id="email" class="form-control" maxlength="180"
+						placeholder="supplier@example.com">
+
+				</div>
+
+				<div class="col-lg-4 supplier-control">
+
+					<label for="gstin" class="form-label">
+						GSTIN
+					</label>
+
+					<i class="bi bi-receipt"></i>
+
+					<input type="text" id="gstin" class="form-control" maxlength="30"
+						placeholder="GST registration number">
+
+				</div>
+
+				<div class="col-lg-4 supplier-control">
+
+					<label for="drugLicenseNumber" class="form-label">
+						Drug Licence Number
+					</label>
+
+					<i class="bi bi-file-earmark-medical-fill"></i>
+
+					<input type="text" id="drugLicenseNumber" class="form-control" maxlength="100"
+						placeholder="Drug licence number">
+
+				</div>
+
+				<div class="col-lg-4 supplier-control">
+
+					<label for="openingBalance" class="form-label">
+						Opening Balance
+					</label>
+
+					<i class="bi bi-currency-rupee"></i>
+
+					<input type="number" id="openingBalance" class="form-control" min="0" step="0.01" value="0">
+
+				</div>
+
+				<div class="col-lg-4 supplier-control">
+
+					<label for="creditLimit" class="form-label">
+						Credit Limit
+					</label>
+
+					<i class="bi bi-credit-card-fill"></i>
+
+					<input type="number" id="creditLimit" class="form-control" min="0" step="0.01" value="0">
+
+				</div>
+
+				<div class="col-lg-4 supplier-control">
+
+					<label for="paymentTermsDays" class="form-label">
+						Payment Terms
+					</label>
+
+					<i class="bi bi-calendar-check-fill"></i>
+
+					<input type="number" id="paymentTermsDays" class="form-control" min="0" value="0"
+						placeholder="Days">
+
+				</div>
+
+				<div class="col-lg-4 supplier-control">
+
+					<label for="city" class="form-label">
+						City
+					</label>
+
+					<i class="bi bi-buildings-fill"></i>
+
+					<input type="text" id="city" class="form-control" maxlength="120" placeholder="City">
+
+				</div>
+
+				<div class="col-lg-4 supplier-control">
+
+					<label for="district" class="form-label">
+						District
+					</label>
+
+					<i class="bi bi-geo-alt-fill"></i>
+
+					<input type="text" id="district" class="form-control" maxlength="120" placeholder="District">
+
+				</div>
+
+				<div class="col-lg-4 supplier-control">
+
+					<label for="state" class="form-label">
+						State
+					</label>
+
+					<i class="bi bi-map-fill"></i>
+
+					<input type="text" id="state" class="form-control" maxlength="120" placeholder="State">
+
+				</div>
+
+				<div class="col-lg-4 supplier-control">
+
+					<label for="pincode" class="form-label">
+						Pincode
+					</label>
+
+					<i class="bi bi-mailbox2"></i>
+
+					<input type="text" id="pincode" class="form-control" maxlength="12" placeholder="Pincode">
+
+				</div>
+
+				<div class="col-12">
+
+					<label for="address" class="form-label">
+						Address
+					</label>
+
+					<textarea id="address" class="form-control" rows="3" maxlength="500"
+						placeholder="Complete supplier address"></textarea>
+
+				</div>
+
+			</div>
+
+			<div class="supplier-form-actions">
+
+				<button type="button" class="btn btn-outline-secondary" onclick="clearSupplierForm()">
+
+					<i class="bi bi-eraser-fill me-1"></i>
+					Clear
+
+				</button>
+
+				<button type="button" id="saveSupplierBtn" class="btn btn-medi" onclick="saveSupplier()">
+
+					<i class="bi bi-check2-circle me-1"></i>
+					Save Supplier
+
+				</button>
+
+			</div>
+
+		</section>
+
+		<section class="supplier-panel">
+
+			<div class="supplier-panel-header">
+
+				<div class="supplier-title-wrap">
+
+					<div class="supplier-title-icon">
+						<i class="bi bi-list-ul"></i>
+					</div>
+
+					<div>
+						<small>Purchase Partners</small>
+						<h5>Supplier Directory</h5>
+					</div>
+
+				</div>
+
+				<div class="supplier-toolbar">
+
+					<div class="supplier-search-wrap">
+
+						<i class="bi bi-search"></i>
+
+						<input type="text" id="supplierSearchKeyword" class="form-control"
+							placeholder="Search supplier, code, mobile or GSTIN">
+
+					</div>
+
+					<button type="button" id="searchSupplierBtn" class="btn btn-medi" onclick="searchSuppliers()">
+
+						<i class="bi bi-search me-1"></i>
+						Search
+
+					</button>
+
+					<button type="button" id="refreshSupplierBtn" class="btn btn-outline-secondary"
+						onclick="refreshSuppliers()">
+
+						<i class="bi bi-arrow-clockwise me-1"></i>
+						Refresh
+
+					</button>
+
+				</div>
+
+			</div>
+
+			<div class="table-responsive supplier-table-wrap">
+
+				<table class="table align-middle table-hover">
+
+					<thead>
+						<tr>
+							<th>#</th>
+							<th>Supplier</th>
+							<th>Contact</th>
+							<th>GST / Licence</th>
+							<th>Location</th>
+							<th>Credit Limit</th>
+							<th>Terms</th>
+							<th>Status</th>
+							<th style="width:180px;">Action</th>
+						</tr>
+					</thead>
+
+					<tbody id="supplierTableBody">
+
+						<tr>
+							<td colspan="9">
+
+								<div class="supplier-state">
+
+									<div class="supplier-state-icon">
+										<i class="bi bi-truck-front-fill"></i>
+									</div>
+
+									<h5 class="fw-bold text-primary">
+										Loading suppliers
+									</h5>
+
+									<p class="text-muted mb-0">
+										Please wait while supplier records are prepared.
+									</p>
+
+								</div>
+
+							</td>
+						</tr>
+
+					</tbody>
+
+				</table>
+
+			</div>
+
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
+
+	</main>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script th:src="@{/js/module-switch.js?v=20260715_1}"></script>
+
+	<script th:src="@{/js/saas-auth-guard.js?v=20260715_1}"></script>
+
+	<script th:src="@{/js/saas-suppliers.js?v=20260715_1}"></script>
+
+	<script th:src="@{/js/pwa.js?v=20260715_1}"></script>
+
+</body>
+
+</html>

@@ -26,43 +26,128 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-		http.csrf(csrf -> csrf.disable())
+		http
+				.csrf(csrf -> csrf.disable())
 
 				.cors(cors -> {
 				})
 
-				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				.sessionManagement(session ->
+						session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+				)
 
 				.authorizeHttpRequests(auth -> auth
 
-						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+						.requestMatchers(HttpMethod.OPTIONS, "/**")
+						.permitAll()
+						
+						.requestMatchers(HttpMethod.POST, "/saas/tenants")
+						.hasAnyRole(
+								"HOSPITAL",
+								"DOCTOR",
+								"WHOLESALER",
+								"RETAILER"
+						)
+
+						.requestMatchers(HttpMethod.GET, "/saas/tenants")
+						.hasAnyRole(
+								"HOSPITAL",
+								"DOCTOR",
+								"WHOLESALER",
+								"RETAILER",
+								"SAAS_STAFF"
+						)
 
 						.requestMatchers(HttpMethod.GET, "/saas/staff/doctors/for-appointments")
-						.hasAnyRole("HOSPITAL", "DOCTOR", "SAAS_STAFF")
+						.hasAnyRole(
+								"HOSPITAL",
+								"DOCTOR",
+								"SAAS_STAFF"
+						)
 
 						.requestMatchers(HttpMethod.POST, "/saas/appointments")
-						.hasAnyRole("HOSPITAL", "DOCTOR", "SAAS_STAFF")
+						.hasAnyRole(
+								"HOSPITAL",
+								"DOCTOR",
+								"SAAS_STAFF"
+						)
 
-						.requestMatchers("/saas/appointments/**").hasAnyRole("HOSPITAL", "DOCTOR", "SAAS_STAFF")
+						.requestMatchers("/saas/appointments/**")
+						.hasAnyRole(
+								"HOSPITAL",
+								"DOCTOR",
+								"SAAS_STAFF"
+						)
 
-						.requestMatchers("/saas/doctor-availability/**").hasAnyRole("HOSPITAL", "DOCTOR", "SAAS_STAFF")
+						.requestMatchers("/saas/doctor-availability/**")
+						.hasAnyRole(
+								"HOSPITAL",
+								"DOCTOR",
+								"SAAS_STAFF"
+						)
 
 						.requestMatchers(HttpMethod.GET, "/saas/staff/doctors/for-clinical")
-						.hasAnyRole("HOSPITAL", "DOCTOR", "SAAS_STAFF")
+						.hasAnyRole(
+								"HOSPITAL",
+								"DOCTOR",
+								"SAAS_STAFF"
+						)
 
-						.requestMatchers("/saas/staff/**").hasAnyRole("HOSPITAL", "SAAS_STAFF")
+						.requestMatchers(
+								"/saas/staff",
+								"/saas/staff/**"
+						)
+						.hasAnyRole(
+								"HOSPITAL",
+								"DOCTOR",
+								"WHOLESALER",
+								"RETAILER",
+								"SAAS_STAFF"
+						)
 
-						.requestMatchers("/saas/**").hasAnyRole("HOSPITAL", "DOCTOR", "SAAS_STAFF")
+						/*
+						 * Exact URL aur child URLs dono included hain.
+						 */
+						.requestMatchers(
+								"/saas/tenants",
+								"/saas/tenants/**"
+						)
+						.hasAnyRole(
+								"HOSPITAL",
+								"DOCTOR",
+								"WHOLESALER",
+								"RETAILER",
+								"SAAS_STAFF"
+						)
 
-						.anyRequest().authenticated())
+						/*
+						 * General SaaS fallback.
+						 */
+						.requestMatchers("/saas/**")
+						.hasAnyRole(
+								"HOSPITAL",
+								"DOCTOR",
+								"WHOLESALER",
+								"RETAILER",
+								"SAAS_STAFF"
+						)
 
-				.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+						.anyRequest()
+						.authenticated()
+				)
+
+				.addFilterBefore(
+						jwtAuthFilter,
+						UsernamePasswordAuthenticationFilter.class
+				);
 
 		return http.build();
 	}
 
 	@Bean
-	public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+	public AuthenticationManager authenticationManager(
+			AuthenticationConfiguration configuration
+	) throws Exception {
 
 		return configuration.getAuthenticationManager();
 	}

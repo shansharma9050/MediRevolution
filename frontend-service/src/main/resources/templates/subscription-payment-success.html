@@ -1,438 +1,479 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <meta charset="UTF-8">
-    <title>MediRevolution | Subscription Payment</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="UTF-8">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+	<title>MediRevolution | Subscription Payment</title>
 
-    <style>
-        :root {
-            --primary: #063f7c;
-            --primary-dark: #05366b;
-            --cyan: #08b8c8;
-            --card-bg: #f4fbff;
-            --text-muted: #5f728a;
-            --success: #18b957;
-            --success-soft: #cfeedd;
-            --danger: #ef3d3d;
-            --danger-soft: #f8d7da;
-            --warning: #ffc107;
-            --warning-soft: #fff3cd;
-            --info-bg: #eaf9ff;
-            --info-border: #91dfef;
-        }
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 
-        * {
-            box-sizing: border-box;
-        }
+	<link rel="manifest" href="/manifest.json">
 
-        body {
-            min-height: 100vh;
-            margin: 0;
-            padding: 24px;
-            font-family: "Segoe UI", Arial, sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background:
-                radial-gradient(circle at 80% 5%, rgba(255,255,255,0.15) 0 115px, transparent 118px),
-                radial-gradient(circle at 14% 98%, rgba(255,255,255,0.14) 0 90px, transparent 93px),
-                linear-gradient(135deg, #0a4b85 0%, #10b9bf 100%);
-        }
+	<meta name="theme-color" content="#05285f">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
 
-        .payment-card {
-            width: 100%;
-            max-width: 466px;
-            background: var(--card-bg);
-            border-radius: 24px;
-            padding: 32px 30px;
-            text-align: center;
-            box-shadow: 0 24px 70px rgba(2, 43, 78, 0.30);
-        }
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
 
-        .brand-pill {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 8px 20px;
-            margin-bottom: 30px;
-            border-radius: 999px;
-            background: #dff3fb;
-            color: var(--primary);
-            font-size: 14px;
-            font-weight: 800;
-        }
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-        .status-icon {
-            width: 66px;
-            height: 66px;
-            margin: 0 auto 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 34px;
-        }
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
-        .success-icon {
-            background: var(--success);
-            color: #ffffff;
-            box-shadow:
-                0 0 0 16px rgba(24, 185, 87, 0.17),
-                0 16px 36px rgba(24, 185, 87, 0.24);
-        }
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
 
-        .failed-icon {
-            background: var(--danger);
-            color: #ffffff;
-            box-shadow:
-                0 0 0 16px rgba(239, 61, 61, 0.15),
-                0 16px 36px rgba(239, 61, 61, 0.24);
-        }
+	<style>
+		.subscription-payment-page {
+			min-height: 100vh;
+			padding: 24px;
+			background:
+				radial-gradient(circle at 82% 8%, rgba(255, 255, 255, .14) 0 120px, transparent 123px),
+				radial-gradient(circle at 12% 94%, rgba(255, 255, 255, .12) 0 96px, transparent 99px),
+				linear-gradient(135deg, #05285f 0%, #08739f 48%, #08c7d4 100%);
+		}
 
-        .pending-icon {
-            background: var(--warning);
-            color: #111827;
-            box-shadow:
-                0 0 0 16px rgba(255, 193, 7, 0.20),
-                0 16px 36px rgba(255, 193, 7, 0.20);
-        }
+		.subscription-payment-shell {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			min-height: calc(100vh - 48px);
+		}
 
-        .title {
-            margin: 0 0 10px;
-            color: var(--primary);
-            font-size: 28px;
-            font-weight: 900;
-            line-height: 1.2;
-            letter-spacing: -0.3px;
-        }
+		.subscription-payment-card {
+			position: relative;
+			width: 100%;
+			max-width: 560px;
+			padding: 34px;
+			overflow: hidden;
+			border: 1px solid rgba(255, 255, 255, .45);
+			border-radius: 30px;
+			background: rgba(255, 255, 255, .96);
+			box-shadow: 0 28px 80px rgba(5, 40, 95, .32);
+			animation: paymentCardReveal .75s cubic-bezier(.22, 1, .36, 1) both;
+		}
 
-        .subtitle {
-            max-width: 380px;
-            margin: 0 auto 22px;
-            color: var(--text-muted);
-            font-size: 15px;
-            line-height: 1.55;
-        }
+		.subscription-payment-card::before {
+			position: absolute;
+			top: -90px;
+			right: -90px;
+			width: 210px;
+			height: 210px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle, rgba(8, 199, 212, .16), transparent 68%);
+		}
 
-        .info-box {
-            margin-bottom: 14px;
-            padding: 18px;
-            background: var(--info-bg);
-            border: 1px solid var(--info-border);
-            border-radius: 16px;
-            text-align: left;
-        }
+		.subscription-payment-brand {
+			position: relative;
+			z-index: 2;
+			display: inline-flex;
+			align-items: center;
+			gap: 9px;
+			margin-bottom: 28px;
+			padding: 9px 15px;
+			border-radius: 999px;
+			color: #05285f;
+			background: #e8f8fc;
+			font-size: 12px;
+			font-weight: 900;
+		}
 
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 16px;
-            padding: 10px 0;
-            border-bottom: 1px dashed #b9d9e7;
-            font-size: 14px;
-        }
+		.subscription-payment-status-icon {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 78px;
+			height: 78px;
+			margin: 0 auto 22px;
+			border-radius: 24px;
+			color: #ffffff;
+			font-size: 32px;
+			transition: background .3s ease, box-shadow .3s ease, transform .3s ease;
+		}
 
-        .info-row:first-child {
-            padding-top: 0;
-        }
+		.subscription-payment-status-icon.pending {
+			color: #05285f;
+			background: #ffe082;
+			box-shadow: 0 18px 40px rgba(255, 193, 7, .24);
+		}
 
-        .info-row:last-child {
-            padding-bottom: 0;
-            border-bottom: 0;
-        }
+		.subscription-payment-status-icon.success {
+			background: #1fb85a;
+			box-shadow: 0 18px 40px rgba(31, 184, 90, .24);
+		}
 
-        .info-label {
-            min-width: 128px;
-            color: var(--text-muted);
-            font-weight: 650;
-        }
+		.subscription-payment-status-icon.failed {
+			background: #e84c4c;
+			box-shadow: 0 18px 40px rgba(232, 76, 76, .24);
+		}
 
-        .info-value {
-            color: #101b2d;
-            font-weight: 900;
-            text-align: right;
-            word-break: break-word;
-        }
+		.subscription-payment-title {
+			position: relative;
+			z-index: 2;
+			margin: 0;
+			color: #05285f;
+			font-size: 31px;
+			font-weight: 900;
+			text-align: center;
+			letter-spacing: -.8px;
+		}
 
-        .message-box {
-            margin: 14px 0 22px;
-            padding: 16px 18px;
-            border-radius: 13px;
-            font-size: 15px;
-            font-weight: 800;
-            line-height: 1.45;
-        }
+		.subscription-payment-subtitle {
+			position: relative;
+			z-index: 2;
+			max-width: 450px;
+			margin: 12px auto 24px;
+			color: #687d90;
+			line-height: 1.65;
+			text-align: center;
+		}
 
-        .msg-success {
-            background: var(--success-soft);
-            color: #0c5c2c;
-        }
+		.subscription-payment-info {
+			position: relative;
+			z-index: 2;
+			padding: 18px;
+			border: 1px solid #dcecf2;
+			border-radius: 18px;
+			background: #f5fbfd;
+		}
 
-        .msg-failed {
-            background: var(--danger-soft);
-            color: #761525;
-        }
+		.subscription-payment-info-row {
+			display: flex;
+			justify-content: space-between;
+			gap: 18px;
+			padding: 11px 0;
+			border-bottom: 1px dashed #c9dfe8;
+		}
 
-        .msg-pending {
-            background: var(--warning-soft);
-            color: #6d5200;
-        }
+		.subscription-payment-info-row:first-child {
+			padding-top: 0;
+		}
 
-        .btn-main {
-            display: block;
-            width: 100%;
-            padding: 14px 18px;
-            border: none;
-            border-radius: 13px;
-            background: linear-gradient(135deg, #064f8e, #08b8c8);
-            color: #ffffff;
-            font-size: 15px;
-            font-weight: 900;
-            text-decoration: none;
-            box-shadow: 0 13px 30px rgba(5, 76, 137, 0.28);
-            transition: all 0.2s ease;
-        }
+		.subscription-payment-info-row:last-child {
+			padding-bottom: 0;
+			border-bottom: none;
+		}
 
-        .btn-main:hover {
-            color: #ffffff;
-            transform: translateY(-1px);
-            box-shadow: 0 16px 34px rgba(5, 76, 137, 0.34);
-        }
+		.subscription-payment-info-label {
+			color: #6f8294;
+			font-size: 12px;
+			font-weight: 800;
+		}
 
-        .secure-text {
-            margin-top: 20px;
-            color: var(--text-muted);
-            font-size: 12px;
-        }
+		.subscription-payment-info-value {
+			color: #05285f;
+			font-size: 13px;
+			font-weight: 900;
+			text-align: right;
+			word-break: break-word;
+		}
 
-        @media (max-width: 520px) {
-            body {
-                padding: 18px;
-            }
+		.subscription-payment-message {
+			position: relative;
+			z-index: 2;
+			margin-top: 16px;
+			padding: 15px 17px;
+			border-radius: 15px;
+			font-size: 13px;
+			font-weight: 800;
+			line-height: 1.55;
+			text-align: center;
+		}
 
-            .payment-card {
-                padding: 28px 20px;
-            }
+		.subscription-payment-message.pending {
+			color: #6b5200;
+			background: #fff4cf;
+		}
 
-            .title {
-                font-size: 24px;
-            }
+		.subscription-payment-message.success {
+			color: #0f5132;
+			background: #d1e7dd;
+		}
 
-            .info-row {
-                flex-direction: column;
-                gap: 5px;
-            }
+		.subscription-payment-message.failed {
+			color: #842029;
+			background: #f8d7da;
+		}
 
-            .info-value {
-                text-align: left;
-            }
-        }
-    </style>
+		.subscription-payment-details {
+			position: relative;
+			z-index: 2;
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 12px;
+			margin-top: 16px;
+		}
+
+		.subscription-payment-detail-box {
+			padding: 15px;
+			border: 1px solid #e2edf2;
+			border-radius: 15px;
+			background: #ffffff;
+		}
+
+		.subscription-payment-detail-box small {
+			display: block;
+			color: #728597;
+			font-size: 9px;
+			font-weight: 900;
+			text-transform: uppercase;
+		}
+
+		.subscription-payment-detail-box strong {
+			display: block;
+			margin-top: 6px;
+			color: #05285f;
+			font-weight: 900;
+			word-break: break-word;
+		}
+
+		.subscription-payment-actions {
+			position: relative;
+			z-index: 2;
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 10px;
+			margin-top: 22px;
+		}
+
+		.subscription-payment-main-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+			min-height: 48px;
+			border: none;
+			border-radius: 15px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 13px;
+			font-weight: 900;
+			text-decoration: none;
+			box-shadow: 0 14px 30px rgba(5, 40, 95, .2);
+			transition: transform .3s ease, box-shadow .3s ease;
+		}
+
+		.subscription-payment-main-button:hover {
+			color: #ffffff;
+			transform: translateY(-2px);
+			box-shadow: 0 18px 34px rgba(5, 40, 95, .26);
+		}
+
+		.subscription-payment-secondary-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+			min-height: 48px;
+			border: 1px solid #c9dae3;
+			border-radius: 15px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 13px;
+			font-weight: 900;
+			text-decoration: none;
+			transition: transform .3s ease, box-shadow .3s ease;
+		}
+
+		.subscription-payment-secondary-button:hover {
+			color: #05285f;
+			transform: translateY(-2px);
+			box-shadow: 0 14px 28px rgba(5, 40, 95, .1);
+		}
+
+		.subscription-payment-secure {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 7px;
+			margin-top: 20px;
+			color: #738697;
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.subscription-payment-spin {
+			animation: paymentSpin 1s linear infinite;
+		}
+
+		@keyframes paymentCardReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px) scale(.98);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0) scale(1);
+			}
+		}
+
+		@keyframes paymentSpin {
+			to {
+				transform: rotate(360deg);
+			}
+		}
+
+		@media (max-width: 576px) {
+			.subscription-payment-page {
+				padding: 16px;
+			}
+
+			.subscription-payment-shell {
+				min-height: calc(100vh - 32px);
+			}
+
+			.subscription-payment-card {
+				padding: 26px 20px;
+				border-radius: 24px;
+			}
+
+			.subscription-payment-title {
+				font-size: 26px;
+			}
+
+			.subscription-payment-info-row {
+				align-items: flex-start;
+				flex-direction: column;
+				gap: 5px;
+			}
+
+			.subscription-payment-info-value {
+				text-align: left;
+			}
+
+			.subscription-payment-details,
+			.subscription-payment-actions {
+				grid-template-columns: 1fr;
+			}
+		}
+	</style>
 </head>
 
-<body>
+<body class="subscription-payment-page">
 
-<div class="payment-card">
+	<main class="subscription-payment-shell">
 
-    <div class="brand-pill">
-        <i class="fa-solid fa-stethoscope"></i>
-        MediRevolution
-    </div>
+		<section class="subscription-payment-card">
 
-    <div id="statusIcon" class="status-icon pending-icon">
-        <i id="statusIconClass" class="fa-solid fa-spinner fa-spin"></i>
-    </div>
+			<div class="subscription-payment-brand">
+				<i class="bi bi-heart-pulse-fill"></i>
+				MediRevolution
+			</div>
 
-    <h2 id="pageTitle" class="title">Verifying Payment...</h2>
+			<div id="statusIcon" class="subscription-payment-status-icon pending">
 
-    <p id="pageSubtitle" class="subtitle">
-        Please wait while we verify your subscription payment.
-    </p>
+				<i id="statusIconClass" class="bi bi-arrow-repeat subscription-payment-spin"></i>
+			</div>
 
-    <div class="info-box">
-        <div class="info-row">
-            <span class="info-label">Payment For</span>
-            <span class="info-value">Subscription</span>
-        </div>
+			<h1 id="pageTitle" class="subscription-payment-title">
+				Verifying Payment...
+			</h1>
 
-        <div class="info-row">
-            <span class="info-label">Payment ID</span>
-            <span id="paymentIdText" class="info-value">-</span>
-        </div>
+			<p id="pageSubtitle" class="subscription-payment-subtitle">
+				Please wait while we verify your subscription payment.
+			</p>
 
-        <div class="info-row">
-            <span class="info-label">Merchant Order ID</span>
-            <span id="merchantOrderIdText" class="info-value">-</span>
-        </div>
-    </div>
+			<div class="subscription-payment-info">
 
-    <div id="messageBox" class="message-box msg-pending">
-        Payment verification is in progress.
-    </div>
+				<div class="subscription-payment-info-row">
 
-    <a href="/dashboard" id="mainButton" class="btn-main">
-        Go to Dashboard →
-    </a>
+					<span class="subscription-payment-info-label">
+						Payment For
+					</span>
 
-    <div class="secure-text">
-        🔒 Secure payment verification powered by MediRevolution
-    </div>
+					<span class="subscription-payment-info-value">
+						Subscription
+					</span>
+				</div>
 
-</div>
+				<div class="subscription-payment-info-row">
 
-<script>
-    const API_GATEWAY_BASE_URL = "http://localhost:8080";
+					<span class="subscription-payment-info-label">
+						Payment ID
+					</span>
 
-    const params = new URLSearchParams(window.location.search);
+					<span id="paymentIdText" class="subscription-payment-info-value">
+						-
+					</span>
+				</div>
 
-    const paymentId = params.get("paymentId");
-    const merchantOrderId = params.get("merchantOrderId");
+				<div class="subscription-payment-info-row">
 
-    document.getElementById("paymentIdText").innerText = paymentId || "-";
-    document.getElementById("merchantOrderIdText").innerText = merchantOrderId || "-";
+					<span class="subscription-payment-info-label">
+						Merchant Order ID
+					</span>
 
-    const token = localStorage.getItem("token");
+					<span id="merchantOrderIdText" class="subscription-payment-info-value">
+						-
+					</span>
+				</div>
 
-    function setStatus(type, title, subtitle, message) {
-        const statusIcon = document.getElementById("statusIcon");
-        const statusIconClass = document.getElementById("statusIconClass");
-        const messageBox = document.getElementById("messageBox");
+			</div>
 
-        statusIcon.className = "status-icon";
-        messageBox.className = "message-box";
+			<div id="messageBox" class="subscription-payment-message pending">
+				Payment verification is in progress.
+			</div>
 
-        if (type === "SUCCESS") {
-            statusIcon.classList.add("success-icon");
-            statusIconClass.className = "fa-solid fa-check";
-            messageBox.classList.add("msg-success");
-        } else if (type === "FAILED") {
-            statusIcon.classList.add("failed-icon");
-            statusIconClass.className = "fa-solid fa-xmark";
-            messageBox.classList.add("msg-failed");
-        } else {
-            statusIcon.classList.add("pending-icon");
-            statusIconClass.className = "fa-solid fa-spinner fa-spin";
-            messageBox.classList.add("msg-pending");
-        }
+			<div id="detailsBox" class="subscription-payment-details d-none">
 
-        document.getElementById("pageTitle").innerText = title;
-        document.getElementById("pageSubtitle").innerText = subtitle;
-        messageBox.innerText = message;
-    }
+				<div class="subscription-payment-detail-box">
+					<small>Plan Name</small>
+					<strong id="planName">-</strong>
+				</div>
 
-    function parseResponse(text) {
-        try {
-            return JSON.parse(text);
-        } catch (e) {
-            return {
-                success: false,
-                message: text || "Unable to verify payment."
-            };
-        }
-    }
+				<div class="subscription-payment-detail-box">
+					<small>Plan Code</small>
+					<strong id="planCode">-</strong>
+				</div>
 
-    async function verifySubscriptionPayment() {
-        if (!paymentId || !merchantOrderId) {
-            setStatus(
-                "FAILED",
-                "Payment Verification Failed",
-                "Payment response is missing paymentId or merchantOrderId.",
-                "Payment response is missing paymentId or merchantOrderId."
-            );
-            return;
-        }
+				<div class="subscription-payment-detail-box">
+					<small>Start Date</small>
+					<strong id="startDate">-</strong>
+				</div>
 
-        if (!token) {
-            setStatus(
-                "FAILED",
-                "Login Required",
-                "Please login again to verify your subscription payment.",
-                "JWT token not found. Please login again."
-            );
-            return;
-        }
+				<div class="subscription-payment-detail-box">
+					<small>End Date</small>
+					<strong id="endDate">-</strong>
+				</div>
 
-        try {
-            const response = await fetch(
-                `${API_GATEWAY_BASE_URL}/billing/subscriptions/payments/verify?paymentId=${encodeURIComponent(paymentId)}&merchantOrderId=${encodeURIComponent(merchantOrderId)}`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Authorization": "Bearer " + token,
-                        "Content-Type": "application/json"
-                    }
-                }
-            );
+			</div>
 
-            const resultText = await response.text();
-            const result = parseResponse(resultText);
+			<div class="subscription-payment-actions">
 
-            if (!response.ok) {
-                setStatus(
-                    "FAILED",
-                    "Payment Verification Failed",
-                    "Unable to verify your subscription payment.",
-                    result.message || "Payment verification failed."
-                );
-                return;
-            }
+				<a href="/dashboard" id="mainButton" class="subscription-payment-main-button">
 
-            if (result.success === true) {
-                setStatus(
-                    "SUCCESS",
-                    "Payment Successful",
-                    "Your subscription payment has been verified successfully. Your subscription is now active.",
-                    result.message || "Subscription activated successfully."
-                );
-                return;
-            }
+					<i class="bi bi-speedometer2"></i>
+					Go to Dashboard
+				</a>
 
-            const status = (result.status || result.paymentStatus || result.state || "").toString().toUpperCase();
+				<a href="/subscription/current" id="subscriptionButton" class="subscription-payment-secondary-button">
 
-            if (status === "SUCCESS" || status === "COMPLETED" || status === "ACTIVE") {
-                setStatus(
-                    "SUCCESS",
-                    "Payment Successful",
-                    "Your subscription payment has been verified successfully. Your subscription is now active.",
-                    result.message || "Subscription activated successfully."
-                );
-                return;
-            }
+					<i class="bi bi-credit-card-fill"></i>
+					View Subscription
+				</a>
 
-            if (status === "FAILED" || status === "PAYMENT_FAILED" || result.success === false) {
-                setStatus(
-                    "FAILED",
-                    "Payment Failed",
-                    "Your subscription payment could not be verified.",
-                    result.message || "Payment failed. Please try again."
-                );
-                return;
-            }
+			</div>
 
-            setStatus(
-                "PENDING",
-                "Payment Pending",
-                "Your payment is still pending.",
-                result.message || "Payment verification is pending."
-            );
+			<div class="subscription-payment-secure">
+				<i class="bi bi-shield-lock-fill"></i>
+				Secure payment verification powered by MediRevolution
+			</div>
 
-        } catch (error) {
-            setStatus(
-                "FAILED",
-                "Verification Error",
-                "Something went wrong while verifying your subscription payment.",
-                error.message || "Unable to verify payment."
-            );
-        }
-    }
+		</section>
 
-    verifySubscriptionPayment();
-</script>
+	</main>
+
+	<script th:src="@{/js/common-dashboard.js}"></script>
+	<script th:src="@{/js/subscription-payment-success.js}"></script>
 
 </body>
+
 </html>

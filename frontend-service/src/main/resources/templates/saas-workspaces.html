@@ -1,60 +1,860 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
+	<meta charset="UTF-8">
+
 	<title>MediRevolution | SaaS Workspaces</title>
+
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
 	<link rel="manifest" href="/manifest.json">
+
 	<meta name="theme-color" content="#05285f">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
+
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
 
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
 	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		/*
+		 * Workspace selection page par sidebar nahi hota.
+		 * Fixed SaaS topbar ke neeche proper spacing aur centered layout rakha gaya hai.
+		 */
+		*,
+		*::before,
+		*::after {
+			box-sizing: border-box;
+		}
+
+		html,
+		body {
+			min-height: 100%;
+		}
+
+		body.workspace-selection-page {
+			min-height: 100vh;
+			padding-top: 84px !important;
+			overflow-x: hidden;
+		}
+
+		body.workspace-selection-page .mr-sidebar,
+		body.workspace-selection-page .saas-sidebar,
+		body.workspace-selection-page #sidebar,
+		body.workspace-selection-page .sidebar,
+		body.workspace-selection-page [data-saas-sidebar] {
+			display: none !important;
+		}
+
+		body.workspace-selection-page .mr-main.saas-workspaces-page {
+			position: relative !important;
+			left: auto !important;
+			transform: none !important;
+
+			width: calc(100% - 48px) !important;
+			max-width: 1250px !important;
+			min-height: calc(100vh - 84px);
+
+			margin: 0 auto !important;
+			padding: 0 0 24px !important;
+		}
+
+		.saas-workspaces-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 235px;
+			margin-bottom: 28px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg, #05285f 0%, #08739f 48%, #08c7d4 100%);
+			box-shadow: 0 25px 65px rgba(5, 40, 95, .22);
+			animation: workspacesHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.saas-workspaces-hero::before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation: workspacesHeroFloat 9s ease-in-out infinite;
+		}
+
+		.saas-workspaces-hero::after {
+			position: absolute;
+			bottom: -180px;
+			left: 28%;
+			width: 360px;
+			height: 360px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle, rgba(123, 214, 0, .23), transparent 68%);
+		}
+
+		.saas-workspaces-hero-content,
+		.saas-workspaces-hero-action {
+			position: relative;
+			z-index: 2;
+		}
+
+		.saas-workspaces-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.saas-workspaces-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px;
+		}
+
+		.saas-workspaces-hero h1 span {
+			color: #b8f267;
+		}
+
+		.saas-workspaces-hero p {
+			max-width: 760px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .8);
+			line-height: 1.75;
+		}
+
+		.saas-workspaces-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px;
+		}
+
+		.saas-workspaces-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.saas-workspaces-hero-action {
+			display: flex;
+			min-width: 220px;
+			flex-direction: column;
+			align-items: center;
+			padding: 22px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px);
+		}
+
+		.saas-workspaces-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 68px;
+			height: 68px;
+			margin-bottom: 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 28px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+			animation: workspacesIconFloat 3s ease-in-out infinite;
+		}
+
+		.saas-workspaces-create-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 46px;
+			margin-top: 13px;
+			padding: 0 18px;
+			border: none;
+			border-radius: 15px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 12px;
+			font-weight: 800;
+			transition: transform .3s ease, box-shadow .3s ease;
+		}
+
+		.saas-workspaces-create-button:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 14px 30px rgba(0, 0, 0, .18);
+		}
+
+		.saas-workspaces-summary-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px;
+		}
+
+		.saas-workspaces-summary-card {
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .96);
+			box-shadow: 0 14px 35px rgba(5, 40, 95, .08);
+			transition: transform .35s ease, box-shadow .35s ease;
+		}
+
+		.saas-workspaces-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 22px 48px rgba(5, 40, 95, .14);
+		}
+
+		.saas-workspaces-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+		}
+
+		.saas-workspaces-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700;
+		}
+
+		.saas-workspaces-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 29px;
+			font-weight: 900;
+		}
+
+		.saas-workspaces-card {
+			position: relative;
+			overflow: hidden;
+		}
+
+		.saas-workspaces-card::after {
+			position: absolute;
+			top: -90px;
+			right: -90px;
+			width: 190px;
+			height: 190px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle, rgba(8, 199, 212, .1), transparent 68%);
+			pointer-events: none;
+		}
+
+		.saas-workspaces-section-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5;
+		}
+
+		.saas-workspaces-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px;
+		}
+
+		.saas-workspaces-title-icon {
+			display: flex;
+			flex: 0 0 46px;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+			box-shadow: 0 12px 26px rgba(5, 40, 95, .16);
+		}
+
+		.saas-workspaces-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		.saas-workspaces-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.saas-workspaces-grid {
+			position: relative;
+			z-index: 2;
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 18px;
+		}
+
+		.saas-workspace-item {
+			position: relative;
+			padding: 22px;
+			overflow: hidden;
+			border: 1px solid #dfeaf0;
+			border-radius: 22px;
+			background: #ffffff;
+			box-shadow: 0 14px 34px rgba(5, 40, 95, .08);
+			transition: transform .35s ease, box-shadow .35s ease;
+		}
+
+		.saas-workspace-item:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 22px 48px rgba(5, 40, 95, .14);
+		}
+
+		.saas-workspace-item::after {
+			position: absolute;
+			right: -55px;
+			bottom: -55px;
+			width: 140px;
+			height: 140px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle, rgba(8, 199, 212, .13), transparent 68%);
+		}
+
+		.saas-workspace-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 54px;
+			height: 54px;
+			margin-bottom: 16px;
+			border-radius: 17px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 22px;
+		}
+
+		.saas-workspace-item h4 {
+			position: relative;
+			z-index: 2;
+			margin-bottom: 6px;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.saas-workspace-code {
+			position: relative;
+			z-index: 2;
+			margin-bottom: 15px;
+			color: #6f8192;
+			font-size: 12px;
+			font-weight: 700;
+		}
+
+		.saas-workspace-details {
+			position: relative;
+			z-index: 2;
+			display: grid;
+			gap: 9px;
+			margin-bottom: 18px;
+		}
+
+		.saas-workspace-detail {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			color: #526a80;
+			font-size: 13px;
+		}
+
+		.saas-workspace-status {
+			position: absolute;
+			top: 18px;
+			right: 18px;
+			z-index: 2;
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			color: #0f5132;
+			background: #d1e7dd;
+			font-size: 10px;
+			font-weight: 900;
+		}
+
+		.saas-workspaces-state {
+			grid-column: 1 / -1;
+			padding: 54px 20px;
+			text-align: center;
+		}
+
+		.saas-workspaces-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 72px;
+			height: 72px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 28px;
+			box-shadow: 0 15px 32px rgba(5, 40, 95, .17);
+		}
+
+		.saas-workspaces-loading {
+			animation: workspacesLoadingPulse 1.3s ease-in-out infinite;
+		}
+
+		.saas-workspaces-page>div[th\:replace*="footer"],
+		.saas-workspaces-page footer {
+			margin-top: 24px;
+		}
+
+		.saas-workspaces-modal .modal-content {
+			overflow: hidden;
+			border: none;
+			border-radius: 26px;
+			box-shadow: 0 28px 75px rgba(5, 40, 95, .22);
+		}
+
+		.saas-workspaces-modal .modal-header {
+			padding: 21px 24px;
+			color: #ffffff;
+			border-bottom: none;
+			background: linear-gradient(135deg, #05285f, #087aa3);
+		}
+
+		.saas-workspaces-modal .modal-title {
+			font-weight: 900;
+		}
+
+		.saas-workspaces-modal .btn-close {
+			filter: invert(1);
+		}
+
+		.saas-workspaces-modal .modal-body {
+			padding: 25px;
+		}
+
+		.saas-workspaces-modal .modal-footer {
+			padding: 18px 24px;
+			border-top: 1px solid #e8f1f5;
+			background: #f8fbfc;
+		}
+
+
+		.saas-workspace-modules {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			flex-wrap: wrap;
+			gap: 7px;
+			margin: 0 0 18px;
+			padding-top: 14px;
+			border-top: 1px solid #e8f1f5;
+		}
+
+		.saas-workspace-module-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 9px;
+			border: 1px solid rgba(8, 199, 212, .18);
+			border-radius: 999px;
+			color: #31546e;
+			background: #eef9fc;
+			font-size: 9px;
+			font-weight: 800;
+			line-height: 1;
+			white-space: nowrap;
+		}
+
+		.saas-workspace-module-chip i {
+			color: #0879a7;
+		}
+
+		.saas-workspace-module-more {
+			color: #ffffff;
+			border-color: transparent;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+		}
+
+		.saas-workspace-module-more i {
+			color: #ffffff;
+		}
+
+		@keyframes workspacesHeroReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes workspacesHeroFloat {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(25px) rotate(8deg);
+			}
+		}
+
+		@keyframes workspacesIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-7px);
+			}
+		}
+
+		@keyframes workspacesLoadingPulse {
+
+			0%,
+			100% {
+				transform: scale(.94);
+				opacity: .72;
+			}
+
+			50% {
+				transform: scale(1.06);
+				opacity: 1;
+			}
+		}
+
+		@media (max-width: 1150px) {
+			.saas-workspaces-summary-grid {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+
+			.saas-workspaces-grid {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+		}
+
+		@media (max-width: 992px) {
+			.saas-workspaces-hero {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.saas-workspaces-hero-action {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 768px) {
+
+			body.workspace-selection-page {
+				padding-top: 76px !important;
+			}
+
+			body.workspace-selection-page .mr-main.saas-workspaces-page {
+				width: calc(100% - 24px) !important;
+				min-height: calc(100vh - 76px);
+			}
+		}
+
+		@media (max-width: 700px) {
+			.saas-workspaces-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		@media (max-width: 576px) {
+			.saas-workspaces-hero {
+				padding: 26px 21px;
+				border-radius: 24px;
+			}
+
+			.saas-workspaces-summary-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+	</style>
 </head>
 
-<body class="dashboard-body">
+<body class="dashboard-body saas-dashboard-body workspace-selection-page">
 
 	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
-	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
 
-	<main class="mr-main">
+	<main class="mr-main saas-main saas-workspaces-page">
 
-		<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
-			<div>
-				<h1 class="mr-page-title">SaaS Workspaces</h1>
-				<p class="mr-page-subtitle" id="workspaceSubtitle">
-					Create or select your personal clinic, hospital or wholesaler software.
+		<section class="saas-workspaces-hero">
+
+			<div class="saas-workspaces-hero-content">
+
+				<span class="saas-workspaces-kicker">
+					<i class="bi bi-grid-1x2-fill"></i>
+					SaaS Workspace Management
+				</span>
+
+				<h1>
+					SaaS
+					<span>workspaces</span>
+				</h1>
+
+				<p id="workspaceSubtitle">
+					Create or select your clinic, hospital, wholesale or retail pharmacy workspace.
 				</p>
+
+				<div class="saas-workspaces-meta">
+
+					<span>
+						<i class="bi bi-hospital-fill"></i>
+						Clinic & hospital
+					</span>
+
+					<span>
+						<i class="bi bi-box-seam-fill"></i>
+						Wholesaler workspace
+					</span>
+
+					<span>
+						<i class="bi bi-shop-window"></i>
+						Retail pharmacy
+					</span>
+
+					<span>
+						<i class="bi bi-shield-lock-fill"></i>
+						Secure tenant access
+					</span>
+
+				</div>
+
 			</div>
 
-			<button id="createWorkspaceBtn" class="btn btn-medi" data-bs-toggle="modal"
-				data-bs-target="#createTenantModal">
-				Create Workspace
-			</button>
-		</div>
+			<div class="saas-workspaces-hero-action">
+
+				<div class="saas-workspaces-hero-icon">
+					<i class="bi bi-plus-square-fill"></i>
+				</div>
+
+				<strong>Create New Workspace</strong>
+
+				<button type="button" id="createWorkspaceBtn" class="saas-workspaces-create-button"
+					onclick="openCreateTenantModal()">
+
+					<i class="bi bi-plus-circle-fill"></i>
+					Create Workspace
+				</button>
+
+			</div>
+
+		</section>
 
 		<div id="msg"></div>
 
-		<div class="row g-4" id="tenantContainer"></div>
+		<section class="saas-workspaces-summary-grid">
+
+			<article class="saas-workspaces-summary-card">
+
+				<div class="saas-workspaces-summary-icon">
+					<i class="bi bi-grid-fill"></i>
+				</div>
+
+				<small>Total Workspaces</small>
+				<strong id="totalWorkspaceCount">0</strong>
+
+			</article>
+
+			<article class="saas-workspaces-summary-card">
+
+				<div class="saas-workspaces-summary-icon">
+					<i class="bi bi-check-circle-fill"></i>
+				</div>
+
+				<small>Active Workspaces</small>
+				<strong id="activeWorkspaceCount">0</strong>
+
+			</article>
+
+			<article class="saas-workspaces-summary-card">
+
+				<div class="saas-workspaces-summary-icon">
+					<i class="bi bi-building-fill"></i>
+				</div>
+
+				<small>Workspace Types</small>
+				<strong id="workspaceTypeCount">0</strong>
+
+			</article>
+
+			<article class="saas-workspaces-summary-card">
+
+				<div class="saas-workspaces-summary-icon">
+					<i class="bi bi-person-check-fill"></i>
+				</div>
+
+				<small>Access Mode</small>
+				<strong id="workspaceAccessMode">Owner</strong>
+
+			</article>
+
+		</section>
+
+		<section class="mr-card saas-workspaces-card">
+
+			<div class="saas-workspaces-section-header">
+
+				<div class="saas-workspaces-title-wrap">
+
+					<div class="saas-workspaces-title-icon">
+						<i class="bi bi-grid-3x3-gap-fill"></i>
+					</div>
+
+					<div>
+						<small>Your SaaS Tenants</small>
+						<h5>Available Workspaces</h5>
+					</div>
+
+				</div>
+
+				<button type="button" id="refreshWorkspacesBtn" class="btn btn-outline-primary"
+					onclick="refreshWorkspaces()">
+
+					<i class="bi bi-arrow-clockwise me-1"></i>
+					Refresh
+				</button>
+
+			</div>
+
+			<div id="tenantContainer" class="saas-workspaces-grid">
+
+				<div class="saas-workspaces-state">
+
+					<div class="saas-workspaces-state-icon saas-workspaces-loading">
+						<i class="bi bi-grid-fill"></i>
+					</div>
+
+					<h5 class="fw-bold text-primary">
+						Loading workspaces
+					</h5>
+
+					<p class="text-muted mb-0">
+						Please wait while we prepare your SaaS workspaces.
+					</p>
+
+				</div>
+
+			</div>
+
+		</section>
 
 		<div th:replace="~{layout/footer :: footer}"></div>
+
 	</main>
 
-	<div class="modal fade" id="createTenantModal" tabindex="-1">
-		<div class="modal-dialog modal-lg">
+	<div class="modal fade saas-workspaces-modal" id="createTenantModal" tabindex="-1">
+
+		<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+
 			<div class="modal-content">
 
 				<div class="modal-header">
-					<h5 class="modal-title">Create SaaS Workspace</h5>
-					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+					<div>
+						<div class="small text-white-50 fw-bold text-uppercase">
+							New SaaS Tenant
+						</div>
+
+						<h5 class="modal-title">
+							Create SaaS Workspace
+						</h5>
+					</div>
+
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
 				</div>
 
 				<div class="modal-body">
 
 					<div class="row g-3">
 
+						<input type="hidden" id="tenantType">
+
+						<div class="col-12">
+
+							<div class="alert alert-info d-flex align-items-center gap-2 mb-0">
+
+								<i class="bi bi-building-check fs-5"></i>
+
+								<div>
+									<div class="small text-muted">
+										Workspace Type
+									</div>
+
+									<strong id="tenantTypeText">
+										Workspace
+									</strong>
+								</div>
+
+							</div>
+
+						</div>
+
 						<div class="col-md-6">
 							<label class="form-label">Workspace Name *</label>
+
 							<input type="text" id="tenantName" class="form-control"
 								placeholder="Example: CityCare Hospital">
 						</div>
@@ -94,19 +894,54 @@
 				</div>
 
 				<div class="modal-footer">
-					<button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-					<button class="btn btn-medi" onclick="createTenant()">Create Workspace</button>
+
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+						Close
+					</button>
+
+					<button type="button" id="createTenantBtn" class="btn btn-medi" onclick="createTenant()">
+
+						<i class="bi bi-plus-circle-fill me-1"></i>
+						Create Workspace
+					</button>
+
 				</div>
 
 			</div>
+
 		</div>
+
 	</div>
+
+	<div class="module-exit-overlay" id="moduleExitOverlay">
+
+		<div class="module-exit-content">
+
+			<div class="module-exit-icon">
+				<i class="bi bi-arrow-left-right"></i>
+			</div>
+
+			<h2>Switching Experience</h2>
+
+			<p>
+				Returning to MediRevolution module selection...
+			</p>
+
+			<div class="module-exit-progress">
+				<span></span>
+			</div>
+
+		</div>
+
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 	<script th:src="@{/js/common-dashboard.js}"></script>
 	<script th:src="@{/js/module-switch.js}"></script>
 	<script th:src="@{/js/saas-auth-guard.js}"></script>
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-	<script th:src="@{/js/saas-workspaces.js?v=20260707_3}"></script>
+	<script th:src="@{/js/saas-workspaces.js}"></script>
+	<script th:src="@{/js/pwa.js}"></script>
 
 </body>
 

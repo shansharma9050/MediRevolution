@@ -4,21 +4,27 @@ const API_BASE = "http://localhost:8080";
 window.SAAS_PERMISSIONS = window.SAAS_PERMISSIONS || [];
 window.SAAS_MEMBER_ROLE = window.SAAS_MEMBER_ROLE || null;
 window.SAAS_OWNER_OR_ADMIN = window.SAAS_OWNER_OR_ADMIN || false;
+window.SAAS_ENABLED_MODULES = window.SAAS_ENABLED_MODULES || [];
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", async function() {
 	protectDashboardPage();
 	fixUserDataFromToken();
 	setUserInfo();
+
+	/*
+	 * SaaS links ko permission/module API resolve hone se pehle hide rakhta hai.
+	 * Isse wrong modules ka temporary flash bhi nahi dikhega.
+	 */
+	hideSaasMenuUntilResolved();
+
 	applyRoleBasedMenu();
 	markActiveSidebarLink();
+
 	loadCommonNotificationCount();
 	loadSaasNotificationCount();
 
-	// IMPORTANT:
-	// applySaasPermissionMenu() saas-auth-guard.js me hai.
-	// Agar saas-auth-guard.js page me loaded hai tabhi call hoga.
 	if (typeof applySaasPermissionMenu === "function") {
-		applySaasPermissionMenu();
+		await applySaasPermissionMenu();
 	}
 });
 
@@ -31,12 +37,23 @@ function protectDashboardPage() {
 }
 
 function requireRole(requiredRole) {
-	const role = localStorage.getItem("role");
+	const role = getNormalizedRole();
+	const normalizedRequiredRole = String(requiredRole || "")
+		.trim()
+		.toUpperCase()
+		.replace(/^ROLE_/, "");
 
-	if (role !== requiredRole) {
-		alert("Access denied. Only " + requiredRole + " can access this page.");
+	if (role !== normalizedRequiredRole) {
+		alert("Access denied. Only " + normalizedRequiredRole + " can access this page.");
 		window.location.href = "/dashboard";
 	}
+}
+
+function getNormalizedRole() {
+	return String(localStorage.getItem("role") || "")
+		.trim()
+		.toUpperCase()
+		.replace(/^ROLE_/, "");
 }
 
 function setUserInfo() {
@@ -119,7 +136,9 @@ async function loadCommonNotificationCount() {
 }
 
 function toggleSidebar() {
-	const sidebar = document.getElementById("sidebar");
+	const sidebar =
+		document.getElementById("saasSidebar") ||
+		document.getElementById("sidebar");
 
 	if (sidebar) {
 		sidebar.classList.toggle("show");
@@ -169,13 +188,13 @@ function showLiveNotification(notification) {
 	toast.className = "live-toast";
 
 	toast.innerHTML = `
-        <strong>${notification.title || "Notification"}</strong>
-        <p>${notification.message || ""}</p>
-    `;
+		<strong>${escapeCommonHtml(notification.title || "Notification")}</strong>
+		<p>${escapeCommonHtml(notification.message || "")}</p>
+	`;
 
 	document.body.appendChild(toast);
 
-	setTimeout(() => {
+	setTimeout(function() {
 		toast.remove();
 	}, 5000);
 }
@@ -195,7 +214,10 @@ function fixUserDataFromToken() {
 		}
 
 		if ((!localStorage.getItem("role") || localStorage.getItem("role") === "undefined") && payload.role) {
-			localStorage.setItem("role", payload.role);
+			localStorage.setItem(
+				"role",
+				String(payload.role).replace(/^ROLE_/, "")
+			);
 		}
 
 		if ((!localStorage.getItem("email") || localStorage.getItem("email") === "undefined") && payload.email) {
@@ -234,7 +256,7 @@ function parseJwt(token) {
 }
 
 function applyRoleBasedMenu() {
-	const role = (localStorage.getItem("role") || "").trim().toUpperCase();
+	const role = getNormalizedRole();
 
 	if (!role) {
 		console.warn("Role not found in localStorage");
@@ -245,38 +267,58 @@ function applyRoleBasedMenu() {
 		const allowedRolesText = element.getAttribute("data-role") || "";
 
 		const allowedRoles = allowedRolesText
-			.split(" ")
-			.map(function(r) {
-				return r.trim().toUpperCase();
+			.split(/[\s,]+/)
+			.map(function(item) {
+				return item
+					.trim()
+					.toUpperCase()
+					.replace(/^ROLE_/, "");
 			})
-			.filter(function(r) {
-				return r.length > 0;
-			});
+			.filter(Boolean);
 
-		if (!allowedRoles.includes(role)) {
-			element.style.display = "none";
-		} else {
-			element.style.display = "";
-		}
+		element.style.display =
+			allowedRoles.includes(role) ? "" : "none";
 	});
+}
+
+function hideSaasMenuUntilResolved() {
+	const saasMode = localStorage.getItem("saasMode") === "true";
+	const tenantId = localStorage.getItem("tenantId");
+
+	if (!saasMode || !tenantId) {
+		return;
+	}
+
+	document
+		.querySelectorAll(
+			"#saasSidebar [data-saas-module], " +
+			"#saasSidebar [data-saas], " +
+			"#sidebar [data-saas-module], " +
+			"#sidebar [data-saas]"
+		)
+		.forEach(function(element) {
+			element.style.display = "none";
+		});
 }
 
 function markActiveSidebarLink() {
 	const currentPath = window.location.pathname;
 
-	document.querySelectorAll("#sidebar a, .sidebar a, .mr-sidebar a").forEach(function(link) {
-		const href = link.getAttribute("href");
+	document
+		.querySelectorAll("#saasSidebar a, #sidebar a, .sidebar a, .mr-sidebar a")
+		.forEach(function(link) {
+			const href = link.getAttribute("href");
 
-		if (!href || href === "#") {
-			return;
-		}
+			if (!href || href === "#") {
+				return;
+			}
 
-		if (currentPath === href || currentPath.startsWith(href + "/")) {
-			link.classList.add("active");
-		} else {
-			link.classList.remove("active");
-		}
-	});
+			if (currentPath === href || currentPath.startsWith(href + "/")) {
+				link.classList.add("active");
+			} else {
+				link.classList.remove("active");
+			}
+		});
 }
 
 async function loadSaasNotificationCount() {
@@ -291,14 +333,7 @@ async function loadSaasNotificationCount() {
 		return;
 	}
 
-	if (!tenantId || saasMode !== "true") {
-		btn.style.display = "none";
-		badge.innerText = "0";
-		badge.style.display = "none";
-		return;
-	}
-
-	if (!token) {
+	if (!tenantId || saasMode !== "true" || !token) {
 		btn.style.display = "none";
 		badge.innerText = "0";
 		badge.style.display = "none";
@@ -308,12 +343,15 @@ async function loadSaasNotificationCount() {
 	btn.style.display = "inline-block";
 
 	try {
-		const response = await fetch(`${API_BASE}/saas/notifications/count?tenantId=${tenantId}`, {
-			method: "GET",
-			headers: {
-				"Authorization": "Bearer " + token
+		const response = await fetch(
+			`${API_BASE}/saas/notifications/count?tenantId=${encodeURIComponent(tenantId)}`,
+			{
+				method: "GET",
+				headers: {
+					"Authorization": "Bearer " + token
+				}
 			}
-		});
+		);
 
 		const text = await response.text();
 
@@ -330,8 +368,6 @@ async function loadSaasNotificationCount() {
 		}
 
 		if (!text || text.trim() === "") {
-			console.warn("SaaS notification count API returned empty body");
-
 			badge.innerText = "0";
 			badge.style.display = "none";
 			return;
@@ -360,24 +396,25 @@ async function loadSaasNotificationCount() {
 		badge.innerText = "0";
 		badge.style.display = "none";
 	}
-
 }
 
 function switchMediRevolutionModule() {
+	document.body.style.transition =
+		"opacity 0.35s ease, transform 0.35s ease";
 
-		document.body.style.transition =
-			"opacity 0.35s ease, transform 0.35s ease";
+	document.body.style.opacity = "0";
+	document.body.style.transform = "scale(0.985)";
 
-		document.body.style.opacity = "0";
+	window.setTimeout(function() {
+		window.location.href = "/module-selection";
+	}, 350);
+}
 
-		document.body.style.transform =
-			"scale(0.985)";
-
-		window.setTimeout(function() {
-
-			window.location.href =
-				"/module-selection";
-
-		}, 350);
-
-	}
+function escapeCommonHtml(value) {
+	return String(value ?? "")
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#039;");
+}

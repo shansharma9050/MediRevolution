@@ -6,5 +6,12 @@ public enum SaasPaymentMode {
     CARD,
     BANK_TRANSFER,
     ONLINE,
-    OTHER
+    OTHER,
+   CHEQUE,
+   NEFT,
+   RTGS,
+   IMPS,
+   WALLET
+
+    
 }

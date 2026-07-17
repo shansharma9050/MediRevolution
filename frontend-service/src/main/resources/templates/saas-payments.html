@@ -1,0 +1,1776 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+	<meta charset="UTF-8">
+
+	<title>MediRevolution | SaaS Payments & Ledger</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<meta name="theme-color" content="#05285f">
+
+	<link rel="manifest" href="/manifest.json">
+
+	<meta name="mobile-web-app-capable" content="yes">
+
+	<meta name="apple-mobile-web-app-capable" content="yes">
+
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
+
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.payment-page {
+			position: relative;
+		}
+
+		.payment-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 30px;
+			min-height: 250px;
+			margin-bottom: 26px;
+			padding: clamp(30px, 4vw, 50px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#031d48 0%,
+					#05285f 40%,
+					#0879a7 70%,
+					#08c7d4 100%);
+			box-shadow:
+				0 28px 70px rgba(5, 40, 95, .24);
+			animation:
+				paymentHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.payment-hero::before {
+			position: absolute;
+			top: -165px;
+			right: -110px;
+			width: 390px;
+			height: 390px;
+			border: 64px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation:
+				paymentOrbit 11s ease-in-out infinite;
+		}
+
+		.payment-hero::after {
+			position: absolute;
+			bottom: -210px;
+			left: 25%;
+			width: 420px;
+			height: 420px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle,
+					rgba(184, 242, 103, .24),
+					transparent 67%);
+		}
+
+		.payment-hero-content,
+		.payment-hero-panel {
+			position: relative;
+			z-index: 2;
+		}
+
+		.payment-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .20);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 900;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.payment-hero h1 {
+			margin: 0;
+			font-size: clamp(32px, 4vw, 52px);
+			font-weight: 900;
+			letter-spacing: -1.8px;
+		}
+
+		.payment-hero h1 span {
+			color: #b8f267;
+		}
+
+		.payment-hero p {
+			max-width: 790px;
+			margin: 15px 0 0;
+			color: rgba(255, 255, 255, .82);
+			line-height: 1.75;
+		}
+
+		.payment-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 21px;
+		}
+
+		.payment-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.payment-hero-panel {
+			display: flex;
+			min-width: 250px;
+			flex-direction: column;
+			align-items: center;
+			padding: 24px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px);
+		}
+
+		.payment-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 72px;
+			height: 72px;
+			margin-bottom: 13px;
+			border-radius: 23px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 30px;
+			box-shadow:
+				0 15px 35px rgba(0, 0, 0, .17);
+			animation:
+				paymentIconFloat 3.2s ease-in-out infinite;
+		}
+
+		.payment-workspace-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			margin-top: 9px;
+			padding: 7px 11px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .12);
+			font-size: 10px;
+			font-weight: 800;
+		}
+
+		.payment-hero-actions {
+			display: flex;
+			flex-wrap: wrap;
+			justify-content: center;
+			gap: 9px;
+			margin-top: 15px;
+		}
+
+		.payment-hero-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+			min-height: 43px;
+			padding: 0 15px;
+			border: none;
+			border-radius: 14px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 10px;
+			font-weight: 900;
+			transition:
+				transform .3s ease,
+				box-shadow .3s ease;
+		}
+
+		.payment-hero-button:hover {
+			transform: translateY(-3px);
+			box-shadow:
+				0 14px 30px rgba(0, 0, 0, .17);
+		}
+
+		.payment-summary-grid {
+			display: grid;
+			grid-template-columns:
+				repeat(5, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px;
+		}
+
+		.payment-summary-card {
+			position: relative;
+			overflow: hidden;
+			padding: 21px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .97);
+			box-shadow:
+				0 14px 35px rgba(5, 40, 95, .08);
+			transition:
+				transform .35s ease,
+				box-shadow .35s ease;
+		}
+
+		.payment-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow:
+				0 22px 48px rgba(5, 40, 95, .14);
+		}
+
+		.payment-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#05285f,
+					#08c7d4);
+			font-size: 20px;
+			box-shadow:
+				0 12px 28px rgba(5, 40, 95, .16);
+		}
+
+		.payment-summary-card.success .payment-summary-icon {
+			background:
+				linear-gradient(135deg,
+					#047857,
+					#10b981);
+		}
+
+		.payment-summary-card.warning .payment-summary-icon {
+			background:
+				linear-gradient(135deg,
+					#d97706,
+					#fbbf24);
+		}
+
+		.payment-summary-card.danger .payment-summary-icon {
+			background:
+				linear-gradient(135deg,
+					#b91c1c,
+					#ef4444);
+		}
+
+		.payment-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700;
+		}
+
+		.payment-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 24px;
+			font-weight: 900;
+		}
+
+		.payment-panel {
+			position: relative;
+			overflow: hidden;
+			margin-bottom: 24px;
+			padding: 24px;
+			border: 1px solid rgba(5, 40, 95, .08);
+			border-radius: 24px;
+			background: #ffffff;
+			box-shadow:
+				0 16px 40px rgba(5, 40, 95, .08);
+			animation:
+				paymentPanelReveal .45s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.payment-panel::after {
+			position: absolute;
+			top: -100px;
+			right: -100px;
+			width: 210px;
+			height: 210px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle,
+					rgba(8, 199, 212, .10),
+					transparent 67%);
+			pointer-events: none;
+		}
+
+		.payment-panel-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5;
+		}
+
+		.payment-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px;
+		}
+
+		.payment-title-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#05285f,
+					#08c7d4);
+			font-size: 20px;
+			box-shadow:
+				0 12px 26px rgba(5, 40, 95, .16);
+		}
+
+		.payment-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 900;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		.payment-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.payment-form-control .form-control,
+		.payment-form-control .form-select {
+			min-height: 46px;
+			border-radius: 13px;
+		}
+
+		.payment-type-switch {
+			position: relative;
+			z-index: 2;
+			display: grid;
+			grid-template-columns:
+				repeat(2, minmax(0, 1fr));
+			gap: 12px;
+			margin-bottom: 20px;
+		}
+
+		.payment-type-option {
+			position: relative;
+			display: flex;
+			align-items: center;
+			gap: 13px;
+			padding: 17px;
+			border: 1px solid #dfebf0;
+			border-radius: 17px;
+			background: #f8fcfe;
+			cursor: pointer;
+			transition:
+				transform .25s ease,
+				border-color .25s ease,
+				background .25s ease;
+		}
+
+		.payment-type-option:hover {
+			transform: translateY(-3px);
+			border-color: rgba(8, 199, 212, .40);
+		}
+
+		.payment-type-option.active {
+			border-color: #08a9bd;
+			background:
+				linear-gradient(135deg,
+					rgba(5, 40, 95, .06),
+					rgba(8, 199, 212, .12));
+		}
+
+		.payment-type-option input {
+			position: absolute;
+			opacity: 0;
+			pointer-events: none;
+		}
+
+		.payment-type-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			flex: 0 0 auto;
+			border-radius: 16px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#05285f,
+					#08c7d4);
+			font-size: 20px;
+		}
+
+		.payment-type-option strong {
+			display: block;
+			color: #05285f;
+		}
+
+		.payment-type-option small {
+			display: block;
+			margin-top: 3px;
+			color: #6d8093;
+		}
+
+		.payment-party-card {
+			position: relative;
+			z-index: 2;
+			display: none;
+			padding: 17px;
+			border: 1px solid #dceaf0;
+			border-radius: 18px;
+			background:
+				linear-gradient(135deg,
+					#f7fcfe,
+					#eef9fc);
+		}
+
+		.payment-party-card.active {
+			display: block;
+		}
+
+		.payment-party-grid {
+			display: grid;
+			grid-template-columns:
+				repeat(4, minmax(0, 1fr));
+			gap: 12px;
+		}
+
+		.payment-info-box {
+			padding: 13px;
+			border: 1px solid #e0ebf0;
+			border-radius: 14px;
+			background: #ffffff;
+		}
+
+		.payment-info-box small {
+			display: block;
+			margin-bottom: 3px;
+			color: #6d8093;
+			font-size: 9px;
+			font-weight: 900;
+			letter-spacing: .7px;
+			text-transform: uppercase;
+		}
+
+		.payment-info-box strong {
+			color: #05285f;
+		}
+
+		.payment-mode-fields {
+			display: none;
+		}
+
+		.payment-mode-fields.active {
+			display: block;
+		}
+
+		.payment-toolbar {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+		}
+
+		.payment-search-wrap {
+			position: relative;
+			min-width: 330px;
+		}
+
+		.payment-search-wrap i {
+			position: absolute;
+			top: 50%;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			transform: translateY(-50%);
+		}
+
+		.payment-search-wrap .form-control {
+			min-height: 44px;
+			padding-left: 41px;
+			border-radius: 13px;
+		}
+
+		.payment-table-wrap {
+			position: relative;
+			z-index: 2;
+			overflow: hidden;
+			border: 1px solid #e6eef4;
+			border-radius: 18px;
+		}
+
+		.payment-table-wrap table {
+			margin-bottom: 0;
+		}
+
+		.payment-table-wrap thead th {
+			padding: 15px 13px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 11px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.payment-table-wrap tbody td {
+			padding: 15px 13px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 12px;
+			vertical-align: middle;
+		}
+
+		.payment-status {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			color: #0f5132;
+			background: #d1e7dd;
+			font-size: 10px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.payment-status.cancelled {
+			color: #842029;
+			background: #f8d7da;
+		}
+
+		.payment-transaction-type {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			font-size: 10px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.payment-transaction-type.supplier {
+			color: #664d03;
+			background: #fff3cd;
+		}
+
+		.payment-transaction-type.customer {
+			color: #055160;
+			background: #cff4fc;
+		}
+
+		.payment-outstanding-tabs {
+			position: relative;
+			z-index: 2;
+		}
+
+		.payment-outstanding-tabs .nav-link {
+			border: none;
+			border-radius: 13px;
+			color: #526a80;
+			font-size: 12px;
+			font-weight: 900;
+		}
+
+		.payment-outstanding-tabs .nav-link.active {
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#05285f,
+					#08c7d4);
+		}
+
+		.payment-outstanding-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			font-size: 10px;
+			font-weight: 900;
+		}
+
+		.payment-outstanding-chip.debit {
+			color: #842029;
+			background: #f8d7da;
+		}
+
+		.payment-outstanding-chip.credit {
+			color: #664d03;
+			background: #fff3cd;
+		}
+
+		.payment-outstanding-chip.settled {
+			color: #0f5132;
+			background: #d1e7dd;
+		}
+
+		.payment-state {
+			padding: 54px 20px;
+			text-align: center;
+		}
+
+		.payment-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 74px;
+			height: 74px;
+			margin: 0 auto 17px;
+			border-radius: 24px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#05285f,
+					#08c7d4);
+			font-size: 29px;
+			box-shadow:
+				0 15px 32px rgba(5, 40, 95, .17);
+		}
+
+		.payment-detail-card {
+			padding: 17px;
+			border: 1px solid #e3edf2;
+			border-radius: 17px;
+			background: #f8fcfe;
+		}
+
+		.payment-detail-label {
+			display: block;
+			margin-bottom: 4px;
+			color: #6b7b8c;
+			font-size: 10px;
+			font-weight: 900;
+			letter-spacing: .7px;
+			text-transform: uppercase;
+		}
+
+		.payment-detail-value {
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.ledger-summary-grid {
+			display: grid;
+			grid-template-columns:
+				repeat(4, minmax(0, 1fr));
+			gap: 12px;
+			margin-bottom: 18px;
+		}
+
+		.ledger-balance {
+			font-size: 20px;
+			font-weight: 900;
+		}
+
+		@keyframes paymentHeroReveal {
+
+			from {
+				opacity: 0;
+				transform: translateY(25px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes paymentOrbit {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(28px) rotate(8deg);
+			}
+		}
+
+		@keyframes paymentIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-7px);
+			}
+		}
+
+		@keyframes paymentPanelReveal {
+
+			from {
+				opacity: 0;
+				transform: translateY(16px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@media (max-width: 1300px) {
+
+			.payment-summary-grid {
+				grid-template-columns:
+					repeat(3, minmax(0, 1fr));
+			}
+		}
+
+		@media (max-width: 992px) {
+
+			.payment-hero {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.payment-hero-panel {
+				width: 100%;
+			}
+
+			.payment-party-grid,
+			.ledger-summary-grid {
+				grid-template-columns:
+					repeat(2, minmax(0, 1fr));
+			}
+		}
+
+		@media (max-width: 768px) {
+
+			.payment-panel-header {
+				align-items: stretch;
+				flex-direction: column;
+			}
+
+			.payment-toolbar,
+			.payment-search-wrap {
+				width: 100%;
+			}
+
+			.payment-search-wrap {
+				min-width: 0;
+			}
+
+			.payment-type-switch,
+			.payment-summary-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		@media (max-width: 576px) {
+
+			.payment-party-grid,
+			.ledger-summary-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+	</style>
+
+</head>
+
+<body class="dashboard-body saas-dashboard-body">
+
+	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
+
+	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
+
+	<main class="mr-main saas-main payment-page">
+
+		<section class="payment-hero">
+
+			<div class="payment-hero-content">
+
+				<span class="payment-kicker">
+
+					<i class="bi bi-wallet2"></i>
+					Payments, Receipts & Party Ledger
+
+				</span>
+
+				<h1>
+
+					Manage
+					<span>Payments & Ledger</span>
+
+				</h1>
+
+				<p>
+
+					Record supplier payments, collect customer receipts,
+					monitor outstanding balances and review complete party
+					statements for
+					<strong id="tenantNameText">your workspace</strong>.
+
+				</p>
+
+				<div class="payment-meta">
+
+					<span>
+
+						<i class="bi bi-cash-stack"></i>
+						Supplier payments
+
+					</span>
+
+					<span>
+
+						<i class="bi bi-wallet-fill"></i>
+						Customer receipts
+
+					</span>
+
+					<span>
+
+						<i class="bi bi-journal-text"></i>
+						Running party ledger
+
+					</span>
+
+				</div>
+
+			</div>
+
+			<div class="payment-hero-panel">
+
+				<div class="payment-hero-icon">
+
+					<i class="bi bi-currency-rupee"></i>
+
+				</div>
+
+				<strong>Financial Transactions</strong>
+
+				<div class="payment-workspace-chip">
+
+					<i class="bi bi-building"></i>
+
+					<span id="tenantTypeText">
+						Workspace
+					</span>
+
+				</div>
+
+				<div class="payment-hero-actions">
+
+					<button type="button" id="newSupplierPaymentBtn" class="payment-hero-button"
+						onclick="openPaymentForm('SUPPLIER_PAYMENT')">
+
+						<i class="bi bi-arrow-up-circle-fill"></i>
+						Pay Supplier
+
+					</button>
+
+					<button type="button" id="newCustomerReceiptBtn" class="payment-hero-button"
+						onclick="openPaymentForm('CUSTOMER_RECEIPT')">
+
+						<i class="bi bi-arrow-down-circle-fill"></i>
+						Receive Payment
+
+					</button>
+
+				</div>
+
+			</div>
+
+		</section>
+
+		<div id="msg"></div>
+
+		<section class="payment-summary-grid">
+
+			<article class="payment-summary-card">
+
+				<div class="payment-summary-icon">
+
+					<i class="bi bi-receipt"></i>
+
+				</div>
+
+				<small>Total Transactions</small>
+
+				<strong id="totalPaymentTransactions">
+					0
+				</strong>
+
+			</article>
+
+			<article class="payment-summary-card warning">
+
+				<div class="payment-summary-icon">
+
+					<i class="bi bi-arrow-up-right-circle-fill"></i>
+
+				</div>
+
+				<small>Supplier Payments</small>
+
+				<strong id="totalSupplierPayments">
+					₹0
+				</strong>
+
+			</article>
+
+			<article class="payment-summary-card success">
+
+				<div class="payment-summary-icon">
+
+					<i class="bi bi-arrow-down-left-circle-fill"></i>
+
+				</div>
+
+				<small>Customer Receipts</small>
+
+				<strong id="totalCustomerReceipts">
+					₹0
+				</strong>
+
+			</article>
+
+			<article class="payment-summary-card danger">
+
+				<div class="payment-summary-icon">
+
+					<i class="bi bi-building-exclamation"></i>
+
+				</div>
+
+				<small>Supplier Outstanding</small>
+
+				<strong id="totalSupplierOutstanding">
+					₹0
+				</strong>
+
+			</article>
+
+			<article class="payment-summary-card warning">
+
+				<div class="payment-summary-icon">
+
+					<i class="bi bi-person-exclamation"></i>
+
+				</div>
+
+				<small>Customer Outstanding</small>
+
+				<strong id="totalCustomerOutstanding">
+					₹0
+				</strong>
+
+			</article>
+
+		</section>
+
+		<section class="payment-panel" id="paymentFormPanel" style="display:none;">
+
+			<div class="payment-panel-header">
+
+				<div class="payment-title-wrap">
+
+					<div class="payment-title-icon">
+
+						<i class="bi bi-cash-coin"></i>
+
+					</div>
+
+					<div>
+
+						<small>Financial Entry</small>
+
+						<h5 id="paymentFormTitle">
+							Create Payment
+						</h5>
+
+					</div>
+
+				</div>
+
+				<button type="button" class="btn btn-sm btn-outline-secondary" onclick="closePaymentForm()">
+
+					<i class="bi bi-x-lg"></i>
+
+				</button>
+
+			</div>
+
+			<div class="payment-type-switch">
+
+				<label id="supplierPaymentOption" class="payment-type-option active">
+
+					<input type="radio" name="paymentTransactionType" id="paymentTypeSupplier" value="SUPPLIER_PAYMENT"
+						checked onchange="handlePaymentTransactionTypeChange()">
+
+					<span class="payment-type-icon">
+
+						<i class="bi bi-arrow-up-right"></i>
+
+					</span>
+
+					<span>
+
+						<strong>Supplier Payment</strong>
+
+						<small>
+							Pay outstanding amount to supplier
+						</small>
+
+					</span>
+
+				</label>
+
+				<label id="customerReceiptOption" class="payment-type-option">
+
+					<input type="radio" name="paymentTransactionType" id="paymentTypeCustomer" value="CUSTOMER_RECEIPT"
+						onchange="handlePaymentTransactionTypeChange()">
+
+					<span class="payment-type-icon">
+
+						<i class="bi bi-arrow-down-left"></i>
+
+					</span>
+
+					<span>
+
+						<strong>Customer Receipt</strong>
+
+						<small>
+							Collect outstanding amount from customer
+						</small>
+
+					</span>
+
+				</label>
+
+			</div>
+
+			<div class="row g-3 mb-4">
+
+				<div class="col-lg-3 payment-form-control">
+
+					<label for="paymentDate" class="form-label">
+						Payment Date *
+					</label>
+
+					<input type="date" id="paymentDate" class="form-control">
+
+				</div>
+
+				<div class="col-lg-5 payment-form-control">
+
+					<label for="paymentPartyId" id="paymentPartyLabel" class="form-label">
+						Supplier *
+					</label>
+
+					<select id="paymentPartyId" class="form-select" onchange="handlePaymentPartyChange()">
+
+						<option value="">
+							Select Party
+						</option>
+
+					</select>
+
+				</div>
+
+				<div class="col-lg-4 payment-form-control">
+
+					<label for="paymentAmount" class="form-label">
+						Amount *
+					</label>
+
+					<input type="number" id="paymentAmount" class="form-control" min="0.01" step="0.01" value="0">
+
+				</div>
+
+			</div>
+
+			<div id="selectedPaymentPartyCard" class="payment-party-card mb-4">
+
+				<div class="payment-party-grid">
+
+					<div class="payment-info-box">
+
+						<small>Party Type</small>
+
+						<strong id="selectedPaymentPartyType">
+							-
+						</strong>
+
+					</div>
+
+					<div class="payment-info-box">
+
+						<small>Party Name</small>
+
+						<strong id="selectedPaymentPartyName">
+							-
+						</strong>
+
+					</div>
+
+					<div class="payment-info-box">
+
+						<small>Party Code</small>
+
+						<strong id="selectedPaymentPartyCode">
+							-
+						</strong>
+
+					</div>
+
+					<div class="payment-info-box">
+
+						<small>Outstanding Balance</small>
+
+						<strong id="selectedPaymentOutstanding">
+							₹0
+						</strong>
+
+					</div>
+
+				</div>
+
+			</div>
+
+			<div class="row g-3 mb-4">
+
+				<div class="col-lg-4 payment-form-control">
+
+					<label for="paymentMode" class="form-label">
+						Payment Mode *
+					</label>
+
+					<select id="paymentMode" class="form-select" onchange="handlePaymentModeChange()">
+
+						<option value="">
+							Select Payment Mode
+						</option>
+
+						<option value="CASH">
+							Cash
+						</option>
+
+						<option value="UPI">
+							UPI
+						</option>
+
+						<option value="BANK_TRANSFER">
+							Bank Transfer
+						</option>
+
+						<option value="CHEQUE">
+							Cheque
+						</option>
+
+						<option value="CARD">
+							Card
+						</option>
+
+						<option value="NEFT">
+							NEFT
+						</option>
+
+						<option value="RTGS">
+							RTGS
+						</option>
+
+						<option value="IMPS">
+							IMPS
+						</option>
+
+						<option value="WALLET">
+							Wallet
+						</option>
+
+						<option value="OTHER">
+							Other
+						</option>
+
+					</select>
+
+				</div>
+
+				<div class="col-lg-4 payment-form-control">
+
+					<label for="paymentReferenceNumber" class="form-label">
+						Reference Number
+					</label>
+
+					<input type="text" id="paymentReferenceNumber" class="form-control" maxlength="120"
+						placeholder="UTR / receipt / transaction reference">
+
+				</div>
+
+				<div class="col-lg-4 payment-form-control">
+
+					<label for="paymentReferenceType" class="form-label">
+						Reference Type
+					</label>
+
+					<select id="paymentReferenceType" class="form-select">
+
+						<option value="">
+							General Payment
+						</option>
+
+						<option value="PURCHASE">
+							Purchase
+						</option>
+
+						<option value="SALE">
+							Sale
+						</option>
+
+						<option value="PURCHASE_RETURN">
+							Purchase Return
+						</option>
+
+						<option value="SALES_RETURN">
+							Sales Return
+						</option>
+
+						<option value="OPENING_BALANCE">
+							Opening Balance
+						</option>
+
+						<option value="OTHER">
+							Other
+						</option>
+
+					</select>
+
+				</div>
+
+				<div class="col-lg-4 payment-form-control">
+
+					<label for="paymentReferenceId" class="form-label">
+						Reference ID
+					</label>
+
+					<input type="number" id="paymentReferenceId" class="form-control" min="1"
+						placeholder="Purchase / sale record ID">
+
+				</div>
+
+			</div>
+
+			<div id="bankPaymentFields" class="payment-mode-fields mb-4">
+
+				<div class="row g-3">
+
+					<div class="col-md-6 payment-form-control">
+
+						<label for="paymentBankName" class="form-label">
+							Bank Name
+						</label>
+
+						<input type="text" id="paymentBankName" class="form-control" maxlength="150"
+							placeholder="Bank name">
+
+					</div>
+
+				</div>
+
+			</div>
+
+			<div id="chequePaymentFields" class="payment-mode-fields mb-4">
+
+				<div class="row g-3">
+
+					<div class="col-md-4 payment-form-control">
+
+						<label for="paymentChequeNumber" class="form-label">
+							Cheque Number *
+						</label>
+
+						<input type="text" id="paymentChequeNumber" class="form-control" maxlength="80"
+							placeholder="Cheque number">
+
+					</div>
+
+					<div class="col-md-4 payment-form-control">
+
+						<label for="paymentChequeDate" class="form-label">
+							Cheque Date *
+						</label>
+
+						<input type="date" id="paymentChequeDate" class="form-control">
+
+					</div>
+
+					<div class="col-md-4 payment-form-control">
+
+						<label for="paymentChequeBankName" class="form-label">
+							Bank Name *
+						</label>
+
+						<input type="text" id="paymentChequeBankName" class="form-control" maxlength="150"
+							placeholder="Cheque bank name">
+
+					</div>
+
+				</div>
+
+			</div>
+
+			<div id="upiPaymentFields" class="payment-mode-fields mb-4">
+
+				<div class="row g-3">
+
+					<div class="col-md-6 payment-form-control">
+
+						<label for="paymentUpiTransactionId" class="form-label">
+							UPI Transaction ID *
+						</label>
+
+						<input type="text" id="paymentUpiTransactionId" class="form-control" maxlength="150"
+							placeholder="UPI transaction ID">
+
+					</div>
+
+				</div>
+
+			</div>
+
+			<div class="row g-3">
+
+				<div class="col-12">
+
+					<label for="paymentRemarks" class="form-label">
+						Remarks
+					</label>
+
+					<textarea id="paymentRemarks" class="form-control" rows="4" maxlength="1000"
+						placeholder="Payment or receipt remarks"></textarea>
+
+				</div>
+
+			</div>
+
+			<div class="d-flex justify-content-end gap-2 mt-4">
+
+				<button type="button" class="btn btn-outline-secondary" onclick="clearPaymentForm()">
+
+					<i class="bi bi-eraser-fill me-1"></i>
+					Clear
+
+				</button>
+
+				<button type="button" id="savePaymentBtn" class="btn btn-medi" onclick="savePaymentTransaction()">
+
+					<i class="bi bi-check2-circle me-1"></i>
+					Save Transaction
+
+				</button>
+
+			</div>
+
+		</section>
+
+		<section class="payment-panel">
+
+			<div class="payment-panel-header">
+
+				<div class="payment-title-wrap">
+
+					<div class="payment-title-icon">
+
+						<i class="bi bi-clock-history"></i>
+
+					</div>
+
+					<div>
+
+						<small>Transaction Register</small>
+
+						<h5>Payment History</h5>
+
+					</div>
+
+				</div>
+
+				<div class="payment-toolbar">
+
+					<div class="payment-search-wrap">
+
+						<i class="bi bi-search"></i>
+
+						<input type="text" id="paymentSearchKeyword" class="form-control"
+							placeholder="Search payment, party or reference">
+
+					</div>
+
+					<button type="button" id="searchPaymentBtn" class="btn btn-medi" onclick="searchPayments()">
+
+						<i class="bi bi-search me-1"></i>
+						Search
+
+					</button>
+
+					<button type="button" id="refreshPaymentBtn" class="btn btn-outline-secondary"
+						onclick="refreshPayments()">
+
+						<i class="bi bi-arrow-clockwise me-1"></i>
+						Refresh
+
+					</button>
+
+				</div>
+
+			</div>
+
+			<div class="table-responsive payment-table-wrap">
+
+				<table class="table table-hover align-middle">
+
+					<thead>
+
+						<tr>
+
+							<th>#</th>
+							<th>Payment</th>
+							<th>Transaction</th>
+							<th>Party</th>
+							<th>Amount</th>
+							<th>Mode</th>
+							<th>Reference</th>
+							<th>Outstanding Before</th>
+							<th>Outstanding After</th>
+							<th>Status</th>
+							<th>Action</th>
+
+						</tr>
+
+					</thead>
+
+					<tbody id="paymentTableBody">
+
+						<tr>
+
+							<td colspan="11">
+
+								<div class="payment-state">
+
+									<div class="payment-state-icon">
+
+										<i class="bi bi-wallet2"></i>
+
+									</div>
+
+									<h5 class="fw-bold text-primary">
+										Loading payment transactions
+									</h5>
+
+									<p class="text-muted mb-0">
+										Please wait while financial records are prepared.
+									</p>
+
+								</div>
+
+							</td>
+
+						</tr>
+
+					</tbody>
+
+				</table>
+
+			</div>
+
+		</section>
+
+		<section class="payment-panel">
+
+			<div class="payment-panel-header">
+
+				<div class="payment-title-wrap">
+
+					<div class="payment-title-icon">
+
+						<i class="bi bi-journal-text"></i>
+
+					</div>
+
+					<div>
+
+						<small>Outstanding Register</small>
+
+						<h5>Party Ledger & Outstanding</h5>
+
+					</div>
+
+				</div>
+
+			</div>
+
+			<ul class="nav nav-pills payment-outstanding-tabs mb-3" id="paymentOutstandingTabs" role="tablist">
+
+				<li class="nav-item" role="presentation">
+
+					<button class="nav-link active" id="supplierOutstandingTab" data-bs-toggle="pill"
+						data-bs-target="#supplierOutstandingPane" type="button" role="tab">
+
+						<i class="bi bi-truck me-1"></i>
+						Supplier Payables
+
+					</button>
+
+				</li>
+
+				<li class="nav-item" role="presentation">
+
+					<button class="nav-link" id="customerOutstandingTab" data-bs-toggle="pill"
+						data-bs-target="#customerOutstandingPane" type="button" role="tab">
+
+						<i class="bi bi-people me-1"></i>
+						Customer Receivables
+
+					</button>
+
+				</li>
+
+			</ul>
+
+			<div class="tab-content">
+
+				<div class="tab-pane fade show active" id="supplierOutstandingPane" role="tabpanel">
+
+					<div class="table-responsive payment-table-wrap">
+
+						<table class="table table-hover align-middle">
+
+							<thead>
+
+								<tr>
+
+									<th>#</th>
+									<th>Supplier Code</th>
+									<th>Supplier Name</th>
+									<th>Outstanding</th>
+									<th>Balance Type</th>
+									<th>Actions</th>
+
+								</tr>
+
+							</thead>
+
+							<tbody id="supplierOutstandingTableBody">
+
+								<tr>
+
+									<td colspan="6">
+
+										<div class="payment-state">
+
+											<div class="spinner-border text-primary" role="status">
+											</div>
+
+											<p class="text-muted mt-3 mb-0">
+												Loading supplier outstanding...
+											</p>
+
+										</div>
+
+									</td>
+
+								</tr>
+
+							</tbody>
+
+						</table>
+
+					</div>
+
+				</div>
+
+				<div class="tab-pane fade" id="customerOutstandingPane" role="tabpanel">
+
+					<div class="table-responsive payment-table-wrap">
+
+						<table class="table table-hover align-middle">
+
+							<thead>
+
+								<tr>
+
+									<th>#</th>
+									<th>Customer Code</th>
+									<th>Customer Name</th>
+									<th>Outstanding</th>
+									<th>Balance Type</th>
+									<th>Actions</th>
+
+								</tr>
+
+							</thead>
+
+							<tbody id="customerOutstandingTableBody">
+
+								<tr>
+
+									<td colspan="6">
+
+										<div class="payment-state">
+
+											<div class="spinner-border text-primary" role="status">
+											</div>
+
+											<p class="text-muted mt-3 mb-0">
+												Loading customer outstanding...
+											</p>
+
+										</div>
+
+									</td>
+
+								</tr>
+
+							</tbody>
+
+						</table>
+
+					</div>
+
+				</div>
+
+			</div>
+
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
+
+	</main>
+
+	<!-- Payment Details Modal -->
+
+	<div class="modal fade" id="paymentDetailsModal" tabindex="-1" aria-hidden="true">
+
+		<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+
+			<div class="modal-content border-0 rounded-4 shadow">
+
+				<div class="modal-header border-0">
+
+					<div>
+
+						<small class="text-uppercase fw-bold text-muted">
+							Financial Transaction
+						</small>
+
+						<h5 class="modal-title fw-bold text-primary">
+							Payment Details
+						</h5>
+
+					</div>
+
+					<button type="button" class="btn-close" data-bs-dismiss="modal">
+					</button>
+
+				</div>
+
+				<div class="modal-body" id="paymentDetailsContent">
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+	<!-- Ledger Statement Modal -->
+
+	<div class="modal fade" id="partyLedgerModal" tabindex="-1" aria-hidden="true">
+
+		<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+
+			<div class="modal-content border-0 rounded-4 shadow">
+
+				<div class="modal-header border-0">
+
+					<div>
+
+						<small class="text-uppercase fw-bold text-muted" id="ledgerPartyTypeText">
+							Party Statement
+						</small>
+
+						<h5 class="modal-title fw-bold text-primary" id="ledgerPartyNameText">
+							Ledger Statement
+						</h5>
+
+					</div>
+
+					<button type="button" class="btn-close" data-bs-dismiss="modal">
+					</button>
+
+				</div>
+
+				<div class="modal-body" id="partyLedgerContent">
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script th:src="@{/js/module-switch.js?v=20260717_2}"></script>
+
+	<script th:src="@{/js/saas-auth-guard.js?v=20260717_2}"></script>
+
+	<script th:src="@{/js/saas-payments.js?v=20260717_2}"></script>
+
+	<script th:src="@{/js/pwa.js?v=20260717_2}"></script>
+
+</body>
+
+</html>

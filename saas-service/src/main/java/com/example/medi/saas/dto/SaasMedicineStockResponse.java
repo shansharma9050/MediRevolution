@@ -24,6 +24,8 @@ public class SaasMedicineStockResponse {
 
     private String batchNumber;
 
+    private LocalDate manufacturingDate;
+
     private LocalDate expiryDate;
 
     private Integer openingQuantity;
@@ -34,7 +36,15 @@ public class SaasMedicineStockResponse {
 
     private BigDecimal salePrice;
 
+    private BigDecimal mrp;
+
+    private BigDecimal gstPercentage;
+
+    private Long supplierId;
+
     private String supplierName;
+
+    private Long lastPurchaseId;
 
     private Integer reorderLevel;
 

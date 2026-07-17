@@ -8,12 +8,16 @@ import java.util.Optional;
 
 public interface SaasMedicineRepository extends JpaRepository<SaasMedicine, Long> {
 
-    List<SaasMedicine> findByTenantIdAndActiveTrueOrderByMedicineNameAsc(Long tenantId);
+	List<SaasMedicine> findByTenantIdAndActiveTrueOrderByMedicineNameAsc(Long tenantId);
 
-    Optional<SaasMedicine> findByIdAndTenantIdAndActiveTrue(Long id, Long tenantId);
+	Optional<SaasMedicine> findByIdAndTenantIdAndActiveTrue(Long id, Long tenantId);
 
-    List<SaasMedicine> findByTenantIdAndActiveTrueAndMedicineNameContainingIgnoreCaseOrderByMedicineNameAsc(
-            Long tenantId,
-            String medicineName
-    );
+	Optional<SaasMedicine> findByIdAndTenantId(Long id, Long tenantId);
+
+	List<SaasMedicine> findByTenantIdAndActiveTrueAndMedicineNameContainingIgnoreCaseOrderByMedicineNameAsc(
+			Long tenantId, String medicineName);
+
+	boolean existsByTenantIdAndMedicineNameIgnoreCaseAndActiveTrue(Long tenantId, String medicineName);
+
+	long countByTenantIdAndActiveTrue(Long tenantId);
 }

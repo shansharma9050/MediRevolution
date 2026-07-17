@@ -4,5 +4,6 @@ public enum SaasPaymentStatus {
     UNPAID,
     PARTIAL,
     PAID,
+    POSTED,
     CANCELLED
 }

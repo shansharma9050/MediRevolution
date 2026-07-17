@@ -9,5 +9,12 @@ public enum TenantMemberRole {
     PHARMACIST,
     LAB_TECHNICIAN,
     ACCOUNTANT,
-    MANAGER
+    MANAGER,
+    
+    // Wholesaler/Retailer roles
+    SALES_MANAGER,
+    PURCHASE_MANAGER,
+    WAREHOUSE_MANAGER,
+    CASHIER,
+    SALESPERSON
 }

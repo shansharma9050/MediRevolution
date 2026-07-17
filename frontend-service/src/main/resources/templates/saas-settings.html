@@ -1,190 +1,829 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
+	<meta charset="UTF-8">
+
 	<title>MediRevolution | SaaS Settings</title>
+
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
 	<link rel="manifest" href="/manifest.json">
+
 	<meta name="theme-color" content="#05285f">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
+
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
 
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
 	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.saas-settings-page {
+			position: relative;
+		}
+
+		.saas-settings-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 235px;
+			margin-bottom: 28px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg, #05285f 0%, #08739f 48%, #08c7d4 100%);
+			box-shadow: 0 25px 65px rgba(5, 40, 95, .22);
+			animation: settingsHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.saas-settings-hero::before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation: settingsHeroFloat 9s ease-in-out infinite;
+		}
+
+		.saas-settings-hero::after {
+			position: absolute;
+			bottom: -180px;
+			left: 28%;
+			width: 360px;
+			height: 360px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle, rgba(123, 214, 0, .23), transparent 68%);
+		}
+
+		.saas-settings-hero-content,
+		.saas-settings-hero-action {
+			position: relative;
+			z-index: 2;
+		}
+
+		.saas-settings-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.saas-settings-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px;
+		}
+
+		.saas-settings-hero h1 span {
+			color: #b8f267;
+		}
+
+		.saas-settings-hero p {
+			max-width: 760px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .8);
+			line-height: 1.75;
+		}
+
+		.saas-settings-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px;
+		}
+
+		.saas-settings-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.saas-settings-hero-action {
+			display: flex;
+			min-width: 220px;
+			flex-direction: column;
+			align-items: center;
+			padding: 22px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px);
+		}
+
+		.saas-settings-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 68px;
+			height: 68px;
+			margin-bottom: 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 28px;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
+			animation: settingsIconFloat 3s ease-in-out infinite;
+		}
+
+		.saas-settings-save-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 46px;
+			margin-top: 13px;
+			padding: 0 18px;
+			border: none;
+			border-radius: 15px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 12px;
+			font-weight: 800;
+			transition: transform .3s ease, box-shadow .3s ease;
+		}
+
+		.saas-settings-save-button:hover {
+			transform: translateY(-3px);
+			box-shadow: 0 14px 30px rgba(0, 0, 0, .18);
+		}
+
+		.saas-settings-summary-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px;
+		}
+
+		.saas-settings-summary-card {
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .96);
+			box-shadow: 0 14px 35px rgba(5, 40, 95, .08);
+			transition: transform .35s ease, box-shadow .35s ease;
+		}
+
+		.saas-settings-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow: 0 22px 48px rgba(5, 40, 95, .14);
+		}
+
+		.saas-settings-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+		}
+
+		.saas-settings-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700;
+		}
+
+		.saas-settings-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 20px;
+			font-weight: 900;
+			word-break: break-word;
+		}
+
+		.saas-settings-card {
+			position: relative;
+			overflow: hidden;
+		}
+
+		.saas-settings-card::after {
+			position: absolute;
+			top: -90px;
+			right: -90px;
+			width: 190px;
+			height: 190px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle, rgba(8, 199, 212, .1), transparent 68%);
+			pointer-events: none;
+		}
+
+		.saas-settings-section-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5;
+		}
+
+		.saas-settings-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px;
+		}
+
+		.saas-settings-title-icon {
+			display: flex;
+			flex: 0 0 46px;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 20px;
+			box-shadow: 0 12px 26px rgba(5, 40, 95, .16);
+		}
+
+		.saas-settings-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		.saas-settings-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.saas-settings-form-grid {
+			position: relative;
+			z-index: 2;
+		}
+
+		.saas-settings-color-wrap {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+		}
+
+		.saas-settings-color-wrap .form-control-color {
+			width: 70px;
+			height: 44px;
+		}
+
+		.saas-settings-color-preview {
+			flex: 1;
+			min-height: 44px;
+			border: 1px solid #dce8ef;
+			border-radius: 13px;
+			background: var(--settings-preview-color, #05285f);
+		}
+
+		.saas-settings-state {
+			padding: 38px 20px;
+			text-align: center;
+		}
+
+		.saas-settings-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 72px;
+			height: 72px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #ffffff;
+			background: linear-gradient(135deg, #05285f, #08c7d4);
+			font-size: 28px;
+			box-shadow: 0 15px 32px rgba(5, 40, 95, .17);
+		}
+
+		.saas-settings-loading {
+			animation: settingsLoadingPulse 1.3s ease-in-out infinite;
+		}
+
+		.saas-settings-bottom-actions {
+			display: flex;
+			justify-content: flex-end;
+			margin-top: 22px;
+		}
+
+		@keyframes settingsHeroReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes settingsHeroFloat {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(25px) rotate(8deg);
+			}
+		}
+
+		@keyframes settingsIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-7px);
+			}
+		}
+
+		@keyframes settingsLoadingPulse {
+
+			0%,
+			100% {
+				transform: scale(.94);
+				opacity: .72;
+			}
+
+			50% {
+				transform: scale(1.06);
+				opacity: 1;
+			}
+		}
+
+		@media (max-width: 1150px) {
+			.saas-settings-summary-grid {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+		}
+
+		@media (max-width: 992px) {
+			.saas-settings-hero {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.saas-settings-hero-action {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 576px) {
+			.saas-settings-hero {
+				padding: 26px 21px;
+				border-radius: 24px;
+			}
+
+			.saas-settings-summary-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.saas-settings-bottom-actions .btn {
+				width: 100%;
+			}
+		}
+	</style>
 </head>
 
-<body class="dashboard-body">
+<body class="dashboard-body saas-dashboard-body">
 
 	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
 	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
 
-	<main class="mr-main">
+	<main class="mr-main saas-main saas-settings-page">
 
-		<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
-			<div>
-				<h1 class="mr-page-title">SaaS Settings & Branding</h1>
-				<p class="mr-page-subtitle">
-					Manage branding, contact details, headers, footers and working hours for
+		<section class="saas-settings-hero">
+
+			<div class="saas-settings-hero-content">
+
+				<span class="saas-settings-kicker">
+					<i class="bi bi-gear-fill"></i>
+					SaaS Settings & Branding
+				</span>
+
+				<h1>
+					Workspace
+					<span>settings</span>
+				</h1>
+
+				<p>
+					Manage branding, contact details, PDF headers, footers and working hours for
 					<strong id="tenantNameText">your workspace</strong>.
 				</p>
+
+				<div class="saas-settings-meta">
+
+					<span>
+						<i class="bi bi-palette-fill"></i>
+						Brand identity
+					</span>
+
+					<span>
+						<i class="bi bi-file-earmark-pdf-fill"></i>
+						PDF branding
+					</span>
+
+					<span>
+						<i class="bi bi-clock-fill"></i>
+						Working hours
+					</span>
+
+				</div>
+
 			</div>
 
-			<button id="saveSettingsBtn" class="btn btn-medi" onclick="saveSettings()">Save Settings</button>
-		</div>
+			<div class="saas-settings-hero-action">
+
+				<div class="saas-settings-hero-icon">
+					<i class="bi bi-sliders"></i>
+				</div>
+
+				<strong>Workspace Configuration</strong>
+
+				<button type="button" id="saveSettingsBtn" class="saas-settings-save-button" onclick="saveSettings()">
+
+					<i class="bi bi-check-circle-fill"></i>
+					Save Settings
+				</button>
+
+			</div>
+
+		</section>
 
 		<div id="msg"></div>
 
-		<div class="mr-card mb-4">
-			<h5 class="mb-3">Business Profile</h5>
+		<section class="saas-settings-summary-grid">
 
-			<div class="row g-3">
+			<article class="saas-settings-summary-card">
 
-				<div class="col-md-6">
-					<label class="form-label">Business Name *</label>
-					<input id="businessName" class="form-control">
+				<div class="saas-settings-summary-icon">
+					<i class="bi bi-building-fill"></i>
 				</div>
 
-				<div class="col-md-6">
-					<label class="form-label">Business Type</label>
-					<input id="businessType" class="form-control" placeholder="Clinic / Hospital / Wholesaler">
+				<small>Business Name</small>
+				<strong id="settingsBusinessNameSummary">-</strong>
+
+			</article>
+
+			<article class="saas-settings-summary-card">
+
+				<div class="saas-settings-summary-icon">
+					<i class="bi bi-briefcase-fill"></i>
 				</div>
 
-				<div class="col-md-8">
-					<label class="form-label">Logo URL</label>
-					<input id="logoUrl" class="form-control" placeholder="/images/logo.png or https://...">
+				<small>Business Type</small>
+				<strong id="settingsBusinessTypeSummary">-</strong>
+
+			</article>
+
+			<article class="saas-settings-summary-card">
+
+				<div class="saas-settings-summary-icon">
+					<i class="bi bi-geo-alt-fill"></i>
 				</div>
 
-				<div class="col-md-4">
-					<label class="form-label">Theme Color</label>
-					<input id="themeColor" type="color" class="form-control form-control-color" value="#05285f">
+				<small>Location</small>
+				<strong id="settingsLocationSummary">-</strong>
+
+			</article>
+
+			<article class="saas-settings-summary-card">
+
+				<div class="saas-settings-summary-icon">
+					<i class="bi bi-clock-history"></i>
 				</div>
 
-				<div class="col-md-12">
-					<label class="form-label">Address</label>
-					<textarea id="address" class="form-control" rows="2"></textarea>
+				<small>Working Hours</small>
+				<strong id="settingsWorkingHoursSummary">-</strong>
+
+			</article>
+
+		</section>
+
+		<div id="settingsLoadingState" class="mr-card saas-settings-card mb-4">
+
+			<div class="saas-settings-state">
+
+				<div class="saas-settings-state-icon saas-settings-loading">
+					<i class="bi bi-gear-fill"></i>
 				</div>
 
-				<div class="col-md-3">
-					<label class="form-label">City</label>
-					<input id="city" class="form-control">
-				</div>
+				<h5 class="fw-bold text-primary">
+					Loading settings
+				</h5>
 
-				<div class="col-md-3">
-					<label class="form-label">State</label>
-					<input id="state" class="form-control">
-				</div>
-
-				<div class="col-md-3">
-					<label class="form-label">Pincode</label>
-					<input id="pincode" class="form-control">
-				</div>
-
-				<div class="col-md-3">
-					<label class="form-label">Country</label>
-					<input id="country" class="form-control" value="India">
-				</div>
-
-				<div class="col-md-4">
-					<label class="form-label">Contact Email</label>
-					<input id="contactEmail" class="form-control">
-				</div>
-
-				<div class="col-md-4">
-					<label class="form-label">Contact Mobile</label>
-					<input id="contactMobile" class="form-control">
-				</div>
-
-				<div class="col-md-4">
-					<label class="form-label">Website</label>
-					<input id="website" class="form-control">
-				</div>
-
-				<div class="col-md-6">
-					<label class="form-label">GST Number</label>
-					<input id="gstNumber" class="form-control">
-				</div>
-
-				<div class="col-md-6">
-					<label class="form-label">Registration Number</label>
-					<input id="registrationNumber" class="form-control">
-				</div>
+				<p class="text-muted mb-0">
+					Please wait while workspace settings are prepared.
+				</p>
 
 			</div>
+
 		</div>
 
-		<div class="mr-card mb-4">
-			<h5 class="mb-3">PDF Branding</h5>
+		<div id="settingsFormContainer" style="display:none;">
 
-			<div class="row g-3">
+			<section class="mr-card saas-settings-card mb-4">
 
-				<div class="col-md-6">
-					<label class="form-label">Invoice Header</label>
-					<textarea id="invoiceHeader" class="form-control" rows="2"></textarea>
+				<div class="saas-settings-section-header">
+
+					<div class="saas-settings-title-wrap">
+
+						<div class="saas-settings-title-icon">
+							<i class="bi bi-building-fill"></i>
+						</div>
+
+						<div>
+							<small>Workspace Identity</small>
+							<h5>Business Profile</h5>
+						</div>
+
+					</div>
+
 				</div>
 
-				<div class="col-md-6">
-					<label class="form-label">Invoice Footer</label>
-					<textarea id="invoiceFooter" class="form-control" rows="2"></textarea>
+				<div class="saas-settings-form-grid">
+
+					<div class="row g-3">
+
+						<div class="col-md-6">
+							<label class="form-label">Business Name *</label>
+							<input id="businessName" class="form-control">
+						</div>
+
+						<div class="col-md-6">
+							<label class="form-label">Business Type</label>
+							<input id="businessType" class="form-control" placeholder="Clinic / Hospital / Wholesaler">
+						</div>
+
+						<div class="col-md-8">
+							<label class="form-label">Logo URL</label>
+							<input id="logoUrl" class="form-control" placeholder="/images/logo.png or https://...">
+						</div>
+
+						<div class="col-md-4">
+							<label class="form-label">Theme Color</label>
+
+							<div class="saas-settings-color-wrap">
+
+								<input id="themeColor" type="color" class="form-control form-control-color"
+									value="#05285f" oninput="previewThemeColor()">
+
+								<div id="themeColorPreview" class="saas-settings-color-preview"></div>
+
+							</div>
+						</div>
+
+						<div class="col-md-12">
+							<label class="form-label">Address</label>
+							<textarea id="address" class="form-control" rows="2"></textarea>
+						</div>
+
+						<div class="col-md-3">
+							<label class="form-label">City</label>
+							<input id="city" class="form-control">
+						</div>
+
+						<div class="col-md-3">
+							<label class="form-label">State</label>
+							<input id="state" class="form-control">
+						</div>
+
+						<div class="col-md-3">
+							<label class="form-label">Pincode</label>
+							<input id="pincode" class="form-control">
+						</div>
+
+						<div class="col-md-3">
+							<label class="form-label">Country</label>
+							<input id="country" class="form-control" value="India">
+						</div>
+
+						<div class="col-md-4">
+							<label class="form-label">Contact Email</label>
+							<input id="contactEmail" type="email" class="form-control">
+						</div>
+
+						<div class="col-md-4">
+							<label class="form-label">Contact Mobile</label>
+							<input id="contactMobile" class="form-control">
+						</div>
+
+						<div class="col-md-4">
+							<label class="form-label">Website</label>
+							<input id="website" class="form-control">
+						</div>
+
+						<div class="col-md-6">
+							<label class="form-label">GST Number</label>
+							<input id="gstNumber" class="form-control">
+						</div>
+
+						<div class="col-md-6">
+							<label class="form-label">Registration Number</label>
+							<input id="registrationNumber" class="form-control">
+						</div>
+
+					</div>
+
 				</div>
 
-				<div class="col-md-6">
-					<label class="form-label">Prescription Header</label>
-					<textarea id="prescriptionHeader" class="form-control" rows="2"></textarea>
+			</section>
+
+			<section class="mr-card saas-settings-card mb-4">
+
+				<div class="saas-settings-section-header">
+
+					<div class="saas-settings-title-wrap">
+
+						<div class="saas-settings-title-icon">
+							<i class="bi bi-file-earmark-pdf-fill"></i>
+						</div>
+
+						<div>
+							<small>Document Identity</small>
+							<h5>PDF Branding</h5>
+						</div>
+
+					</div>
+
 				</div>
 
-				<div class="col-md-6">
-					<label class="form-label">Prescription Footer</label>
-					<textarea id="prescriptionFooter" class="form-control" rows="2"></textarea>
+				<div class="saas-settings-form-grid">
+
+					<div class="row g-3">
+
+						<div class="col-md-6">
+							<label class="form-label">Invoice Header</label>
+							<textarea id="invoiceHeader" class="form-control" rows="2"></textarea>
+						</div>
+
+						<div class="col-md-6">
+							<label class="form-label">Invoice Footer</label>
+							<textarea id="invoiceFooter" class="form-control" rows="2"></textarea>
+						</div>
+
+						<div class="col-md-6">
+							<label class="form-label">Prescription Header</label>
+							<textarea id="prescriptionHeader" class="form-control" rows="2"></textarea>
+						</div>
+
+						<div class="col-md-6">
+							<label class="form-label">Prescription Footer</label>
+							<textarea id="prescriptionFooter" class="form-control" rows="2"></textarea>
+						</div>
+
+						<div class="col-md-6">
+							<label class="form-label">Report Header</label>
+							<textarea id="reportHeader" class="form-control" rows="2"></textarea>
+						</div>
+
+						<div class="col-md-6">
+							<label class="form-label">Report Footer</label>
+							<textarea id="reportFooter" class="form-control" rows="2"></textarea>
+						</div>
+
+					</div>
+
 				</div>
 
-				<div class="col-md-6">
-					<label class="form-label">Report Header</label>
-					<textarea id="reportHeader" class="form-control" rows="2"></textarea>
+			</section>
+
+			<section class="mr-card saas-settings-card">
+
+				<div class="saas-settings-section-header">
+
+					<div class="saas-settings-title-wrap">
+
+						<div class="saas-settings-title-icon">
+							<i class="bi bi-clock-fill"></i>
+						</div>
+
+						<div>
+							<small>Operational Schedule</small>
+							<h5>Working Hours</h5>
+						</div>
+
+					</div>
+
 				</div>
 
-				<div class="col-md-6">
-					<label class="form-label">Report Footer</label>
-					<textarea id="reportFooter" class="form-control" rows="2"></textarea>
+				<div class="saas-settings-form-grid">
+
+					<div class="row g-3">
+
+						<div class="col-md-4">
+							<label class="form-label">Working Days</label>
+							<input id="workingDays" class="form-control" placeholder="MONDAY-SATURDAY">
+						</div>
+
+						<div class="col-md-4">
+							<label class="form-label">Opening Time</label>
+							<input id="openingTime" class="form-control" placeholder="09:00 AM">
+						</div>
+
+						<div class="col-md-4">
+							<label class="form-label">Closing Time</label>
+							<input id="closingTime" class="form-control" placeholder="06:00 PM">
+						</div>
+
+					</div>
+
 				</div>
+
+			</section>
+
+			<div class="saas-settings-bottom-actions">
+
+				<button type="button" id="saveSettingsBottomBtn" class="btn btn-medi save-settings-btn"
+					onclick="saveSettings()">
+
+					<i class="bi bi-check-circle-fill me-1"></i>
+					Save Settings
+				</button>
 
 			</div>
-		</div>
 
-		<div class="mr-card mb-4">
-			<h5 class="mb-3">Working Hours</h5>
-
-			<div class="row g-3">
-
-				<div class="col-md-4">
-					<label class="form-label">Working Days</label>
-					<input id="workingDays" class="form-control" placeholder="MONDAY-SATURDAY">
-				</div>
-
-				<div class="col-md-4">
-					<label class="form-label">Opening Time</label>
-					<input id="openingTime" class="form-control" placeholder="09:00 AM">
-				</div>
-
-				<div class="col-md-4">
-					<label class="form-label">Closing Time</label>
-					<input id="closingTime" class="form-control" placeholder="06:00 PM">
-				</div>
-
-			</div>
-		</div>
-
-		<div class="text-end">
-			<button class="btn btn-medi" onclick="saveSettings()">Save Settings</button>
 		</div>
 
 		<div th:replace="~{layout/footer :: footer}"></div>
 
 	</main>
 
+	<div class="module-exit-overlay" id="moduleExitOverlay">
+
+		<div class="module-exit-content">
+
+			<div class="module-exit-icon">
+				<i class="bi bi-arrow-left-right"></i>
+			</div>
+
+			<h2>Switching Experience</h2>
+
+			<p>
+				Returning to MediRevolution module selection...
+			</p>
+
+			<div class="module-exit-progress">
+				<span></span>
+			</div>
+
+		</div>
+
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 	<script th:src="@{/js/common-dashboard.js}"></script>
 	<script th:src="@{/js/module-switch.js}"></script>
 	<script th:src="@{/js/saas-auth-guard.js}"></script>
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 	<script th:src="@{/js/saas-settings.js}"></script>
+	<script th:src="@{/js/pwa.js}"></script>
 
 </body>
 

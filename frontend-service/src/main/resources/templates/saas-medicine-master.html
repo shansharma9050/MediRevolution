@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en"
+	  xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+
+	<title>MediRevolution | SaaS Medicine Master</title>
+
+	<meta name="viewport"
+		  content="width=device-width, initial-scale=1">
+
+	<link rel="manifest"
+		  href="/manifest.json">
+
+	<meta name="theme-color"
+		  content="#05285f">
+
+	<meta name="mobile-web-app-capable"
+		  content="yes">
+
+	<meta name="apple-mobile-web-app-capable"
+		  content="yes">
+
+	<meta name="apple-mobile-web-app-status-bar-style"
+		  content="black-translucent">
+
+	<meta name="apple-mobile-web-app-title"
+		  content="MediRevolution">
+
+	<link rel="apple-touch-icon"
+		  href="/images/icon-192.png">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+		  rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+		  rel="stylesheet">
+
+	<link th:href="@{/css/medirevolution.css}"
+		  rel="stylesheet">
+
+	<link th:href="@{/css/module-shell.css}"
+		  rel="stylesheet">
+
+	<style>
+		.saas-medicine-page {
+			position: relative;
+		}
+
+		.saas-medicine-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 235px;
+			margin-bottom: 26px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #ffffff;
+			background:
+				linear-gradient(
+					135deg,
+					#05285f 0%,
+					#076a9c 52%,
+					#08c7d4 100%
+				);
+			box-shadow:
+				0 25px 65px rgba(5, 40, 95, 0.22);
+		}
+
+		.saas-medicine-hero::before {
+			position: absolute;
+			top: -150px;
+			right: -90px;
+			width: 340px;
+			height: 340px;
+			border: 58px solid rgba(255, 255, 255, 0.07);
+			border-radius: 50%;
+			content: "";
+		}
+
+		.saas-medicine-hero::after {
+			position: absolute;
+			bottom: -175px;
+			left: 28%;
+			width: 350px;
+			height: 350px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(
+					circle,
+					rgba(123, 214, 0, 0.23),
+					transparent 68%
+				);
+		}
+
+		.saas-medicine-hero-content,
+		.saas-medicine-hero-action {
+			position: relative;
+			z-index: 2;
+		}
+
+		.saas-medicine-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, 0.20);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.11);
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.saas-medicine-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px;
+		}
+
+		.saas-medicine-hero h1 span {
+			color: #b8f267;
+		}
+
+		.saas-medicine-hero p {
+			max-width: 760px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, 0.80);
+			line-height: 1.75;
+		}
+
+		.saas-medicine-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px;
+		}
+
+		.saas-medicine-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.11);
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.saas-medicine-hero-action {
+			display: flex;
+			min-width: 235px;
+			flex-direction: column;
+			align-items: center;
+			padding: 22px;
+			border: 1px solid rgba(255, 255, 255, 0.18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, 0.11);
+			text-align: center;
+			backdrop-filter: blur(15px);
+		}
+
+		.saas-medicine-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 68px;
+			height: 68px;
+			margin-bottom: 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 28px;
+			box-shadow:
+				0 15px 35px rgba(0, 0, 0, 0.17);
+		}
+
+		.saas-medicine-workspace-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			margin-top: 8px;
+			padding: 7px 11px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, 0.12);
+			font-size: 10px;
+			font-weight: 800;
+		}
+
+		.saas-medicine-add-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 46px;
+			margin-top: 13px;
+			padding: 0 18px;
+			border: none;
+			border-radius: 15px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 12px;
+			font-weight: 800;
+		}
+
+		.saas-medicine-summary-grid {
+			display: grid;
+			grid-template-columns:
+				repeat(4, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px;
+		}
+
+		.saas-medicine-summary-card {
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, 0.14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, 0.96);
+			box-shadow:
+				0 14px 35px rgba(5, 40, 95, 0.08);
+		}
+
+		.saas-medicine-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #ffffff;
+			background:
+				linear-gradient(
+					135deg,
+					#05285f,
+					#08c7d4
+				);
+			font-size: 20px;
+		}
+
+		.saas-medicine-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700;
+		}
+
+		.saas-medicine-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 29px;
+			font-weight: 900;
+		}
+
+		.saas-medicine-panel {
+			position: relative;
+			overflow: hidden;
+			margin-bottom: 24px;
+			padding: 24px;
+			border: 1px solid rgba(5, 40, 95, 0.08);
+			border-radius: 24px;
+			background: #ffffff;
+			box-shadow:
+				0 16px 40px rgba(5, 40, 95, 0.08);
+		}
+
+		.saas-medicine-section-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5;
+		}
+
+		.saas-medicine-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px;
+		}
+
+		.saas-medicine-title-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #ffffff;
+			background:
+				linear-gradient(
+					135deg,
+					#05285f,
+					#08c7d4
+				);
+			font-size: 20px;
+		}
+
+		.saas-medicine-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		.saas-medicine-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.saas-medicine-control {
+			position: relative;
+		}
+
+		.saas-medicine-control > i {
+			position: absolute;
+			top: 39px;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			pointer-events: none;
+		}
+
+		.saas-medicine-control .form-control,
+		.saas-medicine-control .form-select {
+			min-height: 46px;
+			padding-left: 41px;
+			border-radius: 13px;
+		}
+
+		.saas-medicine-form-actions {
+			display: flex;
+			justify-content: flex-end;
+			gap: 10px;
+			margin-top: 20px;
+			padding-top: 18px;
+			border-top: 1px solid #edf3f6;
+		}
+
+		.saas-medicine-search-group {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+		}
+
+		.saas-medicine-search-wrap {
+			position: relative;
+			min-width: 300px;
+		}
+
+		.saas-medicine-search-wrap i {
+			position: absolute;
+			top: 50%;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			transform: translateY(-50%);
+		}
+
+		.saas-medicine-search-wrap .form-control {
+			min-height: 44px;
+			padding-left: 41px;
+			border-radius: 13px;
+		}
+
+		.saas-medicine-table-wrap {
+			overflow: hidden;
+			border: 1px solid #e6eef4;
+			border-radius: 18px;
+		}
+
+		.saas-medicine-table-wrap table {
+			margin-bottom: 0;
+		}
+
+		.saas-medicine-table-wrap thead th {
+			padding: 15px 14px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 11px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.saas-medicine-table-wrap tbody td {
+			padding: 15px 14px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 12px;
+			vertical-align: middle;
+		}
+
+		.saas-medicine-profile {
+			display: flex;
+			align-items: center;
+			gap: 11px;
+			min-width: 190px;
+		}
+
+		.saas-medicine-profile-icon {
+			display: flex;
+			flex: 0 0 auto;
+			align-items: center;
+			justify-content: center;
+			width: 42px;
+			height: 42px;
+			border-radius: 14px;
+			color: #ffffff;
+			background:
+				linear-gradient(
+					135deg,
+					#05285f,
+					#08c7d4
+				);
+		}
+
+		.saas-medicine-chip,
+		.saas-medicine-status {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			font-size: 10px;
+			font-weight: 800;
+			white-space: nowrap;
+		}
+
+		.saas-medicine-chip {
+			color: #05285f;
+			background: #eaf7fb;
+		}
+
+		.saas-medicine-status.active {
+			color: #0f5132;
+			background: #d1e7dd;
+		}
+
+		.saas-medicine-status.inactive {
+			color: #842029;
+			background: #f8d7da;
+		}
+
+		.saas-medicine-actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 7px;
+			min-width: 175px;
+		}
+
+		.saas-medicine-state {
+			padding: 52px 20px;
+			text-align: center;
+		}
+
+		.saas-medicine-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 72px;
+			height: 72px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #ffffff;
+			background:
+				linear-gradient(
+					135deg,
+					#05285f,
+					#08c7d4
+				);
+			font-size: 28px;
+		}
+
+		@media (max-width: 1150px) {
+			.saas-medicine-summary-grid {
+				grid-template-columns:
+					repeat(2, minmax(0, 1fr));
+			}
+		}
+
+		@media (max-width: 992px) {
+			.saas-medicine-hero {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.saas-medicine-hero-action {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 768px) {
+			.saas-medicine-section-header {
+				align-items: stretch;
+				flex-direction: column;
+			}
+
+			.saas-medicine-search-group,
+			.saas-medicine-search-wrap {
+				width: 100%;
+			}
+
+			.saas-medicine-search-wrap {
+				min-width: 0;
+			}
+		}
+
+		@media (max-width: 576px) {
+			.saas-medicine-summary-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.saas-medicine-form-actions {
+				flex-direction: column-reverse;
+			}
+
+			.saas-medicine-form-actions .btn,
+			.saas-medicine-search-group .btn {
+				width: 100% !important;
+			}
+		}
+	</style>
+</head>
+
+<body class="dashboard-body saas-dashboard-body">
+
+	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
+
+	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
+
+	<main class="mr-main saas-main saas-medicine-page">
+
+		<section class="saas-medicine-hero">
+
+			<div class="saas-medicine-hero-content">
+
+				<span class="saas-medicine-kicker">
+
+					<i class="bi bi-capsule-pill"></i>
+
+					Global Medicine Catalogue
+
+				</span>
+
+				<h1>
+					Medicine
+					<span>Master</span>
+				</h1>
+
+				<p>
+					Create and maintain reusable medicine definitions for
+					<strong id="tenantNameText">your workspace</strong>.
+					Batch, pricing and stock information will be managed separately.
+				</p>
+
+				<div class="saas-medicine-meta">
+
+					<span>
+						<i class="bi bi-prescription2"></i>
+						Composition data
+					</span>
+
+					<span>
+						<i class="bi bi-building-fill"></i>
+						Manufacturer details
+					</span>
+
+					<span>
+						<i class="bi bi-shield-check"></i>
+						Permission controlled
+					</span>
+
+				</div>
+
+			</div>
+
+			<div class="saas-medicine-hero-action">
+
+				<div class="saas-medicine-hero-icon">
+					<i class="bi bi-capsule"></i>
+				</div>
+
+				<strong>
+					Medicine Catalogue
+				</strong>
+
+				<div class="saas-medicine-workspace-chip">
+
+					<i class="bi bi-building-check"></i>
+
+					<span id="tenantTypeText">
+						Workspace
+					</span>
+
+				</div>
+
+				<button type="button"
+						id="addMedicineBtn"
+						class="saas-medicine-add-button"
+						onclick="openCreateMedicinePanel()">
+
+					<i class="bi bi-plus-circle-fill"></i>
+					Add Medicine
+
+				</button>
+
+			</div>
+
+		</section>
+
+		<div id="msg"></div>
+
+		<section class="saas-medicine-summary-grid">
+
+			<article class="saas-medicine-summary-card">
+
+				<div class="saas-medicine-summary-icon">
+					<i class="bi bi-capsule-pill"></i>
+				</div>
+
+				<small>Total Medicines</small>
+
+				<strong id="totalMedicineCount">
+					0
+				</strong>
+
+			</article>
+
+			<article class="saas-medicine-summary-card">
+
+				<div class="saas-medicine-summary-icon">
+					<i class="bi bi-check-circle-fill"></i>
+				</div>
+
+				<small>Active Medicines</small>
+
+				<strong id="activeMedicineCount">
+					0
+				</strong>
+
+			</article>
+
+			<article class="saas-medicine-summary-card">
+
+				<div class="saas-medicine-summary-icon">
+					<i class="bi bi-x-circle-fill"></i>
+				</div>
+
+				<small>Inactive Medicines</small>
+
+				<strong id="inactiveMedicineCount">
+					0
+				</strong>
+
+			</article>
+
+			<article class="saas-medicine-summary-card">
+
+				<div class="saas-medicine-summary-icon">
+					<i class="bi bi-building-fill"></i>
+				</div>
+
+				<small>Manufacturers</small>
+
+				<strong id="manufacturerCount">
+					0
+				</strong>
+
+			</article>
+
+		</section>
+
+		<section class="saas-medicine-panel"
+				 id="medicineFormPanel"
+				 style="display:none;">
+
+			<input type="hidden"
+				   id="medicineId">
+
+			<div class="saas-medicine-section-header">
+
+				<div class="saas-medicine-title-wrap">
+
+					<div class="saas-medicine-title-icon">
+						<i class="bi bi-capsule"></i>
+					</div>
+
+					<div>
+
+						<small id="medicineFormEyebrow">
+							New Master Record
+						</small>
+
+						<h5 id="medicineFormTitle">
+							Add New Medicine
+						</h5>
+
+					</div>
+
+				</div>
+
+				<button type="button"
+						class="btn btn-sm btn-outline-secondary"
+						onclick="closeMedicinePanel()">
+
+					<i class="bi bi-x-lg"></i>
+
+				</button>
+
+			</div>
+
+			<div class="row g-3">
+
+				<div class="col-lg-6 saas-medicine-control">
+
+					<label for="medicineName"
+						   class="form-label">
+						Medicine Name *
+					</label>
+
+					<i class="bi bi-capsule-pill"></i>
+
+					<input type="text"
+						   id="medicineName"
+						   class="form-control"
+						   maxlength="180"
+						   placeholder="Example: Paracetamol 650">
+
+				</div>
+
+				<div class="col-lg-6 saas-medicine-control">
+
+					<label for="brandName"
+						   class="form-label">
+						Brand Name *
+					</label>
+
+					<i class="bi bi-tag-fill"></i>
+
+					<input type="text"
+						   id="brandName"
+						   class="form-control"
+						   maxlength="180"
+						   placeholder="Example: Dolo 650">
+
+				</div>
+
+				<div class="col-lg-6 saas-medicine-control">
+
+					<label for="composition"
+						   class="form-label">
+						Composition *
+					</label>
+
+					<i class="bi bi-prescription2"></i>
+
+					<input type="text"
+						   id="composition"
+						   class="form-control"
+						   maxlength="500"
+						   placeholder="Example: Paracetamol 650mg">
+
+				</div>
+
+				<div class="col-lg-6 saas-medicine-control">
+
+					<label for="manufacturer"
+						   class="form-label">
+						Manufacturer *
+					</label>
+
+					<i class="bi bi-building-fill"></i>
+
+					<input type="text"
+						   id="manufacturer"
+						   class="form-control"
+						   maxlength="180"
+						   placeholder="Example: Micro Labs">
+
+				</div>
+
+				<div class="col-lg-6 saas-medicine-control">
+
+					<label for="category"
+						   class="form-label">
+						Category *
+					</label>
+
+					<i class="bi bi-grid-fill"></i>
+
+					<select id="category"
+							class="form-select">
+
+						<option value="">
+							Select Category
+						</option>
+
+						<option value="Pain Relief">Pain Relief</option>
+						<option value="Antibiotic">Antibiotic</option>
+						<option value="Antacid">Antacid</option>
+						<option value="Vitamin">Vitamin</option>
+						<option value="Diabetes">Diabetes</option>
+						<option value="Cardiac">Cardiac</option>
+						<option value="Respiratory">Respiratory</option>
+						<option value="Dermatology">Dermatology</option>
+						<option value="General">General</option>
+
+					</select>
+
+				</div>
+
+				<div class="col-lg-6 saas-medicine-control">
+
+					<label for="medicineType"
+						   class="form-label">
+						Medicine Type *
+					</label>
+
+					<i class="bi bi-ui-checks-grid"></i>
+
+					<select id="medicineType"
+							class="form-select">
+
+						<option value="">
+							Select Type
+						</option>
+
+						<option value="Tablet">Tablet</option>
+						<option value="Capsule">Capsule</option>
+						<option value="Syrup">Syrup</option>
+						<option value="Injection">Injection</option>
+						<option value="Cream">Cream</option>
+						<option value="Ointment">Ointment</option>
+						<option value="Drop">Drop</option>
+						<option value="Powder">Powder</option>
+						<option value="Other">Other</option>
+
+					</select>
+
+				</div>
+
+				<div class="col-12 saas-medicine-control">
+
+					<label for="imageUrl"
+						   class="form-label">
+						Image URL
+					</label>
+
+					<i class="bi bi-image-fill"></i>
+
+					<input type="text"
+						   id="imageUrl"
+						   class="form-control"
+						   maxlength="1000"
+						   placeholder="Example: /images/medicines/dolo650.png">
+
+				</div>
+
+				<div class="col-12">
+
+					<label for="description"
+						   class="form-label">
+						Description
+					</label>
+
+					<textarea id="description"
+							  class="form-control"
+							  rows="3"
+							  maxlength="1000"
+							  placeholder="Enter medicine description"></textarea>
+
+				</div>
+
+			</div>
+
+			<div class="saas-medicine-form-actions">
+
+				<button type="button"
+						class="btn btn-outline-secondary"
+						onclick="clearMedicineForm()">
+
+					<i class="bi bi-eraser-fill me-1"></i>
+					Clear
+
+				</button>
+
+				<button type="button"
+						id="saveMedicineBtn"
+						class="btn btn-medi"
+						onclick="saveMedicine()">
+
+					<i class="bi bi-check2-circle me-1"></i>
+					Save Medicine
+
+				</button>
+
+			</div>
+
+		</section>
+
+		<section class="saas-medicine-panel">
+
+			<div class="saas-medicine-section-header">
+
+				<div class="saas-medicine-title-wrap">
+
+					<div class="saas-medicine-title-icon">
+						<i class="bi bi-list-ul"></i>
+					</div>
+
+					<div>
+
+						<small>
+							Global Master Catalogue
+						</small>
+
+						<h5>
+							Medicine List
+						</h5>
+
+					</div>
+
+				</div>
+
+				<div class="saas-medicine-search-group">
+
+					<div class="saas-medicine-search-wrap">
+
+						<i class="bi bi-search"></i>
+
+						<input type="text"
+							   id="searchKeyword"
+							   class="form-control"
+							   placeholder="Search medicine, brand, composition or manufacturer">
+
+					</div>
+
+					<button type="button"
+							id="searchMedicineBtn"
+							class="btn btn-medi"
+							onclick="searchMedicines()">
+
+						<i class="bi bi-search me-1"></i>
+						Search
+
+					</button>
+
+					<button type="button"
+							id="refreshMedicineBtn"
+							class="btn btn-outline-secondary"
+							onclick="refreshMedicines()">
+
+						<i class="bi bi-arrow-clockwise me-1"></i>
+						Refresh
+
+					</button>
+
+				</div>
+
+			</div>
+
+			<div class="table-responsive saas-medicine-table-wrap">
+
+				<table class="table align-middle table-hover">
+
+					<thead>
+
+						<tr>
+							<th>#</th>
+							<th>Medicine</th>
+							<th>Brand</th>
+							<th>Composition</th>
+							<th>Manufacturer</th>
+							<th>Category</th>
+							<th>Type</th>
+							<th>Status</th>
+							<th style="width:190px;">Action</th>
+						</tr>
+
+					</thead>
+
+					<tbody id="medicineTableBody">
+
+						<tr>
+							<td colspan="9">
+
+								<div class="saas-medicine-state">
+
+									<div class="saas-medicine-state-icon">
+										<i class="bi bi-capsule-pill"></i>
+									</div>
+
+									<h5 class="fw-bold text-primary">
+										Loading medicines
+									</h5>
+
+									<p class="text-muted mb-0">
+										Please wait while medicine records are prepared.
+									</p>
+
+								</div>
+
+							</td>
+						</tr>
+
+					</tbody>
+
+				</table>
+
+			</div>
+
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
+
+	</main>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script th:src="@{/js/module-switch.js?v=20260715_1}"></script>
+
+	<script th:src="@{/js/saas-auth-guard.js?v=20260715_1}"></script>
+
+	<script th:src="@{/js/saas-medicine-master.js?v=20260715_1}"></script>
+
+	<script th:src="@{/js/pwa.js?v=20260715_1}"></script>
+
+</body>
+
+</html>

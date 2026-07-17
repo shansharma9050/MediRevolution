@@ -1,4 +1,5 @@
-const API_BASE = "http://localhost:8080";
+const API_BASE =
+	"http://localhost:8080";
 
 /*
 const API_BASE =
@@ -6,7 +7,15 @@ const API_BASE =
 */
 
 let visibleDashboardModules = [];
+
+let enabledWorkspaceModules =
+	new Set();
+
+let selectedDashboardTenantType = "";
+
 let isLoadingSaasDashboard = false;
+let isResolvingDashboardTenant = false;
+
 
 document.addEventListener(
 	"DOMContentLoaded",
@@ -30,7 +39,9 @@ document.addEventListener(
 		} else {
 
 			const tenantId =
-				localStorage.getItem("tenantId");
+				localStorage.getItem(
+					"tenantId"
+				);
 
 			if (!tenantId) {
 
@@ -42,6 +53,9 @@ document.addEventListener(
 			}
 		}
 
+		selectedDashboardTenantType =
+			await resolveDashboardTenantType();
+
 		if (
 			typeof loadCurrentSaasPermissions ===
 			"function"
@@ -51,8 +65,11 @@ document.addEventListener(
 		}
 
 		initializeSaasShell();
-		applySaasSidebarPermissions();
-		markActiveSaasSidebarLink();
+
+		updateDashboardForTenantType(
+			selectedDashboardTenantType
+		);
+
 		updateWorkspaceAccessLevel();
 
 		await Promise.all([
@@ -60,26 +77,35 @@ document.addEventListener(
 			loadSaasNotificationCount()
 		]);
 
+		markActiveSaasSidebarLink();
+
 		hideSaasEntryOverlay();
 	}
 );
 
+
 function protectSaasDashboardPage() {
+
 	const token =
 		localStorage.getItem("token");
 
 	if (!token) {
+
 		window.location.replace("/");
+
 		return false;
 	}
 
 	const activeModule =
-		localStorage.getItem("activeModule");
+		localStorage.getItem(
+			"activeModule"
+		);
 
 	if (
 		activeModule &&
 		activeModule !== "SAAS"
 	) {
+
 		window.location.replace(
 			"/module-selection"
 		);
@@ -90,7 +116,9 @@ function protectSaasDashboardPage() {
 	return true;
 }
 
+
 function setSaasMode() {
+
 	localStorage.setItem(
 		"activeModule",
 		"SAAS"
@@ -102,10 +130,124 @@ function setSaasMode() {
 	);
 }
 
+
+async function resolveDashboardTenantType() {
+
+	const storedTenantType =
+		normalizeTenantType(
+			localStorage.getItem(
+				"tenantType"
+			)
+		);
+
+	if (storedTenantType) {
+		return storedTenantType;
+	}
+
+	if (isResolvingDashboardTenant) {
+		return "";
+	}
+
+	isResolvingDashboardTenant = true;
+
+	const tenantId =
+		localStorage.getItem("tenantId");
+
+	const token =
+		localStorage.getItem("token");
+
+	try {
+
+		const response = await fetch(
+			`${API_BASE}/saas/tenants/${encodeURIComponent(tenantId)}`,
+			{
+				method: "GET",
+
+				headers: {
+					"Authorization":
+						"Bearer " + token,
+
+					"Accept":
+						"application/json"
+				}
+			}
+		);
+
+		const result =
+			await safeJson(response);
+
+		if (!response.ok) {
+
+			showMsg(
+				getApiErrorMessage(
+					result,
+					"Unable to determine workspace type."
+				)
+			);
+
+			return "";
+		}
+
+		const tenantType =
+			normalizeTenantType(
+				result.tenantType
+			);
+
+		if (tenantType) {
+
+			localStorage.setItem(
+				"tenantType",
+				tenantType
+			);
+		}
+
+		if (
+			result.tenantName &&
+			!localStorage.getItem("tenantName")
+		) {
+
+			localStorage.setItem(
+				"tenantName",
+				result.tenantName
+			);
+		}
+
+		return tenantType;
+
+	} catch (error) {
+
+		console.error(
+			"Resolve workspace type error:",
+			error
+		);
+
+		showMsg(
+			"Unable to load workspace details."
+		);
+
+		return "";
+
+	} finally {
+
+		isResolvingDashboardTenant = false;
+	}
+}
+
+
+function normalizeTenantType(value) {
+
+	return String(value || "")
+		.trim()
+		.toUpperCase();
+}
+
+
 function initializeSaasShell() {
+
 	const tenantName =
-		localStorage.getItem("tenantName") ||
-		"Workspace";
+		localStorage.getItem(
+			"tenantName"
+		) || "Workspace";
 
 	setText(
 		"tenantNameText",
@@ -128,7 +270,243 @@ function initializeSaasShell() {
 	);
 }
 
+
+function updateDashboardForTenantType(
+	tenantType
+) {
+
+	const normalizedType =
+		normalizeTenantType(
+			tenantType
+		);
+
+	const config =
+		getTenantDashboardConfig(
+			normalizedType
+		);
+
+	setText(
+		"dashboardKickerText",
+		config.kicker
+	);
+
+	setText(
+		"dashboardHeroDescription",
+		config.description
+	);
+
+	setText(
+		"heroWorkspaceType",
+		config.typeLabel
+	);
+
+	setText(
+		"dashboardWorkspaceType",
+		config.typeLabel
+	);
+
+	setText(
+		"workspaceModulesHeading",
+		config.modulesHeading
+	);
+
+	setText(
+		"moduleEntryText",
+		config.entryText
+	);
+
+	setText(
+		"sidebarWorkspaceType",
+		config.sidebarTitle
+	);
+
+	setElementIcon(
+		"dashboardKickerIcon",
+		config.kickerIcon
+	);
+
+	setElementIcon(
+		"dashboardWorkspaceIcon",
+		config.workspaceIcon
+	);
+
+	setElementIcon(
+		"sidebarWorkspaceIcon",
+		config.workspaceIcon
+	);
+}
+
+
+function getTenantDashboardConfig(
+	tenantType
+) {
+
+	switch (tenantType) {
+
+		case "DOCTOR_CLINIC":
+
+			return {
+				kicker:
+					"Private Doctor Clinic Workspace",
+
+				description:
+					"Manage patients, appointments, prescriptions, billing and daily clinic operations from one secure workspace.",
+
+				typeLabel:
+					"Doctor Clinic",
+
+				modulesHeading:
+					"Clinic Modules",
+
+				entryText:
+					"Opening Doctor Clinic Workspace",
+
+				sidebarTitle:
+					"Doctor Clinic",
+
+				kickerIcon:
+					"bi bi-heart-pulse-fill",
+
+				workspaceIcon:
+					"bi bi-heart-pulse-fill"
+			};
+
+		case "HOSPITAL":
+
+			return {
+				kicker:
+					"Private Hospital Workspace",
+
+				description:
+					"Manage clinical, operational, pharmacy, laboratory, billing and administrative hospital workflows.",
+
+				typeLabel:
+					"Hospital",
+
+				modulesHeading:
+					"Hospital Modules",
+
+				entryText:
+					"Opening Hospital Workspace",
+
+				sidebarTitle:
+					"Hospital Workspace",
+
+				kickerIcon:
+					"bi bi-hospital-fill",
+
+				workspaceIcon:
+					"bi bi-hospital-fill"
+			};
+
+		case "WHOLESALER":
+
+			return {
+				kicker:
+					"Medicine Wholesale Workspace",
+
+				description:
+					"Manage medicines, suppliers, purchases, warehouse inventory, customers, sales orders, returns, billing and payments.",
+
+				typeLabel:
+					"Wholesaler",
+
+				modulesHeading:
+					"Wholesale Business Modules",
+
+				entryText:
+					"Opening Wholesale Workspace",
+
+				sidebarTitle:
+					"Wholesale Business",
+
+				kickerIcon:
+					"bi bi-box-seam-fill",
+
+				workspaceIcon:
+					"bi bi-box-seam-fill"
+			};
+
+		case "RETAILER":
+
+			return {
+				kicker:
+					"Retail Pharmacy Workspace",
+
+				description:
+					"Manage retail pharmacy purchases, medicine inventory, customers, counter sales, billing, payments and expiry control.",
+
+				typeLabel:
+					"Retailer",
+
+				modulesHeading:
+					"Retail Pharmacy Modules",
+
+				entryText:
+					"Opening Retail Pharmacy Workspace",
+
+				sidebarTitle:
+					"Retail Pharmacy",
+
+				kickerIcon:
+					"bi bi-shop-window",
+
+				workspaceIcon:
+					"bi bi-shop-window"
+			};
+
+		default:
+
+			return {
+				kicker:
+					"Private SaaS Workspace",
+
+				description:
+					"Manage organization operations securely using permission-based workspace modules.",
+
+				typeLabel:
+					"Workspace",
+
+				modulesHeading:
+					"Workspace Modules",
+
+				entryText:
+					"Opening Private SaaS Workspace",
+
+				sidebarTitle:
+					"SaaS Workspace",
+
+				kickerIcon:
+					"bi bi-building-gear",
+
+				workspaceIcon:
+					"bi bi-buildings-fill"
+			};
+	}
+}
+
+
+function setElementIcon(
+	elementId,
+	iconClass
+) {
+
+	const element =
+		document.getElementById(
+			elementId
+		);
+
+	if (!element) {
+		return;
+	}
+
+	element.className =
+		iconClass;
+}
+
+
 function updateWorkspaceAccessLevel() {
+
 	const element =
 		document.getElementById(
 			"workspaceAccessLevel"
@@ -138,13 +516,36 @@ function updateWorkspaceAccessLevel() {
 		return;
 	}
 
-	element.textContent =
+	const memberRole =
+		String(
+			localStorage.getItem(
+				"saasMemberRole"
+			) || ""
+		)
+			.trim()
+			.toUpperCase();
+
+	if (
 		window.SAAS_OWNER_OR_ADMIN === true
-			? "Admin"
-			: "Member";
+	) {
+
+		element.textContent =
+			memberRole === "OWNER"
+				? "Owner"
+				: "Admin";
+
+		return;
+	}
+
+	element.textContent =
+		formatModuleName(
+			memberRole || "MEMBER"
+		);
 }
 
+
 async function loadSaasDashboard() {
+
 	if (isLoadingSaasDashboard) {
 		return;
 	}
@@ -160,24 +561,27 @@ async function loadSaasDashboard() {
 	showModulesLoadingState();
 
 	try {
-		const response =
-			await fetch(
-				`${API_BASE}/saas/tenants/${encodeURIComponent(tenantId)}/modules`,
-				{
-					headers: {
-						"Authorization":
-							"Bearer " + token,
 
-						"Accept":
-							"application/json"
-					}
+		const response = await fetch(
+			`${API_BASE}/saas/tenants/${encodeURIComponent(tenantId)}/modules`,
+			{
+				method: "GET",
+
+				headers: {
+					"Authorization":
+						"Bearer " + token,
+
+					"Accept":
+						"application/json"
 				}
-			);
+			}
+		);
 
 		const responseBody =
 			await safeJson(response);
 
 		if (!response.ok) {
+
 			const message =
 				getApiErrorMessage(
 					responseBody,
@@ -185,22 +589,41 @@ async function loadSaasDashboard() {
 				);
 
 			showMsg(message);
-			showModulesErrorState(message);
+
+			showModulesErrorState(
+				message
+			);
+
 			setAnimatedNumber(
 				"availableModuleCount",
 				0
 			);
 
+			enabledWorkspaceModules =
+				new Set();
+
+			applySaasSidebarVisibility();
+
 			return;
 		}
 
-		renderModules(
+		const modules =
 			Array.isArray(responseBody)
 				? responseBody
-				: []
+				: [];
+
+		updateEnabledWorkspaceModules(
+			modules
 		);
 
+		renderModules(
+			modules
+		);
+
+		applySaasSidebarVisibility();
+
 	} catch (error) {
+
 		console.error(
 			"Load SaaS dashboard error:",
 			error
@@ -219,12 +642,49 @@ async function loadSaasDashboard() {
 			0
 		);
 
+		enabledWorkspaceModules =
+			new Set();
+
+		applySaasSidebarVisibility();
+
 	} finally {
+
 		isLoadingSaasDashboard = false;
 	}
 }
 
+
+function updateEnabledWorkspaceModules(
+	modules
+) {
+
+	enabledWorkspaceModules =
+		new Set(
+			modules
+				.filter(
+					function(item) {
+
+						return (
+							item &&
+							item.enabled === true
+						);
+					}
+				)
+				.map(
+					function(item) {
+
+						return normalizeModuleName(
+							getModuleName(item)
+						);
+					}
+				)
+				.filter(Boolean)
+		);
+}
+
+
 function renderModules(modules) {
+
 	const container =
 		document.getElementById(
 			"moduleContainer"
@@ -236,9 +696,13 @@ function renderModules(modules) {
 
 	const enabledModules =
 		modules.filter(
-			item =>
-				item &&
-				item.enabled === true
+			function(item) {
+
+				return (
+					item &&
+					item.enabled === true
+				);
+			}
 		);
 
 	visibleDashboardModules =
@@ -268,6 +732,7 @@ function renderModules(modules) {
 					typeof hasCachedSaasPermission ===
 					"function"
 				) {
+
 					return hasCachedSaasPermission(
 						moduleName,
 						"VIEW"
@@ -278,6 +743,20 @@ function renderModules(modules) {
 			}
 		);
 
+	visibleDashboardModules.sort(
+		function(first, second) {
+
+			return (
+				getModuleSortOrder(
+					getModuleName(first)
+				) -
+				getModuleSortOrder(
+					getModuleName(second)
+				)
+			);
+		}
+	);
+
 	setAnimatedNumber(
 		"availableModuleCount",
 		visibleDashboardModules.length
@@ -286,6 +765,7 @@ function renderModules(modules) {
 	if (
 		visibleDashboardModules.length === 0
 	) {
+
 		container.innerHTML = `
 			<div class="col-12">
 
@@ -313,82 +793,77 @@ function renderModules(modules) {
 	}
 
 	container.innerHTML =
-		visibleDashboardModules.map(
-			function(item, index) {
+		visibleDashboardModules
+			.map(
+				function(item, index) {
 
-				const module =
-					normalizeModuleName(
-						getModuleName(item)
-					);
+					const module =
+						normalizeModuleName(
+							getModuleName(item)
+						);
 
-				const description =
-					getModuleDescription(module);
+					const description =
+						getModuleDescription(
+							module
+						);
 
-				const moduleUrl =
-					getModuleUrl(module);
+					const moduleUrl =
+						getModuleUrl(
+							module
+						);
 
-				return `
-					<div class="col-xl-3 col-lg-4 col-md-6">
+					return `
+						<div class="col-xl-3 col-lg-4 col-md-6">
 
-						<article class="saas-module-card"
-								 style="--module-delay:${Math.min(index * 70, 560)}ms">
+							<article class="saas-module-card"
+									 style="--module-delay:${Math.min(index * 70, 700)}ms">
 
-							<div class="saas-module-card-glow"></div>
+								<div class="saas-module-card-glow"></div>
 
-							<div class="saas-module-top">
+								<div class="saas-module-top">
 
-								<div class="saas-module-icon">
-									${getModuleIcon(module)}
+									<div class="saas-module-icon">
+										${getModuleIcon(module)}
+									</div>
+
+									<span class="saas-module-status">
+										Active
+									</span>
+
 								</div>
 
-								<span class="saas-module-status">
-									Active
-								</span>
+								<h5>
+									${escapeHtml(
+						formatModuleName(module)
+					)}
+								</h5>
 
-							</div>
+								<p>
+									${escapeHtml(description)}
+								</p>
 
-							<h5>
-								${escapeHtml(
-									formatModuleName(module)
-								)}
-							</h5>
+								<a href="${escapeAttribute(moduleUrl)}"
+								   class="saas-module-open-button">
 
-							<p>
-								${escapeHtml(description)}
-							</p>
+									<span>
+										Open Module
+									</span>
 
-							<a href="${escapeAttribute(moduleUrl)}"
-							   class="saas-module-open-button">
+									<i class="bi bi-arrow-up-right"></i>
 
-								<span>Open Module</span>
+								</a>
 
-								<i class="bi bi-arrow-up-right"></i>
+							</article>
 
-							</a>
-
-						</article>
-
-					</div>
-				`;
-			}
-		).join("");
+						</div>
+					`;
+				}
+			)
+			.join("");
 }
 
-function applySaasSidebarPermissions() {
-	document
-		.querySelectorAll(
-			"#saasSidebar [data-owner-admin='true']"
-		)
-		.forEach(
-			function(item) {
 
-				if (
-					window.SAAS_OWNER_OR_ADMIN !== true
-				) {
-					item.style.display = "none";
-				}
-			}
-		);
+function applySaasSidebarVisibility() {
 
 	document
 		.querySelectorAll(
@@ -406,21 +881,115 @@ function applySaasSidebarPermissions() {
 					item.dataset.saasAction ||
 					"VIEW";
 
+				let visible =
+					enabledWorkspaceModules.has(
+						moduleName
+					);
+
 				if (
-					typeof hasCachedSaasPermission ===
-						"function" &&
-					!hasCachedSaasPermission(
-						moduleName,
-						action
-					)
+					visible &&
+					(
+						moduleName === "SETTINGS" ||
+						moduleName === "PERMISSIONS"
+					) &&
+					window.SAAS_OWNER_OR_ADMIN !== true
 				) {
-					item.style.display = "none";
+
+					visible = false;
 				}
+
+				if (
+					visible &&
+					typeof hasCachedSaasPermission ===
+					"function"
+				) {
+
+					visible =
+						hasCachedSaasPermission(
+							moduleName,
+							action
+						);
+				}
+
+				item.style.display =
+					visible
+						? ""
+						: "none";
 			}
 		);
+
+	hideEmptySidebarSections();
 }
 
+
+function hideEmptySidebarSections() {
+
+	const sidebar =
+		document.getElementById(
+			"saasSidebar"
+		);
+
+	if (!sidebar) {
+		return;
+	}
+
+	const titles =
+		Array.from(
+			sidebar.querySelectorAll(
+				"[data-sidebar-section-title]"
+			)
+		);
+
+	titles.forEach(
+		function(title) {
+
+			let currentElement =
+				title.nextElementSibling;
+
+			let hasVisibleItem =
+				false;
+
+			while (
+				currentElement &&
+				!currentElement.matches(
+					"[data-sidebar-section-title]"
+				)
+			) {
+
+				const isNavigationItem =
+					currentElement.matches(
+						"a[data-saas-module]"
+					);
+
+				const isVisible =
+					currentElement.style.display !==
+					"none";
+
+				if (
+					isNavigationItem &&
+					isVisible
+				) {
+
+					hasVisibleItem = true;
+
+					break;
+				}
+
+				currentElement =
+					currentElement.nextElementSibling;
+			}
+
+			title.style.display =
+				hasVisibleItem
+					? ""
+					: "none";
+		}
+	);
+}
+
+
 function markActiveSaasSidebarLink() {
+
 	const currentPath =
 		window.location.pathname;
 
@@ -432,13 +1001,17 @@ function markActiveSaasSidebarLink() {
 			function(link) {
 
 				const href =
-					link.getAttribute("href");
+					link.getAttribute(
+						"href"
+					);
 
 				if (!href) {
 					return;
 				}
 
-				link.classList.remove("active");
+				link.classList.remove(
+					"active"
+				);
 
 				if (
 					currentPath === href ||
@@ -447,13 +1020,18 @@ function markActiveSaasSidebarLink() {
 						currentPath.startsWith(href)
 					)
 				) {
-					link.classList.add("active");
+
+					link.classList.add(
+						"active"
+					);
 				}
 			}
 		);
 }
 
+
 async function loadSaasNotificationCount() {
+
 	const tenantId =
 		localStorage.getItem("tenantId");
 
@@ -478,24 +1056,26 @@ async function loadSaasNotificationCount() {
 	}
 
 	try {
+
 		const query =
 			new URLSearchParams({
 				tenantId: tenantId
 			});
 
-		const response =
-			await fetch(
-				`${API_BASE}/saas/notifications/unread-count?${query.toString()}`,
-				{
-					headers: {
-						"Authorization":
-							"Bearer " + token,
+		const response = await fetch(
+			`${API_BASE}/saas/notifications/count?${query.toString()}`,
+			{
+				method: "GET",
 
-						"Accept":
-							"application/json"
-					}
+				headers: {
+					"Authorization":
+						"Bearer " + token,
+
+					"Accept":
+						"application/json"
 				}
-			);
+			}
+		);
 
 		if (!response.ok) {
 			return;
@@ -512,7 +1092,9 @@ async function loadSaasNotificationCount() {
 			) || 0;
 
 		if (badge) {
-			badge.textContent = count;
+
+			badge.textContent =
+				count;
 
 			badge.style.display =
 				count > 0
@@ -521,6 +1103,7 @@ async function loadSaasNotificationCount() {
 		}
 
 		if (dashboardCount) {
+
 			setAnimatedNumber(
 				"dashboardNotificationCount",
 				count
@@ -528,18 +1111,23 @@ async function loadSaasNotificationCount() {
 		}
 
 	} catch (error) {
+
 		console.log(
 			"SaaS notification count unavailable"
 		);
 	}
 }
 
+
 function getModuleName(item) {
+
 	if (!item) {
 		return "";
 	}
 
-	if (typeof item === "string") {
+	if (
+		typeof item === "string"
+	) {
 		return item;
 	}
 
@@ -551,15 +1139,73 @@ function getModuleName(item) {
 	);
 }
 
+
 function normalizeModuleName(value) {
+
 	return String(value || "")
 		.trim()
 		.toUpperCase()
 		.replace(/\s+/g, "_");
 }
 
+
+function getModuleSortOrder(module) {
+
+	const moduleName =
+		normalizeModuleName(
+			module
+		);
+
+	const order = [
+		"DASHBOARD",
+
+		"PATIENTS",
+		"DOCTOR_AVAILABILITY",
+		"APPOINTMENTS",
+		"DOCTORS",
+		"PRESCRIPTIONS",
+		"OPD",
+		"IPD",
+		"PHARMACY",
+		"LAB",
+		"RADIOLOGY",
+
+		"MEDICINE_MASTER",
+		"SUPPLIERS",
+		"CUSTOMERS",
+		"PURCHASES",
+		"INVENTORY",
+		"SALES",
+		"SALES_ORDERS",
+		"PURCHASE_RETURNS",
+		"SALES_RETURNS",
+		"EXPIRY_MANAGEMENT",
+
+		"BILLING",
+		"PAYMENTS",
+		"REPORTS",
+
+		"STAFF",
+		"NOTIFICATIONS",
+		"SETTINGS",
+		"PERMISSIONS"
+	];
+
+	const index =
+		order.indexOf(
+			moduleName
+		);
+
+	return index === -1
+		? 999
+		: index;
+}
+
+
 function getModuleIcon(module) {
+
 	const icons = {
+
 		DASHBOARD:
 			'<i class="bi bi-grid-fill"></i>',
 
@@ -612,7 +1258,37 @@ function getModuleIcon(module) {
 			'<i class="bi bi-gear-fill"></i>',
 
 		PERMISSIONS:
-			'<i class="bi bi-shield-lock-fill"></i>'
+			'<i class="bi bi-shield-lock-fill"></i>',
+
+		MEDICINE_MASTER:
+			'<i class="bi bi-capsule"></i>',
+
+		SUPPLIERS:
+			'<i class="bi bi-truck-front-fill"></i>',
+
+		CUSTOMERS:
+			'<i class="bi bi-person-lines-fill"></i>',
+
+		PURCHASES:
+			'<i class="bi bi-bag-plus-fill"></i>',
+
+		SALES:
+			'<i class="bi bi-cart-check-fill"></i>',
+
+		SALES_ORDERS:
+			'<i class="bi bi-clipboard-check-fill"></i>',
+
+		PURCHASE_RETURNS:
+			'<i class="bi bi-arrow-return-left"></i>',
+
+		SALES_RETURNS:
+			'<i class="bi bi-arrow-return-right"></i>',
+
+		PAYMENTS:
+			'<i class="bi bi-credit-card-fill"></i>',
+
+		EXPIRY_MANAGEMENT:
+			'<i class="bi bi-calendar-x-fill"></i>'
 	};
 
 	return (
@@ -621,8 +1297,11 @@ function getModuleIcon(module) {
 	);
 }
 
+
 function getModuleDescription(module) {
+
 	const descriptions = {
+
 		DASHBOARD:
 			"View workspace activity and operational overview.",
 
@@ -651,13 +1330,13 @@ function getModuleDescription(module) {
 			"Manage admissions, beds and inpatient records.",
 
 		BILLING:
-			"Manage healthcare invoices and payments.",
+			"Create invoices, manage billing records and account balances.",
 
 		PHARMACY:
-			"Manage pharmacy operations and medicines.",
+			"Manage hospital or clinic pharmacy operations.",
 
 		INVENTORY:
-			"Monitor stock, supplies and inventory movements.",
+			"Monitor medicine stock, batches, quantities and inventory movements.",
 
 		LAB:
 			"Manage laboratory tests and patient reports.",
@@ -666,7 +1345,7 @@ function getModuleDescription(module) {
 			"Manage radiology services and imaging reports.",
 
 		REPORTS:
-			"View operational and financial analytics.",
+			"View operational, inventory, sales and financial analytics.",
 
 		NOTIFICATIONS:
 			"View workspace alerts and important updates.",
@@ -675,7 +1354,37 @@ function getModuleDescription(module) {
 			"Configure workspace and organization preferences.",
 
 		PERMISSIONS:
-			"Control staff roles and module permissions."
+			"Control staff roles and module permissions.",
+
+		MEDICINE_MASTER:
+			"Maintain the reusable medicine catalogue, strengths, forms, packs and manufacturers.",
+
+		SUPPLIERS:
+			"Manage medicine suppliers, contact details, tax information and balances.",
+
+		CUSTOMERS:
+			"Manage retail, pharmacy, hospital and business customer records.",
+
+		PURCHASES:
+			"Record supplier purchases, medicine batches, taxes, discounts and invoices.",
+
+		SALES:
+			"Create medicine sales, counter bills and customer invoices.",
+
+		SALES_ORDERS:
+			"Manage customer orders, order fulfilment and wholesale dispatch workflows.",
+
+		PURCHASE_RETURNS:
+			"Return damaged, expired or incorrect medicines to suppliers.",
+
+		SALES_RETURNS:
+			"Process customer medicine returns, refunds and stock adjustments.",
+
+		PAYMENTS:
+			"Track supplier payments, customer receipts and outstanding balances.",
+
+		EXPIRY_MANAGEMENT:
+			"Monitor near-expiry and expired medicine batches and take corrective action."
 	};
 
 	return (
@@ -684,19 +1393,26 @@ function getModuleDescription(module) {
 	);
 }
 
+
 function formatModuleName(module) {
+
 	return String(module || "")
 		.replace(/_/g, " ")
 		.toLowerCase()
 		.replace(
 			/\b\w/g,
-			character =>
-				character.toUpperCase()
+			function(character) {
+
+				return character.toUpperCase();
+			}
 		);
 }
 
+
 function getModuleUrl(module) {
+
 	const urls = {
+
 		DASHBOARD:
 			"/saas/dashboard",
 
@@ -749,7 +1465,37 @@ function getModuleUrl(module) {
 			"/saas/settings",
 
 		PERMISSIONS:
-			"/saas/permissions"
+			"/saas/permissions",
+
+		MEDICINE_MASTER:
+			"/saas/medicine-master",
+
+		SUPPLIERS:
+			"/saas/suppliers",
+
+		CUSTOMERS:
+			"/saas/customers",
+
+		PURCHASES:
+			"/saas/purchases",
+
+		SALES:
+			"/saas/sales",
+
+		SALES_ORDERS:
+			"/saas/sales-orders",
+
+		PURCHASE_RETURNS:
+			"/saas/purchase-returns",
+
+		SALES_RETURNS:
+			"/saas/sales-returns",
+
+		PAYMENTS:
+			"/saas/payments",
+
+		EXPIRY_MANAGEMENT:
+			"/saas/expiry-management"
 	};
 
 	return (
@@ -758,7 +1504,9 @@ function getModuleUrl(module) {
 	);
 }
 
+
 function showModulesLoadingState() {
+
 	const container =
 		document.getElementById(
 			"moduleContainer"
@@ -782,7 +1530,7 @@ function showModulesLoadingState() {
 				</h4>
 
 				<p class="text-muted mb-0">
-					Please wait while access and module permissions are prepared.
+					Please wait while module access and permissions are prepared.
 				</p>
 
 			</div>
@@ -791,7 +1539,9 @@ function showModulesLoadingState() {
 	`;
 }
 
+
 function showModulesErrorState(message) {
+
 	const container =
 		document.getElementById(
 			"moduleContainer"
@@ -824,7 +1574,9 @@ function showModulesErrorState(message) {
 	`;
 }
 
+
 function hideSaasEntryOverlay() {
+
 	const overlay =
 		document.getElementById(
 			"modulePageEntryOverlay"
@@ -836,12 +1588,14 @@ function hideSaasEntryOverlay() {
 
 	window.setTimeout(
 		function() {
+
 			overlay.classList.add(
 				"hidden"
 			);
 
 			window.setTimeout(
 				function() {
+
 					overlay.remove();
 				},
 				500
@@ -851,8 +1605,11 @@ function hideSaasEntryOverlay() {
 	);
 }
 
+
 async function safeJson(response) {
+
 	try {
+
 		const text =
 			await response.text();
 
@@ -861,22 +1618,28 @@ async function safeJson(response) {
 		}
 
 		try {
+
 			return JSON.parse(text);
+
 		} catch (error) {
+
 			return {
 				rawBody: text
 			};
 		}
 
 	} catch (error) {
+
 		return {};
 	}
 }
+
 
 function getApiErrorMessage(
 	data,
 	fallback
 ) {
+
 	if (!data) {
 		return fallback;
 	}
@@ -893,19 +1656,25 @@ function getApiErrorMessage(
 		return data.rawBody;
 	}
 
-	if (typeof data === "string") {
+	if (
+		typeof data === "string"
+	) {
 		return data;
 	}
 
 	return fallback;
 }
 
+
 function showMsg(
 	message,
 	type = "danger"
 ) {
+
 	const msgBox =
-		document.getElementById("msg");
+		document.getElementById(
+			"msg"
+		);
 
 	if (!msgBox) {
 		return;
@@ -919,6 +1688,7 @@ function showMsg(
 
 	window.setTimeout(
 		function() {
+
 			if (msgBox) {
 				msgBox.innerHTML = "";
 			}
@@ -927,10 +1697,12 @@ function showMsg(
 	);
 }
 
+
 function setAnimatedNumber(
 	id,
 	value
 ) {
+
 	const element =
 		document.getElementById(id);
 
@@ -942,12 +1714,16 @@ function setAnimatedNumber(
 		Number(value) || 0;
 
 	const start =
-		Number(element.textContent) || 0;
+		Number(
+			element.textContent
+		) || 0;
 
 	const difference =
 		target - start;
 
-	const duration = 500;
+	const duration =
+		500;
+
 	const startTime =
 		performance.now();
 
@@ -957,46 +1733,66 @@ function setAnimatedNumber(
 			"(prefers-reduced-motion: reduce)"
 		).matches
 	) {
-		element.textContent = target;
+
+		element.textContent =
+			target;
+
 		return;
 	}
 
 	function update(currentTime) {
+
 		const progress =
 			Math.min(
 				(currentTime - startTime) /
-					duration,
+				duration,
 				1
 			);
 
 		const eased =
-			1 - Math.pow(1 - progress, 3);
+			1 - Math.pow(
+				1 - progress,
+				3
+			);
 
 		element.textContent =
 			Math.round(
 				start +
-					difference * eased
+				difference * eased
 			);
 
 		if (progress < 1) {
-			requestAnimationFrame(update);
+
+			requestAnimationFrame(
+				update
+			);
 		}
 	}
 
-	requestAnimationFrame(update);
+	requestAnimationFrame(
+		update
+	);
 }
 
-function setText(id, value) {
+
+function setText(
+	id,
+	value
+) {
+
 	const element =
 		document.getElementById(id);
 
 	if (element) {
+
 		element.textContent =
 			value ?? "";
 	}
 }
 
+
 function escapeHtml(value) {
+
 	return String(value ?? "")
 		.replace(/&/g, "&amp;")
 		.replace(/</g, "&lt;")
@@ -1005,6 +1801,8 @@ function escapeHtml(value) {
 		.replace(/'/g, "&#039;");
 }
 
+
 function escapeAttribute(value) {
+
 	return escapeHtml(value);
 }

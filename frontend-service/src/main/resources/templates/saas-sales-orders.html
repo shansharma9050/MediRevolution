@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+	<meta charset="UTF-8">
+
+	<title>MediRevolution | SaaS Sales Orders</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<meta name="theme-color" content="#05285f">
+
+	<link rel="manifest" href="/manifest.json">
+
+	<meta name="mobile-web-app-capable" content="yes">
+
+	<meta name="apple-mobile-web-app-capable" content="yes">
+
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
+
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.sales-order-page {
+			position: relative;
+		}
+
+		.sales-order-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 30px;
+			min-height: 245px;
+			margin-bottom: 26px;
+			padding: clamp(30px, 4vw, 50px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#031d48 0%,
+					#05285f 40%,
+					#0879a7 70%,
+					#08c7d4 100%);
+			box-shadow:
+				0 28px 70px rgba(5, 40, 95, .24);
+			animation:
+				salesOrderHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.sales-order-hero::before {
+			position: absolute;
+			top: -160px;
+			right: -105px;
+			width: 380px;
+			height: 380px;
+			border: 62px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation:
+				salesOrderOrbit 11s ease-in-out infinite;
+		}
+
+		.sales-order-hero::after {
+			position: absolute;
+			bottom: -210px;
+			left: 25%;
+			width: 420px;
+			height: 420px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle,
+					rgba(184, 242, 103, .24),
+					transparent 67%);
+		}
+
+		.sales-order-hero-content,
+		.sales-order-hero-panel {
+			position: relative;
+			z-index: 2;
+		}
+
+		.sales-order-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .20);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 900;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.sales-order-hero h1 {
+			margin: 0;
+			font-size: clamp(32px, 4vw, 52px);
+			font-weight: 900;
+			letter-spacing: -1.8px;
+		}
+
+		.sales-order-hero h1 span {
+			color: #b8f267;
+		}
+
+		.sales-order-hero p {
+			max-width: 780px;
+			margin: 15px 0 0;
+			color: rgba(255, 255, 255, .81);
+			line-height: 1.75;
+		}
+
+		.sales-order-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 21px;
+		}
+
+		.sales-order-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.sales-order-hero-panel {
+			display: flex;
+			min-width: 245px;
+			flex-direction: column;
+			align-items: center;
+			padding: 24px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px);
+		}
+
+		.sales-order-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 72px;
+			height: 72px;
+			margin-bottom: 13px;
+			border-radius: 23px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 30px;
+			box-shadow:
+				0 15px 35px rgba(0, 0, 0, .17);
+			animation:
+				salesOrderIconFloat 3.2s ease-in-out infinite;
+		}
+
+		.sales-order-workspace-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			margin-top: 9px;
+			padding: 7px 11px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .12);
+			font-size: 10px;
+			font-weight: 800;
+		}
+
+		.sales-order-hero-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+			min-height: 45px;
+			margin-top: 15px;
+			padding: 0 17px;
+			border: none;
+			border-radius: 14px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 11px;
+			font-weight: 900;
+			transition:
+				transform .3s ease,
+				box-shadow .3s ease;
+		}
+
+		.sales-order-hero-button:hover {
+			transform: translateY(-3px);
+			box-shadow:
+				0 14px 30px rgba(0, 0, 0, .17);
+		}
+
+		.sales-order-summary-grid {
+			display: grid;
+			grid-template-columns:
+				repeat(6, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px;
+		}
+
+		.sales-order-summary-card {
+			position: relative;
+			overflow: hidden;
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .97);
+			box-shadow:
+				0 14px 35px rgba(5, 40, 95, .08);
+			transition:
+				transform .35s ease,
+				box-shadow .35s ease;
+		}
+
+		.sales-order-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow:
+				0 22px 48px rgba(5, 40, 95, .14);
+		}
+
+		.sales-order-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#05285f,
+					#08c7d4);
+			font-size: 20px;
+			box-shadow:
+				0 12px 28px rgba(5, 40, 95, .16);
+		}
+
+		.sales-order-summary-card.warning .sales-order-summary-icon {
+			background:
+				linear-gradient(135deg,
+					#d97706,
+					#fbbf24);
+		}
+
+		.sales-order-summary-card.success .sales-order-summary-icon {
+			background:
+				linear-gradient(135deg,
+					#047857,
+					#10b981);
+		}
+
+		.sales-order-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700;
+		}
+
+		.sales-order-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 24px;
+			font-weight: 900;
+		}
+
+		.sales-order-panel {
+			position: relative;
+			overflow: hidden;
+			margin-bottom: 24px;
+			padding: 24px;
+			border: 1px solid rgba(5, 40, 95, .08);
+			border-radius: 24px;
+			background: #ffffff;
+			box-shadow:
+				0 16px 40px rgba(5, 40, 95, .08);
+			animation:
+				salesOrderPanelReveal .45s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.sales-order-panel::after {
+			position: absolute;
+			top: -100px;
+			right: -100px;
+			width: 210px;
+			height: 210px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle,
+					rgba(8, 199, 212, .10),
+					transparent 67%);
+			pointer-events: none;
+		}
+
+		.sales-order-panel-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5;
+		}
+
+		.sales-order-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px;
+		}
+
+		.sales-order-title-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#05285f,
+					#08c7d4);
+			font-size: 20px;
+			box-shadow:
+				0 12px 26px rgba(5, 40, 95, .16);
+		}
+
+		.sales-order-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 900;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		.sales-order-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.sales-order-control .form-control,
+		.sales-order-control .form-select {
+			min-height: 46px;
+			border-radius: 13px;
+		}
+
+		.order-items-wrap {
+			position: relative;
+			z-index: 2;
+			overflow-x: auto;
+			border: 1px solid #e6eef4;
+			border-radius: 18px;
+		}
+
+		.order-items-table {
+			min-width: 1200px;
+			margin-bottom: 0;
+		}
+
+		.order-items-table thead th {
+			padding: 13px 10px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 11px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.order-items-table tbody td {
+			padding: 10px;
+			border-color: #eef3f6;
+			vertical-align: middle;
+		}
+
+		.order-items-table .form-control,
+		.order-items-table .form-select {
+			min-width: 100px;
+			border-radius: 10px;
+			font-size: 12px;
+		}
+
+		.order-items-table .order-medicine-select {
+			min-width: 250px;
+		}
+
+		.order-stock-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			min-width: 80px;
+			padding: 8px 10px;
+			border-radius: 11px;
+			color: #05285f;
+			background: #eaf7fb;
+			font-size: 11px;
+			font-weight: 900;
+		}
+
+		.order-stock-chip.danger {
+			color: #842029;
+			background: #f8d7da;
+		}
+
+		.order-total-box {
+			position: relative;
+			z-index: 2;
+			padding: 20px;
+			border: 1px solid #e4eef4;
+			border-radius: 18px;
+			background: #f8fcfe;
+		}
+
+		.order-total-row {
+			display: flex;
+			justify-content: space-between;
+			gap: 20px;
+			padding: 7px 0;
+			color: #526a80;
+		}
+
+		.order-total-row.grand {
+			margin-top: 8px;
+			padding-top: 14px;
+			border-top: 1px solid #dce9ef;
+			color: #05285f;
+			font-size: 18px;
+			font-weight: 900;
+		}
+
+		.sales-order-toolbar {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+		}
+
+		.sales-order-search-wrap {
+			position: relative;
+			min-width: 320px;
+		}
+
+		.sales-order-search-wrap i {
+			position: absolute;
+			top: 50%;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			transform: translateY(-50%);
+		}
+
+		.sales-order-search-wrap .form-control {
+			min-height: 44px;
+			padding-left: 41px;
+			border-radius: 13px;
+		}
+
+		.sales-order-table-wrap {
+			position: relative;
+			z-index: 2;
+			overflow: hidden;
+			border: 1px solid #e6eef4;
+			border-radius: 18px;
+		}
+
+		.sales-order-table-wrap table {
+			margin-bottom: 0;
+		}
+
+		.sales-order-table-wrap thead th {
+			padding: 15px 13px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 11px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.sales-order-table-wrap tbody td {
+			padding: 15px 13px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 12px;
+			vertical-align: middle;
+		}
+
+		.order-status {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			font-size: 10px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.order-status.pending {
+			color: #664d03;
+			background: #fff3cd;
+		}
+
+		.order-status.confirmed {
+			color: #055160;
+			background: #cff4fc;
+		}
+
+		.order-status.dispatched {
+			color: #084298;
+			background: #cfe2ff;
+		}
+
+		.order-status.delivered {
+			color: #0f5132;
+			background: #d1e7dd;
+		}
+
+		.order-status.rejected,
+		.order-status.cancelled {
+			color: #842029;
+			background: #f8d7da;
+		}
+
+		.order-status.converted {
+			color: #3d0a91;
+			background: #e2d9f3;
+		}
+
+		.order-actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 6px;
+			min-width: 250px;
+		}
+
+		.sales-order-state {
+			padding: 54px 20px;
+			text-align: center;
+		}
+
+		.sales-order-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 74px;
+			height: 74px;
+			margin: 0 auto 17px;
+			border-radius: 24px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#05285f,
+					#08c7d4);
+			font-size: 29px;
+			box-shadow:
+				0 15px 32px rgba(5, 40, 95, .17);
+		}
+
+		.order-detail-card {
+			padding: 17px;
+			border: 1px solid #e3edf2;
+			border-radius: 17px;
+			background: #f8fcfe;
+		}
+
+		.order-detail-label {
+			display: block;
+			margin-bottom: 4px;
+			color: #6b7b8c;
+			font-size: 10px;
+			font-weight: 900;
+			letter-spacing: .7px;
+			text-transform: uppercase;
+		}
+
+		.order-detail-value {
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.order-timeline {
+			position: relative;
+			padding-left: 28px;
+		}
+
+		.order-timeline::before {
+			position: absolute;
+			top: 7px;
+			bottom: 7px;
+			left: 9px;
+			width: 2px;
+			content: "";
+			background: #d9e9ef;
+		}
+
+		.order-timeline-item {
+			position: relative;
+			margin-bottom: 18px;
+			padding: 15px;
+			border: 1px solid #e3edf2;
+			border-radius: 16px;
+			background: #ffffff;
+		}
+
+		.order-timeline-item::before {
+			position: absolute;
+			top: 18px;
+			left: -25px;
+			width: 13px;
+			height: 13px;
+			border: 3px solid #ffffff;
+			border-radius: 50%;
+			content: "";
+			background: #08a9bd;
+			box-shadow:
+				0 0 0 2px #08a9bd;
+		}
+
+		.order-timeline-item strong {
+			color: #05285f;
+		}
+
+		.order-timeline-item small {
+			display: block;
+			margin-top: 4px;
+			color: #718397;
+		}
+
+		@keyframes salesOrderHeroReveal {
+			from {
+				opacity: 0;
+				transform: translateY(25px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes salesOrderOrbit {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(28px) rotate(8deg);
+			}
+		}
+
+		@keyframes salesOrderIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-7px);
+			}
+		}
+
+		@keyframes salesOrderPanelReveal {
+			from {
+				opacity: 0;
+				transform: translateY(16px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@media (max-width: 1400px) {
+
+			.sales-order-summary-grid {
+				grid-template-columns:
+					repeat(3, minmax(0, 1fr));
+			}
+		}
+
+		@media (max-width: 992px) {
+
+			.sales-order-hero {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.sales-order-hero-panel {
+				width: 100%;
+			}
+
+			.sales-order-summary-grid {
+				grid-template-columns:
+					repeat(2, minmax(0, 1fr));
+			}
+		}
+
+		@media (max-width: 768px) {
+
+			.sales-order-panel-header {
+				align-items: stretch;
+				flex-direction: column;
+			}
+
+			.sales-order-toolbar,
+			.sales-order-search-wrap {
+				width: 100%;
+			}
+
+			.sales-order-search-wrap {
+				min-width: 0;
+			}
+		}
+
+		@media (max-width: 576px) {
+
+			.sales-order-summary-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+	</style>
+
+</head>
+
+<body class="dashboard-body saas-dashboard-body">
+
+	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
+
+	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
+
+	<main class="mr-main saas-main sales-order-page">
+
+		<section class="sales-order-hero">
+
+			<div class="sales-order-hero-content">
+
+				<span class="sales-order-kicker">
+
+					<i class="bi bi-clipboard2-check-fill"></i>
+					Wholesaler Order Workflow
+
+				</span>
+
+				<h1>
+
+					Manage
+					<span>Sales Orders</span>
+
+				</h1>
+
+				<p>
+
+					Create customer orders, validate stock availability,
+					track fulfilment status and convert confirmed orders
+					directly into FEFO-based sales for
+					<strong id="tenantNameText">your workspace</strong>.
+
+				</p>
+
+				<div class="sales-order-meta">
+
+					<span>
+
+						<i class="bi bi-building-check"></i>
+						Wholesaler only
+
+					</span>
+
+					<span>
+
+						<i class="bi bi-box-seam-fill"></i>
+						Stock validation
+
+					</span>
+
+					<span>
+
+						<i class="bi bi-arrow-repeat"></i>
+						Order to sale conversion
+
+					</span>
+
+				</div>
+
+			</div>
+
+			<div class="sales-order-hero-panel">
+
+				<div class="sales-order-hero-icon">
+
+					<i class="bi bi-clipboard2-plus-fill"></i>
+
+				</div>
+
+				<strong>New Sales Order</strong>
+
+				<div class="sales-order-workspace-chip">
+
+					<i class="bi bi-building"></i>
+
+					<span id="tenantTypeText">
+						Wholesaler
+					</span>
+
+				</div>
+
+				<button type="button" id="addSalesOrderBtn" class="sales-order-hero-button"
+					onclick="openSalesOrderForm()">
+
+					<i class="bi bi-plus-circle-fill"></i>
+					Create Order
+
+				</button>
+
+			</div>
+
+		</section>
+
+		<div id="msg"></div>
+
+		<section class="sales-order-summary-grid">
+
+			<article class="sales-order-summary-card">
+
+				<div class="sales-order-summary-icon">
+					<i class="bi bi-clipboard2-data-fill"></i>
+				</div>
+
+				<small>Total Orders</small>
+
+				<strong id="totalSalesOrders">
+					0
+				</strong>
+
+			</article>
+
+			<article class="sales-order-summary-card warning">
+
+				<div class="sales-order-summary-icon">
+					<i class="bi bi-hourglass-split"></i>
+				</div>
+
+				<small>Pending</small>
+
+				<strong id="pendingSalesOrders">
+					0
+				</strong>
+
+			</article>
+
+			<article class="sales-order-summary-card">
+
+				<div class="sales-order-summary-icon">
+					<i class="bi bi-check-circle-fill"></i>
+				</div>
+
+				<small>Confirmed</small>
+
+				<strong id="confirmedSalesOrders">
+					0
+				</strong>
+
+			</article>
+
+			<article class="sales-order-summary-card">
+
+				<div class="sales-order-summary-icon">
+					<i class="bi bi-truck"></i>
+				</div>
+
+				<small>Dispatched</small>
+
+				<strong id="dispatchedSalesOrders">
+					0
+				</strong>
+
+			</article>
+
+			<article class="sales-order-summary-card success">
+
+				<div class="sales-order-summary-icon">
+					<i class="bi bi-box2-heart-fill"></i>
+				</div>
+
+				<small>Delivered</small>
+
+				<strong id="deliveredSalesOrders">
+					0
+				</strong>
+
+			</article>
+
+			<article class="sales-order-summary-card success">
+
+				<div class="sales-order-summary-icon">
+					<i class="bi bi-currency-rupee"></i>
+				</div>
+
+				<small>Total Order Value</small>
+
+				<strong id="totalSalesOrderValue">
+					₹0
+				</strong>
+
+			</article>
+
+		</section>
+
+		<section class="sales-order-panel" id="salesOrderFormPanel" style="display:none;">
+
+			<div class="sales-order-panel-header">
+
+				<div class="sales-order-title-wrap">
+
+					<div class="sales-order-title-icon">
+						<i class="bi bi-clipboard2-plus-fill"></i>
+					</div>
+
+					<div>
+
+						<small>Wholesaler Order</small>
+
+						<h5>Create Sales Order</h5>
+
+					</div>
+
+				</div>
+
+				<button type="button" class="btn btn-sm btn-outline-secondary" onclick="closeSalesOrderForm()">
+
+					<i class="bi bi-x-lg"></i>
+
+				</button>
+
+			</div>
+
+			<div class="row g-3 mb-4">
+
+				<div class="col-lg-3 sales-order-control">
+
+					<label for="salesOrderDate" class="form-label">
+						Order Date *
+					</label>
+
+					<input type="date" id="salesOrderDate" class="form-control">
+
+				</div>
+
+				<div class="col-lg-3 sales-order-control">
+
+					<label for="salesOrderExpectedDate" class="form-label">
+						Expected Delivery
+					</label>
+
+					<input type="date" id="salesOrderExpectedDate" class="form-control">
+
+				</div>
+
+				<div class="col-lg-3 sales-order-control">
+
+					<label for="salesOrderCustomerId" class="form-label">
+						Customer *
+					</label>
+
+					<select id="salesOrderCustomerId" class="form-select">
+
+						<option value="">
+							Select Customer
+						</option>
+
+					</select>
+
+				</div>
+
+				<div class="col-lg-3 sales-order-control">
+
+					<label class="form-label">
+						Customer Details
+					</label>
+
+					<div class="form-control d-flex align-items-center" id="selectedOrderCustomerDetails">
+
+						Select customer
+
+					</div>
+
+				</div>
+
+				<div class="col-12 sales-order-control">
+
+					<label for="salesOrderShippingAddress" class="form-label">
+						Shipping Address
+					</label>
+
+					<textarea id="salesOrderShippingAddress" class="form-control" rows="2" maxlength="1000"
+						placeholder="Leave blank to use customer address"></textarea>
+
+				</div>
+
+			</div>
+
+			<div class="d-flex justify-content-between align-items-center mb-3">
+
+				<div>
+
+					<h6 class="fw-bold text-primary mb-1">
+						Order Items
+					</h6>
+
+					<small class="text-muted">
+						Stock availability is checked before order creation and confirmation.
+					</small>
+
+				</div>
+
+				<button type="button" class="btn btn-sm btn-outline-primary" onclick="addSalesOrderItemRow()">
+
+					<i class="bi bi-plus-circle me-1"></i>
+					Add Item
+
+				</button>
+
+			</div>
+
+			<div class="order-items-wrap">
+
+				<table class="table order-items-table">
+
+					<thead>
+
+						<tr>
+
+							<th>Medicine *</th>
+							<th>Available</th>
+							<th>Quantity *</th>
+							<th>Sale Rate *</th>
+							<th>Discount %</th>
+							<th>GST %</th>
+							<th>Line Total</th>
+							<th></th>
+
+						</tr>
+
+					</thead>
+
+					<tbody id="salesOrderItemsBody">
+					</tbody>
+
+				</table>
+
+			</div>
+
+			<div class="row g-3 mt-3">
+
+				<div class="col-lg-7">
+
+					<label for="salesOrderRemarks" class="form-label">
+						Remarks
+					</label>
+
+					<textarea id="salesOrderRemarks" class="form-control" rows="4" maxlength="1000"
+						placeholder="Order notes"></textarea>
+
+				</div>
+
+				<div class="col-lg-5">
+
+					<div class="order-total-box">
+
+						<div class="row g-3 mb-3">
+
+							<div class="col-md-6">
+
+								<label for="salesOrderOtherCharges" class="form-label">
+									Other Charges
+								</label>
+
+								<input type="number" id="salesOrderOtherCharges" class="form-control" value="0" min="0"
+									step="0.01" oninput="calculateSalesOrderTotals()">
+
+							</div>
+
+							<div class="col-md-6">
+
+								<label for="salesOrderRoundOff" class="form-label">
+									Round Off
+								</label>
+
+								<input type="number" id="salesOrderRoundOff" class="form-control" value="0" step="0.01"
+									oninput="calculateSalesOrderTotals()">
+
+							</div>
+
+						</div>
+
+						<div class="order-total-row">
+
+							<span>Gross Amount</span>
+
+							<strong id="salesOrderGrossAmount">
+								₹0
+							</strong>
+
+						</div>
+
+						<div class="order-total-row">
+
+							<span>Discount</span>
+
+							<strong id="salesOrderDiscountAmount">
+								₹0
+							</strong>
+
+						</div>
+
+						<div class="order-total-row">
+
+							<span>Taxable Amount</span>
+
+							<strong id="salesOrderTaxableAmount">
+								₹0
+							</strong>
+
+						</div>
+
+						<div class="order-total-row">
+
+							<span>GST Amount</span>
+
+							<strong id="salesOrderGstAmount">
+								₹0
+							</strong>
+
+						</div>
+
+						<div class="order-total-row grand">
+
+							<span>Grand Total</span>
+
+							<strong id="salesOrderGrandTotal">
+								₹0
+							</strong>
+
+						</div>
+
+					</div>
+
+				</div>
+
+			</div>
+
+			<div class="d-flex justify-content-end gap-2 mt-4">
+
+				<button type="button" class="btn btn-outline-secondary" onclick="clearSalesOrderForm()">
+
+					<i class="bi bi-eraser-fill me-1"></i>
+					Clear
+
+				</button>
+
+				<button type="button" id="saveSalesOrderBtn" class="btn btn-medi" onclick="saveSalesOrder()">
+
+					<i class="bi bi-check2-circle me-1"></i>
+					Save Order
+
+				</button>
+
+			</div>
+
+		</section>
+
+		<section class="sales-order-panel">
+
+			<div class="sales-order-panel-header">
+
+				<div class="sales-order-title-wrap">
+
+					<div class="sales-order-title-icon">
+						<i class="bi bi-list-check"></i>
+					</div>
+
+					<div>
+
+						<small>Order Register</small>
+
+						<h5>Sales Order History</h5>
+
+					</div>
+
+				</div>
+
+				<div class="sales-order-toolbar">
+
+					<div class="sales-order-search-wrap">
+
+						<i class="bi bi-search"></i>
+
+						<input type="text" id="salesOrderSearchKeyword" class="form-control"
+							placeholder="Search order, customer, mobile or GSTIN">
+
+					</div>
+
+					<button type="button" id="searchSalesOrderBtn" class="btn btn-medi" onclick="searchSalesOrders()">
+
+						<i class="bi bi-search me-1"></i>
+						Search
+
+					</button>
+
+					<button type="button" id="refreshSalesOrderBtn" class="btn btn-outline-secondary"
+						onclick="refreshSalesOrders()">
+
+						<i class="bi bi-arrow-clockwise me-1"></i>
+						Refresh
+
+					</button>
+
+				</div>
+
+			</div>
+
+			<div class="table-responsive sales-order-table-wrap">
+
+				<table class="table table-hover align-middle">
+
+					<thead>
+
+						<tr>
+
+							<th>#</th>
+							<th>Order</th>
+							<th>Customer</th>
+							<th>Delivery</th>
+							<th>Items</th>
+							<th>Quantity</th>
+							<th>Grand Total</th>
+							<th>Status</th>
+							<th>Converted Sale</th>
+							<th>Actions</th>
+
+						</tr>
+
+					</thead>
+
+					<tbody id="salesOrderTableBody">
+
+						<tr>
+
+							<td colspan="10">
+
+								<div class="sales-order-state">
+
+									<div class="sales-order-state-icon">
+										<i class="bi bi-clipboard2-check-fill"></i>
+									</div>
+
+									<h5 class="fw-bold text-primary">
+										Loading sales orders
+									</h5>
+
+									<p class="text-muted mb-0">
+										Please wait while orders are prepared.
+									</p>
+
+								</div>
+
+							</td>
+
+						</tr>
+
+					</tbody>
+
+				</table>
+
+			</div>
+
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
+
+	</main>
+
+	<!-- Order Details Modal -->
+
+	<div class="modal fade" id="salesOrderDetailsModal" tabindex="-1" aria-hidden="true">
+
+		<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+
+			<div class="modal-content border-0 rounded-4 shadow">
+
+				<div class="modal-header border-0">
+
+					<div>
+
+						<small class="text-uppercase fw-bold text-muted">
+							Sales Order
+						</small>
+
+						<h5 class="modal-title fw-bold text-primary">
+							Order Details
+						</h5>
+
+					</div>
+
+					<button type="button" class="btn-close" data-bs-dismiss="modal">
+					</button>
+
+				</div>
+
+				<div class="modal-body" id="salesOrderDetailsContent">
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+	<!-- Status Action Modal -->
+
+	<div class="modal fade" id="salesOrderStatusModal" tabindex="-1" aria-hidden="true">
+
+		<div class="modal-dialog modal-dialog-centered">
+
+			<div class="modal-content border-0 rounded-4 shadow">
+
+				<div class="modal-header border-0">
+
+					<div>
+
+						<small class="text-uppercase fw-bold text-muted" id="statusActionEyebrow">
+							Order Action
+						</small>
+
+						<h5 class="modal-title fw-bold text-primary" id="statusActionTitle">
+							Update Order
+						</h5>
+
+					</div>
+
+					<button type="button" class="btn-close" data-bs-dismiss="modal">
+					</button>
+
+				</div>
+
+				<div class="modal-body">
+
+					<input type="hidden" id="statusActionOrderId">
+
+					<input type="hidden" id="statusActionType">
+
+					<div class="order-detail-card mb-3">
+
+						<span class="order-detail-label">
+							Selected Order
+						</span>
+
+						<div class="order-detail-value" id="statusActionOrderLabel">
+							-
+						</div>
+
+					</div>
+
+					<label for="statusActionRemarks" class="form-label" id="statusActionRemarksLabel">
+						Remarks
+					</label>
+
+					<textarea id="statusActionRemarks" class="form-control" rows="4" maxlength="500"
+						placeholder="Enter remarks"></textarea>
+
+				</div>
+
+				<div class="modal-footer border-0">
+
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+						Cancel
+					</button>
+
+					<button type="button" id="submitStatusActionBtn" class="btn btn-medi"
+						onclick="submitSalesOrderStatusAction()">
+
+						<i class="bi bi-check2-circle me-1"></i>
+						Continue
+
+					</button>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+	<!-- Convert To Sale Modal -->
+
+	<div class="modal fade" id="convertSalesOrderModal" tabindex="-1" aria-hidden="true">
+
+		<div class="modal-dialog modal-dialog-centered">
+
+			<div class="modal-content border-0 rounded-4 shadow">
+
+				<div class="modal-header border-0">
+
+					<div>
+
+						<small class="text-uppercase fw-bold text-muted">
+							Order Conversion
+						</small>
+
+						<h5 class="modal-title fw-bold text-primary">
+							Convert Order to Sale
+						</h5>
+
+					</div>
+
+					<button type="button" class="btn-close" data-bs-dismiss="modal">
+					</button>
+
+				</div>
+
+				<div class="modal-body">
+
+					<input type="hidden" id="convertOrderId">
+
+					<div class="order-detail-card mb-3">
+
+						<span class="order-detail-label">
+							Selected Order
+						</span>
+
+						<div class="order-detail-value" id="convertOrderLabel">
+							-
+						</div>
+
+					</div>
+
+					<div class="mb-3">
+
+						<label for="convertSaleDate" class="form-label">
+							Sale Date *
+						</label>
+
+						<input type="date" id="convertSaleDate" class="form-control">
+
+					</div>
+
+					<div class="mb-3">
+
+						<label for="convertPaidAmount" class="form-label">
+							Paid Amount
+						</label>
+
+						<input type="number" id="convertPaidAmount" class="form-control" min="0" step="0.01" value="0">
+
+					</div>
+
+					<div>
+
+						<label for="convertSaleRemarks" class="form-label">
+							Remarks
+						</label>
+
+						<textarea id="convertSaleRemarks" class="form-control" rows="3" maxlength="1000"
+							placeholder="Conversion remarks"></textarea>
+
+					</div>
+
+				</div>
+
+				<div class="modal-footer border-0">
+
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+						Cancel
+					</button>
+
+					<button type="button" id="convertToSaleBtn" class="btn btn-medi"
+						onclick="convertSalesOrderToSale()">
+
+						<i class="bi bi-arrow-repeat me-1"></i>
+						Convert to Sale
+
+					</button>
+
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script th:src="@{/js/module-switch.js?v=20260716_5}"></script>
+
+	<script th:src="@{/js/saas-auth-guard.js?v=20260716_5}"></script>
+
+	<script th:src="@{/js/saas-sales-orders.js?v=20260716_5}"></script>
+
+	<script th:src="@{/js/pwa.js?v=20260716_5}"></script>
+
+</body>
+
+</html>

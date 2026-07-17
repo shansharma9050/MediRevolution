@@ -25,128 +25,683 @@
 	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
 
 	<style>
-		.register-experience {
+		:root {
+			--register-navy: #05285f;
+			--register-blue: #08739f;
+			--register-cyan: #08c7d4;
+			--register-green: #b8f267;
+			--register-text: #102f59;
+			--register-muted: #657b8f;
+			--register-border: #d8e7ed;
+			--register-shadow: 0 30px 85px rgba(5, 40, 95, .18);
+		}
+
+		*,
+		*::before,
+		*::after {
+			box-sizing: border-box;
+		}
+
+		html,
+		body {
+			width: 100%;
+			min-height: 100%;
+			margin: 0;
+		}
+
+		body.mr-register-body {
+			min-height: 100vh;
+			overflow-x: hidden;
+			color: var(--register-text);
+			background: #edf7fa;
+		}
+
+		/* =========================================================
+		   MAIN REGISTER LAYOUT
+		   ========================================================= */
+
+		.mr-register-page {
 			position: relative;
+			display: grid;
+			grid-template-columns: minmax(0, 1.05fr) minmax(470px, .95fr);
+			width: 100%;
 			min-height: 100vh;
 			overflow: hidden;
+			background: #edf7fa;
 		}
 
-		.register-experience::before,
-		.register-experience::after {
-			position: fixed;
-			z-index: 0;
-			border-radius: 50%;
-			content: "";
-			pointer-events: none;
-		}
+		/* =========================================================
+		   PREMIUM LEFT PANEL
+		   ========================================================= */
 
-		.register-experience::before {
-			top: -180px;
-			right: -130px;
-			width: 410px;
-			height: 410px;
-			background: radial-gradient(circle, rgba(8, 199, 212, .22), transparent 70%);
-			animation: registerAmbientFloat 11s ease-in-out infinite;
-		}
-
-		.register-experience::after {
-			bottom: -220px;
-			left: 28%;
-			width: 450px;
-			height: 450px;
-			background: radial-gradient(circle, rgba(123, 214, 0, .18), transparent 70%);
-			animation: registerAmbientFloat 13s ease-in-out infinite reverse;
-		}
-
-		.register-left-content {
+		.mr-register-showcase {
 			position: relative;
-			z-index: 2;
-			animation: registerLeftReveal .85s cubic-bezier(.22, 1, .36, 1) both;
-		}
-
-		.register-hero-badge {
-			display: inline-flex;
-			align-items: center;
-			gap: 8px;
-		}
-
-		.register-feature-list>div {
-			display: flex;
-			align-items: center;
-			gap: 9px;
-			opacity: 0;
-			transform: translateX(-16px);
-			animation: registerFeatureReveal .48s var(--feature-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards;
-		}
-
-		.register-feature-list i {
-			color: #b8f267;
-			font-size: 16px;
-		}
-
-		.register-auth-right {
-			position: relative;
-			z-index: 2;
-		}
-
-		.register-auth-card {
-			position: relative;
-			overflow: hidden;
-			animation: registerCardReveal .75s .12s cubic-bezier(.22, 1, .36, 1) both;
-		}
-
-		.register-auth-card::before {
-			position: absolute;
-			top: -100px;
-			right: -95px;
-			width: 210px;
-			height: 210px;
-			border-radius: 50%;
-			content: "";
-			background: radial-gradient(circle, rgba(8, 199, 212, .12), transparent 68%);
-			pointer-events: none;
-		}
-
-		.register-header-icon {
+			isolation: isolate;
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			width: 56px;
-			height: 56px;
-			margin: 0 auto 12px;
+			min-width: 0;
+			min-height: 100vh;
+			padding: clamp(44px, 5vw, 78px);
+			overflow: hidden;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#05285f 0%,
+					#08739f 52%,
+					#08c7d4 100%);
+		}
+
+		.mr-register-showcase::before {
+			position: absolute;
+			top: -165px;
+			right: -105px;
+			z-index: -2;
+			width: 390px;
+			height: 390px;
+			border: 62px solid rgba(255, 255, 255, .065);
+			border-radius: 50%;
+			content: "";
+			animation: registerOrbit 11s ease-in-out infinite;
+		}
+
+		.mr-register-showcase::after {
+			position: absolute;
+			right: 4%;
+			bottom: -220px;
+			z-index: -3;
+			width: 440px;
+			height: 440px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle,
+					rgba(184, 242, 103, .25),
+					transparent 68%);
+			animation: registerGlow 8s ease-in-out infinite;
+		}
+
+		.premium-register-grid {
+			position: absolute;
+			inset: 0;
+			z-index: -4;
+			opacity: .13;
+			background-image:
+				linear-gradient(rgba(255, 255, 255, .11) 1px,
+					transparent 1px),
+				linear-gradient(90deg,
+					rgba(255, 255, 255, .11) 1px,
+					transparent 1px);
+			background-size: 42px 42px;
+			mask-image:
+				linear-gradient(to bottom,
+					rgba(0, 0, 0, .72),
+					transparent 88%);
+			pointer-events: none;
+		}
+
+		.premium-register-orb {
+			position: absolute;
+			z-index: -1;
+			border-radius: 50%;
+			pointer-events: none;
+		}
+
+		.premium-register-orb-one {
+			top: 14%;
+			left: -70px;
+			width: 180px;
+			height: 180px;
+			background:
+				radial-gradient(circle,
+					rgba(255, 255, 255, .16),
+					transparent 70%);
+			animation: registerDriftOne 9s ease-in-out infinite;
+		}
+
+		.premium-register-orb-two {
+			right: 18%;
+			bottom: 14%;
+			width: 135px;
+			height: 135px;
+			background:
+				radial-gradient(circle,
+					rgba(184, 242, 103, .2),
+					transparent 70%);
+			animation: registerDriftTwo 7s ease-in-out infinite;
+		}
+
+		.premium-register-content {
+			position: relative;
+			z-index: 2;
+			width: min(100%, 700px);
+			max-width: 700px;
+			margin: 0 auto;
+			animation:
+				registerContentReveal .8s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.premium-register-brand-row {
+			display: flex;
+			align-items: center;
+			gap: 25px;
+			margin-bottom: 26px;
+		}
+
+		.premium-register-logo-shell {
+			position: relative;
+			display: flex;
+			flex: 0 0 150px;
+			align-items: center;
+			justify-content: center;
+			width: 150px;
+			height: 150px;
+			border: 1px solid rgba(255, 255, 255, .25);
+			border-radius: 31px;
+			background: rgba(255, 255, 255, .96);
+			box-shadow:
+				0 28px 60px rgba(0, 0, 0, .22),
+				inset 0 1px 0 rgba(255, 255, 255, .9);
+			animation: registerLogoFloat 4.2s ease-in-out infinite;
+		}
+
+		.premium-register-logo-shell::before {
+			position: absolute;
+			inset: -12px;
+			z-index: -1;
+			border: 1px solid rgba(255, 255, 255, .17);
+			border-radius: 39px;
+			content: "";
+			animation: registerLogoPulse 3.4s ease-in-out infinite;
+		}
+
+		.premium-register-logo-shell img {
+			width: 118px !important;
+			height: 118px !important;
+			max-width: 118px !important;
+			margin: 0 !important;
+			padding: 0 !important;
+			object-fit: contain;
+			border: 0 !important;
+			border-radius: 20px !important;
+			background: transparent !important;
+			box-shadow: none !important;
+		}
+
+		.premium-register-copy {
+			min-width: 0;
+		}
+
+		.premium-register-eyebrow {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 14px;
+			padding: 8px 13px;
+			border: 1px solid rgba(255, 255, 255, .2);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .1);
+			font-size: 11px;
+			font-weight: 800;
+			letter-spacing: .7px;
+			text-transform: uppercase;
+			white-space: nowrap;
+			backdrop-filter: blur(12px);
+		}
+
+		.premium-register-title {
+			margin: 0;
+			color: #ffffff;
+			font-size: clamp(43px, 5vw, 70px);
+			font-weight: 900;
+			letter-spacing: -2.7px;
+			line-height: .98;
+		}
+
+		.premium-register-title span {
+			color: var(--register-green);
+			text-shadow:
+				0 10px 30px rgba(184, 242, 103, .18);
+		}
+
+		.premium-register-description {
+			max-width: 640px;
+			margin: 20px 0 0;
+			color: rgba(255, 255, 255, .86);
+			font-size: 16px;
+			line-height: 1.8;
+		}
+
+		.premium-register-promise {
+			display: inline-flex;
+			align-items: center;
+			gap: 10px;
+			margin-top: 18px;
+			padding: 11px 15px;
+			border: 1px solid rgba(255, 255, 255, .15);
+			border-radius: 16px;
+			color: rgba(255, 255, 255, .93);
+			background: rgba(3, 30, 70, .19);
+			font-size: 12px;
+			font-weight: 700;
+			backdrop-filter: blur(12px);
+		}
+
+		.premium-register-promise i {
+			color: var(--register-green);
+			font-size: 17px;
+		}
+
+		.premium-register-stats {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 14px;
+			margin-top: 30px;
+		}
+
+		.premium-register-stat {
+			position: relative;
+			min-width: 0;
+			padding: 18px 16px;
+			overflow: hidden;
+			border: 1px solid rgba(255, 255, 255, .16);
+			border-radius: 20px;
+			background: rgba(255, 255, 255, .12);
+			backdrop-filter: blur(14px);
+			transition:
+				transform .35s ease,
+				background .35s ease,
+				box-shadow .35s ease;
+		}
+
+		.premium-register-stat::after {
+			position: absolute;
+			top: -42px;
+			right: -42px;
+			width: 92px;
+			height: 92px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle,
+					rgba(255, 255, 255, .16),
+					transparent 70%);
+		}
+
+		.premium-register-stat:hover {
+			transform: translateY(-6px);
+			background: rgba(255, 255, 255, .17);
+			box-shadow: 0 18px 38px rgba(0, 0, 0, .14);
+		}
+
+		.premium-register-stat-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 42px;
+			height: 42px;
+			margin-bottom: 12px;
+			border-radius: 14px;
+			color: var(--register-navy);
+			background: #ffffff;
+			font-size: 18px;
+			box-shadow: 0 10px 24px rgba(0, 0, 0, .14);
+		}
+
+		.premium-register-stat strong {
+			display: block;
+			color: #ffffff;
+			font-size: 20px;
+			font-weight: 900;
+			line-height: 1.2;
+		}
+
+		.premium-register-stat span {
+			display: block;
+			margin-top: 5px;
+			color: rgba(255, 255, 255, .77);
+			font-size: 12px;
+			font-weight: 700;
+			line-height: 1.4;
+		}
+
+		.premium-register-feature-grid {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 12px;
+			margin-top: 24px;
+		}
+
+		.premium-register-feature {
+			display: flex;
+			align-items: center;
+			gap: 11px;
+			min-width: 0;
+			padding: 12px 14px;
+			border: 1px solid rgba(255, 255, 255, .12);
+			border-radius: 16px;
+			color: rgba(255, 255, 255, .93);
+			background: rgba(4, 39, 82, .17);
+			font-size: 13px;
+			font-weight: 700;
+			opacity: 0;
+			transform: translateY(14px);
+			backdrop-filter: blur(10px);
+			animation:
+				registerFeatureReveal .55s var(--feature-delay, 0ms) cubic-bezier(.22, 1, .36, 1) forwards;
+			transition:
+				transform .3s ease,
+				background .3s ease,
+				border-color .3s ease;
+		}
+
+		.premium-register-feature:hover {
+			transform: translateY(-3px);
+			border-color: rgba(255, 255, 255, .24);
+			background: rgba(255, 255, 255, .12);
+		}
+
+		.premium-register-feature-icon {
+			display: flex;
+			flex: 0 0 36px;
+			align-items: center;
+			justify-content: center;
+			width: 36px;
+			height: 36px;
+			border-radius: 12px;
+			color: var(--register-navy);
+			background:
+				linear-gradient(135deg,
+					#ffffff,
+					#dfffc4);
+			font-size: 16px;
+		}
+
+		.premium-register-footer {
+			display: flex;
+			align-items: center;
+			gap: 9px;
+			margin-top: 24px;
+			color: rgba(255, 255, 255, .7);
+			font-size: 11px;
+			font-weight: 700;
+			letter-spacing: .3px;
+		}
+
+		.premium-register-footer::before {
+			width: 38px;
+			height: 1px;
+			content: "";
+			background:
+				linear-gradient(90deg,
+					var(--register-green),
+					transparent);
+		}
+
+		/* =========================================================
+		   RIGHT REGISTER FORM
+		   ========================================================= */
+
+		.mr-register-form-panel {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			min-width: 0;
+			min-height: 100vh;
+			padding: 34px;
+			background:
+				radial-gradient(circle at 85% 10%,
+					rgba(8, 199, 212, .13),
+					transparent 30%),
+				linear-gradient(145deg,
+					#fbfeff,
+					#edf8fb);
+		}
+
+		.mr-register-card {
+			position: relative;
+			width: min(100%, 560px);
+			max-width: 560px;
+			max-height: calc(100vh - 44px);
+			padding: 28px 32px;
+			overflow-x: hidden;
+			overflow-y: auto;
+			border: 1px solid rgba(255, 255, 255, .8);
+			border-radius: 30px;
+			background: rgba(255, 255, 255, .97);
+			box-shadow: var(--register-shadow);
+			animation:
+				registerCardReveal .75s .1s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.mr-register-card::-webkit-scrollbar {
+			width: 6px;
+		}
+
+		.mr-register-card::-webkit-scrollbar-track {
+			background: #edf6f9;
+			border-radius: 20px;
+		}
+
+		.mr-register-card::-webkit-scrollbar-thumb {
+			background:
+				linear-gradient(180deg,
+					var(--register-navy),
+					var(--register-cyan));
+			border-radius: 20px;
+		}
+
+		.mr-register-card::before {
+			position: absolute;
+			top: -100px;
+			right: -95px;
+			width: 220px;
+			height: 220px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle,
+					rgba(8, 199, 212, .13),
+					transparent 68%);
+			pointer-events: none;
+		}
+
+		.mr-register-header {
+			position: relative;
+			z-index: 1;
+			margin-bottom: 20px;
+			text-align: center;
+		}
+
+		.mr-register-header-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 54px;
+			height: 54px;
+			margin: 0 auto 10px;
 			border-radius: 18px;
 			color: #ffffff;
-			background: linear-gradient(135deg, #05285f, #08c7d4);
-			font-size: 23px;
-			box-shadow: 0 14px 30px rgba(5, 40, 95, .18);
-			animation: registerHeaderIconFloat 3s ease-in-out infinite;
+			background:
+				linear-gradient(135deg,
+					var(--register-navy),
+					var(--register-cyan));
+			font-size: 22px;
+			box-shadow:
+				0 14px 30px rgba(5, 40, 95, .18);
+			animation: registerIconFloat 3s ease-in-out infinite;
 		}
 
-		.register-stage {
+		.mr-register-small-logo {
+			display: block;
+			width: 62px !important;
+			height: 62px !important;
+			max-width: 62px !important;
+			margin: 0 auto 8px !important;
+			padding: 0 !important;
+			object-fit: contain;
+			border-radius: 15px !important;
+			background: transparent !important;
+			box-shadow: none !important;
+		}
+
+		.mr-register-header h2 {
+			margin: 0;
+			color: var(--register-navy);
+			font-size: 28px;
+			font-weight: 900;
+			letter-spacing: -.7px;
+		}
+
+		.mr-register-header p {
+			margin: 7px 0 0;
+			color: var(--register-muted);
+			font-size: 13px;
+		}
+
+		.mr-register-steps {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin-bottom: 22px;
+		}
+
+		.mr-register-steps .step {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 38px;
+			height: 38px;
+			border: 2px solid #d8e8ff;
+			border-radius: 50%;
+			color: var(--register-navy);
+			background: #e9f2ff;
+			font-size: 14px;
+			font-weight: 900;
+			transition: .3s ease;
+		}
+
+		.mr-register-steps .step.active {
+			color: #ffffff;
+			border-color: var(--register-cyan);
+			background:
+				linear-gradient(135deg,
+					var(--register-navy),
+					var(--register-cyan));
+			box-shadow:
+				0 8px 22px rgba(8, 199, 212, .32);
+		}
+
+		.mr-register-steps .step.completed {
+			color: #ffffff;
+			border-color: #16a34a;
+			background: #16a34a;
+			font-size: 0;
+		}
+
+		.mr-register-steps .step.completed::after {
+			content: "✓";
+			font-size: 18px;
+		}
+
+		.mr-register-step-line {
+			width: 76px;
+			height: 3px;
+			background: #d8e8ff;
+		}
+
+		.mr-register-stage {
 			position: relative;
-			animation: registerStageReveal .48s cubic-bezier(.22, 1, .36, 1) both;
+			animation:
+				registerStageReveal .48s cubic-bezier(.22, 1, .36, 1) both;
 		}
 
-		.register-input-wrap {
+		.mr-register-field {
+			margin-bottom: 16px;
+		}
+
+		.mr-register-label {
+			display: block;
+			margin-bottom: 7px;
+			color: var(--register-text);
+			font-size: 13px;
+			font-weight: 800;
+		}
+
+		.mr-register-input-wrap {
 			position: relative;
+			display: flex;
+			align-items: stretch;
+			width: 100%;
+			flex-wrap: nowrap;
 		}
 
-		.register-input-wrap>i {
+		.mr-register-input-icon {
 			position: absolute;
 			top: 50%;
 			left: 15px;
 			z-index: 4;
-			color: #0577b8;
+			color: #087ab0;
 			transform: translateY(-50%);
 			pointer-events: none;
 		}
 
-		.register-input-wrap .form-control,
-		.register-input-wrap .form-select {
-			padding-left: 44px;
+		.mr-register-input {
+			width: 100% !important;
+			min-height: 50px !important;
+			margin: 0 !important;
+			padding: 11px 15px 11px 44px !important;
+			border: 1px solid var(--register-border) !important;
+			border-radius: 15px !important;
+			color: var(--register-text) !important;
+			background: #ffffff !important;
+			font-size: 14px !important;
+			box-shadow: none !important;
+			transition:
+				border-color .25s ease,
+				box-shadow .25s ease;
 		}
 
-		.register-otp-note {
+		.mr-register-input:focus {
+			border-color: var(--register-cyan) !important;
+			outline: none !important;
+			box-shadow:
+				0 0 0 4px rgba(8, 199, 212, .12) !important;
+		}
+
+		.mr-register-group-input {
+			flex: 1 1 auto !important;
+			min-width: 0 !important;
+			border-radius: 15px 0 0 15px !important;
+		}
+
+		.mr-register-inline-button {
+			flex: 0 0 auto;
+			min-width: 110px;
+			border: 0;
+			border-radius: 0 15px 15px 0;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					var(--register-navy),
+					var(--register-cyan));
+			font-size: 13px;
+			font-weight: 800;
+		}
+
+		.mr-register-verify-button {
+			flex: 0 0 96px;
+			border: 0;
+			border-radius: 0 15px 15px 0;
+			color: #ffffff;
+			background: #16a34a;
+			font-size: 13px;
+			font-weight: 800;
+		}
+
+		.mr-register-note {
 			display: flex;
 			align-items: flex-start;
 			gap: 9px;
@@ -159,25 +714,73 @@
 			font-size: 11px;
 		}
 
-		.register-otp-note i {
+		.mr-register-note i {
 			color: #08a9bd;
 			font-size: 16px;
 		}
 
-		.register-verified-box {
+		.mr-register-verified {
 			display: flex;
 			align-items: center;
 			gap: 10px;
+			margin-bottom: 16px;
+			padding: 12px 14px;
+			border: 1px solid #bbf7d0;
+			border-radius: 14px;
+			color: #047857;
+			background: #ecfdf5;
+			font-size: 13px;
+			font-weight: 800;
 		}
 
-		.register-password-field {
+		.mr-register-mobile-group {
+			display: flex;
+			width: 100%;
+			flex-wrap: nowrap;
+		}
+
+		.mr-register-country {
+			flex: 0 0 135px;
+			max-width: 135px;
+			min-height: 50px;
+			border: 1px solid var(--register-border);
+			border-right: 0;
+			border-radius: 15px 0 0 15px;
+			background: #ffffff;
+			font-size: 13px;
+		}
+
+		.mr-register-mobile-input {
+			flex: 1 1 auto;
+			min-width: 0;
+			min-height: 50px;
+			padding: 11px 14px;
+			border: 1px solid var(--register-border);
+			border-radius: 0 15px 15px 0;
+			background: #ffffff;
+			font-size: 14px;
+		}
+
+		.mr-register-mobile-input:focus,
+		.mr-register-country:focus {
+			border-color: var(--register-cyan);
+			outline: none;
+			box-shadow:
+				0 0 0 4px rgba(8, 199, 212, .12);
+		}
+
+		.mr-register-password-wrap {
 			position: relative;
 		}
 
-		.register-password-toggle {
+		.mr-register-password-input {
+			padding-right: 55px !important;
+		}
+
+		.mr-register-password-toggle {
 			position: absolute;
 			top: 50%;
-			right: 12px;
+			right: 10px;
 			z-index: 5;
 			display: flex;
 			align-items: center;
@@ -191,23 +794,75 @@
 			transform: translateY(-50%);
 		}
 
-		.register-password-field .form-control {
-			padding-right: 54px;
+		.mr-register-password-toggle:hover {
+			background: #edf8fb;
 		}
 
-		.register-submit-button {
+		.password-strength {
+			width: 100%;
+			height: 8px;
+			margin-top: 8px;
+			overflow: hidden;
+			border-radius: 20px;
+			background: #e5e7eb;
+		}
+
+		.password-strength div {
+			width: 0;
+			height: 100%;
+			border-radius: 20px;
+			transition: .3s ease;
+		}
+
+		.password-strength div.weak {
+			background: #ef4444;
+		}
+
+		.password-strength div.medium {
+			background: #f59e0b;
+		}
+
+		.password-strength div.strong {
+			background: #16a34a;
+		}
+
+		.mr-register-submit {
 			display: inline-flex;
 			align-items: center;
 			justify-content: center;
 			gap: 9px;
+			width: 100%;
 			min-height: 52px;
+			margin-top: 4px;
+			padding: 12px 18px;
+			border: 0;
+			border-radius: 15px;
+			color: #ffffff;
+			background:
+				linear-gradient(90deg,
+					var(--register-navy),
+					var(--register-cyan));
+			font-size: 14px;
+			font-weight: 900;
+			box-shadow:
+				0 14px 30px rgba(5, 40, 95, .18);
+			transition:
+				transform .3s ease,
+				box-shadow .3s ease;
 		}
 
-		.register-trust-strip {
+		.mr-register-submit:hover {
+			color: #ffffff;
+			transform: translateY(-2px);
+			box-shadow:
+				0 18px 34px rgba(5, 40, 95, .24);
+		}
+
+		.mr-register-trust {
 			display: flex;
 			align-items: center;
 			gap: 10px;
-			margin-top: 18px;
+			margin-top: 16px;
 			padding: 12px 14px;
 			border: 1px solid #dff0f4;
 			border-radius: 14px;
@@ -217,15 +872,60 @@
 			font-weight: 700;
 		}
 
-		.register-trust-strip i {
+		.mr-register-trust i {
 			color: #08a9bd;
 			font-size: 18px;
 		}
 
-		@keyframes registerLeftReveal {
+		.mr-register-divider {
+			position: relative;
+			margin: 18px 0;
+			text-align: center;
+		}
+
+		.mr-register-divider::before {
+			position: absolute;
+			top: 50%;
+			left: 0;
+			width: 100%;
+			height: 1px;
+			content: "";
+			background: #e4edf1;
+		}
+
+		.mr-register-divider span {
+			position: relative;
+			padding: 0 12px;
+			color: #7b8d9a;
+			background: rgba(255, 255, 255, .97);
+			font-size: 11px;
+			font-weight: 800;
+		}
+
+		.mr-register-login-text {
+			margin: 0;
+			text-align: center;
+			font-size: 13px;
+		}
+
+		.mr-register-login-text a {
+			color: var(--register-blue);
+			font-weight: 800;
+			text-decoration: none;
+		}
+
+		.mr-register-login-text a:hover {
+			color: #69b900;
+		}
+
+		/* =========================================================
+		   ANIMATIONS
+		   ========================================================= */
+
+		@keyframes registerContentReveal {
 			from {
 				opacity: 0;
-				transform: translateX(-30px);
+				transform: translateX(-28px);
 			}
 
 			to {
@@ -234,10 +934,93 @@
 			}
 		}
 
+		@keyframes registerOrbit {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(24px) rotate(8deg);
+			}
+		}
+
+		@keyframes registerGlow {
+
+			0%,
+			100% {
+				transform: scale(.94);
+				opacity: .75;
+			}
+
+			50% {
+				transform: scale(1.08);
+				opacity: 1;
+			}
+		}
+
+		@keyframes registerDriftOne {
+
+			0%,
+			100% {
+				transform: translate(0, 0);
+			}
+
+			50% {
+				transform: translate(24px, 18px);
+			}
+		}
+
+		@keyframes registerDriftTwo {
+
+			0%,
+			100% {
+				transform: translate(0, 0);
+			}
+
+			50% {
+				transform: translate(-18px, -22px);
+			}
+		}
+
+		@keyframes registerLogoFloat {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(-8px) rotate(-1deg);
+			}
+		}
+
+		@keyframes registerLogoPulse {
+
+			0%,
+			100% {
+				transform: scale(.96);
+				opacity: .5;
+			}
+
+			50% {
+				transform: scale(1.05);
+				opacity: 1;
+			}
+		}
+
+		@keyframes registerFeatureReveal {
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
 		@keyframes registerCardReveal {
 			from {
 				opacity: 0;
-				transform: translateY(28px) scale(.985);
+				transform: translateY(26px) scale(.985);
 			}
 
 			to {
@@ -246,10 +1029,15 @@
 			}
 		}
 
-		@keyframes registerFeatureReveal {
-			to {
-				opacity: 1;
-				transform: translateX(0);
+		@keyframes registerIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-6px);
 			}
 		}
 
@@ -265,159 +1053,391 @@
 			}
 		}
 
-		@keyframes registerAmbientFloat {
+		/* =========================================================
+		   RESPONSIVE
+		   ========================================================= */
 
-			0%,
-			100% {
-				transform: translateY(0) translateX(0);
+		@media (max-width: 1200px) {
+			.mr-register-page {
+				grid-template-columns: minmax(0, 1fr) 500px;
 			}
 
-			50% {
-				transform: translateY(24px) translateX(-18px);
-			}
-		}
-
-		@keyframes registerHeaderIconFloat {
-
-			0%,
-			100% {
-				transform: translateY(0);
+			.premium-register-brand-row {
+				align-items: flex-start;
+				flex-direction: column;
 			}
 
-			50% {
-				transform: translateY(-6px);
+			.premium-register-logo-shell {
+				flex-basis: 124px;
+				width: 124px;
+				height: 124px;
+			}
+
+			.premium-register-logo-shell img {
+				width: 98px !important;
+				height: 98px !important;
+				max-width: 98px !important;
+			}
+
+			.premium-register-title {
+				font-size: 52px;
 			}
 		}
 
 		@media (max-width: 991px) {
+			body.mr-register-body {
+				background:
+					linear-gradient(145deg,
+						#05285f,
+						#08c7d4);
+			}
 
-			.register-experience::before,
-			.register-experience::after {
+			.mr-register-page {
+				display: block;
+				padding: 24px 14px;
+				background:
+					linear-gradient(145deg,
+						#05285f,
+						#08c7d4);
+			}
+
+			.mr-register-showcase {
 				display: none;
+			}
+
+			.mr-register-form-panel {
+				min-height: calc(100vh - 48px);
+				padding: 0;
+				background: transparent;
+			}
+
+			.mr-register-card {
+				width: min(100%, 580px);
+				max-width: 580px;
+				max-height: none;
 			}
 		}
 
 		@media (max-width: 576px) {
-			.register-auth-card {
-				border-radius: 22px;
+			.mr-register-page {
+				padding: 12px;
 			}
 
-			.register-trust-strip {
+			.mr-register-form-panel {
+				min-height: calc(100vh - 24px);
+			}
+
+			.mr-register-card {
+				padding: 24px 18px;
+				border-radius: 24px;
+			}
+
+			.mr-register-header h2 {
+				font-size: 25px;
+			}
+
+			.mr-register-step-line {
+				width: 52px;
+			}
+
+			.mr-register-input-wrap {
+				flex-wrap: wrap;
+				gap: 10px;
+			}
+
+			.mr-register-group-input {
+				flex-basis: 100% !important;
+				border-right: 1px solid var(--register-border) !important;
+				border-radius: 15px !important;
+			}
+
+			.mr-register-inline-button,
+			.mr-register-verify-button {
+				flex: 1 1 100%;
+				width: 100%;
+				min-height: 48px;
+				border-radius: 15px;
+			}
+
+			.mr-register-mobile-group {
+				flex-direction: column;
+				gap: 10px;
+			}
+
+			.mr-register-country {
+				flex-basis: auto;
+				width: 100%;
+				max-width: 100%;
+				border-right: 1px solid var(--register-border);
+				border-radius: 15px;
+			}
+
+			.mr-register-mobile-input {
+				width: 100%;
+				border-radius: 15px;
+			}
+
+			.mr-register-trust {
 				align-items: flex-start;
+			}
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+
+			.mr-register-page *,
+			.mr-register-page *::before,
+			.mr-register-page *::after {
+				animation-duration: .01ms !important;
+				animation-iteration-count: 1 !important;
+				transition-duration: .01ms !important;
 			}
 		}
 	</style>
 </head>
 
-<body>
+<body class="mr-register-body">
 
-	<div class="auth-page register-experience">
+	<main class="mr-register-page">
 
-		<div class="auth-left">
+		<!-- ================= LEFT PREMIUM SHOWCASE ================= -->
 
-			<div class="auth-left-content register-left-content">
+		<section class="mr-register-showcase">
 
-				<div class="hero-badge register-hero-badge">
-					<i class="bi bi-person-check-fill"></i>
-					Secure Healthcare Registration
+			<div class="premium-register-grid"></div>
+
+			<div class="premium-register-orb premium-register-orb-one"></div>
+
+			<div class="premium-register-orb premium-register-orb-two"></div>
+
+			<div class="premium-register-content">
+
+				<div class="premium-register-brand-row">
+
+					<div class="premium-register-logo-shell">
+
+						<img th:src="@{/images/logo.png}" alt="MediRevolution Logo">
+
+					</div>
+
+					<div class="premium-register-copy">
+
+						<div class="premium-register-eyebrow">
+
+							<i class="bi bi-person-check-fill"></i>
+
+							Secure Healthcare Registration
+
+						</div>
+
+						<h1 class="premium-register-title">
+
+							Join <span>MediRevolution</span>
+
+						</h1>
+
+					</div>
+
 				</div>
 
-				<img th:src="@{/images/logo.png}" class="hero-logo" alt="MediRevolution Logo">
+				<p class="premium-register-description">
 
-				<h1 class="hero-title">
-					Join <span>MediRevolution</span>
-				</h1>
+					Create your secure MediRevolution account and connect with
+					wholesalers, retailers, hospitals, doctors and patients through
+					one intelligent healthcare ecosystem.
 
-				<p class="hero-description">
-					Register securely with verified email and mobile number.
-					Connect doctors, patients, hospitals, retailers and wholesalers
-					on one healthcare platform.
 				</p>
 
-				<div class="hero-stats">
+				<div class="premium-register-promise">
 
-					<div class="stat-card">
-						<h2>500+</h2>
-						<span>Businesses</span>
+					<i class="bi bi-stars"></i>
+
+					Verified identity. Secure access. Smarter healthcare collaboration.
+
+				</div>
+
+				<div class="premium-register-stats">
+
+					<article class="premium-register-stat">
+
+						<div class="premium-register-stat-icon">
+
+							<i class="bi bi-envelope-check-fill"></i>
+
+						</div>
+
+						<strong>Verified</strong>
+
+						<span>
+							Email-based account verification
+						</span>
+
+					</article>
+
+					<article class="premium-register-stat">
+
+						<div class="premium-register-stat-icon">
+
+							<i class="bi bi-person-badge-fill"></i>
+
+						</div>
+
+						<strong>Role-based</strong>
+
+						<span>
+							Personalized healthcare access
+						</span>
+
+					</article>
+
+					<article class="premium-register-stat">
+
+						<div class="premium-register-stat-icon">
+
+							<i class="bi bi-shield-lock-fill"></i>
+
+						</div>
+
+						<strong>Protected</strong>
+
+						<span>
+							Secure account and session controls
+						</span>
+
+					</article>
+
+				</div>
+
+				<div class="premium-register-feature-grid">
+
+					<div class="premium-register-feature" style="--feature-delay:100ms;">
+
+						<div class="premium-register-feature-icon">
+
+							<i class="bi bi-envelope-check-fill"></i>
+
+						</div>
+
+						<span>
+							Verified email registration
+						</span>
+
 					</div>
 
-					<div class="stat-card">
-						<h2>10K+</h2>
-						<span>Medicines</span>
+					<div class="premium-register-feature" style="--feature-delay:180ms;">
+
+						<div class="premium-register-feature-icon">
+
+							<i class="bi bi-phone-fill"></i>
+
+						</div>
+
+						<span>
+							Mobile number onboarding
+						</span>
+
 					</div>
 
-					<div class="stat-card">
-						<h2>24/7</h2>
-						<span>Support</span>
+					<div class="premium-register-feature" style="--feature-delay:260ms;">
+
+						<div class="premium-register-feature-icon">
+
+							<i class="bi bi-key-fill"></i>
+
+						</div>
+
+						<span>
+							Secure password validation
+						</span>
+
+					</div>
+
+					<div class="premium-register-feature" style="--feature-delay:340ms;">
+
+						<div class="premium-register-feature-icon">
+
+							<i class="bi bi-person-gear"></i>
+
+						</div>
+
+						<span>
+							Role-based workspace access
+						</span>
+
+					</div>
+
+					<div class="premium-register-feature" style="--feature-delay:420ms;">
+
+						<div class="premium-register-feature-icon">
+
+							<i class="bi bi-check2-square"></i>
+
+						</div>
+
+						<span>
+							Admin approval workflow
+						</span>
+
+					</div>
+
+					<div class="premium-register-feature" style="--feature-delay:500ms;">
+
+						<div class="premium-register-feature-icon">
+
+							<i class="bi bi-phone-vibrate-fill"></i>
+
+						</div>
+
+						<span>
+							PWA-ready platform experience
+						</span>
+
 					</div>
 
 				</div>
 
-				<div class="feature-list register-feature-list">
+				<div class="premium-register-footer">
 
-					<div style="--feature-delay:80ms;">
-						<i class="bi bi-check-circle-fill"></i>
-						Verified Email Registration
-					</div>
-
-					<div style="--feature-delay:150ms;">
-						<i class="bi bi-check-circle-fill"></i>
-						Mobile Number Registration
-					</div>
-
-					<div style="--feature-delay:220ms;">
-						<i class="bi bi-check-circle-fill"></i>
-						Secure Password Validation
-					</div>
-
-					<div style="--feature-delay:290ms;">
-						<i class="bi bi-check-circle-fill"></i>
-						Role Based Healthcare Access
-					</div>
-
-					<div style="--feature-delay:360ms;">
-						<i class="bi bi-check-circle-fill"></i>
-						Admin Approval Workflow
-					</div>
-
-					<div style="--feature-delay:430ms;">
-						<i class="bi bi-check-circle-fill"></i>
-						PWA Supported Platform
-					</div>
+					Revolutionizing healthcare for a better tomorrow
 
 				</div>
 
 			</div>
 
-		</div>
+		</section>
 
-		<div class="auth-right register-auth-right">
+		<!-- ================= RIGHT REGISTER FORM ================= -->
 
-			<div class="auth-card professional-register-card register-auth-card">
+		<section class="mr-register-form-panel">
 
-				<div class="login-header">
+			<div class="mr-register-card">
 
-					<div class="register-header-icon">
+				<header class="mr-register-header">
+
+					<div class="mr-register-header-icon">
+
 						<i class="bi bi-person-plus-fill"></i>
+
 					</div>
 
-					<img th:src="@{/images/logo.png}" class="auth-logo-small" alt="MediRevolution Logo">
+					<img th:src="@{/images/logo.png}" class="mr-register-small-logo" alt="MediRevolution Logo">
 
-					<h2>Create Secure Account</h2>
+					<h2>
+						Create Secure Account
+					</h2>
 
 					<p>
 						Verify your email to continue
 					</p>
 
-				</div>
+				</header>
 
-				<div class="register-steps mb-4">
+				<div class="mr-register-steps">
 
 					<div class="step active" id="stepEmail">
 						1
 					</div>
 
-					<div class="step-line"></div>
+					<div class="mr-register-step-line"></div>
 
 					<div class="step" id="stepAccount">
 						2
@@ -427,55 +1447,69 @@
 
 				<div id="msg"></div>
 
-				<div id="emailSection" class="register-stage">
+				<!-- ================= EMAIL VERIFICATION ================= -->
 
-					<label for="email" class="form-label">
-						Email Address
-					</label>
+				<div id="emailSection" class="mr-register-stage">
 
-					<div class="input-group mb-3 register-input-wrap">
+					<div class="mr-register-field">
 
-						<i class="bi bi-envelope-fill"></i>
-
-						<input type="email" id="email" class="form-control form-control-lg"
-							placeholder="Enter your email address" autocomplete="email">
-
-						<button class="btn btn-medi-inline" id="sendEmailOtpBtn" type="button" onclick="sendEmailOtp()">
-
-							Send OTP
-						</button>
-
-					</div>
-
-					<div id="emailOtpBox" class="register-stage" style="display:none;">
-
-						<label for="emailOtp" class="form-label">
-							Email OTP
+						<label for="email" class="mr-register-label">
+							Email Address
 						</label>
 
-						<div class="input-group mb-3 register-input-wrap">
+						<div class="mr-register-input-wrap">
 
-							<i class="bi bi-shield-lock-fill"></i>
+							<i class="bi bi-envelope-fill mr-register-input-icon"></i>
 
-							<input type="text" id="emailOtp" maxlength="6" class="form-control form-control-lg"
-								placeholder="Enter email OTP" inputmode="numeric"
-								oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)">
+							<input type="email" id="email" class="mr-register-input mr-register-group-input"
+								placeholder="Enter your email address" autocomplete="email">
 
-							<button class="btn btn-success" id="verifyEmailOtpBtn" type="button"
-								onclick="verifyEmailOtp()">
+							<button type="button" id="sendEmailOtpBtn" class="mr-register-inline-button"
+								onclick="sendEmailOtp()">
 
-								Verify
+								Send OTP
+
 							</button>
 
 						</div>
 
-						<div class="register-otp-note">
+					</div>
 
-							<i class="bi bi-info-circle-fill"></i>
+					<div id="emailOtpBox" class="mr-register-stage" style="display:none;">
 
-							<span>
-								OTP sent to your email. Please check inbox or spam folder.
-							</span>
+						<div class="mr-register-field">
+
+							<label for="emailOtp" class="mr-register-label">
+								Email OTP
+							</label>
+
+							<div class="mr-register-input-wrap">
+
+								<i class="bi bi-shield-lock-fill mr-register-input-icon"></i>
+
+								<input type="text" id="emailOtp" maxlength="6"
+									class="mr-register-input mr-register-group-input" placeholder="Enter email OTP"
+									inputmode="numeric"
+									oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6)">
+
+								<button type="button" id="verifyEmailOtpBtn" class="mr-register-verify-button"
+									onclick="verifyEmailOtp()">
+
+									Verify
+
+								</button>
+
+							</div>
+
+							<div class="mr-register-note">
+
+								<i class="bi bi-info-circle-fill"></i>
+
+								<span>
+									OTP sent to your email. Please check inbox or spam folder.
+								</span>
+
+							</div>
 
 						</div>
 
@@ -483,40 +1517,44 @@
 
 				</div>
 
-				<div id="accountSection" class="register-stage" style="display:none;">
+				<!-- ================= ACCOUNT DETAILS ================= -->
 
-					<div class="verified-box register-verified-box mb-3">
+				<div id="accountSection" class="mr-register-stage" style="display:none;">
+
+					<div class="mr-register-verified">
 
 						<i class="bi bi-check-circle-fill"></i>
+
 						Email verified successfully
+
 					</div>
 
-					<div class="mb-3">
+					<div class="mr-register-field">
 
-						<label for="fullName" class="form-label">
+						<label for="fullName" class="mr-register-label">
 							Full Name / Business Name
 						</label>
 
-						<div class="register-input-wrap">
+						<div class="mr-register-input-wrap">
 
-							<i class="bi bi-person-fill"></i>
+							<i class="bi bi-person-fill mr-register-input-icon"></i>
 
-							<input type="text" id="fullName" class="form-control form-control-lg"
+							<input type="text" id="fullName" class="mr-register-input"
 								placeholder="Enter business or owner name" autocomplete="name">
 
 						</div>
 
 					</div>
 
-					<div class="mb-3">
+					<div class="mr-register-field">
 
-						<label for="mobile" class="form-label">
+						<label for="mobile" class="mr-register-label">
 							Mobile Number
 						</label>
 
-						<div class="input-group">
+						<div class="mr-register-mobile-group">
 
-							<select id="countryCode" class="form-select form-select-lg" style="max-width:135px;">
+							<select id="countryCode" class="mr-register-country">
 
 								<option value="+91" selected>🇮🇳 +91</option>
 								<option value="+1">🇺🇸 +1</option>
@@ -526,9 +1564,10 @@
 								<option value="+977">🇳🇵 +977</option>
 								<option value="+880">🇧🇩 +880</option>
 								<option value="+94">🇱🇰 +94</option>
+
 							</select>
 
-							<input type="text" id="mobile" maxlength="10" class="form-control form-control-lg"
+							<input type="text" id="mobile" maxlength="10" class="mr-register-mobile-input"
 								placeholder="Enter 10 digit mobile number" inputmode="numeric" autocomplete="tel"
 								oninput="allowOnlyTenDigits(this)">
 
@@ -540,17 +1579,17 @@
 
 					</div>
 
-					<div class="mb-3">
+					<div class="mr-register-field">
 
-						<label for="role" class="form-label">
+						<label for="role" class="mr-register-label">
 							Register As
 						</label>
 
-						<div class="register-input-wrap">
+						<div class="mr-register-input-wrap">
 
-							<i class="bi bi-person-vcard-fill"></i>
+							<i class="bi bi-person-vcard-fill mr-register-input-icon"></i>
 
-							<select id="role" class="form-select form-select-lg">
+							<select id="role" class="mr-register-input">
 
 								<option value="">Select Role</option>
 								<option value="WHOLESALER">💊 Medicine Wholesaler</option>
@@ -558,78 +1597,88 @@
 								<option value="DOCTOR">👨‍⚕️ Doctor</option>
 								<option value="HOSPITAL">🏥 Hospital</option>
 								<option value="PATIENT">🧑 Patient</option>
+
 							</select>
 
 						</div>
 
 					</div>
 
-					<div class="mb-3">
+					<div class="mr-register-field">
 
-						<label for="password" class="form-label">
+						<label for="password" class="mr-register-label">
 							Password
 						</label>
 
-						<div class="register-password-field register-input-wrap">
+						<div class="mr-register-input-wrap mr-register-password-wrap">
 
-							<i class="bi bi-lock-fill"></i>
+							<i class="bi bi-lock-fill mr-register-input-icon"></i>
 
-							<input type="password" id="password" class="form-control form-control-lg"
+							<input type="password" id="password" class="mr-register-input mr-register-password-input"
 								placeholder="Create secure password" autocomplete="new-password"
 								onkeyup="checkPasswordStrength()">
 
-							<button type="button" class="register-password-toggle"
+							<button type="button" class="mr-register-password-toggle"
 								onclick="toggleRegisterPassword('password', 'registerPasswordIcon')"
 								aria-label="Show or hide password">
 
 								<i id="registerPasswordIcon" class="bi bi-eye-fill"></i>
+
 							</button>
 
 						</div>
 
-						<div class="password-strength mt-2">
+						<div class="password-strength">
+
 							<div id="passwordStrengthBar"></div>
+
 						</div>
 
 						<small id="passwordStrengthText" class="text-muted">
 
 							Password must be at least 6 characters.
+
 						</small>
 
 					</div>
 
-					<div class="mb-3">
+					<div class="mr-register-field">
 
-						<label for="confirmPassword" class="form-label">
+						<label for="confirmPassword" class="mr-register-label">
 							Re-enter Password
 						</label>
 
-						<div class="register-password-field register-input-wrap">
+						<div class="mr-register-input-wrap mr-register-password-wrap">
 
-							<i class="bi bi-lock-fill"></i>
+							<i class="bi bi-lock-fill mr-register-input-icon"></i>
 
-							<input type="password" id="confirmPassword" class="form-control form-control-lg"
-								placeholder="Re-enter password" autocomplete="new-password">
+							<input type="password" id="confirmPassword"
+								class="mr-register-input mr-register-password-input" placeholder="Re-enter password"
+								autocomplete="new-password">
 
-							<button type="button" class="register-password-toggle"
+							<button type="button" class="mr-register-password-toggle"
 								onclick="toggleRegisterPassword('confirmPassword', 'confirmPasswordIcon')"
 								aria-label="Show or hide password">
 
 								<i id="confirmPasswordIcon" class="bi bi-eye-fill"></i>
+
 							</button>
 
 						</div>
 
 					</div>
 
-					<button class="btn btn-login mt-2 register-submit-button" id="registerBtn" type="button"
-						onclick="register()">
+					<button type="button" id="registerBtn" class="mr-register-submit" onclick="register()">
 
 						<i class="bi bi-person-check-fill"></i>
-						<span>Create My Account</span>
+
+						<span>
+							Create My Account
+						</span>
+
 					</button>
 
-					<div class="register-trust-strip">
+					<div class="mr-register-trust">
 
 						<i class="bi bi-shield-check"></i>
 
@@ -641,24 +1690,32 @@
 
 				</div>
 
-				<div class="divider">
-					<span>OR</span>
+				<div class="mr-register-divider">
+
+					<span>
+						OR
+					</span>
+
 				</div>
 
-				<p class="text-center mb-0">
+				<p class="mr-register-login-text">
+
 					Already registered?
-					<a href="/" class="green-link">
+
+					<a href="/">
 						Login Here
 					</a>
+
 				</p>
 
 			</div>
 
-		</div>
+		</section>
 
-	</div>
+	</main>
 
 	<script th:src="@{/js/auth.js?v=20260713_1}"></script>
+
 	<script th:src="@{/js/pwa.js}"></script>
 
 </body>

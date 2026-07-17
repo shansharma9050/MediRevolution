@@ -8,19 +8,27 @@ import java.time.LocalDate;
 @Data
 public class SaasMedicineStockRequest {
 
-    private Long tenantId;
+	private Long tenantId;
 
-    private Long medicineId;
+	private Long medicineId;
 
-    private String batchNumber;
+	private String batchNumber;
 
-    private LocalDate expiryDate;
+	private LocalDate manufacturingDate;
 
-    private Integer quantity;
+	private LocalDate expiryDate;
 
-    private BigDecimal purchasePrice;
+	private Integer quantity;
 
-    private BigDecimal salePrice;
+	private BigDecimal purchasePrice;
 
-    private String supplierName;
+	private BigDecimal salePrice;
+
+	private BigDecimal mrp;
+
+	private BigDecimal gstPercentage;
+
+	private Long supplierId;
+
+	private String supplierName;
 }

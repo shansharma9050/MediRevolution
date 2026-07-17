@@ -7,13 +7,9 @@ import java.util.List;
 
 public interface SaasStockMovementRepository extends JpaRepository<SaasStockMovement, Long> {
 
-    List<SaasStockMovement> findByTenantIdAndMedicineIdOrderByCreatedAtDesc(
-            Long tenantId,
-            Long medicineId
-    );
+	List<SaasStockMovement> findByTenantIdAndMedicineIdOrderByCreatedAtDesc(Long tenantId, Long medicineId);
 
-    List<SaasStockMovement> findByTenantIdAndStockIdOrderByCreatedAtDesc(
-            Long tenantId,
-            Long stockId
-    );
+	List<SaasStockMovement> findByTenantIdAndStockIdOrderByCreatedAtDesc(Long tenantId, Long stockId);
+
+	List<SaasStockMovement> findByTenantIdOrderByCreatedAtDesc(Long tenantId);
 }

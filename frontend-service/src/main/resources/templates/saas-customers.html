@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+
+	<title>MediRevolution | SaaS Customers</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<meta name="theme-color" content="#05285f">
+
+	<link rel="manifest" href="/manifest.json">
+
+	<meta name="mobile-web-app-capable" content="yes">
+
+	<meta name="apple-mobile-web-app-capable" content="yes">
+
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
+
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.saas-customer-page {
+			position: relative;
+		}
+
+		.saas-customer-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 28px;
+			min-height: 235px;
+			margin-bottom: 26px;
+			padding: clamp(28px, 4vw, 48px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#031d48 0%,
+					#05285f 42%,
+					#0877a3 72%,
+					#08c7d4 100%);
+			box-shadow:
+				0 26px 65px rgba(5, 40, 95, .23);
+			animation:
+				customerHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.saas-customer-hero::before {
+			position: absolute;
+			top: -155px;
+			right: -100px;
+			width: 360px;
+			height: 360px;
+			border: 60px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation:
+				customerHeroOrbit 10s ease-in-out infinite;
+		}
+
+		.saas-customer-hero::after {
+			position: absolute;
+			bottom: -180px;
+			left: 27%;
+			width: 370px;
+			height: 370px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle,
+					rgba(184, 242, 103, .24),
+					transparent 68%);
+		}
+
+		.customer-hero-content,
+		.customer-hero-panel {
+			position: relative;
+			z-index: 2;
+		}
+
+		.customer-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .20);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 900;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.saas-customer-hero h1 {
+			margin: 0;
+			font-size: clamp(31px, 4vw, 51px);
+			font-weight: 900;
+			letter-spacing: -1.8px;
+		}
+
+		.saas-customer-hero h1 span {
+			color: #b8f267;
+		}
+
+		.saas-customer-hero p {
+			max-width: 760px;
+			margin: 14px 0 0;
+			color: rgba(255, 255, 255, .80);
+			line-height: 1.75;
+		}
+
+		.customer-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 20px;
+		}
+
+		.customer-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.customer-hero-panel {
+			display: flex;
+			min-width: 235px;
+			flex-direction: column;
+			align-items: center;
+			padding: 23px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px);
+		}
+
+		.customer-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 70px;
+			height: 70px;
+			margin-bottom: 13px;
+			border-radius: 22px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 29px;
+			box-shadow:
+				0 15px 35px rgba(0, 0, 0, .17);
+			animation:
+				customerIconFloat 3s ease-in-out infinite;
+		}
+
+		.customer-workspace-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			margin-top: 8px;
+			padding: 7px 11px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .12);
+			font-size: 10px;
+			font-weight: 800;
+		}
+
+		.customer-add-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 9px;
+			min-height: 46px;
+			margin-top: 13px;
+			padding: 0 18px;
+			border: none;
+			border-radius: 15px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 12px;
+			font-weight: 900;
+			transition:
+				transform .3s ease,
+				box-shadow .3s ease;
+		}
+
+		.customer-add-button:hover {
+			transform: translateY(-3px);
+			box-shadow:
+				0 14px 30px rgba(0, 0, 0, .18);
+		}
+
+		.customer-summary-grid {
+			display: grid;
+			grid-template-columns:
+				repeat(4, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px;
+		}
+
+		.customer-summary-card {
+			padding: 20px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .96);
+			box-shadow:
+				0 14px 35px rgba(5, 40, 95, .08);
+			transition:
+				transform .35s ease,
+				box-shadow .35s ease;
+		}
+
+		.customer-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow:
+				0 22px 48px rgba(5, 40, 95, .14);
+		}
+
+		.customer-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#05285f,
+					#08c7d4);
+			font-size: 20px;
+		}
+
+		.customer-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700;
+		}
+
+		.customer-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 28px;
+			font-weight: 900;
+		}
+
+		.customer-panel {
+			position: relative;
+			overflow: hidden;
+			margin-bottom: 24px;
+			padding: 24px;
+			border: 1px solid rgba(5, 40, 95, .08);
+			border-radius: 24px;
+			background: #ffffff;
+			box-shadow:
+				0 16px 40px rgba(5, 40, 95, .08);
+			animation:
+				customerPanelReveal .45s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.customer-panel::after {
+			position: absolute;
+			top: -90px;
+			right: -90px;
+			width: 190px;
+			height: 190px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle,
+					rgba(8, 199, 212, .10),
+					transparent 68%);
+			pointer-events: none;
+		}
+
+		.customer-panel-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5;
+		}
+
+		.customer-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px;
+		}
+
+		.customer-title-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#05285f,
+					#08c7d4);
+			font-size: 20px;
+			box-shadow:
+				0 12px 26px rgba(5, 40, 95, .16);
+		}
+
+		.customer-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 900;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		.customer-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.customer-control {
+			position: relative;
+			z-index: 2;
+		}
+
+		.customer-control>i {
+			position: absolute;
+			top: 39px;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			pointer-events: none;
+		}
+
+		.customer-control .form-control,
+		.customer-control .form-select {
+			min-height: 46px;
+			padding-left: 41px;
+			border-radius: 13px;
+		}
+
+		.customer-form-actions {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			justify-content: flex-end;
+			gap: 10px;
+			margin-top: 20px;
+			padding-top: 18px;
+			border-top: 1px solid #edf3f6;
+		}
+
+		.customer-toolbar {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+		}
+
+		.customer-search-wrap {
+			position: relative;
+			min-width: 310px;
+		}
+
+		.customer-search-wrap i {
+			position: absolute;
+			top: 50%;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			transform: translateY(-50%);
+		}
+
+		.customer-search-wrap .form-control {
+			min-height: 44px;
+			padding-left: 41px;
+			border-radius: 13px;
+		}
+
+		.customer-table-wrap {
+			position: relative;
+			z-index: 2;
+			overflow: hidden;
+			border: 1px solid #e6eef4;
+			border-radius: 18px;
+		}
+
+		.customer-table-wrap table {
+			margin-bottom: 0;
+		}
+
+		.customer-table-wrap thead th {
+			padding: 15px 14px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 11px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.customer-table-wrap tbody td {
+			padding: 15px 14px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 12px;
+			vertical-align: middle;
+		}
+
+		.customer-profile {
+			display: flex;
+			align-items: center;
+			gap: 11px;
+			min-width: 220px;
+		}
+
+		.customer-profile-icon {
+			display: flex;
+			flex: 0 0 auto;
+			align-items: center;
+			justify-content: center;
+			width: 42px;
+			height: 42px;
+			border-radius: 14px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#05285f,
+					#08c7d4);
+			font-size: 17px;
+		}
+
+		.customer-chip,
+		.customer-status {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			font-size: 10px;
+			font-weight: 800;
+			white-space: nowrap;
+		}
+
+		.customer-chip {
+			color: #05285f;
+			background: #eaf7fb;
+		}
+
+		.customer-status.active {
+			color: #0f5132;
+			background: #d1e7dd;
+		}
+
+		.customer-status.inactive {
+			color: #842029;
+			background: #f8d7da;
+		}
+
+		.customer-actions {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 7px;
+			min-width: 175px;
+		}
+
+		.customer-state {
+			padding: 52px 20px;
+			text-align: center;
+		}
+
+		.customer-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 72px;
+			height: 72px;
+			margin: 0 auto 17px;
+			border-radius: 23px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#05285f,
+					#08c7d4);
+			font-size: 28px;
+			box-shadow:
+				0 15px 32px rgba(5, 40, 95, .17);
+		}
+
+		@keyframes customerHeroReveal {
+			from {
+				opacity: 0;
+				transform: translateY(24px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes customerHeroOrbit {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(28px) rotate(8deg);
+			}
+		}
+
+		@keyframes customerIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-7px);
+			}
+		}
+
+		@keyframes customerPanelReveal {
+			from {
+				opacity: 0;
+				transform: translateY(-12px) scale(.985);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0) scale(1);
+			}
+		}
+
+		@media (max-width: 1150px) {
+			.customer-summary-grid {
+				grid-template-columns:
+					repeat(2, minmax(0, 1fr));
+			}
+		}
+
+		@media (max-width: 992px) {
+			.saas-customer-hero {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.customer-hero-panel {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 768px) {
+			.customer-panel-header {
+				align-items: stretch;
+				flex-direction: column;
+			}
+
+			.customer-toolbar,
+			.customer-search-wrap {
+				width: 100%;
+			}
+
+			.customer-search-wrap {
+				min-width: 0;
+			}
+		}
+
+		@media (max-width: 576px) {
+			.customer-summary-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.customer-form-actions {
+				flex-direction: column-reverse;
+			}
+
+			.customer-form-actions .btn,
+			.customer-toolbar .btn {
+				width: 100% !important;
+			}
+		}
+	</style>
+</head>
+
+<body class="dashboard-body saas-dashboard-body">
+
+	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
+
+	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
+
+	<main class="mr-main saas-main saas-customer-page">
+
+		<section class="saas-customer-hero">
+
+			<div class="customer-hero-content">
+
+				<span class="customer-kicker">
+
+					<i class="bi bi-person-lines-fill"></i>
+					Sales Customer Management
+
+				</span>
+
+				<h1>
+					Manage
+					<span>Customers</span>
+				</h1>
+
+				<p>
+					Create and manage customers, pharmacies, hospitals,
+					clinics and business buyers for
+					<strong id="tenantNameText">your workspace</strong>.
+				</p>
+
+				<div class="customer-meta">
+
+					<span>
+						<i class="bi bi-building-check"></i>
+						Tenant-isolated records
+					</span>
+
+					<span>
+						<i class="bi bi-wallet2"></i>
+						Credit and discount control
+					</span>
+
+					<span>
+						<i class="bi bi-shield-check"></i>
+						Permission controlled
+					</span>
+
+				</div>
+
+			</div>
+
+			<div class="customer-hero-panel">
+
+				<div class="customer-hero-icon">
+					<i class="bi bi-people-fill"></i>
+				</div>
+
+				<strong>
+					Customer Directory
+				</strong>
+
+				<div class="customer-workspace-chip">
+
+					<i class="bi bi-building"></i>
+
+					<span id="tenantTypeText">
+						Workspace
+					</span>
+
+				</div>
+
+				<button type="button" id="addCustomerBtn" class="customer-add-button"
+					onclick="openCreateCustomerPanel()">
+
+					<i class="bi bi-plus-circle-fill"></i>
+					Add Customer
+
+				</button>
+
+			</div>
+
+		</section>
+
+		<div id="msg"></div>
+
+		<section class="customer-summary-grid">
+
+			<article class="customer-summary-card">
+
+				<div class="customer-summary-icon">
+					<i class="bi bi-people-fill"></i>
+				</div>
+
+				<small>Total Customers</small>
+
+				<strong id="totalCustomerCount">
+					0
+				</strong>
+
+			</article>
+
+			<article class="customer-summary-card">
+
+				<div class="customer-summary-icon">
+					<i class="bi bi-check-circle-fill"></i>
+				</div>
+
+				<small>Active Customers</small>
+
+				<strong id="activeCustomerCount">
+					0
+				</strong>
+
+			</article>
+
+			<article class="customer-summary-card">
+
+				<div class="customer-summary-icon">
+					<i class="bi bi-wallet2"></i>
+				</div>
+
+				<small>Total Credit Limit</small>
+
+				<strong id="totalCustomerCreditLimit">
+					₹0
+				</strong>
+
+			</article>
+
+			<article class="customer-summary-card">
+
+				<div class="customer-summary-icon">
+					<i class="bi bi-receipt-cutoff"></i>
+				</div>
+
+				<small>GST Registered</small>
+
+				<strong id="gstCustomerCount">
+					0
+				</strong>
+
+			</article>
+
+		</section>
+
+		<section class="customer-panel" id="customerFormPanel" style="display:none;">
+
+			<input type="hidden" id="customerId">
+
+			<div class="customer-panel-header">
+
+				<div class="customer-title-wrap">
+
+					<div class="customer-title-icon">
+						<i class="bi bi-person-plus-fill"></i>
+					</div>
+
+					<div>
+
+						<small id="customerFormEyebrow">
+							New Customer Record
+						</small>
+
+						<h5 id="customerFormTitle">
+							Add Customer
+						</h5>
+
+					</div>
+
+				</div>
+
+				<button type="button" class="btn btn-sm btn-outline-secondary" onclick="closeCustomerPanel()">
+
+					<i class="bi bi-x-lg"></i>
+
+				</button>
+
+			</div>
+
+			<div class="row g-3">
+
+				<div class="col-lg-4 customer-control">
+
+					<label for="customerCode" class="form-label">
+						Customer Code *
+					</label>
+
+					<i class="bi bi-upc-scan"></i>
+
+					<input type="text" id="customerCode" class="form-control" maxlength="40"
+						placeholder="Example: CUS-001">
+
+				</div>
+
+				<div class="col-lg-4 customer-control">
+
+					<label for="customerName" class="form-label">
+						Customer Name *
+					</label>
+
+					<i class="bi bi-person-fill"></i>
+
+					<input type="text" id="customerName" class="form-control" maxlength="180"
+						placeholder="Customer or business name">
+
+				</div>
+
+				<div class="col-lg-4 customer-control">
+
+					<label for="customerType" class="form-label">
+						Customer Type *
+					</label>
+
+					<i class="bi bi-ui-checks-grid"></i>
+
+					<select id="customerType" class="form-select">
+
+						<option value="">
+							Select Customer Type
+						</option>
+
+						<option value="RETAIL">
+							Retail Customer
+						</option>
+
+						<option value="PHARMACY">
+							Pharmacy
+						</option>
+
+						<option value="HOSPITAL">
+							Hospital
+						</option>
+
+						<option value="CLINIC">
+							Clinic
+						</option>
+
+						<option value="WHOLESALER">
+							Wholesaler
+						</option>
+
+						<option value="DISTRIBUTOR">
+							Distributor
+						</option>
+
+						<option value="OTHER">
+							Other
+						</option>
+
+					</select>
+
+				</div>
+
+				<div class="col-lg-4 customer-control">
+
+					<label for="contactPersonName" class="form-label">
+						Contact Person
+					</label>
+
+					<i class="bi bi-person-badge-fill"></i>
+
+					<input type="text" id="contactPersonName" class="form-control" maxlength="160"
+						placeholder="Contact person name">
+
+				</div>
+
+				<div class="col-lg-4 customer-control">
+
+					<label for="mobile" class="form-label">
+						Mobile
+					</label>
+
+					<i class="bi bi-telephone-fill"></i>
+
+					<input type="text" id="mobile" class="form-control" maxlength="20" placeholder="Primary mobile">
+
+				</div>
+
+				<div class="col-lg-4 customer-control">
+
+					<label for="alternateMobile" class="form-label">
+						Alternate Mobile
+					</label>
+
+					<i class="bi bi-phone-fill"></i>
+
+					<input type="text" id="alternateMobile" class="form-control" maxlength="20"
+						placeholder="Alternate mobile">
+
+				</div>
+
+				<div class="col-lg-4 customer-control">
+
+					<label for="email" class="form-label">
+						Email
+					</label>
+
+					<i class="bi bi-envelope-fill"></i>
+
+					<input type="email" id="email" class="form-control" maxlength="180"
+						placeholder="customer@example.com">
+
+				</div>
+
+				<div class="col-lg-4 customer-control">
+
+					<label for="gstin" class="form-label">
+						GSTIN
+					</label>
+
+					<i class="bi bi-receipt"></i>
+
+					<input type="text" id="gstin" class="form-control" maxlength="30"
+						placeholder="GST registration number">
+
+				</div>
+
+				<div class="col-lg-4 customer-control">
+
+					<label for="drugLicenseNumber" class="form-label">
+						Drug Licence Number
+					</label>
+
+					<i class="bi bi-file-earmark-medical-fill"></i>
+
+					<input type="text" id="drugLicenseNumber" class="form-control" maxlength="100"
+						placeholder="Drug licence number">
+
+				</div>
+
+				<div class="col-lg-3 customer-control">
+
+					<label for="openingBalance" class="form-label">
+						Opening Balance
+					</label>
+
+					<i class="bi bi-currency-rupee"></i>
+
+					<input type="number" id="openingBalance" class="form-control" min="0" step="0.01" value="0">
+
+				</div>
+
+				<div class="col-lg-3 customer-control">
+
+					<label for="creditLimit" class="form-label">
+						Credit Limit
+					</label>
+
+					<i class="bi bi-credit-card-fill"></i>
+
+					<input type="number" id="creditLimit" class="form-control" min="0" step="0.01" value="0">
+
+				</div>
+
+				<div class="col-lg-3 customer-control">
+
+					<label for="paymentTermsDays" class="form-label">
+						Payment Terms
+					</label>
+
+					<i class="bi bi-calendar-check-fill"></i>
+
+					<input type="number" id="paymentTermsDays" class="form-control" min="0" value="0"
+						placeholder="Days">
+
+				</div>
+
+				<div class="col-lg-3 customer-control">
+
+					<label for="discountPercentage" class="form-label">
+						Default Discount %
+					</label>
+
+					<i class="bi bi-percent"></i>
+
+					<input type="number" id="discountPercentage" class="form-control" min="0" max="100" step="0.01"
+						value="0">
+
+				</div>
+
+				<div class="col-lg-4 customer-control">
+
+					<label for="city" class="form-label">
+						City
+					</label>
+
+					<i class="bi bi-buildings-fill"></i>
+
+					<input type="text" id="city" class="form-control" maxlength="120" placeholder="City">
+
+				</div>
+
+				<div class="col-lg-4 customer-control">
+
+					<label for="district" class="form-label">
+						District
+					</label>
+
+					<i class="bi bi-geo-alt-fill"></i>
+
+					<input type="text" id="district" class="form-control" maxlength="120" placeholder="District">
+
+				</div>
+
+				<div class="col-lg-4 customer-control">
+
+					<label for="state" class="form-label">
+						State
+					</label>
+
+					<i class="bi bi-map-fill"></i>
+
+					<input type="text" id="state" class="form-control" maxlength="120" placeholder="State">
+
+				</div>
+
+				<div class="col-lg-4 customer-control">
+
+					<label for="pincode" class="form-label">
+						Pincode
+					</label>
+
+					<i class="bi bi-mailbox2"></i>
+
+					<input type="text" id="pincode" class="form-control" maxlength="12" placeholder="Pincode">
+
+				</div>
+
+				<div class="col-12">
+
+					<label for="address" class="form-label">
+						Address
+					</label>
+
+					<textarea id="address" class="form-control" rows="3" maxlength="500"
+						placeholder="Complete customer address"></textarea>
+
+				</div>
+
+			</div>
+
+			<div class="customer-form-actions">
+
+				<button type="button" class="btn btn-outline-secondary" onclick="clearCustomerForm()">
+
+					<i class="bi bi-eraser-fill me-1"></i>
+					Clear
+
+				</button>
+
+				<button type="button" id="saveCustomerBtn" class="btn btn-medi" onclick="saveCustomer()">
+
+					<i class="bi bi-check2-circle me-1"></i>
+					Save Customer
+
+				</button>
+
+			</div>
+
+		</section>
+
+		<section class="customer-panel">
+
+			<div class="customer-panel-header">
+
+				<div class="customer-title-wrap">
+
+					<div class="customer-title-icon">
+						<i class="bi bi-list-ul"></i>
+					</div>
+
+					<div>
+
+						<small>Sales Customers</small>
+
+						<h5>
+							Customer Directory
+						</h5>
+
+					</div>
+
+				</div>
+
+				<div class="customer-toolbar">
+
+					<div class="customer-search-wrap">
+
+						<i class="bi bi-search"></i>
+
+						<input type="text" id="customerSearchKeyword" class="form-control"
+							placeholder="Search customer, code, mobile, type or GSTIN">
+
+					</div>
+
+					<button type="button" id="searchCustomerBtn" class="btn btn-medi" onclick="searchCustomers()">
+
+						<i class="bi bi-search me-1"></i>
+						Search
+
+					</button>
+
+					<button type="button" id="refreshCustomerBtn" class="btn btn-outline-secondary"
+						onclick="refreshCustomers()">
+
+						<i class="bi bi-arrow-clockwise me-1"></i>
+						Refresh
+
+					</button>
+
+				</div>
+
+			</div>
+
+			<div class="table-responsive customer-table-wrap">
+
+				<table class="table align-middle table-hover">
+
+					<thead>
+
+						<tr>
+							<th>#</th>
+							<th>Customer</th>
+							<th>Type</th>
+							<th>Contact</th>
+							<th>GST / Licence</th>
+							<th>Location</th>
+							<th>Credit Limit</th>
+							<th>Discount</th>
+							<th>Status</th>
+							<th style="width:180px;">Action</th>
+						</tr>
+
+					</thead>
+
+					<tbody id="customerTableBody">
+
+						<tr>
+							<td colspan="10">
+
+								<div class="customer-state">
+
+									<div class="customer-state-icon">
+										<i class="bi bi-people-fill"></i>
+									</div>
+
+									<h5 class="fw-bold text-primary">
+										Loading customers
+									</h5>
+
+									<p class="text-muted mb-0">
+										Please wait while customer records are prepared.
+									</p>
+
+								</div>
+
+							</td>
+						</tr>
+
+					</tbody>
+
+				</table>
+
+			</div>
+
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
+
+	</main>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script th:src="@{/js/module-switch.js?v=20260716_1}"></script>
+
+	<script th:src="@{/js/saas-auth-guard.js?v=20260716_1}"></script>
+
+	<script th:src="@{/js/saas-customers.js?v=20260716_1}"></script>
+
+	<script th:src="@{/js/pwa.js?v=20260716_1}"></script>
+
+</body>
+
+</html>

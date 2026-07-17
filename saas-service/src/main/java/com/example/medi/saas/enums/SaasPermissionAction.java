@@ -7,5 +7,9 @@ public enum SaasPermissionAction {
     DELETE,
     APPROVE,
     EXPORT,
-    PRINT
+    PRINT,
+  
+    CANCEL,
+    DOWNLOAD
+
 }

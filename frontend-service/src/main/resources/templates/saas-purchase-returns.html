@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+	<meta charset="UTF-8">
+
+	<title>MediRevolution | SaaS Purchase Returns</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<meta name="theme-color" content="#05285f">
+
+	<link rel="manifest" href="/manifest.json">
+
+	<meta name="mobile-web-app-capable" content="yes">
+
+	<meta name="apple-mobile-web-app-capable" content="yes">
+
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
+
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.purchase-return-page {
+			position: relative;
+		}
+
+		.purchase-return-hero {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 30px;
+			min-height: 245px;
+			margin-bottom: 26px;
+			padding: clamp(30px, 4vw, 50px);
+			overflow: hidden;
+			border-radius: 30px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#031d48 0%,
+					#05285f 40%,
+					#0879a7 70%,
+					#08c7d4 100%);
+			box-shadow:
+				0 28px 70px rgba(5, 40, 95, .24);
+			animation:
+				purchaseReturnHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.purchase-return-hero::before {
+			position: absolute;
+			top: -160px;
+			right: -105px;
+			width: 380px;
+			height: 380px;
+			border: 62px solid rgba(255, 255, 255, .07);
+			border-radius: 50%;
+			content: "";
+			animation:
+				purchaseReturnOrbit 11s ease-in-out infinite;
+		}
+
+		.purchase-return-hero::after {
+			position: absolute;
+			bottom: -210px;
+			left: 25%;
+			width: 420px;
+			height: 420px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle,
+					rgba(184, 242, 103, .24),
+					transparent 67%);
+		}
+
+		.purchase-return-hero-content,
+		.purchase-return-hero-panel {
+			position: relative;
+			z-index: 2;
+		}
+
+		.purchase-return-kicker {
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 15px;
+			padding: 8px 14px;
+			border: 1px solid rgba(255, 255, 255, .20);
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 10px;
+			font-weight: 900;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			backdrop-filter: blur(12px);
+		}
+
+		.purchase-return-hero h1 {
+			margin: 0;
+			font-size: clamp(32px, 4vw, 52px);
+			font-weight: 900;
+			letter-spacing: -1.8px;
+		}
+
+		.purchase-return-hero h1 span {
+			color: #b8f267;
+		}
+
+		.purchase-return-hero p {
+			max-width: 780px;
+			margin: 15px 0 0;
+			color: rgba(255, 255, 255, .81);
+			line-height: 1.75;
+		}
+
+		.purchase-return-meta {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+			margin-top: 21px;
+		}
+
+		.purchase-return-meta span {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 8px 12px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .11);
+			font-size: 11px;
+			font-weight: 700;
+		}
+
+		.purchase-return-hero-panel {
+			display: flex;
+			min-width: 245px;
+			flex-direction: column;
+			align-items: center;
+			padding: 24px;
+			border: 1px solid rgba(255, 255, 255, .18);
+			border-radius: 25px;
+			background: rgba(255, 255, 255, .11);
+			text-align: center;
+			backdrop-filter: blur(15px);
+		}
+
+		.purchase-return-hero-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 72px;
+			height: 72px;
+			margin-bottom: 13px;
+			border-radius: 23px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 30px;
+			box-shadow:
+				0 15px 35px rgba(0, 0, 0, .17);
+			animation:
+				purchaseReturnIconFloat 3.2s ease-in-out infinite;
+		}
+
+		.purchase-return-workspace-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			margin-top: 9px;
+			padding: 7px 11px;
+			border-radius: 999px;
+			background: rgba(255, 255, 255, .12);
+			font-size: 10px;
+			font-weight: 800;
+		}
+
+		.purchase-return-hero-button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+			min-height: 45px;
+			margin-top: 15px;
+			padding: 0 17px;
+			border: none;
+			border-radius: 14px;
+			color: #05285f;
+			background: #ffffff;
+			font-size: 11px;
+			font-weight: 900;
+			transition:
+				transform .3s ease,
+				box-shadow .3s ease;
+		}
+
+		.purchase-return-hero-button:hover {
+			transform: translateY(-3px);
+			box-shadow:
+				0 14px 30px rgba(0, 0, 0, .17);
+		}
+
+		.purchase-return-summary-grid {
+			display: grid;
+			grid-template-columns:
+				repeat(3, minmax(0, 1fr));
+			gap: 16px;
+			margin-bottom: 25px;
+		}
+
+		.purchase-return-summary-card {
+			position: relative;
+			overflow: hidden;
+			padding: 21px;
+			border: 1px solid rgba(8, 199, 212, .14);
+			border-radius: 22px;
+			background: rgba(255, 255, 255, .97);
+			box-shadow:
+				0 14px 35px rgba(5, 40, 95, .08);
+			transition:
+				transform .35s ease,
+				box-shadow .35s ease;
+		}
+
+		.purchase-return-summary-card:hover {
+			transform: translateY(-6px);
+			box-shadow:
+				0 22px 48px rgba(5, 40, 95, .14);
+		}
+
+		.purchase-return-summary-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 48px;
+			height: 48px;
+			margin-bottom: 14px;
+			border-radius: 16px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#05285f,
+					#08c7d4);
+			font-size: 20px;
+			box-shadow:
+				0 12px 28px rgba(5, 40, 95, .16);
+		}
+
+		.purchase-return-summary-card.warning .purchase-return-summary-icon {
+			background:
+				linear-gradient(135deg,
+					#d97706,
+					#fbbf24);
+		}
+
+		.purchase-return-summary-card.success .purchase-return-summary-icon {
+			background:
+				linear-gradient(135deg,
+					#047857,
+					#10b981);
+		}
+
+		.purchase-return-summary-card small {
+			display: block;
+			color: #6b7b8c;
+			font-weight: 700;
+		}
+
+		.purchase-return-summary-card strong {
+			display: block;
+			margin-top: 5px;
+			color: #05285f;
+			font-size: 27px;
+			font-weight: 900;
+		}
+
+		.purchase-return-panel {
+			position: relative;
+			overflow: hidden;
+			margin-bottom: 24px;
+			padding: 24px;
+			border: 1px solid rgba(5, 40, 95, .08);
+			border-radius: 24px;
+			background: #ffffff;
+			box-shadow:
+				0 16px 40px rgba(5, 40, 95, .08);
+			animation:
+				purchaseReturnPanelReveal .45s cubic-bezier(.22, 1, .36, 1) both;
+		}
+
+		.purchase-return-panel::after {
+			position: absolute;
+			top: -100px;
+			right: -100px;
+			width: 210px;
+			height: 210px;
+			border-radius: 50%;
+			content: "";
+			background:
+				radial-gradient(circle,
+					rgba(8, 199, 212, .10),
+					transparent 67%);
+			pointer-events: none;
+		}
+
+		.purchase-return-panel-header {
+			position: relative;
+			z-index: 2;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 15px;
+			margin-bottom: 22px;
+			padding-bottom: 17px;
+			border-bottom: 1px solid #e8f1f5;
+		}
+
+		.purchase-return-title-wrap {
+			display: flex;
+			align-items: center;
+			gap: 13px;
+		}
+
+		.purchase-return-title-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			border-radius: 15px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#05285f,
+					#08c7d4);
+			font-size: 20px;
+			box-shadow:
+				0 12px 26px rgba(5, 40, 95, .16);
+		}
+
+		.purchase-return-title-wrap small {
+			display: block;
+			color: #6b7b8c;
+			font-size: 9px;
+			font-weight: 900;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+		}
+
+		.purchase-return-title-wrap h5 {
+			margin: 4px 0 0;
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		.purchase-return-form-control .form-control,
+		.purchase-return-form-control .form-select {
+			min-height: 46px;
+			border-radius: 13px;
+		}
+
+		.purchase-return-invoice-card {
+			position: relative;
+			z-index: 2;
+			display: none;
+			margin-bottom: 20px;
+			padding: 18px;
+			border: 1px solid #dceaf0;
+			border-radius: 18px;
+			background:
+				linear-gradient(135deg,
+					#f7fcfe,
+					#eef9fc);
+		}
+
+		.purchase-return-invoice-card.active {
+			display: block;
+		}
+
+		.purchase-return-invoice-grid {
+			display: grid;
+			grid-template-columns:
+				repeat(4, minmax(0, 1fr));
+			gap: 12px;
+		}
+
+		.purchase-return-info-box {
+			padding: 13px;
+			border: 1px solid #e0ebf0;
+			border-radius: 14px;
+			background: #ffffff;
+		}
+
+		.purchase-return-info-box small {
+			display: block;
+			margin-bottom: 3px;
+			color: #6d8093;
+			font-size: 9px;
+			font-weight: 900;
+			letter-spacing: .7px;
+			text-transform: uppercase;
+		}
+
+		.purchase-return-info-box strong {
+			color: #05285f;
+		}
+
+		.purchase-return-items-wrap {
+			position: relative;
+			z-index: 2;
+			overflow-x: auto;
+			border: 1px solid #e6eef4;
+			border-radius: 18px;
+		}
+
+		.purchase-return-items-table {
+			min-width: 1450px;
+			margin-bottom: 0;
+		}
+
+		.purchase-return-items-table thead th {
+			padding: 13px 10px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 11px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.purchase-return-items-table tbody td {
+			padding: 11px 10px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 12px;
+			vertical-align: middle;
+		}
+
+		.purchase-return-items-table .form-control,
+		.purchase-return-items-table .form-select {
+			min-width: 120px;
+			border-radius: 10px;
+			font-size: 12px;
+		}
+
+		.return-quantity-chip {
+			display: inline-flex;
+			align-items: center;
+			gap: 5px;
+			padding: 7px 9px;
+			border-radius: 10px;
+			color: #05285f;
+			background: #eaf7fb;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.return-quantity-chip.warning {
+			color: #664d03;
+			background: #fff3cd;
+		}
+
+		.return-quantity-chip.danger {
+			color: #842029;
+			background: #f8d7da;
+		}
+
+		.purchase-return-total-box {
+			position: relative;
+			z-index: 2;
+			padding: 20px;
+			border: 1px solid #e4eef4;
+			border-radius: 18px;
+			background: #f8fcfe;
+		}
+
+		.purchase-return-total-row {
+			display: flex;
+			justify-content: space-between;
+			gap: 20px;
+			padding: 7px 0;
+			color: #526a80;
+		}
+
+		.purchase-return-total-row.grand {
+			margin-top: 8px;
+			padding-top: 14px;
+			border-top: 1px solid #dce9ef;
+			color: #05285f;
+			font-size: 18px;
+			font-weight: 900;
+		}
+
+		.purchase-return-toolbar {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 10px;
+		}
+
+		.purchase-return-search-wrap {
+			position: relative;
+			min-width: 330px;
+		}
+
+		.purchase-return-search-wrap i {
+			position: absolute;
+			top: 50%;
+			left: 14px;
+			z-index: 2;
+			color: #0577b8;
+			transform: translateY(-50%);
+		}
+
+		.purchase-return-search-wrap .form-control {
+			min-height: 44px;
+			padding-left: 41px;
+			border-radius: 13px;
+		}
+
+		.purchase-return-history-wrap {
+			position: relative;
+			z-index: 2;
+			overflow: hidden;
+			border: 1px solid #e6eef4;
+			border-radius: 18px;
+		}
+
+		.purchase-return-history-wrap table {
+			margin-bottom: 0;
+		}
+
+		.purchase-return-history-wrap thead th {
+			padding: 15px 13px;
+			border-bottom: none;
+			color: #05285f;
+			background: #eef9fc;
+			font-size: 11px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.purchase-return-history-wrap tbody td {
+			padding: 15px 13px;
+			border-color: #eef3f6;
+			color: #526a80;
+			font-size: 12px;
+			vertical-align: middle;
+		}
+
+		.purchase-return-status {
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			padding: 7px 10px;
+			border-radius: 999px;
+			color: #0f5132;
+			background: #d1e7dd;
+			font-size: 10px;
+			font-weight: 900;
+		}
+
+		.purchase-return-status.cancelled {
+			color: #842029;
+			background: #f8d7da;
+		}
+
+		.purchase-return-state {
+			padding: 54px 20px;
+			text-align: center;
+		}
+
+		.purchase-return-state-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 74px;
+			height: 74px;
+			margin: 0 auto 17px;
+			border-radius: 24px;
+			color: #ffffff;
+			background:
+				linear-gradient(135deg,
+					#05285f,
+					#08c7d4);
+			font-size: 29px;
+			box-shadow:
+				0 15px 32px rgba(5, 40, 95, .17);
+		}
+
+		.purchase-return-detail-card {
+			padding: 17px;
+			border: 1px solid #e3edf2;
+			border-radius: 17px;
+			background: #f8fcfe;
+		}
+
+		.purchase-return-detail-label {
+			display: block;
+			margin-bottom: 4px;
+			color: #6b7b8c;
+			font-size: 10px;
+			font-weight: 900;
+			letter-spacing: .7px;
+			text-transform: uppercase;
+		}
+
+		.purchase-return-detail-value {
+			color: #05285f;
+			font-weight: 900;
+		}
+
+		@keyframes purchaseReturnHeroReveal {
+
+			from {
+				opacity: 0;
+				transform: translateY(25px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@keyframes purchaseReturnOrbit {
+
+			0%,
+			100% {
+				transform: translateY(0) rotate(0deg);
+			}
+
+			50% {
+				transform: translateY(28px) rotate(8deg);
+			}
+		}
+
+		@keyframes purchaseReturnIconFloat {
+
+			0%,
+			100% {
+				transform: translateY(0);
+			}
+
+			50% {
+				transform: translateY(-7px);
+			}
+		}
+
+		@keyframes purchaseReturnPanelReveal {
+
+			from {
+				opacity: 0;
+				transform: translateY(16px);
+			}
+
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+
+		@media (max-width: 1100px) {
+
+			.purchase-return-invoice-grid {
+				grid-template-columns:
+					repeat(2, minmax(0, 1fr));
+			}
+		}
+
+		@media (max-width: 992px) {
+
+			.purchase-return-hero {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.purchase-return-hero-panel {
+				width: 100%;
+			}
+		}
+
+		@media (max-width: 768px) {
+
+			.purchase-return-panel-header {
+				align-items: stretch;
+				flex-direction: column;
+			}
+
+			.purchase-return-toolbar,
+			.purchase-return-search-wrap {
+				width: 100%;
+			}
+
+			.purchase-return-search-wrap {
+				min-width: 0;
+			}
+		}
+
+		@media (max-width: 576px) {
+
+			.purchase-return-summary-grid,
+			.purchase-return-invoice-grid {
+				grid-template-columns: 1fr;
+			}
+		}
+	</style>
+
+</head>
+
+<body class="dashboard-body saas-dashboard-body">
+
+	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
+
+	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
+
+	<main class="mr-main saas-main purchase-return-page">
+
+		<section class="purchase-return-hero">
+
+			<div class="purchase-return-hero-content">
+
+				<span class="purchase-return-kicker">
+
+					<i class="bi bi-arrow-return-left"></i>
+					Supplier Return & Debit Note
+
+				</span>
+
+				<h1>
+
+					Manage
+					<span>Purchase Returns</span>
+
+				</h1>
+
+				<p>
+
+					Return damaged, expired, incorrect or excess medicines
+					to suppliers with purchase-linked batch validation and
+					automatic inventory deduction for
+					<strong id="tenantNameText">your workspace</strong>.
+
+				</p>
+
+				<div class="purchase-return-meta">
+
+					<span>
+
+						<i class="bi bi-receipt"></i>
+						Purchase-linked returns
+
+					</span>
+
+					<span>
+
+						<i class="bi bi-box-seam-fill"></i>
+						Batch stock validation
+
+					</span>
+
+					<span>
+
+						<i class="bi bi-shield-check"></i>
+						Transactional deduction
+
+					</span>
+
+				</div>
+
+			</div>
+
+			<div class="purchase-return-hero-panel">
+
+				<div class="purchase-return-hero-icon">
+
+					<i class="bi bi-box-arrow-left"></i>
+
+				</div>
+
+				<strong>New Purchase Return</strong>
+
+				<div class="purchase-return-workspace-chip">
+
+					<i class="bi bi-building"></i>
+
+					<span id="tenantTypeText">
+						Workspace
+					</span>
+
+				</div>
+
+				<button type="button" id="createPurchaseReturnBtn" class="purchase-return-hero-button"
+					onclick="openPurchaseReturnForm()">
+
+					<i class="bi bi-plus-circle-fill"></i>
+					Create Return
+
+				</button>
+
+			</div>
+
+		</section>
+
+		<div id="msg"></div>
+
+		<section class="purchase-return-summary-grid">
+
+			<article class="purchase-return-summary-card">
+
+				<div class="purchase-return-summary-icon">
+
+					<i class="bi bi-arrow-return-left"></i>
+
+				</div>
+
+				<small>Total Returns</small>
+
+				<strong id="totalPurchaseReturns">
+					0
+				</strong>
+
+			</article>
+
+			<article class="purchase-return-summary-card warning">
+
+				<div class="purchase-return-summary-icon">
+
+					<i class="bi bi-box-arrow-left"></i>
+
+				</div>
+
+				<small>Returned Quantity</small>
+
+				<strong id="totalPurchaseReturnQuantity">
+					0
+				</strong>
+
+			</article>
+
+			<article class="purchase-return-summary-card success">
+
+				<div class="purchase-return-summary-icon">
+
+					<i class="bi bi-currency-rupee"></i>
+
+				</div>
+
+				<small>Total Return Amount</small>
+
+				<strong id="totalPurchaseReturnAmount">
+					₹0
+				</strong>
+
+			</article>
+
+		</section>
+
+		<section class="purchase-return-panel" id="purchaseReturnFormPanel" style="display:none;">
+
+			<div class="purchase-return-panel-header">
+
+				<div class="purchase-return-title-wrap">
+
+					<div class="purchase-return-title-icon">
+
+						<i class="bi bi-box-arrow-left"></i>
+
+					</div>
+
+					<div>
+
+						<small>Supplier Debit Note</small>
+
+						<h5>Create Purchase Return</h5>
+
+					</div>
+
+				</div>
+
+				<button type="button" class="btn btn-sm btn-outline-secondary" onclick="closePurchaseReturnForm()">
+
+					<i class="bi bi-x-lg"></i>
+
+				</button>
+
+			</div>
+
+			<div class="row g-3 mb-4">
+
+				<div class="col-lg-3 purchase-return-form-control">
+
+					<label for="purchaseReturnDate" class="form-label">
+						Return Date *
+					</label>
+
+					<input type="date" id="purchaseReturnDate" class="form-control">
+
+				</div>
+
+				<div class="col-lg-5 purchase-return-form-control">
+
+					<label for="purchaseReturnPurchaseId" class="form-label">
+						Purchase Invoice *
+					</label>
+
+					<select id="purchaseReturnPurchaseId" class="form-select"
+						onchange="handlePurchaseReturnPurchaseChange()">
+
+						<option value="">
+							Select Purchase Invoice
+						</option>
+
+					</select>
+
+				</div>
+
+				<div class="col-lg-4 purchase-return-form-control">
+
+					<label for="purchaseReturnDebitNoteNumber" class="form-label">
+						Debit Note Number
+					</label>
+
+					<input type="text" id="purchaseReturnDebitNoteNumber" class="form-control" maxlength="100"
+						placeholder="Supplier debit note / reference">
+
+				</div>
+
+			</div>
+
+			<div id="purchaseReturnInvoiceCard" class="purchase-return-invoice-card">
+
+				<div class="purchase-return-invoice-grid">
+
+					<div class="purchase-return-info-box">
+
+						<small>Purchase Number</small>
+
+						<strong id="selectedReturnPurchaseNumber">
+							-
+						</strong>
+
+					</div>
+
+					<div class="purchase-return-info-box">
+
+						<small>Supplier</small>
+
+						<strong id="selectedReturnSupplierName">
+							-
+						</strong>
+
+					</div>
+
+					<div class="purchase-return-info-box">
+
+						<small>Supplier Invoice</small>
+
+						<strong id="selectedReturnSupplierInvoice">
+							-
+						</strong>
+
+					</div>
+
+					<div class="purchase-return-info-box">
+
+						<small>Purchase Date</small>
+
+						<strong id="selectedReturnPurchaseDate">
+							-
+						</strong>
+
+					</div>
+
+				</div>
+
+			</div>
+
+			<div class="mb-3">
+
+				<h6 class="fw-bold text-primary mb-1">
+					Returnable Purchase Items
+				</h6>
+
+				<small class="text-muted">
+
+					Select items and enter return quantity.
+					Maximum return is limited by remaining returnable
+					quantity and current batch stock.
+
+				</small>
+
+			</div>
+
+			<div class="purchase-return-items-wrap">
+
+				<table class="table purchase-return-items-table">
+
+					<thead>
+
+						<tr>
+
+							<th>Select</th>
+							<th>Medicine</th>
+							<th>Batch</th>
+							<th>Expiry</th>
+							<th>Received</th>
+							<th>Previously Returned</th>
+							<th>Current Stock</th>
+							<th>Maximum Return</th>
+							<th>Return Quantity</th>
+							<th>Rate</th>
+							<th>Reason</th>
+							<th>Details</th>
+							<th>Line Total</th>
+
+						</tr>
+
+					</thead>
+
+					<tbody id="purchaseReturnItemsBody">
+
+						<tr>
+
+							<td colspan="13">
+
+								<div class="purchase-return-state">
+
+									<div class="purchase-return-state-icon">
+
+										<i class="bi bi-receipt"></i>
+
+									</div>
+
+									<h5 class="fw-bold text-primary">
+										Select Purchase Invoice
+									</h5>
+
+									<p class="text-muted mb-0">
+
+										Purchase-linked returnable batches
+										will appear here.
+
+									</p>
+
+								</div>
+
+							</td>
+
+						</tr>
+
+					</tbody>
+
+				</table>
+
+			</div>
+
+			<div class="row g-3 mt-3">
+
+				<div class="col-lg-7">
+
+					<label for="purchaseReturnRemarks" class="form-label">
+						Remarks
+					</label>
+
+					<textarea id="purchaseReturnRemarks" class="form-control" rows="4" maxlength="1000"
+						placeholder="Purchase return remarks"></textarea>
+
+				</div>
+
+				<div class="col-lg-5">
+
+					<div class="purchase-return-total-box">
+
+						<div class="row g-3 mb-3">
+
+							<div class="col-md-6">
+
+								<label for="purchaseReturnOtherCharges" class="form-label">
+									Other Charges
+								</label>
+
+								<input type="number" id="purchaseReturnOtherCharges" class="form-control" min="0"
+									step="0.01" value="0" oninput="calculatePurchaseReturnTotals()">
+
+							</div>
+
+							<div class="col-md-6">
+
+								<label for="purchaseReturnRoundOff" class="form-label">
+									Round Off
+								</label>
+
+								<input type="number" id="purchaseReturnRoundOff" class="form-control" step="0.01"
+									value="0" oninput="calculatePurchaseReturnTotals()">
+
+							</div>
+
+						</div>
+
+						<div class="purchase-return-total-row">
+
+							<span>Gross Amount</span>
+
+							<strong id="purchaseReturnGrossAmount">
+								₹0
+							</strong>
+
+						</div>
+
+						<div class="purchase-return-total-row">
+
+							<span>Discount</span>
+
+							<strong id="purchaseReturnDiscountAmount">
+								₹0
+							</strong>
+
+						</div>
+
+						<div class="purchase-return-total-row">
+
+							<span>Taxable Amount</span>
+
+							<strong id="purchaseReturnTaxableAmount">
+								₹0
+							</strong>
+
+						</div>
+
+						<div class="purchase-return-total-row">
+
+							<span>GST Amount</span>
+
+							<strong id="purchaseReturnGstAmount">
+								₹0
+							</strong>
+
+						</div>
+
+						<div class="purchase-return-total-row grand">
+
+							<span>Grand Total</span>
+
+							<strong id="purchaseReturnGrandTotal">
+								₹0
+							</strong>
+
+						</div>
+
+					</div>
+
+				</div>
+
+			</div>
+
+			<div class="d-flex justify-content-end gap-2 mt-4">
+
+				<button type="button" class="btn btn-outline-secondary" onclick="clearPurchaseReturnForm()">
+
+					<i class="bi bi-eraser-fill me-1"></i>
+					Clear
+
+				</button>
+
+				<button type="button" id="savePurchaseReturnBtn" class="btn btn-medi" onclick="savePurchaseReturn()">
+
+					<i class="bi bi-check2-circle me-1"></i>
+					Save Purchase Return
+
+				</button>
+
+			</div>
+
+		</section>
+
+		<section class="purchase-return-panel">
+
+			<div class="purchase-return-panel-header">
+
+				<div class="purchase-return-title-wrap">
+
+					<div class="purchase-return-title-icon">
+
+						<i class="bi bi-list-ul"></i>
+
+					</div>
+
+					<div>
+
+						<small>Debit Note Register</small>
+
+						<h5>Purchase Return History</h5>
+
+					</div>
+
+				</div>
+
+				<div class="purchase-return-toolbar">
+
+					<div class="purchase-return-search-wrap">
+
+						<i class="bi bi-search"></i>
+
+						<input type="text" id="purchaseReturnSearchKeyword" class="form-control"
+							placeholder="Search return, purchase, supplier or debit note">
+
+					</div>
+
+					<button type="button" id="searchPurchaseReturnBtn" class="btn btn-medi"
+						onclick="searchPurchaseReturns()">
+
+						<i class="bi bi-search me-1"></i>
+						Search
+
+					</button>
+
+					<button type="button" id="refreshPurchaseReturnBtn" class="btn btn-outline-secondary"
+						onclick="refreshPurchaseReturns()">
+
+						<i class="bi bi-arrow-clockwise me-1"></i>
+						Refresh
+
+					</button>
+
+				</div>
+
+			</div>
+
+			<div class="table-responsive purchase-return-history-wrap">
+
+				<table class="table table-hover align-middle">
+
+					<thead>
+
+						<tr>
+
+							<th>#</th>
+							<th>Return</th>
+							<th>Purchase</th>
+							<th>Supplier</th>
+							<th>Debit Note</th>
+							<th>Items</th>
+							<th>Quantity</th>
+							<th>Amount</th>
+							<th>Status</th>
+							<th>Action</th>
+
+						</tr>
+
+					</thead>
+
+					<tbody id="purchaseReturnTableBody">
+
+						<tr>
+
+							<td colspan="10">
+
+								<div class="purchase-return-state">
+
+									<div class="purchase-return-state-icon">
+
+										<i class="bi bi-arrow-return-left"></i>
+
+									</div>
+
+									<h5 class="fw-bold text-primary">
+										Loading purchase returns
+									</h5>
+
+									<p class="text-muted mb-0">
+
+										Please wait while return records are prepared.
+
+									</p>
+
+								</div>
+
+							</td>
+
+						</tr>
+
+					</tbody>
+
+				</table>
+
+			</div>
+
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
+
+	</main>
+
+	<div class="modal fade" id="purchaseReturnDetailsModal" tabindex="-1" aria-hidden="true">
+
+		<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+
+			<div class="modal-content border-0 rounded-4 shadow">
+
+				<div class="modal-header border-0">
+
+					<div>
+
+						<small class="text-uppercase fw-bold text-muted">
+							Supplier Debit Note
+						</small>
+
+						<h5 class="modal-title fw-bold text-primary">
+							Purchase Return Details
+						</h5>
+
+					</div>
+
+					<button type="button" class="btn-close" data-bs-dismiss="modal">
+					</button>
+
+				</div>
+
+				<div class="modal-body" id="purchaseReturnDetailsContent">
+				</div>
+
+			</div>
+
+		</div>
+
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script th:src="@{/js/module-switch.js?v=20260716_6}"></script>
+
+	<script th:src="@{/js/saas-auth-guard.js?v=20260716_6}"></script>
+
+	<script th:src="@{/js/saas-purchase-returns.js?v=20260716_6}"></script>
+
+	<script th:src="@{/js/pwa.js?v=20260716_6}"></script>
+
+</body>
+
+</html>
