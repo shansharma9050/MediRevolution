@@ -22,7 +22,7 @@
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
 	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
-	
+
 	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
 
 	<style>
@@ -785,8 +785,7 @@
 				<div class="saas-staff-summary-head">
 
 					<div>
-						<div class="saas-staff-summary-value"
-							 id="totalStaffCount">
+						<div class="saas-staff-summary-value" id="totalStaffCount">
 							0
 						</div>
 
@@ -1013,6 +1012,18 @@
 				</div>
 
 				<div class="modal-body">
+					<div id="staffFormAlert" class="alert alert-danger alert-dismissible fade show d-none" role="alert">
+
+						<i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+						<span id="staffFormAlertMessage">
+							Unable to save staff.
+						</span>
+
+						<button type="button" class="btn-close" aria-label="Close" onclick="hideStaffFormAlert()">
+						</button>
+					</div>
+
 
 					<input type="hidden" id="staffId">
 

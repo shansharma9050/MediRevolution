@@ -2948,3 +2948,25 @@ a:focus-visible,
         scroll-behavior: auto !important;
     }
 }
+
+/* =========================================================
+   GLOBAL BUTTON WIDTH CORRECTION
+   ========================================================= */
+
+.btn-medi {
+    width: auto;
+}
+
+/* Login/Register form buttons should remain full width */
+.auth-page .btn-medi,
+.auth-card .btn-medi,
+.login-page .btn-medi,
+.professional-register-card .btn-medi,
+.btn-login {
+    width: 100%;
+}
+
+/* Full-width button only when explicitly required */
+.btn-medi-full {
+    width: 100%;
+}

@@ -1,7 +1,5 @@
 let staffModal;
-
 let allStaff = [];
-
 let selectedTenantType = "";
 
 let isLoadingStaff = false;
@@ -21,30 +19,23 @@ const deletingStaffIds = new Set();
 
 document.addEventListener("DOMContentLoaded", async function() {
 
-	const allowed =
-		await protectSaasPage(
-			"STAFF",
-			"VIEW"
-		);
+	const allowed = await protectSaasPage(
+		"STAFF",
+		"VIEW"
+	);
 
 	if (!allowed) {
 		return;
 	}
 
-	const tenantId =
-		localStorage.getItem("tenantId");
-
-	const tenantName =
-		localStorage.getItem("tenantName");
+	const tenantId = localStorage.getItem("tenantId");
+	const tenantName = localStorage.getItem("tenantName");
 
 	if (!tenantId) {
 
-		alert(
-			"Please select SaaS workspace first."
-		);
+		alert("Please select SaaS workspace first.");
 
-		window.location.href =
-			"/saas/workspaces";
+		window.location.href = "/saas/workspaces";
 
 		return;
 	}
@@ -55,9 +46,7 @@ document.addEventListener("DOMContentLoaded", async function() {
 	);
 
 	const modalElement =
-		document.getElementById(
-			"staffModal"
-		);
+		document.getElementById("staffModal");
 
 	if (modalElement) {
 
@@ -68,9 +57,7 @@ document.addEventListener("DOMContentLoaded", async function() {
 	}
 
 	const searchInput =
-		document.getElementById(
-			"searchKeyword"
-		);
+		document.getElementById("searchKeyword");
 
 	if (searchInput) {
 
@@ -81,6 +68,20 @@ document.addEventListener("DOMContentLoaded", async function() {
 				if (event.key === "Enter") {
 					searchStaff();
 				}
+			}
+		);
+	}
+
+	const staffRoleElement =
+		document.getElementById("staffRole");
+
+	if (staffRoleElement) {
+
+		staffRoleElement.addEventListener(
+			"change",
+			function() {
+
+				handleStaffRoleChange(true);
 			}
 		);
 	}
@@ -108,9 +109,7 @@ async function resolveSelectedTenantType() {
 
 	const storedTenantType =
 		normalizeTenantType(
-			localStorage.getItem(
-				"tenantType"
-			)
+			localStorage.getItem("tenantType")
 		);
 
 	if (storedTenantType) {
@@ -215,9 +214,7 @@ function updateTenantTypeDisplay(tenantType) {
 
 	setText(
 		"tenantTypeText",
-		formatTenantType(
-			tenantType
-		)
+		formatTenantType(tenantType)
 	);
 }
 
@@ -225,9 +222,7 @@ function updateTenantTypeDisplay(tenantType) {
 function formatTenantType(tenantType) {
 
 	switch (
-	normalizeTenantType(
-		tenantType
-	)
+	normalizeTenantType(tenantType)
 	) {
 
 		case "DOCTOR_CLINIC":
@@ -254,9 +249,7 @@ function renderStaffRoleOptions(
 ) {
 
 	const roleSelect =
-		document.getElementById(
-			"staffRole"
-		);
+		document.getElementById("staffRole");
 
 	if (!roleSelect) {
 		return;
@@ -280,28 +273,27 @@ function renderStaffRoleOptions(
 			.toUpperCase();
 
 	roleSelect.innerHTML = `
-		<option value="">
-			Select Role
-		</option>
+        <option value="">
+            Select Role
+        </option>
 
-		${roles.map(
+        ${roles.map(
 		function(role) {
 
 			const selected =
-				role.value ===
-					normalizedSelectedRole
+				role.value === normalizedSelectedRole
 					? "selected"
 					: "";
 
 			return `
-					<option value="${escapeHtml(role.value)}"
-							${selected}>
-						${escapeHtml(role.label)}
-					</option>
-				`;
+                <option value="${escapeHtml(role.value)}"
+                        ${selected}>
+                    ${escapeHtml(role.label)}
+                </option>
+            `;
 		}
 	).join("")}
-	`;
+    `;
 
 	updateStaffRoleHelpText(
 		normalizedTenantType
@@ -548,18 +540,26 @@ function updateStaffRoleHelpText(
 }
 
 
-function handleStaffRoleChange() {
+function handleStaffRoleChange(
+	forceSuggestion = true
+) {
 
 	toggleDoctorFields();
 
-	applyRoleBasedDepartmentSuggestion();
+	applyRoleBasedDepartmentSuggestion(
+		forceSuggestion
+	);
 }
 
 
-function applyRoleBasedDepartmentSuggestion() {
+function applyRoleBasedDepartmentSuggestion(
+	forceSuggestion = true
+) {
 
 	const role =
-		getValue("staffRole");
+		getValue("staffRole")
+			.trim()
+			.toUpperCase();
 
 	const departmentElement =
 		document.getElementById(
@@ -577,132 +577,81 @@ function applyRoleBasedDepartmentSuggestion() {
 
 	const departmentSuggestions = {
 
-		DOCTOR:
-			"Clinical",
-
-		NURSE:
-			"Nursing",
-
-		RECEPTIONIST:
-			"Reception",
-
-		PHARMACIST:
-			"Pharmacy",
-
-		LAB_TECHNICIAN:
-			"Laboratory",
-
-		RADIOLOGY_TECHNICIAN:
-			"Radiology",
-
-		ACCOUNTANT:
-			"Accounts",
-
-		BILLING_STAFF:
-			"Billing",
-
-		WARD_BOY:
-			"Ward",
-
-		MANAGER:
-			"Management",
-
-		CLEANING_STAFF:
-			"Housekeeping",
-
-		SECURITY:
-			"Security",
-
-		SALES_MANAGER:
-			"Sales",
-
-		PURCHASE_MANAGER:
-			"Purchase",
-
-		WAREHOUSE_MANAGER:
-			"Warehouse",
-
-		CASHIER:
-			"Billing",
-
-		SALESPERSON:
-			"Sales"
+		ADMIN: "Administration",
+		DOCTOR: "Clinical",
+		NURSE: "Nursing",
+		RECEPTIONIST: "Reception",
+		PHARMACIST: "Pharmacy",
+		LAB_TECHNICIAN: "Laboratory",
+		RADIOLOGY_TECHNICIAN: "Radiology",
+		ACCOUNTANT: "Accounts",
+		BILLING_STAFF: "Billing",
+		WARD_BOY: "Ward",
+		MANAGER: "Management",
+		CLEANING_STAFF: "Housekeeping",
+		SECURITY: "Security",
+		SALES_MANAGER: "Sales",
+		PURCHASE_MANAGER: "Purchase",
+		WAREHOUSE_MANAGER: "Warehouse",
+		CASHIER: "Billing",
+		SALESPERSON: "Sales",
+		OTHER: "General"
 	};
 
 	const designationSuggestions = {
 
-		DOCTOR:
-			"Doctor",
-
-		NURSE:
-			"Nurse",
-
-		RECEPTIONIST:
-			"Receptionist",
-
-		PHARMACIST:
-			"Pharmacist",
-
-		LAB_TECHNICIAN:
-			"Lab Technician",
-
+		ADMIN: "Administrator",
+		DOCTOR: "Doctor",
+		NURSE: "Nurse",
+		RECEPTIONIST: "Receptionist",
+		PHARMACIST: "Pharmacist",
+		LAB_TECHNICIAN: "Lab Technician",
 		RADIOLOGY_TECHNICIAN:
 			"Radiology Technician",
-
-		ACCOUNTANT:
-			"Accountant",
-
-		BILLING_STAFF:
-			"Billing Executive",
-
-		WARD_BOY:
-			"Ward Assistant",
-
-		MANAGER:
-			"Manager",
-
+		ACCOUNTANT: "Accountant",
+		BILLING_STAFF: "Billing Executive",
+		WARD_BOY: "Ward Assistant",
+		MANAGER: "Manager",
 		CLEANING_STAFF:
 			"Housekeeping Staff",
-
-		SECURITY:
-			"Security Staff",
-
-		SALES_MANAGER:
-			"Sales Manager",
-
+		SECURITY: "Security Staff",
+		SALES_MANAGER: "Sales Manager",
 		PURCHASE_MANAGER:
 			"Purchase Manager",
-
 		WAREHOUSE_MANAGER:
 			"Warehouse Manager",
-
-		CASHIER:
-			"Cashier",
-
-		SALESPERSON:
-			"Salesperson"
+		CASHIER: "Cashier",
+		SALESPERSON: "Salesperson",
+		OTHER: "Staff"
 	};
 
+	const suggestedDepartment =
+		departmentSuggestions[role] || "";
+
+	const suggestedDesignation =
+		designationSuggestions[role] || "";
+
 	if (
-		!departmentElement.value.trim() &&
-		departmentSuggestions[role]
+		forceSuggestion ||
+		!departmentElement.value.trim()
 	) {
 
 		departmentElement.value =
-			departmentSuggestions[role];
+			suggestedDepartment;
 	}
 
 	if (
 		designationElement &&
-		!designationElement.value.trim() &&
-		designationSuggestions[role]
+		(
+			forceSuggestion ||
+			!designationElement.value.trim()
+		)
 	) {
 
 		designationElement.value =
-			designationSuggestions[role];
+			suggestedDesignation;
 	}
 }
-
 
 async function loadStaff() {
 
@@ -757,7 +706,9 @@ async function loadStaff() {
 				);
 
 			showMsg(message);
+
 			showStaffErrorState(message);
+
 			updateStaffSummary();
 
 			return;
@@ -769,6 +720,7 @@ async function loadStaff() {
 				: [];
 
 		renderStaff(allStaff);
+
 		updateStaffSummary();
 
 		await applyStaffPagePermissions();
@@ -906,6 +858,7 @@ async function searchStaff() {
 				);
 
 			showMsg(message);
+
 			showStaffErrorState(message);
 
 			return;
@@ -946,7 +899,6 @@ async function searchStaff() {
 	}
 }
 
-
 function renderStaff(staffList) {
 
 	const tableBody =
@@ -966,28 +918,28 @@ function renderStaff(staffList) {
 	if (!list.length) {
 
 		tableBody.innerHTML = `
-			<tr>
-				<td colspan="8">
+            <tr>
+                <td colspan="8">
 
-					<div class="saas-staff-state">
+                    <div class="saas-staff-state">
 
-						<div class="saas-staff-state-icon">
-							<i class="bi bi-person-x-fill"></i>
-						</div>
+                        <div class="saas-staff-state-icon">
+                            <i class="bi bi-person-x-fill"></i>
+                        </div>
 
-						<h5 class="fw-bold text-primary">
-							No staff found
-						</h5>
+                        <h5 class="fw-bold text-primary">
+                            No staff found
+                        </h5>
 
-						<p class="text-muted mb-0">
-							Add a staff member or change the search keyword.
-						</p>
+                        <p class="text-muted mb-0">
+                            Add a staff member or change the search keyword.
+                        </p>
 
-					</div>
+                    </div>
 
-				</td>
-			</tr>
-		`;
+                </td>
+            </tr>
+        `;
 
 		return;
 	}
@@ -1002,110 +954,110 @@ function renderStaff(staffList) {
 					);
 
 				return `
-					<tr style="--row-delay:${Math.min(index * 55, 330)}ms">
+                    <tr style="--row-delay:${Math.min(index * 55, 330)}ms">
 
-						<td>
-							<strong class="text-primary">
-								${safe(staff.staffCode)}
-							</strong>
-						</td>
+                        <td>
+                            <strong class="text-primary">
+                                ${safe(staff.staffCode)}
+                            </strong>
+                        </td>
 
-						<td>
+                        <td>
 
-							<div class="saas-staff-profile">
+                            <div class="saas-staff-profile">
 
-								<div class="saas-staff-avatar">
-									<i class="bi bi-person-fill"></i>
-								</div>
+                                <div class="saas-staff-avatar">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
 
-								<div>
+                                <div>
 
-									<strong class="text-primary">
-										${safe(staff.staffName)}
-									</strong>
+                                    <strong class="text-primary">
+                                        ${safe(staff.staffName)}
+                                    </strong>
 
-									<div class="text-muted small">
-										${safe(staff.email)}
-									</div>
+                                    <div class="text-muted small">
+                                        ${safe(staff.email)}
+                                    </div>
 
-									${staff.staffRole === "DOCTOR"
+                                    ${staff.staffRole === "DOCTOR"
 						? `
-											<div class="text-muted small">
-												Auth ID:
-												${safe(staff.authUserId)}
-											</div>
-										`
+                                            <div class="text-muted small">
+                                                Auth ID:
+                                                ${safe(staff.authUserId)}
+                                            </div>
+                                        `
 						: ""
 					}
 
-								</div>
+                                </div>
 
-							</div>
+                            </div>
 
-						</td>
+                        </td>
 
-						<td>
-							${roleBadge(staff.staffRole)}
-						</td>
+                        <td>
+                            ${roleBadge(staff.staffRole)}
+                        </td>
 
-						<td>
+                        <td>
 
-							${safe(staff.department)}
+                            ${safe(staff.department)}
 
-							${staff.staffRole === "DOCTOR" &&
+                            ${staff.staffRole === "DOCTOR" &&
 						staff.specialization
 						? `
-									<div class="text-muted small">
-										${safe(staff.specialization)}
-									</div>
-								`
+                                    <div class="text-muted small">
+                                        ${safe(staff.specialization)}
+                                    </div>
+                                `
 						: ""
 					}
 
-						</td>
+                        </td>
 
-						<td>
-							${safe(staff.mobile)}
-						</td>
+                        <td>
+                            ${safe(staff.mobile)}
+                        </td>
 
-						<td>
-							${safe(staff.city)}
-						</td>
+                        <td>
+                            ${safe(staff.city)}
+                        </td>
 
-						<td>
-							${statusBadge(staff.status)}
-						</td>
+                        <td>
+                            ${statusBadge(staff.status)}
+                        </td>
 
-						<td>
+                        <td>
 
-							<div class="saas-staff-actions">
+                            <div class="saas-staff-actions">
 
-								<button type="button"
-										id="editStaffBtn_${staffId}"
-										class="btn btn-sm btn-outline-primary edit-staff-btn"
-										onclick="editStaff(${staffId})"
-										${staffId ? "" : "disabled"}>
+                                <button type="button"
+                                        id="editStaffBtn_${staffId}"
+                                        class="btn btn-sm btn-outline-primary edit-staff-btn"
+                                        onclick="editStaff(${staffId})"
+                                        ${staffId ? "" : "disabled"}>
 
-									<i class="bi bi-pencil-square me-1"></i>
-									Edit
-								</button>
+                                    <i class="bi bi-pencil-square me-1"></i>
+                                    Edit
+                                </button>
 
-								<button type="button"
-										id="deleteStaffBtn_${staffId}"
-										class="btn btn-sm btn-outline-danger delete-staff-btn"
-										onclick="deleteStaff(${staffId})"
-										${staffId ? "" : "disabled"}>
+                                <button type="button"
+                                        id="deleteStaffBtn_${staffId}"
+                                        class="btn btn-sm btn-outline-danger delete-staff-btn"
+                                        onclick="deleteStaff(${staffId})"
+                                        ${staffId ? "" : "disabled"}>
 
-									<i class="bi bi-trash-fill me-1"></i>
-									Delete
-								</button>
+                                    <i class="bi bi-trash-fill me-1"></i>
+                                    Delete
+                                </button>
 
-							</div>
+                            </div>
 
-						</td>
+                        </td>
 
-					</tr>
-				`;
+                    </tr>
+                `;
 			}
 		).join("");
 
@@ -1176,6 +1128,8 @@ function openCreateStaffModal() {
 	}
 
 	clearStaffForm();
+
+	hideStaffFormAlert();
 
 	renderStaffRoleOptions(
 		selectedTenantType
@@ -1270,6 +1224,8 @@ async function editStaff(staffId) {
 			return;
 		}
 
+		hideStaffFormAlert();
+
 		fillStaffForm(staff);
 
 		setText(
@@ -1347,6 +1303,8 @@ async function saveStaff() {
 		return;
 	}
 
+	hideStaffFormAlert();
+
 	const staffId =
 		getValue("staffId");
 
@@ -1358,8 +1316,9 @@ async function saveStaff() {
 		!staffPagePermissions.update
 	) {
 
-		showMsg(
-			"You do not have permission to update staff."
+		showStaffFormAlert(
+			"You do not have permission to update staff.",
+			"danger"
 		);
 
 		return;
@@ -1370,8 +1329,9 @@ async function saveStaff() {
 		!staffPagePermissions.create
 	) {
 
-		showMsg(
-			"You do not have permission to create staff."
+		showStaffFormAlert(
+			"You do not have permission to create staff.",
+			"danger"
 		);
 
 		return;
@@ -1458,18 +1418,14 @@ async function saveStaff() {
 		experienceYears:
 			getValue("experienceYears")
 				? Number(
-					getValue(
-						"experienceYears"
-					)
+					getValue("experienceYears")
 				)
 				: null,
 
 		consultationFee:
 			getValue("consultationFee")
 				? Number(
-					getValue(
-						"consultationFee"
-					)
+					getValue("consultationFee")
 				)
 				: null,
 
@@ -1492,66 +1448,89 @@ async function saveStaff() {
 
 	if (!payload.staffName) {
 
-		showMsg(
-			"Staff name is required."
+		showStaffFormAlert(
+			"Staff name is required.",
+			"danger"
 		);
+
+		focusStaffField("staffName");
 
 		return;
 	}
 
 	if (!payload.staffRole) {
 
-		showMsg(
-			"Staff role is required."
+		showStaffFormAlert(
+			"Staff role is required.",
+			"danger"
 		);
+
+		focusStaffField("staffRole");
 
 		return;
 	}
 
-	if (!isRoleAllowedForTenantType(
-		payload.staffRole,
-		selectedTenantType
-	)) {
+	if (
+		!isRoleAllowedForTenantType(
+			payload.staffRole,
+			selectedTenantType
+		)
+	) {
 
-		showMsg(
-			"Selected staff role is not allowed for this workspace type."
+		showStaffFormAlert(
+			"Selected staff role is not allowed for this workspace type.",
+			"danger"
 		);
+
+		focusStaffField("staffRole");
 
 		return;
 	}
 
 	if (!payload.email) {
 
-		showMsg(
-			"Email is required."
+		showStaffFormAlert(
+			"Email is required.",
+			"danger"
 		);
+
+		focusStaffField("email");
 
 		return;
 	}
 
 	if (!isValidEmail(payload.email)) {
 
-		showMsg(
-			"Please enter a valid email address."
+		showStaffFormAlert(
+			"Please enter a valid email address.",
+			"danger"
 		);
+
+		focusStaffField("email");
 
 		return;
 	}
 
 	if (!payload.mobile) {
 
-		showMsg(
-			"Mobile is required."
+		showStaffFormAlert(
+			"Mobile is required.",
+			"danger"
 		);
+
+		focusStaffField("mobile");
 
 		return;
 	}
 
 	if (!isValidMobile(payload.mobile)) {
 
-		showMsg(
-			"Please enter a valid 10-digit mobile number."
+		showStaffFormAlert(
+			"Please enter a valid 10-digit mobile number.",
+			"danger"
 		);
+
+		focusStaffField("mobile");
 
 		return;
 	}
@@ -1561,21 +1540,27 @@ async function saveStaff() {
 		!payload.password
 	) {
 
-		showMsg(
-			"Password is required for new staff login."
+		showStaffFormAlert(
+			"Password is required for new staff login.",
+			"danger"
 		);
+
+		focusStaffField("password");
 
 		return;
 	}
 
 	if (
-		!isUpdate &&
+		payload.password &&
 		payload.password.length < 6
 	) {
 
-		showMsg(
-			"Staff login password must be at least 6 characters."
+		showStaffFormAlert(
+			"Staff login password must be at least 6 characters.",
+			"danger"
 		);
+
+		focusStaffField("password");
 
 		return;
 	}
@@ -1585,9 +1570,12 @@ async function saveStaff() {
 		!isValidPincode(payload.pincode)
 	) {
 
-		showMsg(
-			"Please enter a valid 6-digit pincode."
+		showStaffFormAlert(
+			"Please enter a valid 6-digit pincode.",
+			"danger"
 		);
+
+		focusStaffField("pincode");
 
 		return;
 	}
@@ -1599,8 +1587,13 @@ async function saveStaff() {
 		)
 	) {
 
-		showMsg(
-			"Please enter a valid emergency contact mobile number."
+		showStaffFormAlert(
+			"Please enter a valid emergency contact mobile number.",
+			"danger"
+		);
+
+		focusStaffField(
+			"emergencyContactMobile"
 		);
 
 		return;
@@ -1612,17 +1605,25 @@ async function saveStaff() {
 
 		if (!payload.department) {
 
-			showMsg(
-				"Department is required for doctor."
+			showStaffFormAlert(
+				"Department is required for doctor.",
+				"danger"
 			);
+
+			focusStaffField("department");
 
 			return;
 		}
 
 		if (!payload.specialization) {
 
-			showMsg(
-				"Specialization is required for doctor."
+			showStaffFormAlert(
+				"Specialization is required for doctor.",
+				"danger"
+			);
+
+			focusStaffField(
+				"specialization"
 			);
 
 			return;
@@ -1630,8 +1631,13 @@ async function saveStaff() {
 
 		if (!payload.qualification) {
 
-			showMsg(
-				"Qualification is required for doctor."
+			showStaffFormAlert(
+				"Qualification is required for doctor.",
+				"danger"
+			);
+
+			focusStaffField(
+				"qualification"
 			);
 
 			return;
@@ -1641,8 +1647,13 @@ async function saveStaff() {
 			payload.consultationFee === null
 		) {
 
-			showMsg(
-				"Consultation fee is required for doctor."
+			showStaffFormAlert(
+				"Consultation fee is required for doctor.",
+				"danger"
+			);
+
+			focusStaffField(
+				"consultationFee"
 			);
 
 			return;
@@ -1696,15 +1707,21 @@ async function saveStaff() {
 
 		if (!response.ok) {
 
-			showMsg(
-				getApiErrorMessage(
+			const errorMessage =
+				getStaffSaveErrorMessage(
 					result,
-					"Unable to save staff."
-				)
+					response.status
+				);
+
+			showStaffFormAlert(
+				errorMessage,
+				"danger"
 			);
 
 			return;
 		}
+
+		hideStaffFormAlert();
 
 		if (staffModal) {
 			staffModal.hide();
@@ -1726,8 +1743,9 @@ async function saveStaff() {
 			error
 		);
 
-		showMsg(
-			"SaaS service not reachable."
+		showStaffFormAlert(
+			"SaaS service is not reachable. Please try again.",
+			"danger"
 		);
 
 	} finally {
@@ -1740,6 +1758,103 @@ async function saveStaff() {
 			false
 		);
 	}
+}
+
+
+function getStaffSaveErrorMessage(
+	result,
+	status
+) {
+
+	const apiMessage =
+		getApiErrorMessage(
+			result,
+			""
+		);
+
+	const normalizedMessage =
+		String(apiMessage || "")
+			.trim();
+
+	if (normalizedMessage) {
+
+		const lowerMessage =
+			normalizedMessage.toLowerCase();
+
+		if (
+			lowerMessage.includes(
+				"mobile already registered"
+			)
+		) {
+
+			return "This mobile number is already registered.";
+		}
+
+		if (
+			lowerMessage.includes(
+				"email already registered"
+			)
+		) {
+
+			return "This email address is already registered.";
+		}
+
+		return normalizedMessage;
+	}
+
+	switch (Number(status)) {
+
+		case 400:
+			return "Invalid staff information. Please check the entered details.";
+
+		case 401:
+			return "Your login session has expired. Please login again.";
+
+		case 403:
+			return "You do not have permission to save staff.";
+
+		case 404:
+			return "The requested staff service was not found.";
+
+		case 409:
+			return "Staff email or mobile number is already registered.";
+
+		default:
+
+			if (Number(status) >= 500) {
+
+				return "Server error occurred while saving staff.";
+			}
+
+			return "Unable to save staff.";
+	}
+}
+
+
+function focusStaffField(id) {
+
+	const element =
+		document.getElementById(id);
+
+	if (!element) {
+		return;
+	}
+
+	setTimeout(
+		function() {
+
+			element.scrollIntoView({
+				behavior: "smooth",
+				block: "center"
+			});
+
+			element.focus({
+				preventScroll: true
+			});
+
+		},
+		120
+	);
 }
 
 
@@ -1756,6 +1871,7 @@ function isRoleAllowedForTenantType(
 		)
 			.map(
 				function(role) {
+
 					return role.value;
 				}
 			);
@@ -1893,7 +2009,6 @@ async function deleteStaff(staffId) {
 	}
 }
 
-
 function fillStaffForm(staff) {
 
 	const staffRole =
@@ -2030,7 +2145,7 @@ function fillStaffForm(staff) {
 		)
 	);
 
-	handleStaffRoleChange();
+	handleStaffRoleChange(false);
 }
 
 
@@ -2104,6 +2219,8 @@ function clearDoctorExtraFields() {
 
 function clearStaffForm() {
 
+	hideStaffFormAlert();
+
 	[
 		"staffId",
 		"staffName",
@@ -2124,6 +2241,7 @@ function clearStaffForm() {
 		"emergencyContactMobile"
 	].forEach(
 		function(id) {
+
 			setValue(id, "");
 		}
 	);
@@ -2221,28 +2339,28 @@ function showStaffLoadingState() {
 	}
 
 	tableBody.innerHTML = `
-		<tr>
-			<td colspan="8">
+        <tr>
+            <td colspan="8">
 
-				<div class="saas-staff-state">
+                <div class="saas-staff-state">
 
-					<div class="saas-staff-state-icon saas-staff-loading">
-						<i class="bi bi-people-fill"></i>
-					</div>
+                    <div class="saas-staff-state-icon saas-staff-loading">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
 
-					<h5 class="fw-bold text-primary">
-						Loading staff
-					</h5>
+                    <h5 class="fw-bold text-primary">
+                        Loading staff
+                    </h5>
 
-					<p class="text-muted mb-0">
-						Please wait while we prepare the staff directory.
-					</p>
+                    <p class="text-muted mb-0">
+                        Please wait while we prepare the staff directory.
+                    </p>
 
-				</div>
+                </div>
 
-			</td>
-		</tr>
-	`;
+            </td>
+        </tr>
+    `;
 }
 
 
@@ -2258,28 +2376,28 @@ function showStaffErrorState(message) {
 	}
 
 	tableBody.innerHTML = `
-		<tr>
-			<td colspan="8">
+        <tr>
+            <td colspan="8">
 
-				<div class="saas-staff-state">
+                <div class="saas-staff-state">
 
-					<div class="saas-staff-state-icon bg-danger">
-						<i class="bi bi-exclamation-triangle-fill"></i>
-					</div>
+                    <div class="saas-staff-state-icon bg-danger">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
 
-					<h5 class="fw-bold text-danger">
-						Unable to load staff
-					</h5>
+                    <h5 class="fw-bold text-danger">
+                        Unable to load staff
+                    </h5>
 
-					<p class="text-muted mb-0">
-						${escapeHtml(message)}
-					</p>
+                    <p class="text-muted mb-0">
+                        ${escapeHtml(message)}
+                    </p>
 
-				</div>
+                </div>
 
-			</td>
-		</tr>
-	`;
+            </td>
+        </tr>
+    `;
 }
 
 
@@ -2302,11 +2420,11 @@ function roleBadge(role) {
 	) {
 
 		return `
-			<span class="saas-staff-pill primary">
-				<i class="bi bi-person-badge-fill"></i>
-				${escapeHtml(label)}
-			</span>
-		`;
+            <span class="saas-staff-pill primary">
+                <i class="bi bi-person-badge-fill"></i>
+                ${escapeHtml(label)}
+            </span>
+        `;
 	}
 
 	if (
@@ -2318,17 +2436,17 @@ function roleBadge(role) {
 	) {
 
 		return `
-			<span class="saas-staff-pill dark">
-				${escapeHtml(label)}
-			</span>
-		`;
+            <span class="saas-staff-pill dark">
+                ${escapeHtml(label)}
+            </span>
+        `;
 	}
 
 	return `
-		<span class="saas-staff-pill secondary">
-			${escapeHtml(label)}
-		</span>
-	`;
+        <span class="saas-staff-pill secondary">
+            ${escapeHtml(label)}
+        </span>
+    `;
 }
 
 
@@ -2359,28 +2477,28 @@ function statusBadge(status) {
 	if (status === "ACTIVE") {
 
 		return `
-			<span class="saas-staff-pill active">
-				<i class="bi bi-check-circle-fill"></i>
-				ACTIVE
-			</span>
-		`;
+            <span class="saas-staff-pill active">
+                <i class="bi bi-check-circle-fill"></i>
+                ACTIVE
+            </span>
+        `;
 	}
 
 	if (status === "LEFT") {
 
 		return `
-			<span class="saas-staff-pill left">
-				<i class="bi bi-x-circle-fill"></i>
-				LEFT
-			</span>
-		`;
+            <span class="saas-staff-pill left">
+                <i class="bi bi-x-circle-fill"></i>
+                LEFT
+            </span>
+        `;
 	}
 
 	return `
-		<span class="saas-staff-pill secondary">
-			${safe(status)}
-		</span>
-	`;
+        <span class="saas-staff-pill secondary">
+            ${safe(status)}
+        </span>
+    `;
 }
 
 
@@ -2526,19 +2644,19 @@ function showMsg(
 	}
 
 	msg.innerHTML = `
-		<div class="alert alert-${type} alert-dismissible fade show"
-			 role="alert">
+        <div class="alert alert-${type} alert-dismissible fade show"
+             role="alert">
 
-			${escapeHtml(message)}
+            ${escapeHtml(message)}
 
-			<button type="button"
-					class="btn-close"
-					data-bs-dismiss="alert"
-					aria-label="Close">
-			</button>
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert"
+                    aria-label="Close">
+            </button>
 
-		</div>
-	`;
+        </div>
+    `;
 
 	window.scrollTo({
 		top: 0,
@@ -2573,13 +2691,13 @@ function setButtonLoading(
 		}
 
 		button.innerHTML = `
-			<span class="spinner-border spinner-border-sm me-2"
-				  role="status"
-				  aria-hidden="true">
-			</span>
+            <span class="spinner-border spinner-border-sm me-2"
+                  role="status"
+                  aria-hidden="true">
+            </span>
 
-			${escapeHtml(loadingText)}
-		`;
+            ${escapeHtml(loadingText)}
+        `;
 
 		button.disabled = true;
 
@@ -2671,6 +2789,68 @@ function setAnimatedNumber(
 }
 
 
+function showStaffFormAlert(
+	message,
+	type = "danger"
+) {
+
+	const alertBox =
+		document.getElementById(
+			"staffFormAlert"
+		);
+
+	const alertMessage =
+		document.getElementById(
+			"staffFormAlertMessage"
+		);
+
+	if (!alertBox || !alertMessage) {
+
+		console.error(message);
+
+		return;
+	}
+
+	alertBox.classList.remove(
+		"d-none",
+		"alert-danger",
+		"alert-success",
+		"alert-warning",
+		"alert-info"
+	);
+
+	alertBox.classList.add(
+		`alert-${type}`
+	);
+
+	alertMessage.textContent =
+		message ||
+		"Unable to save staff. Please try again.";
+
+	alertBox.scrollIntoView({
+		behavior: "smooth",
+		block: "center"
+	});
+}
+
+
+function hideStaffFormAlert() {
+
+	const alertBox =
+		document.getElementById(
+			"staffFormAlert"
+		);
+
+	if (!alertBox) {
+		return;
+	}
+
+	alertBox.classList.add(
+		"d-none"
+	);
+}
+
+
 function getValue(id) {
 
 	const element =
@@ -2744,7 +2924,9 @@ function safe(value) {
 
 function escapeHtml(value) {
 
-	return String(value ?? "")
+	return String(
+		value ?? ""
+	)
 		.replace(/&/g, "&amp;")
 		.replace(/</g, "&lt;")
 		.replace(/>/g, "&gt;")

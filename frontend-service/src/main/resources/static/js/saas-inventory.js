@@ -1,12 +1,6 @@
-const API_BASE = "http://localhost:8080";
-
-/*
-const API_BASE =
-	"https://medirevolution-api-gateway.onrender.com";
-*/
-
 let inventoryStocks = [];
 let tenantMedicines = [];
+let tenantSuppliers = [];
 
 let currentInventoryFilter = "ALL";
 let inventorySearchActive = false;
@@ -65,6 +59,7 @@ document.addEventListener(
 
 		await Promise.all([
 			loadTenantMedicines(),
+			loadTenantSuppliers(),
 			loadInventorySummary(),
 			loadInventoryStocks()
 		]);
@@ -223,13 +218,25 @@ async function loadInventoryPermissions() {
 async function loadTenantMedicines() {
 
 	const tenantId =
-		localStorage.getItem(
-			"tenantId"
-		);
+		localStorage.getItem("tenantId");
 
+	if (!tenantId) {
+
+		tenantMedicines = [];
+
+		populateMedicineDropdown();
+
+		return false;
+	}
+
+	/*
+	 * IMPORTANT:
+	 * Yahan Medicine Master ka wahi exact endpoint use karein
+	 * jo Purchase page mein medicines return kar raha hai.
+	 */
 	const result =
 		await inventoryApiRequest(
-			`${API_BASE}/saas/inventory/medicines` +
+			`${API_BASE}/saas/medicine-master` +
 			`?tenantId=${encodeURIComponent(tenantId)}`
 		);
 
@@ -237,24 +244,258 @@ async function loadTenantMedicines() {
 
 		tenantMedicines = [];
 
+		console.error(
+			"Unable to load tenant medicines:",
+			{
+				status: result.status,
+				response: result.data
+			}
+		);
+
 		showMsg(
 			getInventoryErrorMessage(
 				result.data,
-				"Unable to load medicines."
+				"Unable to load medicines from Medicine Master."
 			)
 		);
 
 		populateMedicineDropdown();
 
+		return false;
+	}
+
+	const responseData =
+		result.data;
+
+	if (Array.isArray(responseData)) {
+
+		tenantMedicines =
+			responseData;
+
+	} else if (
+		responseData &&
+		Array.isArray(responseData.medicines)
+	) {
+
+		tenantMedicines =
+			responseData.medicines;
+
+	} else if (
+		responseData &&
+		Array.isArray(responseData.content)
+	) {
+
+		tenantMedicines =
+			responseData.content;
+
+	} else if (
+		responseData &&
+		Array.isArray(responseData.data)
+	) {
+
+		tenantMedicines =
+			responseData.data;
+
+	} else if (
+		responseData &&
+		Array.isArray(responseData.items)
+	) {
+
+		tenantMedicines =
+			responseData.items;
+
+	} else {
+
+		tenantMedicines = [];
+	}
+
+	console.log(
+		"Loaded inventory tenant medicines:",
+		tenantMedicines
+	);
+
+	populateMedicineDropdown();
+
+	return tenantMedicines.length > 0;
+}
+
+
+async function loadTenantSuppliers() {
+
+	const tenantId =
+		localStorage.getItem(
+			"tenantId"
+		);
+
+	if (!tenantId) {
+
+		tenantSuppliers = [];
+
+		populateSupplierDropdown();
+
+		return false;
+	}
+
+	const result =
+		await inventoryApiRequest(
+			`${API_BASE}/saas/suppliers` +
+			`?tenantId=${encodeURIComponent(tenantId)}` +
+			`&activeOnly=true`
+		);
+
+	if (!result.ok) {
+
+		tenantSuppliers = [];
+
+		console.error(
+			"Unable to load tenant suppliers:",
+			{
+				status: result.status,
+				response: result.data
+			}
+		);
+
+		populateSupplierDropdown();
+
+		return false;
+	}
+
+	const responseData =
+		result.data;
+
+	if (Array.isArray(responseData)) {
+
+		tenantSuppliers =
+			responseData;
+
+	} else if (
+		responseData &&
+		Array.isArray(responseData.suppliers)
+	) {
+
+		tenantSuppliers =
+			responseData.suppliers;
+
+	} else if (
+		responseData &&
+		Array.isArray(responseData.content)
+	) {
+
+		tenantSuppliers =
+			responseData.content;
+
+	} else if (
+		responseData &&
+		Array.isArray(responseData.data)
+	) {
+
+		tenantSuppliers =
+			responseData.data;
+
+	} else if (
+		responseData &&
+		Array.isArray(responseData.items)
+	) {
+
+		tenantSuppliers =
+			responseData.items;
+
+	} else {
+
+		tenantSuppliers = [];
+	}
+
+	console.log(
+		"Loaded inventory suppliers:",
+		tenantSuppliers
+	);
+
+	populateSupplierDropdown();
+
+	return tenantSuppliers.length > 0;
+}
+
+
+function populateSupplierDropdown() {
+
+	const select =
+		document.getElementById(
+			"stockSupplierName"
+		);
+
+	if (!select) {
 		return;
 	}
 
-	tenantMedicines =
-		Array.isArray(result.data)
-			? result.data
-			: [];
+	select.innerHTML = `
+		<option value="">
+			Select Supplier
+		</option>
+	`;
 
-	populateMedicineDropdown();
+	tenantSuppliers.forEach(
+		function(supplier) {
+
+			const supplierName =
+				String(
+					supplier.supplierName ||
+					supplier.name ||
+					supplier.businessName ||
+					""
+				).trim();
+
+			if (!supplierName) {
+				return;
+			}
+
+			const details = [
+				supplier.mobile,
+				supplier.city
+			]
+				.filter(
+					function(value) {
+
+						return Boolean(
+							String(
+								value || ""
+							).trim()
+						);
+					}
+				)
+				.join(" - ");
+
+			const option =
+				document.createElement(
+					"option"
+				);
+
+			option.value =
+				supplierName;
+
+			option.textContent =
+				supplierName +
+				(
+					details
+						? ` (${details})`
+						: ""
+				);
+
+			select.appendChild(
+				option
+			);
+		}
+	);
+}
+function getTenantMedicineId(medicine) {
+
+	return Number(
+		medicine?.tenantMedicineId ??
+		medicine?.saasMedicineId ??
+		medicine?.workspaceMedicineId ??
+		medicine?.id ??
+		medicine?.medicineId ??
+		0
+	);
 }
 
 
@@ -277,6 +518,21 @@ function populateMedicineDropdown() {
 
 	tenantMedicines.forEach(
 		function(medicine) {
+
+			const tenantMedicineId =
+				getTenantMedicineId(
+					medicine
+				);
+
+			if (!tenantMedicineId) {
+
+				console.warn(
+					"Medicine skipped because tenant medicine ID is missing:",
+					medicine
+				);
+
+				return;
+			}
 
 			const details = [
 				medicine.strength,
@@ -301,10 +557,12 @@ function populateMedicineDropdown() {
 				);
 
 			option.value =
-				medicine.id;
+				String(
+					tenantMedicineId
+				);
 
 			option.textContent =
-				medicine.medicineName +
+				(medicine.medicineName || medicine.name || medicine.brandName || "Medicine") +
 				(
 					details
 						? ` (${details})`
@@ -1169,7 +1427,7 @@ function applyInventoryActionVisibility() {
 }
 
 
-function openAddStockModal() {
+async function openAddStockModal() {
 
 	if (!inventoryPermissions.create) {
 
@@ -1182,16 +1440,37 @@ function openAddStockModal() {
 
 	clearManualStockForm();
 
-	if (
-		!tenantMedicines.length
-	) {
+	hideAddStockFormAlert();
+
+	setButtonLoading(
+		"addStockBtn",
+		"Loading...",
+		true
+	);
+
+	await Promise.all([
+		loadTenantMedicines(),
+		loadTenantSuppliers()
+	]);
+
+	setButtonLoading(
+		"addStockBtn",
+		"Add Stock",
+		false
+	);
+
+	if (!tenantMedicines.length) {
 
 		showMsg(
-			"Create a tenant medicine before adding stock."
+			"No medicine was found in Medicine Master for this workspace."
 		);
 
 		return;
 	}
+
+	populateMedicineDropdown();
+
+	populateSupplierDropdown();
 
 	if (addStockModal) {
 		addStockModal.show();
@@ -1207,12 +1486,14 @@ async function saveManualStock() {
 
 	if (!inventoryPermissions.create) {
 
-		showMsg(
+		showAddStockFormAlert(
 			"You do not have permission to add inventory stock."
 		);
 
 		return;
 	}
+
+	hideAddStockFormAlert();
 
 	const tenantId =
 		localStorage.getItem(
@@ -1275,6 +1556,28 @@ async function saveManualStock() {
 			)
 	};
 
+	console.log(
+		"Saving manual stock payload:",
+		payload
+	);
+
+	console.log(
+		"Selected tenant medicine:",
+		tenantMedicines.find(
+			function(medicine) {
+
+				return (
+					getTenantMedicineId(
+						medicine
+					) ===
+					Number(
+						payload.medicineId
+					)
+				);
+			}
+		)
+	);
+
 	const validationMessage =
 		validateManualStockPayload(
 			payload
@@ -1282,7 +1585,10 @@ async function saveManualStock() {
 
 	if (validationMessage) {
 
-		showMsg(validationMessage);
+		showAddStockFormAlert(
+			validationMessage,
+			"danger"
+		);
 
 		return;
 	}
@@ -1324,11 +1630,12 @@ async function saveManualStock() {
 
 	if (!result.ok) {
 
-		showMsg(
+		showAddStockFormAlert(
 			getInventoryErrorMessage(
 				result.data,
 				"Unable to save stock."
-			)
+			),
+			"danger"
 		);
 
 		return;
@@ -1402,6 +1709,8 @@ function validateManualStockPayload(
 
 
 function clearManualStockForm() {
+
+	hideAddStockFormAlert();
 
 	setValue(
 		"stockMedicineId",
@@ -2956,6 +3265,68 @@ function showOrHideById(
 				? ""
 				: "none";
 	}
+}
+
+
+function showAddStockFormAlert(
+	message,
+	type = "danger"
+) {
+
+	const alertBox =
+		document.getElementById(
+			"addStockFormAlert"
+		);
+
+	const alertMessage =
+		document.getElementById(
+			"addStockFormAlertMessage"
+		);
+
+	if (!alertBox || !alertMessage) {
+
+		showMsg(message, type);
+
+		return;
+	}
+
+	alertBox.classList.remove(
+		"d-none",
+		"alert-danger",
+		"alert-success",
+		"alert-warning",
+		"alert-info"
+	);
+
+	alertBox.classList.add(
+		`alert-${type}`
+	);
+
+	alertMessage.textContent =
+		message ||
+		"Unable to save stock.";
+
+	alertBox.scrollIntoView({
+		behavior: "smooth",
+		block: "center"
+	});
+}
+
+
+function hideAddStockFormAlert() {
+
+	const alertBox =
+		document.getElementById(
+			"addStockFormAlert"
+		);
+
+	if (!alertBox) {
+		return;
+	}
+
+	alertBox.classList.add(
+		"d-none"
+	);
 }
 
 

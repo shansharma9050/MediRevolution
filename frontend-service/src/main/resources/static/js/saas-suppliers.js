@@ -1,11 +1,3 @@
-const API_BASE =
-	"http://localhost:8080";
-
-/*
-const API_BASE =
-	"https://medirevolution-api-gateway.onrender.com";
-*/
-
 let supplierList = [];
 
 let isLoadingSuppliers = false;
@@ -33,6 +25,8 @@ document.addEventListener(
 			return;
 		}
 
+		initializeSupplierPage();
+
 		if (
 			typeof applySaasPermissionMenu ===
 			"function"
@@ -40,9 +34,7 @@ document.addEventListener(
 			await applySaasPermissionMenu();
 		}
 
-		initializeSupplierPage();
-
-		await applySupplierPermissions();
+		await loadSupplierPermissions();
 
 		await loadSuppliers();
 	}

@@ -1,10 +1,3 @@
-const API_BASE = "http://localhost:8080";
-
-/*
-const API_BASE =
-	"https://medirevolution-api-gateway.onrender.com";
-*/
-
 let purchaseList = [];
 let supplierList = [];
 let medicineList = [];
@@ -162,6 +155,19 @@ async function loadMedicines() {
 	const tenantId =
 		localStorage.getItem("tenantId");
 
+	if (!tenantId) {
+
+		medicineList = [];
+
+		refreshMedicineSelectOptions();
+
+		showMsg(
+			"Please select SaaS workspace first."
+		);
+
+		return;
+	}
+
 	const response =
 		await apiRequest(
 			`${API_BASE}/saas/inventory/medicines` +
@@ -169,21 +175,118 @@ async function loadMedicines() {
 		);
 
 	if (!response.ok) {
+
+		medicineList = [];
+
+		refreshMedicineSelectOptions();
+
+		console.error(
+			"Unable to load medicines:",
+			{
+				status: response.status,
+				response: response.data
+			}
+		);
+
+		showMsg(
+			getErrorMessage(
+				response.data,
+				"Unable to load medicines."
+			)
+		);
+
 		return;
 	}
 
-	medicineList =
-		Array.isArray(response.data)
-			? response.data
-			: [];
+	const result =
+		response.data;
+
+	if (Array.isArray(result)) {
+
+		medicineList =
+			result;
+
+	} else if (
+		result &&
+		Array.isArray(result.medicines)
+	) {
+
+		medicineList =
+			result.medicines;
+
+	} else if (
+		result &&
+		Array.isArray(result.content)
+	) {
+
+		medicineList =
+			result.content;
+
+	} else if (
+		result &&
+		Array.isArray(result.data)
+	) {
+
+		medicineList =
+			result.data;
+
+	} else if (
+		result &&
+		Array.isArray(result.items)
+	) {
+
+		medicineList =
+			result.items;
+
+	} else {
+
+		medicineList = [];
+	}
+
+	console.log(
+		"Loaded purchase medicines:",
+		medicineList
+	);
 
 	refreshMedicineSelectOptions();
+
+	if (!medicineList.length) {
+
+		showMsg(
+			"No medicines found. Please add medicines in Medicine Master first."
+		);
+	}
 }
 
 async function loadPurchaseSummary() {
 
 	const tenantId =
 		localStorage.getItem("tenantId");
+
+	if (!tenantId) {
+
+		setText(
+			"totalPurchases",
+			"0"
+		);
+
+		setText(
+			"totalPurchaseAmount",
+			formatCurrency(0)
+		);
+
+		setText(
+			"totalPaidAmount",
+			formatCurrency(0)
+		);
+
+		setText(
+			"totalDueAmount",
+			formatCurrency(0)
+		);
+
+		return;
+	}
 
 	const response =
 		await apiRequest(
@@ -192,6 +295,35 @@ async function loadPurchaseSummary() {
 		);
 
 	if (!response.ok) {
+
+		console.error(
+			"Unable to load purchase summary:",
+			{
+				status: response.status,
+				response: response.data
+			}
+		);
+
+		setText(
+			"totalPurchases",
+			"0"
+		);
+
+		setText(
+			"totalPurchaseAmount",
+			formatCurrency(0)
+		);
+
+		setText(
+			"totalPaidAmount",
+			formatCurrency(0)
+		);
+
+		setText(
+			"totalDueAmount",
+			formatCurrency(0)
+		);
+
 		return;
 	}
 
@@ -206,25 +338,24 @@ async function loadPurchaseSummary() {
 	setText(
 		"totalPurchaseAmount",
 		formatCurrency(
-			summary.totalPurchaseAmount
+			summary.totalPurchaseAmount || 0
 		)
 	);
 
 	setText(
 		"totalPaidAmount",
 		formatCurrency(
-			summary.totalPaidAmount
+			summary.totalPaidAmount || 0
 		)
 	);
 
 	setText(
 		"totalDueAmount",
 		formatCurrency(
-			summary.totalDueAmount
+			summary.totalDueAmount || 0
 		)
 	);
 }
-
 async function loadPurchases() {
 
 	showPurchaseLoading();
@@ -492,18 +623,60 @@ function buildMedicineOptions() {
 	medicineList.forEach(
 		function(medicine) {
 
+			const medicineId =
+				medicine.id ||
+				medicine.medicineId ||
+				medicine.masterMedicineId ||
+				"";
+
+			const medicineName =
+				medicine.medicineName ||
+				medicine.name ||
+				medicine.brandName ||
+				medicine.productName ||
+				"Unnamed Medicine";
+
+			const strength =
+				medicine.strength ||
+				"";
+
+			const unit =
+				medicine.unit ||
+				medicine.packUnit ||
+				medicine.packaging ||
+				"";
+
+			const manufacturer =
+				medicine.manufacturer ||
+				medicine.manufacturerName ||
+				medicine.companyName ||
+				"";
+
 			const detail = [
-				medicine.strength,
-				medicine.unit,
-				medicine.manufacturer
+				strength,
+				unit,
+				manufacturer
 			]
 				.filter(Boolean)
 				.join(" - ");
 
+			if (!medicineId) {
+
+				console.warn(
+					"Medicine ID missing:",
+					medicine
+				);
+
+				return;
+			}
+
 			html += `
-				<option value="${medicine.id}">
-					${escapeHtml(medicine.medicineName)}
-					${detail ? `(${escapeHtml(detail)})` : ""}
+				<option value="${escapeHtml(medicineId)}">
+					${escapeHtml(medicineName)}
+					${detail
+						? `(${escapeHtml(detail)})`
+						: ""
+					}
 				</option>
 			`;
 		}
@@ -514,25 +687,38 @@ function buildMedicineOptions() {
 
 function refreshMedicineSelectOptions() {
 
-	document
-		.querySelectorAll(
+	const medicineSelects =
+		document.querySelectorAll(
 			".item-medicine"
-		)
-		.forEach(
-			function(select) {
-
-				const selected =
-					select.value;
-
-				select.innerHTML =
-					buildMedicineOptions();
-
-				select.value =
-					selected;
-			}
 		);
-}
 
+	medicineSelects.forEach(
+		function(select) {
+
+			const selectedValue =
+				select.value;
+
+			select.innerHTML =
+				buildMedicineOptions();
+
+			if (
+				selectedValue &&
+				Array.from(select.options)
+					.some(
+						function(option) {
+							return (
+								String(option.value) ===
+								String(selectedValue)
+							);
+						}
+					)
+			) {
+				select.value =
+					selectedValue;
+			}
+		}
+	);
+}
 function calculatePurchaseTotals() {
 
 	let grossAmount = 0;

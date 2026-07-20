@@ -1190,6 +1190,20 @@
 
 				<div class="modal-body">
 
+					<div id="addStockFormAlert" class="alert alert-danger alert-dismissible fade show d-none"
+						role="alert">
+
+						<i class="bi bi-exclamation-triangle-fill me-2"></i>
+
+						<span id="addStockFormAlertMessage">
+							Unable to save stock.
+						</span>
+
+						<button type="button" class="btn-close" aria-label="Close" onclick="hideAddStockFormAlert()">
+						</button>
+
+					</div>
+
 					<div class="alert alert-info">
 
 						<i class="bi bi-info-circle-fill me-1"></i>
@@ -1306,8 +1320,13 @@
 								Supplier Name
 							</label>
 
-							<input type="text" id="stockSupplierName" class="form-control" maxlength="180"
-								placeholder="Supplier">
+							<select id="stockSupplierName" class="form-select">
+
+								<option value="">
+									Select Supplier
+								</option>
+
+							</select>
 
 						</div>
 
@@ -1525,11 +1544,13 @@
 
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+	<script th:src="@{/js/common-dashboard.js}"></script>
+
 	<script th:src="@{/js/module-switch.js?v=20260716_3}"></script>
 
 	<script th:src="@{/js/saas-auth-guard.js?v=20260716_3}"></script>
 
-	<script th:src="@{/js/saas-inventory.js?v=20260716_3}"></script>
+	<script th:src="@{/js/saas-inventory.js?v=20260720_5}"></script>
 
 	<script th:src="@{/js/pwa.js?v=20260716_3}"></script>
 

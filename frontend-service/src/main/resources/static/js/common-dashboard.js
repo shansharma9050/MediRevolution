@@ -6,27 +6,52 @@ window.SAAS_MEMBER_ROLE = window.SAAS_MEMBER_ROLE || null;
 window.SAAS_OWNER_OR_ADMIN = window.SAAS_OWNER_OR_ADMIN || false;
 window.SAAS_ENABLED_MODULES = window.SAAS_ENABLED_MODULES || [];
 
-document.addEventListener("DOMContentLoaded", async function() {
-	protectDashboardPage();
-	fixUserDataFromToken();
-	setUserInfo();
+document.addEventListener(
+	"DOMContentLoaded",
+	async function() {
 
-	/*
-	 * SaaS links ko permission/module API resolve hone se pehle hide rakhta hai.
-	 * Isse wrong modules ka temporary flash bhi nahi dikhega.
-	 */
-	hideSaasMenuUntilResolved();
+		protectDashboardPage();
 
-	applyRoleBasedMenu();
-	markActiveSidebarLink();
+		fixUserDataFromToken();
 
-	loadCommonNotificationCount();
-	loadSaasNotificationCount();
+		setUserInfo();
 
-	if (typeof applySaasPermissionMenu === "function") {
-		await applySaasPermissionMenu();
+		const saasMode =
+			localStorage.getItem("saasMode") === "true";
+
+		const tenantId =
+			localStorage.getItem("tenantId");
+
+		const isSaasWorkspace =
+			saasMode && Boolean(tenantId);
+
+		if (isSaasWorkspace) {
+
+			hideSaasMenuUntilResolved();
+
+			if (
+				typeof applySaasPermissionMenu ===
+				"function"
+			) {
+				await applySaasPermissionMenu();
+			} else {
+				console.error(
+					"applySaasPermissionMenu is not loaded."
+				);
+			}
+
+		} else {
+
+			applyRoleBasedMenu();
+		}
+
+		markActiveSidebarLink();
+
+		loadCommonNotificationCount();
+
+		loadSaasNotificationCount();
 	}
-});
+);
 
 function protectDashboardPage() {
 	const token = localStorage.getItem("token");
