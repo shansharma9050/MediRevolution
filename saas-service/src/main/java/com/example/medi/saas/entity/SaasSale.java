@@ -1,5 +1,6 @@
 package com.example.medi.saas.entity;
 
+import com.example.medi.saas.enums.SaasPaymentMode;
 import com.example.medi.saas.enums.SaasSalePaymentStatus;
 import com.example.medi.saas.enums.SaasSaleStatus;
 import jakarta.persistence.*;
@@ -81,6 +82,9 @@ public class SaasSale {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "payment_status", nullable = false, length = 30)
 	private SaasSalePaymentStatus paymentStatus;
+	
+	@Enumerated(EnumType.STRING)
+	private SaasPaymentMode paymentMode;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "sale_status", nullable = false, length = 30)

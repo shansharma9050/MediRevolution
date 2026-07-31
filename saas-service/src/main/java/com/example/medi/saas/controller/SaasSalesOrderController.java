@@ -2,6 +2,8 @@ package com.example.medi.saas.controller;
 
 import com.example.medi.saas.dto.*;
 import com.example.medi.saas.service.SaasSalesOrderService;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -45,9 +47,10 @@ public class SaasSalesOrderController {
 	}
 
 	@PostMapping
-	public SaasSalesOrderResponse createOrder(@RequestBody SaasSalesOrderRequest request) {
+	public ResponseEntity<SaasSalesOrderResponse> createOrder(@RequestHeader("Authorization") String authorization,
+			@RequestBody SaasSalesOrderRequest request) {
 
-		return orderService.createOrder(request);
+		return ResponseEntity.ok(orderService.createOrder(request, authorization));
 	}
 
 	@PutMapping("/{orderId}/confirm")

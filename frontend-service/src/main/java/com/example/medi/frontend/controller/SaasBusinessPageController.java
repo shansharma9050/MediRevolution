@@ -155,4 +155,9 @@ public class SaasBusinessPageController {
 	public String moduleSelection() {
 		return "module-selection";
 	}
+	
+	@GetMapping("/saas/wholesaler/billing")
+	public String wholesalerBilling() {
+	    return "saas/saas-wholesaler-billing";
+	}
 }

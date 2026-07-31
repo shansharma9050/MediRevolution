@@ -1,5 +1,6 @@
 package com.example.medi.saas.service;
 
+import com.example.medi.saas.client.MedicineServiceClient;
 import com.example.medi.saas.dto.*;
 import com.example.medi.saas.entity.SaasMedicine;
 import com.example.medi.saas.entity.SaasMedicineStock;
@@ -13,6 +14,8 @@ import com.example.medi.saas.repository.SaasMedicineRepository;
 import com.example.medi.saas.repository.SaasMedicineStockRepository;
 import com.example.medi.saas.repository.SaasStockMovementRepository;
 import com.example.medi.saas.security.CurrentUserUtil;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,16 +33,23 @@ public class SaasInventoryService {
 	private final TenantAccessService tenantAccessService;
 	private final SaasNotificationService notificationService;
 	private final SaasPermissionService permissionService;
+	private final MedicineServiceClient medicineServiceClient;
+
+	private final String internalServiceKey;
 
 	public SaasInventoryService(SaasMedicineRepository medicineRepository, SaasMedicineStockRepository stockRepository,
 			SaasStockMovementRepository movementRepository, TenantAccessService tenantAccessService,
-			SaasNotificationService notificationService, SaasPermissionService permissionService) {
+			SaasNotificationService notificationService, SaasPermissionService permissionService,
+			MedicineServiceClient medicineServiceClient, @Value("${internal.service.key}") String internalServiceKey) {
+
 		this.medicineRepository = medicineRepository;
 		this.stockRepository = stockRepository;
 		this.movementRepository = movementRepository;
 		this.tenantAccessService = tenantAccessService;
 		this.notificationService = notificationService;
 		this.permissionService = permissionService;
+		this.medicineServiceClient = medicineServiceClient;
+		this.internalServiceKey = internalServiceKey;
 	}
 
 	public SaasMedicineResponse createMedicine(SaasMedicineRequest request) {
@@ -102,7 +112,7 @@ public class SaasInventoryService {
 	}
 
 	@Transactional
-	public SaasMedicineStockResponse addStock(SaasMedicineStockRequest request) {
+	public SaasMedicineStockResponse addStock(SaasMedicineStockRequest request, String authorization) {
 
 		validateStockRequest(request);
 
@@ -110,7 +120,7 @@ public class SaasInventoryService {
 
 		permissionService.requirePermission(request.getTenantId(), TenantModule.INVENTORY, SaasPermissionAction.CREATE);
 
-		SaasMedicine medicine = findActiveMedicine(request.getTenantId(), request.getMedicineId());
+		GlobalMedicineResponse medicine = findActiveGlobalMedicine(request.getMedicineId(), authorization);
 
 		int quantity = request.getQuantity();
 
@@ -118,7 +128,13 @@ public class SaasInventoryService {
 
 		stock.setTenantId(request.getTenantId());
 
+		// Global Medicine Id
 		stock.setMedicineId(medicine.getId());
+
+		// Snapshot
+		stock.setMedicineName(normalizeOptional(medicine.getMedicineName()));
+		stock.setMedicineType(normalizeOptional(medicine.getMedicineType()));
+		stock.setManufacturer(normalizeOptional(medicine.getManufacturer()));
 
 		stock.setBatchNumber(normalizeRequired(request.getBatchNumber(), "Batch number"));
 
@@ -127,6 +143,7 @@ public class SaasInventoryService {
 		stock.setExpiryDate(request.getExpiryDate());
 
 		stock.setOpeningQuantity(quantity);
+
 		stock.setCurrentQuantity(quantity);
 
 		stock.setPurchasePrice(nonNegativeAmount(request.getPurchasePrice(), "Purchase price"));
@@ -147,27 +164,53 @@ public class SaasInventoryService {
 
 		SaasMedicineStock saved = stockRepository.save(stock);
 
-		createMovement(saved.getTenantId(), medicine.getId(), saved.getId(), SaasStockMovementType.PURCHASE, quantity,
-				"Manual stock added", null);
+		createMovement(saved.getTenantId(), saved.getMedicineId(), saved.getId(), SaasStockMovementType.PURCHASE,
+				quantity, "Manual stock added", null);
 
 		return createStockResponseAndNotification(saved);
 	}
 
-	/*
-	 * Purchase module is method ko internally call karega.
-	 *
-	 * Same tenant + medicine + batch milne par stock merge hoga. Batch nahi milne
-	 * par new stock row create hogi.
-	 */
+	private GlobalMedicineResponse findActiveGlobalMedicine(Long medicineId, String authorization) {
+
+		if (medicineId == null) {
+			throw new RuntimeException("Medicine id is required");
+		}
+
+		if (authorization == null || authorization.isBlank()) {
+			throw new RuntimeException("Authorization header is required");
+		}
+
+		GlobalMedicineResponse medicine;
+
+		try {
+
+			medicine = medicineServiceClient.getMedicine(authorization, internalServiceKey, medicineId);
+
+		} catch (Exception ex) {
+
+			throw new RuntimeException("Medicine not found in Global Medicine Master");
+		}
+
+		if (medicine == null || medicine.getId() == null) {
+			throw new RuntimeException("Medicine not found in Global Medicine Master");
+		}
+
+		if (Boolean.FALSE.equals(medicine.isActive())) {
+			throw new RuntimeException("Selected medicine is inactive");
+		}
+
+		return medicine;
+	}
+
 	@Transactional
 	public SaasMedicineStock addOrMergePurchaseStock(Long tenantId, Long medicineId, String batchNumber,
 			LocalDate manufacturingDate, LocalDate expiryDate, Integer receivedQuantity, BigDecimal purchasePrice,
 			BigDecimal salePrice, BigDecimal mrp, BigDecimal gstPercentage, Long supplierId, String supplierName,
-			Long purchaseId) {
+			Long purchaseId, String authorization) {
 
 		tenantAccessService.validateTenantAccess(tenantId);
 
-		SaasMedicine medicine = findActiveMedicine(tenantId, medicineId);
+		GlobalMedicineResponse medicine = findActiveGlobalMedicine(medicineId, authorization);
 
 		String normalizedBatch = normalizeRequired(batchNumber, "Batch number");
 
@@ -191,22 +234,34 @@ public class SaasInventoryService {
 			stock = new SaasMedicineStock();
 
 			stock.setTenantId(tenantId);
-			stock.setMedicineId(medicineId);
+
+			stock.setMedicineId(medicine.getId());
+
+			stock.setMedicineName(normalizeOptional(medicine.getMedicineName()));
+
+			stock.setMedicineType(normalizeOptional(medicine.getMedicineType()));
+
+			stock.setManufacturer(normalizeOptional(medicine.getManufacturer()));
+
 			stock.setBatchNumber(normalizedBatch);
+
 			stock.setOpeningQuantity(quantity);
+
 			stock.setCurrentQuantity(quantity);
+
 			stock.setCreatedByAuthUserId(CurrentUserUtil.getUserId());
+
 			stock.setActive(true);
 
 		} else {
 
-			int oldOpeningQuantity = stock.getOpeningQuantity() == null ? 0 : stock.getOpeningQuantity();
+			int opening = stock.getOpeningQuantity() == null ? 0 : stock.getOpeningQuantity();
 
-			int oldCurrentQuantity = stock.getCurrentQuantity() == null ? 0 : stock.getCurrentQuantity();
+			int current = stock.getCurrentQuantity() == null ? 0 : stock.getCurrentQuantity();
 
-			stock.setOpeningQuantity(oldOpeningQuantity + quantity);
+			stock.setOpeningQuantity(opening + quantity);
 
-			stock.setCurrentQuantity(oldCurrentQuantity + quantity);
+			stock.setCurrentQuantity(current + quantity);
 
 			stock.touch();
 		}
@@ -306,7 +361,7 @@ public class SaasInventoryService {
 
 			type = SaasStockMovementType.valueOf(request.getMovementType().trim().toUpperCase(Locale.ROOT));
 
-		} catch (IllegalArgumentException exception) {
+		} catch (IllegalArgumentException ex) {
 
 			throw new RuntimeException("Invalid stock movement type");
 		}
@@ -345,11 +400,17 @@ public class SaasInventoryService {
 		SaasStockMovement movement = new SaasStockMovement();
 
 		movement.setTenantId(tenantId);
+
 		movement.setMedicineId(medicineId);
+
 		movement.setStockId(stockId);
+
 		movement.setMovementType(type);
+
 		movement.setQuantity(quantity);
+
 		movement.setRemarks(remarks);
+
 		movement.setReferenceId(referenceId);
 
 		movement.setCreatedByAuthUserId(CurrentUserUtil.getUserId());
@@ -376,10 +437,12 @@ public class SaasInventoryService {
 	private void validateMedicineRequest(SaasMedicineRequest request) {
 
 		if (request == null) {
+
 			throw new RuntimeException("Medicine request is required");
 		}
 
 		if (request.getTenantId() == null) {
+
 			throw new RuntimeException("tenantId is required");
 		}
 
@@ -389,14 +452,17 @@ public class SaasInventoryService {
 	private void validateStockRequest(SaasMedicineStockRequest request) {
 
 		if (request == null) {
+
 			throw new RuntimeException("Stock request is required");
 		}
 
 		if (request.getTenantId() == null) {
+
 			throw new RuntimeException("tenantId is required");
 		}
 
 		if (request.getMedicineId() == null) {
+
 			throw new RuntimeException("medicineId is required");
 		}
 
@@ -412,12 +478,6 @@ public class SaasInventoryService {
 
 			throw new RuntimeException("Expiry date cannot be before manufacturing date");
 		}
-	}
-
-	private SaasMedicine findActiveMedicine(Long tenantId, Long medicineId) {
-
-		return medicineRepository.findByIdAndTenantIdAndActiveTrue(medicineId, tenantId)
-				.orElseThrow(() -> new RuntimeException("Medicine not found in this workspace"));
 	}
 
 	private SaasMedicineResponse toMedicineResponse(SaasMedicine medicine) {
@@ -457,9 +517,10 @@ public class SaasInventoryService {
 
 		permissionService.requirePermission(tenantId, TenantModule.INVENTORY, SaasPermissionAction.VIEW);
 
-		int safeDays = days == null ? 90 : days;
+		int safeDays = (days == null) ? 90 : days;
 
 		if (safeDays < 1 || safeDays > 730) {
+
 			throw new RuntimeException("Near-expiry days must be between 1 and 730");
 		}
 
@@ -494,7 +555,9 @@ public class SaasInventoryService {
 						&& !stock.getExpiryDate().isBefore(today) && !stock.getExpiryDate().isAfter(nearExpiryDate))
 				.count();
 
-		return new SaasInventorySummaryResponse(medicineRepository.countByTenantIdAndActiveTrue(tenantId),
+		return new SaasInventorySummaryResponse(
+
+				medicineRepository.countByTenantIdAndActiveTrue(tenantId),
 
 				stockRepository.countByTenantIdAndActiveTrue(tenantId),
 
@@ -545,7 +608,7 @@ public class SaasInventoryService {
 
 		SaasMedicineStock stock = movement.getStockId() == null ? null
 				: stockRepository.findById(movement.getStockId())
-						.filter(item -> item.getTenantId().equals(movement.getTenantId())).orElse(null);
+						.filter(s -> s.getTenantId().equals(movement.getTenantId())).orElse(null);
 
 		return new SaasStockMovementResponse(movement.getId(), movement.getTenantId(), movement.getMedicineId(),
 				medicine == null ? null : medicine.getMedicineName(), movement.getStockId(),
@@ -560,26 +623,22 @@ public class SaasInventoryService {
 	}
 
 	private BigDecimal safeAmount(BigDecimal value) {
+
 		return value == null ? BigDecimal.ZERO : value.setScale(2, java.math.RoundingMode.HALF_UP);
 	}
 
 	private SaasMedicineStockResponse toStockResponse(SaasMedicineStock stock) {
 
-		SaasMedicine medicine = medicineRepository
-				.findByIdAndTenantIdAndActiveTrue(stock.getMedicineId(), stock.getTenantId()).orElse(null);
-
 		int currentQuantity = stock.getCurrentQuantity() == null ? 0 : stock.getCurrentQuantity();
 
-		int reorderLevel = medicine == null || medicine.getReorderLevel() == null ? 10 : medicine.getReorderLevel();
+		int reorderLevel = 10;
 
 		boolean lowStock = currentQuantity <= reorderLevel;
 
 		boolean expired = stock.getExpiryDate() != null && stock.getExpiryDate().isBefore(LocalDate.now());
 
 		return new SaasMedicineStockResponse(stock.getId(), stock.getTenantId(), stock.getMedicineId(),
-				medicine == null ? null : medicine.getMedicineName(),
-				medicine == null ? null : medicine.getMedicineType(),
-				medicine == null ? null : medicine.getManufacturer(), stock.getBatchNumber(),
+				stock.getMedicineName(), stock.getMedicineType(), stock.getManufacturer(), stock.getBatchNumber(),
 				stock.getManufacturingDate(), stock.getExpiryDate(), stock.getOpeningQuantity(),
 				stock.getCurrentQuantity(), stock.getPurchasePrice(), stock.getSalePrice(), stock.getMrp(),
 				stock.getGstPercentage(), stock.getSupplierId(), stock.getSupplierName(), stock.getLastPurchaseId(),
@@ -603,7 +662,7 @@ public class SaasInventoryService {
 			return null;
 		}
 
-		String normalized = value.trim().replaceAll("\\s+", " ");
+		String normalized = value.trim().replaceAll("\\\\s+", " ");
 
 		return normalized.isBlank() ? null : normalized;
 	}

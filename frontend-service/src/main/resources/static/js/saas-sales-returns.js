@@ -1,11 +1,3 @@
-const API_BASE =
-	"http://localhost:8080";
-
-/*
-const API_BASE =
-	"https://medirevolution-api-gateway.onrender.com";
-*/
-
 let salesReturnList = [];
 let salesReturnSales = [];
 let salesReturnAvailability = [];

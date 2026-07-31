@@ -1,11 +1,3 @@
-const API_BASE =
-	"http://localhost:8080";
-
-/*
-const API_BASE =
-	"https://medirevolution-api-gateway.onrender.com";
-*/
-
 let saleList = [];
 let saleCustomers = [];
 let saleMedicines = [];
@@ -335,7 +327,7 @@ async function loadSaleMedicines() {
 
 	const result =
 		await saleApiRequest(
-			`${API_BASE}/saas/inventory/medicines` +
+			`${API_BASE}/saas/medicine-master` +
 			`?tenantId=${encodeURIComponent(tenantId)}`
 		);
 
@@ -343,24 +335,84 @@ async function loadSaleMedicines() {
 
 		saleMedicines = [];
 
+		console.error(
+			"Unable to load medicines from Global Medicine Master:",
+			{
+				status: result.status,
+				response: result.data
+			}
+		);
+
 		showMsg(
 			getSaleErrorMessage(
 				result.data,
-				"Unable to load medicines."
+				"Unable to load medicines from Medicine Master."
 			)
 		);
 
 		refreshSaleMedicineDropdowns();
 
-		return;
+		return false;
 	}
 
+	const responseData =
+		result.data;
+
+	if (Array.isArray(responseData)) {
+
+		saleMedicines =
+			responseData;
+
+	} else if (
+		responseData &&
+		Array.isArray(responseData.medicines)
+	) {
+
+		saleMedicines =
+			responseData.medicines;
+
+	} else if (
+		responseData &&
+		Array.isArray(responseData.content)
+	) {
+
+		saleMedicines =
+			responseData.content;
+
+	} else if (
+		responseData &&
+		Array.isArray(responseData.data)
+	) {
+
+		saleMedicines =
+			responseData.data;
+
+	} else {
+
+		saleMedicines = [];
+	}
+
+	/*
+	 * Inactive medicines sale dropdown me nahi dikhengi.
+	 */
 	saleMedicines =
-		Array.isArray(result.data)
-			? result.data
-			: [];
+		saleMedicines.filter(
+			function(medicine) {
+
+				return (
+					medicine.active !== false
+				);
+			}
+		);
+
+	console.log(
+		"Loaded sale medicines from Global Medicine Master:",
+		saleMedicines
+	);
 
 	refreshSaleMedicineDropdowns();
+
+	return saleMedicines.length > 0;
 }
 
 
@@ -623,15 +675,26 @@ function openSaleForm() {
 		return;
 	}
 
-	if (!saleMedicines.length) {
+	const medicinesWithStock =
+		saleMedicines.filter(
+			function(medicine) {
+
+				return (
+					getAvailableQuantityForMedicine(
+						medicine.id
+					) > 0
+				);
+			}
+		);
+
+	if (!medicinesWithStock.length) {
 
 		showMsg(
-			"No tenant medicines are available."
+			"No saleable medicine stock is available. Please add inventory stock first."
 		);
 
 		return;
 	}
-
 	const panel =
 		document.getElementById(
 			"saleFormPanel"
@@ -826,28 +889,57 @@ function buildSaleMedicineOptions() {
 	saleMedicines.forEach(
 		function(medicine) {
 
-			const available =
-				getAvailableQuantityForMedicine(
-					medicine.id
+			const medicineId =
+				Number(
+					medicine.id || 0
 				);
 
+			if (!medicineId) {
+				return;
+			}
+
+			const available =
+				getAvailableQuantityForMedicine(
+					medicineId
+				);
+
+			/*
+			 * Sirf wahi medicine sale dropdown me dikhayenge
+			 * jiska inventory stock available hai.
+			 */
+			if (available <= 0) {
+				return;
+			}
+
+			const medicineName =
+				String(
+					medicine.medicineName ||
+					"Medicine"
+				).trim();
+
 			const details = [
-				medicine.strength,
-				medicine.unit,
+				medicine.brandName,
+				medicine.medicineType,
 				medicine.manufacturer
 			]
+				.map(
+					function(value) {
+
+						return String(
+							value || ""
+						).trim();
+					}
+				)
 				.filter(Boolean)
 				.join(" - ");
 
 			html += `
-				<option value="${Number(medicine.id)}">
+				<option value="${medicineId}">
 
-					${escapeHtml(
-				medicine.medicineName
-			)}
+					${escapeHtml(medicineName)}
 
 					${details
-					? `(${escapeHtml(details)})`
+					? ` (${escapeHtml(details)})`
 					: ""
 				}
 
@@ -1326,6 +1418,16 @@ async function saveSale() {
 					JSON.stringify(payload)
 			}
 		);
+
+	console.log(
+		"Save sale response:",
+		{
+			status: result.status,
+			ok: result.ok,
+			data: result.data,
+			payload: payload
+		}
+	);
 
 	isSavingSale =
 		false;

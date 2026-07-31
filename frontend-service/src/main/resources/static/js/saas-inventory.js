@@ -1015,6 +1015,13 @@ function renderInventoryStocks(
 			? stocks
 			: [];
 
+	/*
+	 * IMPORTANT:
+	 * View, History aur Adjust isi global list se stock find karte hain.
+	 */
+	inventoryStocks =
+		list;
+
 	if (!list.length) {
 
 		tbody.innerHTML = `
@@ -1048,6 +1055,7 @@ function renderInventoryStocks(
 		return;
 	}
 
+	// Baaki existing code bilkul same rahega.
 	tbody.innerHTML =
 		list.map(
 			function(stock, index) {

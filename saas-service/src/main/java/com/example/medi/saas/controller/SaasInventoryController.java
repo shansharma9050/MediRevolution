@@ -40,8 +40,11 @@ public class SaasInventoryController {
 	}
 
 	@PostMapping("/stocks")
-	public SaasMedicineStockResponse addStock(@RequestBody SaasMedicineStockRequest request) {
-		return inventoryService.addStock(request);
+	public SaasMedicineStockResponse addStock(@RequestBody SaasMedicineStockRequest request,
+
+			@RequestHeader("Authorization") String authorization) {
+
+		return inventoryService.addStock(request, authorization);
 	}
 
 	@GetMapping("/stocks")

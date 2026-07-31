@@ -170,7 +170,7 @@ async function loadMedicines() {
 
 	const response =
 		await apiRequest(
-			`${API_BASE}/saas/inventory/medicines` +
+			`${API_BASE}/saas/medicine-master` +
 			`?tenantId=${encodeURIComponent(tenantId)}`
 		);
 
@@ -674,9 +674,9 @@ function buildMedicineOptions() {
 				<option value="${escapeHtml(medicineId)}">
 					${escapeHtml(medicineName)}
 					${detail
-						? `(${escapeHtml(detail)})`
-						: ""
-					}
+					? `(${escapeHtml(detail)})`
+					: ""
+				}
 				</option>
 			`;
 		}

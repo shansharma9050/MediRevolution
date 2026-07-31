@@ -112,22 +112,14 @@ public interface SaasMedicineStockRepository extends JpaRepository<SaasMedicineS
 			     OR LOWER(COALESCE(s.supplierName, ''))
 			            LIKE LOWER(CONCAT('%', :keyword, '%'))
 
-			     OR EXISTS (
-			            SELECT m.id
-			            FROM SaasMedicine m
-			            WHERE m.id = s.medicineId
-			              AND m.tenantId = :tenantId
-			              AND (
-			                    LOWER(m.medicineName)
-			                        LIKE LOWER(CONCAT('%', :keyword, '%'))
+			     OR LOWER(COALESCE(s.medicineName, ''))
+			            LIKE LOWER(CONCAT('%', :keyword, '%'))
 
-			                 OR LOWER(COALESCE(m.manufacturer, ''))
-			                        LIKE LOWER(CONCAT('%', :keyword, '%'))
+			     OR LOWER(COALESCE(s.medicineType, ''))
+			            LIKE LOWER(CONCAT('%', :keyword, '%'))
 
-			                 OR LOWER(COALESCE(m.saltName, ''))
-			                        LIKE LOWER(CONCAT('%', :keyword, '%'))
-			              )
-			     )
+			     OR LOWER(COALESCE(s.manufacturer, ''))
+			            LIKE LOWER(CONCAT('%', :keyword, '%'))
 			  )
 			ORDER BY s.createdAt DESC
 			""")

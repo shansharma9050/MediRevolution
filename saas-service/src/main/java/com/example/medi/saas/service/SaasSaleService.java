@@ -160,6 +160,8 @@ public class SaasSaleService {
 		sale.setTaxableAmount(calculatedSale.taxableAmount());
 
 		sale.setGstAmount(calculatedSale.gstAmount());
+		
+		sale.setPaymentMode(request.getPaymentMode());
 
 		sale.setOtherCharges(otherCharges);
 
@@ -183,9 +185,25 @@ public class SaasSaleService {
 
 		for (SaasSaleItemRequest itemRequest : request.getItems()) {
 
-			SaasMedicine medicine = medicineRepository
-					.findByIdAndTenantIdAndActiveTrue(itemRequest.getMedicineId(), tenantId)
-					.orElseThrow(() -> new RuntimeException("Medicine not found in this workspace"));
+			Long medicineId = itemRequest.getMedicineId();
+
+			if (medicineId == null) {
+				throw new RuntimeException("Medicine id is required");
+			}
+
+			List<SaasMedicineStock> availableStocks = stockRepository.findAvailableBatchesForSale(tenantId, medicineId,
+					LocalDate.now());
+
+			if (availableStocks == null || availableStocks.isEmpty()) {
+
+				throw new RuntimeException("No saleable stock is available for the selected medicine");
+			}
+
+			SaasMedicineStock firstStock = availableStocks.get(0);
+
+			String medicineName = firstStock.getMedicineName();
+			String medicineType = firstStock.getMedicineType();
+			String manufacturer = firstStock.getManufacturer();
 
 			CalculatedItem calculatedItem = calculateItem(itemRequest);
 
@@ -193,10 +211,10 @@ public class SaasSaleService {
 
 			saleItem.setTenantId(tenantId);
 			saleItem.setSaleId(savedSale.getId());
-			saleItem.setMedicineId(medicine.getId());
-			saleItem.setMedicineName(medicine.getMedicineName());
-			saleItem.setMedicineType(medicine.getMedicineType());
-			saleItem.setManufacturer(medicine.getManufacturer());
+			saleItem.setMedicineId(medicineId);
+			saleItem.setMedicineName(medicineName);
+			saleItem.setMedicineType(medicineType);
+			saleItem.setManufacturer(manufacturer);
 
 			saleItem.setQuantity(itemRequest.getQuantity());
 
@@ -226,7 +244,6 @@ public class SaasSaleService {
 				SaasLedgerEntryType.SALE, "SALE", savedSale.getId(), savedSale.getSaleNumber(),
 				savedSale.getGrandTotal(), BigDecimal.ZERO, "Sale invoice posted: " + savedSale.getSaleNumber());
 
-		
 		if (savedSale.getPaidAmount() != null && savedSale.getPaidAmount().compareTo(BigDecimal.ZERO) > 0) {
 
 			ledgerService.postLedgerEntry(savedSale.getTenantId(), SaasPaymentPartyType.CUSTOMER,

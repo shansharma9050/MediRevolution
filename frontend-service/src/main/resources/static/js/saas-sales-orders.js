@@ -1,11 +1,3 @@
-const API_BASE =
-	"http://localhost:8080";
-
-/*
-const API_BASE =
-	"https://medirevolution-api-gateway.onrender.com";
-*/
-
 let salesOrderList = [];
 let salesOrderCustomers = [];
 let salesOrderMedicines = [];
@@ -458,7 +450,7 @@ async function loadSalesOrderMedicines() {
 
 	const result =
 		await salesOrderApiRequest(
-			`${API_BASE}/saas/inventory/medicines` +
+			`${API_BASE}/saas/medicine-master` +
 			`?tenantId=${encodeURIComponent(tenantId)}`
 		);
 

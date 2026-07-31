@@ -2,6 +2,8 @@ package com.example.medi.saas.controller;
 
 import com.example.medi.saas.dto.*;
 import com.example.medi.saas.service.SaasPurchaseService;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,7 +40,9 @@ public class SaasPurchaseController {
 	}
 
 	@PostMapping
-	public SaasPurchaseResponse createPurchase(@RequestBody SaasPurchaseRequest request) {
-		return purchaseService.createPurchase(request);
+	public ResponseEntity<SaasPurchaseResponse> createPurchase(@RequestBody SaasPurchaseRequest request,
+			@RequestHeader("Authorization") String authorization) {
+
+		return ResponseEntity.ok(purchaseService.createPurchase(request, authorization));
 	}
 }

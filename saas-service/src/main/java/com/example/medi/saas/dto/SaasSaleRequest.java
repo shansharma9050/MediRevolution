@@ -6,6 +6,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.example.medi.saas.enums.SaasPaymentMode;
+
 @Data
 public class SaasSaleRequest {
 
@@ -20,6 +22,8 @@ public class SaasSaleRequest {
 	private BigDecimal roundOffAmount;
 
 	private BigDecimal paidAmount;
+	
+	private SaasPaymentMode paymentMode;
 
 	private String remarks;
 

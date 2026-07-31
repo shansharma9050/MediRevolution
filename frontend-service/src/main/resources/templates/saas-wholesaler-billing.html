@@ -1,0 +1,2521 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+	<meta charset="UTF-8">
+	<title>MediRevolution | SaaS Wholesaler Billing</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<link rel="manifest" href="/manifest.json">
+
+	<meta name="theme-color" content="#05285f">
+
+	<meta name="mobile-web-app-capable" content="yes">
+
+	<meta name="apple-mobile-web-app-capable" content="yes">
+
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.saas-billing-page {
+
+			position: relative;
+
+			min-height: 100vh;
+
+			animation: fadePage .5s ease;
+
+		}
+
+
+
+		.saas-billing-hero {
+
+			position: relative;
+
+			overflow: hidden;
+
+			display: flex;
+
+			justify-content: space-between;
+
+			align-items: center;
+
+			gap: 30px;
+
+			padding: 45px;
+
+			margin-bottom: 28px;
+
+			border-radius: 30px;
+
+			background:
+
+				linear-gradient(135deg,
+
+					#05285f 0%,
+
+					#08739f 48%,
+
+					#08c7d4 100%);
+
+			color: white;
+
+			box-shadow:
+
+				0 25px 70px rgba(5, 40, 95, .25);
+
+		}
+
+
+
+		.saas-billing-hero::before {
+
+			content: "";
+
+			position: absolute;
+
+			width: 340px;
+
+			height: 340px;
+
+			border-radius: 50%;
+
+			border: 60px solid rgba(255, 255, 255, .08);
+
+			right: -120px;
+
+			top: -130px;
+
+		}
+
+
+
+		.saas-billing-hero::after {
+
+			content: "";
+
+			position: absolute;
+
+			width: 380px;
+
+			height: 380px;
+
+			border-radius: 50%;
+
+			left: 25%;
+
+			bottom: -180px;
+
+			background:
+
+				radial-gradient(circle,
+
+					rgba(130, 240, 40, .25),
+
+					transparent 70%);
+
+		}
+
+
+
+		.saas-billing-hero-content {
+
+			position: relative;
+
+			z-index: 2;
+
+		}
+
+
+
+		.saas-billing-kicker {
+
+			display: inline-flex;
+
+			align-items: center;
+
+			gap: 8px;
+
+			padding: 8px 15px;
+
+			border-radius: 30px;
+
+			background: rgba(255, 255, 255, .12);
+
+			border: 1px solid rgba(255, 255, 255, .18);
+
+			text-transform: uppercase;
+
+			font-size: 11px;
+
+			font-weight: 800;
+
+			letter-spacing: 1px;
+
+		}
+
+
+
+		.saas-billing-hero h1 {
+
+			margin-top: 18px;
+
+			font-size: 50px;
+
+			font-weight: 900;
+
+		}
+
+
+
+		.saas-billing-hero h1 span {
+
+			color: #b6f35d;
+
+		}
+
+
+
+		.saas-billing-hero p {
+
+			margin-top: 18px;
+
+			max-width: 720px;
+
+			line-height: 1.8;
+
+			color: rgba(255, 255, 255, .87);
+
+		}
+
+
+
+		.saas-billing-meta {
+
+			display: flex;
+
+			flex-wrap: wrap;
+
+			gap: 12px;
+
+			margin-top: 25px;
+
+		}
+
+
+
+		.saas-billing-meta span {
+
+			display: flex;
+
+			align-items: center;
+
+			gap: 8px;
+
+			padding: 10px 15px;
+
+			border-radius: 50px;
+
+			background: rgba(255, 255, 255, .13);
+
+			font-size: 12px;
+
+			font-weight: 700;
+
+		}
+
+
+
+		.saas-billing-hero-action {
+
+			position: relative;
+
+			z-index: 2;
+
+			width: 260px;
+
+			text-align: center;
+
+			border-radius: 26px;
+
+			padding: 28px;
+
+			backdrop-filter: blur(16px);
+
+			background: rgba(255, 255, 255, .10);
+
+			border: 1px solid rgba(255, 255, 255, .18);
+
+		}
+
+
+
+		.saas-billing-hero-icon {
+
+			width: 72px;
+
+			height: 72px;
+
+			margin: auto;
+
+			margin-bottom: 18px;
+
+			display: flex;
+
+			justify-content: center;
+
+			align-items: center;
+
+			border-radius: 20px;
+
+			background: white;
+
+			color: #05285f;
+
+			font-size: 31px;
+
+			box-shadow: 0 20px 40px rgba(0, 0, 0, .18);
+
+		}
+
+
+
+		.saas-billing-create-button {
+
+			width: 100%;
+
+			height: 48px;
+
+			margin-top: 18px;
+
+			border: none;
+
+			border-radius: 14px;
+
+			background: white;
+
+			color: #05285f;
+
+			font-weight: 800;
+
+			transition: .3s;
+
+		}
+
+
+
+		.saas-billing-create-button:hover {
+
+			transform: translateY(-3px);
+
+		}
+
+
+
+		@keyframes fadePage {
+
+			from {
+
+				opacity: 0;
+
+				transform: translateY(20px);
+
+			}
+
+			to {
+
+				opacity: 1;
+
+				transform: none;
+
+			}
+
+		}
+
+
+
+		@media(max-width:992px) {
+
+			.saas-billing-hero {
+
+				flex-direction: column;
+
+				align-items: flex-start;
+
+			}
+
+
+
+			.saas-billing-hero-action {
+
+				width: 100%;
+
+			}
+
+		}
+	</style>
+
+</head>
+
+<body class="dashboard-body saas-dashboard-body">
+
+	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
+
+	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
+
+	<main class="mr-main saas-main saas-billing-page">
+
+		<section class="saas-billing-hero">
+
+			<div class="saas-billing-hero-content">
+
+				<span class="saas-billing-kicker">
+
+					<i class="bi bi-receipt-cutoff"></i>
+
+					SaaS GST Billing System
+
+				</span>
+
+				<h1>
+
+					Wholesaler
+
+					<span>Billing</span>
+
+				</h1>
+
+				<p>
+
+					Create professional GST sales invoices,
+
+					manage customer billing,
+
+					track received payments,
+
+					generate printable invoices
+
+					and maintain complete sales history for your wholesale business.
+
+				</p>
+
+				<div class="saas-billing-meta">
+
+					<span>
+
+						<i class="bi bi-file-earmark-text-fill"></i>
+
+						GST Invoice
+
+					</span>
+
+					<span>
+
+						<i class="bi bi-people-fill"></i>
+
+						Customer Billing
+
+					</span>
+
+					<span>
+
+						<i class="bi bi-credit-card-fill"></i>
+
+						Payment Tracking
+
+					</span>
+
+					<span>
+
+						<i class="bi bi-printer-fill"></i>
+
+						Invoice Print
+
+					</span>
+
+				</div>
+
+			</div>
+
+			<div class="saas-billing-hero-action">
+
+				<div class="saas-billing-hero-icon">
+
+					<i class="bi bi-receipt"></i>
+
+				</div>
+
+				<h5 class="fw-bold">
+
+					Create Sales Invoice
+
+				</h5>
+
+				<p class="small text-white-50">
+
+					Generate GST Invoice for Customer
+
+				</p>
+
+				<button type="button" class="saas-billing-create-button" id="createInvoiceBtn"
+					onclick="openInvoiceModal()">
+
+					<i class="bi bi-plus-circle-fill"></i>
+
+					Create Invoice
+
+				</button>
+
+			</div>
+
+		</section>
+
+		<div id="msg"></div>
+
+		<!-- ===========================
+     SUMMARY CARDS
+=========================== -->
+
+		<section class="billing-summary-grid">
+
+			<article class="billing-summary-card">
+
+				<div class="billing-summary-icon">
+					<i class="bi bi-receipt-cutoff"></i>
+				</div>
+
+				<small>Total Invoices</small>
+
+				<strong id="totalInvoices">0</strong>
+
+			</article>
+
+
+			<article class="billing-summary-card">
+
+				<div class="billing-summary-icon">
+					<i class="bi bi-currency-rupee"></i>
+				</div>
+
+				<small>Total Sales</small>
+
+				<strong id="totalSalesAmount">
+					₹0.00
+				</strong>
+
+			</article>
+
+
+			<article class="billing-summary-card">
+
+				<div class="billing-summary-icon">
+					<i class="bi bi-wallet2"></i>
+				</div>
+
+				<small>Received Amount</small>
+
+				<strong id="totalReceivedAmount">
+					₹0.00
+				</strong>
+
+			</article>
+
+
+			<article class="billing-summary-card">
+
+				<div class="billing-summary-icon">
+					<i class="bi bi-exclamation-circle-fill"></i>
+				</div>
+
+				<small>Outstanding Due</small>
+
+				<strong id="totalDueAmount">
+					₹0.00
+				</strong>
+
+			</article>
+
+		</section>
+
+
+
+		<!-- ===========================
+        FILTER CARD
+=========================== -->
+
+		<section class="mr-card billing-card mb-4">
+
+			<div class="billing-section-header">
+
+				<div class="billing-title-wrap">
+
+					<div class="billing-title-icon">
+
+						<i class="bi bi-funnel-fill"></i>
+
+					</div>
+
+					<div>
+
+						<small>
+							Sales Filters
+						</small>
+
+						<h5>
+							Customer Invoice Search
+						</h5>
+
+					</div>
+
+				</div>
+
+			</div>
+
+
+			<div class="row g-3 align-items-end">
+
+				<div class="col-lg-3 billing-control">
+
+					<label class="form-label">
+						Customer
+					</label>
+
+					<i class="bi bi-person-fill"></i>
+
+					<select id="filterCustomerId" class="form-select">
+
+						<option value="">
+							All Customers
+						</option>
+
+					</select>
+
+				</div>
+
+
+
+				<div class="col-lg-3 billing-control">
+
+					<label class="form-label">
+						Invoice Status
+					</label>
+
+					<i class="bi bi-check-circle-fill"></i>
+
+					<select id="filterStatus" class="form-select">
+
+						<option value="">
+							All Status
+						</option>
+
+						<option value="PAID">
+							Paid
+						</option>
+
+						<option value="PARTIAL">
+							Partial
+						</option>
+
+						<option value="UNPAID">
+							Unpaid
+						</option>
+
+						<option value="CANCELLED">
+							Cancelled
+						</option>
+
+					</select>
+
+				</div>
+
+
+
+				<div class="col-lg-3 billing-control">
+
+					<label class="form-label">
+						Date Range
+					</label>
+
+					<i class="bi bi-calendar-event-fill"></i>
+
+					<select id="filterDateRange" class="form-select">
+
+						<option value="">
+							All Dates
+						</option>
+
+						<option value="TODAY">
+							Today
+						</option>
+
+						<option value="THIS_WEEK">
+							This Week
+						</option>
+
+						<option value="THIS_MONTH">
+							This Month
+						</option>
+
+					</select>
+
+				</div>
+
+
+
+				<div class="col-lg-3 d-grid">
+
+					<button class="btn btn-medi" onclick="applyInvoiceFilters()">
+
+						<i class="bi bi-search me-1"></i>
+
+						Search Invoice
+
+					</button>
+
+				</div>
+
+			</div>
+
+		</section>
+
+
+
+
+
+		<!-- ===========================
+        INVOICE TABLE
+=========================== -->
+
+		<section class="mr-card billing-card">
+
+			<div class="billing-section-header">
+
+				<div class="billing-title-wrap">
+
+					<div class="billing-title-icon">
+
+						<i class="bi bi-journal-text"></i>
+
+					</div>
+
+					<div>
+
+						<small>
+
+							GST Sales Register
+
+						</small>
+
+						<h5>
+
+							Sales Invoice List
+
+						</h5>
+
+					</div>
+
+				</div>
+
+
+				<button class="btn btn-outline-primary" onclick="loadInvoices()">
+
+					<i class="bi bi-arrow-clockwise me-1"></i>
+
+					Refresh
+
+				</button>
+
+			</div>
+
+
+
+			<div class="table-responsive billing-table-wrap">
+
+				<table class="table table-hover align-middle">
+
+					<thead>
+
+						<tr>
+
+							<th>Invoice No</th>
+
+							<th>Customer</th>
+
+							<th>Items</th>
+
+							<th>Subtotal</th>
+
+							<th>GST</th>
+
+							<th>Grand Total</th>
+
+							<th>Paid</th>
+
+							<th>Due</th>
+
+							<th>Status</th>
+
+							<th style="width:260px;">
+
+								Action
+
+							</th>
+
+						</tr>
+
+					</thead>
+
+					<tbody id="invoiceTableBody">
+
+						<tr>
+
+							<td colspan="10">
+
+								<div class="billing-state">
+
+									<div class="billing-state-icon billing-loading">
+
+										<i class="bi bi-receipt-cutoff"></i>
+
+									</div>
+
+									<h5 class="fw-bold text-primary">
+
+										Loading Sales Invoices...
+
+									</h5>
+
+									<p class="text-muted mb-0">
+
+										Please wait while invoices are loading.
+
+									</p>
+
+								</div>
+
+							</td>
+
+						</tr>
+
+					</tbody>
+
+				</table>
+
+			</div>
+
+		</section>
+
+		<!-- ==========================================================
+                CREATE SALES INVOICE MODAL
+=========================================================== -->
+
+		<div class="modal fade billing-modal" id="invoiceModal" tabindex="-1" aria-hidden="true">
+
+			<div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+
+				<div class="modal-content">
+
+					<div class="modal-header">
+
+						<div>
+
+							<div class="small text-white-50 fw-bold text-uppercase mb-1">
+								SaaS Wholesaler Billing
+							</div>
+
+							<h5 class="modal-title">
+								Create Sales Invoice
+							</h5>
+
+						</div>
+
+						<button type="button" class="btn-close" data-bs-dismiss="modal">
+						</button>
+
+					</div>
+
+					<div class="modal-body">
+
+						<div class="row g-3">
+
+							<!-- Customer -->
+
+							<div class="col-lg-4 billing-control">
+
+								<label class="form-label">
+									Customer *
+								</label>
+
+								<i class="bi bi-person-fill"></i>
+
+								<select id="customerId" class="form-select">
+
+									<option value="">
+										Select Customer
+									</option>
+
+								</select>
+
+							</div>
+
+							<!-- Invoice Date -->
+
+							<div class="col-lg-4 billing-control">
+
+								<label class="form-label">
+									Invoice Date *
+								</label>
+
+								<i class="bi bi-calendar-date-fill"></i>
+
+								<input type="date" id="invoiceDate" class="form-control">
+
+							</div>
+
+							<!-- Payment Mode -->
+
+							<div class="col-lg-4 billing-control">
+
+								<label class="form-label">
+									Payment Mode
+								</label>
+
+								<i class="bi bi-credit-card-fill"></i>
+
+								<select id="paymentMode" class="form-select">
+
+									<option value="CASH">Cash</option>
+
+									<option value="UPI">UPI</option>
+
+									<option value="CARD">Card</option>
+
+									<option value="BANK_TRANSFER">
+										Bank Transfer
+									</option>
+
+									<option value="CREDIT">
+										Credit
+									</option>
+
+								</select>
+
+							</div>
+
+							<!-- GST Number -->
+
+							<div class="col-lg-4 billing-control">
+
+								<label class="form-label">
+									GST Number
+								</label>
+
+								<i class="bi bi-upc-scan"></i>
+
+								<input id="gstNumber" class="form-control" placeholder="Customer GST Number" readonly>
+
+							</div>
+
+							<!-- Transport -->
+
+							<div class="col-lg-4 billing-control">
+
+								<label class="form-label">
+									Transport Charge
+								</label>
+
+								<i class="bi bi-truck"></i>
+
+								<input id="transportCharge" type="number" value="0" min="0" step="0.01"
+									class="form-control" oninput="updateInvoicePreview()">
+
+							</div>
+
+							<!-- Notes -->
+
+							<div class="col-lg-12 billing-control">
+
+								<label class="form-label">
+
+									Notes
+
+								</label>
+
+								<i class="bi bi-journal-text"></i>
+
+								<textarea id="notes" class="form-control" rows="2"
+									placeholder="Invoice Notes"></textarea>
+
+							</div>
+
+							<!-- ======================================================
+                            INVOICE ITEMS
+                    ====================================================== -->
+
+							<div class="col-12">
+
+								<div class="d-flex justify-content-between align-items-center mb-3">
+
+									<div>
+
+										<div class="small text-muted fw-bold">
+
+											SALES ITEMS
+
+										</div>
+
+										<h5 class="fw-bold text-primary mb-0">
+
+											Invoice Medicines
+
+										</h5>
+
+									</div>
+
+									<button type="button" class="btn btn-outline-primary btn-sm"
+										onclick="addInvoiceItemRow()">
+
+										<i class="bi bi-plus-circle-fill me-1"></i>
+
+										Add Medicine
+
+									</button>
+
+								</div>
+
+								<div class="table-responsive invoice-item-table">
+
+									<table class="table table-bordered align-middle">
+
+										<thead>
+
+											<tr>
+
+												<th style="min-width:230px;">
+													Medicine
+												</th>
+
+												<th style="width:120px;">
+													Batch
+												</th>
+
+												<th style="width:90px;">
+													Qty
+												</th>
+
+												<th style="width:120px;">
+													Rate
+												</th>
+
+												<th style="width:90px;">
+													GST %
+												</th>
+
+												<th style="width:110px;">
+													Discount
+												</th>
+
+												<th style="width:130px;">
+													Total
+												</th>
+
+												<th style="width:70px;">
+													Action
+												</th>
+
+											</tr>
+
+										</thead>
+
+										<tbody id="invoiceItemRows">
+
+										</tbody>
+
+									</table>
+
+								</div>
+
+							</div>
+
+							<!-- ============================================
+                            BILL SUMMARY
+                    ============================================ -->
+
+							<div class="col-12">
+
+								<div class="invoice-preview">
+
+									<div>
+
+										<small>
+
+											Subtotal
+
+										</small>
+
+										<strong>
+
+											₹<span id="previewSubtotal">
+
+												0.00
+
+											</span>
+
+										</strong>
+
+									</div>
+
+									<div>
+
+										<small>
+
+											GST
+
+										</small>
+
+										<strong>
+
+											₹<span id="previewGST">
+
+												0.00
+
+											</span>
+
+										</strong>
+
+									</div>
+
+									<div>
+
+										<small>
+
+											Discount
+
+										</small>
+
+										<strong>
+
+											₹<span id="previewDiscount">
+
+												0.00
+
+											</span>
+
+										</strong>
+
+									</div>
+
+									<div>
+
+										<small>
+
+											Transport
+
+										</small>
+
+										<strong>
+
+											₹<span id="previewTransport">
+
+												0.00
+
+											</span>
+
+										</strong>
+
+									</div>
+
+									<div>
+
+										<small>
+
+											Grand Total
+
+										</small>
+
+										<strong>
+
+											₹<span id="previewGrandTotal">
+
+												0.00
+
+											</span>
+
+										</strong>
+
+									</div>
+
+									<div>
+
+										<small>
+
+											Paid Amount
+
+										</small>
+
+										<strong>
+
+											₹<span id="previewPaid">
+
+												0.00
+
+											</span>
+
+										</strong>
+
+									</div>
+
+									<div>
+
+										<small>
+
+											Balance Due
+
+										</small>
+
+										<strong>
+
+											₹<span id="previewDue">
+
+												0.00
+
+											</span>
+
+										</strong>
+
+									</div>
+
+								</div>
+
+							</div>
+
+						</div>
+
+					</div>
+
+					<div class="modal-footer">
+
+						<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+
+							Close
+
+						</button>
+
+						<button type="button" id="saveInvoiceBtn" class="btn btn-medi" onclick="saveInvoice()">
+
+							<i class="bi bi-check-circle-fill me-1"></i>
+
+							Save Invoice
+
+						</button>
+
+					</div>
+
+				</div>
+
+			</div>
+
+		</div>
+
+		<!-- ========================================================= -->
+		<!-- UPDATE PAYMENT MODAL -->
+		<!-- ========================================================= -->
+		<div class="modal fade billing-modal" id="paymentModal" tabindex="-1" aria-hidden="true">
+
+			<div class="modal-dialog modal-dialog-centered">
+
+				<div class="modal-content">
+
+					<div class="modal-header">
+
+						<div>
+							<div class="small text-white-50 fw-bold text-uppercase">
+								Payment Collection
+							</div>
+
+							<h5 class="modal-title">
+								Update Invoice Payment
+							</h5>
+						</div>
+
+						<button type="button" class="btn-close" data-bs-dismiss="modal">
+						</button>
+
+					</div>
+
+					<div class="modal-body">
+
+						<input type="hidden" id="paymentInvoiceId">
+
+						<div class="row g-3">
+
+							<div class="col-md-12 billing-control">
+
+								<label class="form-label">
+									Invoice Number
+								</label>
+
+								<i class="bi bi-receipt"></i>
+
+								<input id="paymentInvoiceNumber" class="form-control" readonly>
+
+							</div>
+
+							<div class="col-md-6 billing-control">
+
+								<label class="form-label">
+									Total Invoice
+								</label>
+
+								<i class="bi bi-currency-rupee"></i>
+
+								<input id="paymentInvoiceTotal" class="form-control" readonly>
+
+							</div>
+
+							<div class="col-md-6 billing-control">
+
+								<label class="form-label">
+									Balance Due
+								</label>
+
+								<i class="bi bi-wallet2"></i>
+
+								<input id="paymentInvoiceDue" class="form-control" readonly>
+
+							</div>
+
+							<div class="col-md-6 billing-control">
+
+								<label class="form-label">
+									Payment Amount *
+								</label>
+
+								<i class="bi bi-cash-stack"></i>
+
+								<input id="paymentAmountInput" type="number" step="0.01" min="0" class="form-control">
+
+							</div>
+
+							<div class="col-md-6 billing-control">
+
+								<label class="form-label">
+									Payment Mode *
+								</label>
+
+								<i class="bi bi-credit-card"></i>
+
+								<select id="paymentModeInput" class="form-select">
+
+									<option value="CASH">Cash</option>
+									<option value="UPI">UPI</option>
+									<option value="CARD">Card</option>
+									<option value="BANK_TRANSFER">Bank Transfer</option>
+									<option value="ONLINE">Online</option>
+									<option value="CHEQUE">Cheque</option>
+
+								</select>
+
+							</div>
+
+							<div class="col-md-12 billing-control">
+
+								<label class="form-label">
+									Transaction Reference
+								</label>
+
+								<i class="bi bi-upc-scan"></i>
+
+								<input id="paymentTransactionIdInput" class="form-control"
+									placeholder="Optional Transaction Id">
+
+							</div>
+
+							<div class="col-md-12 billing-control">
+
+								<label class="form-label">
+									Payment Notes
+								</label>
+
+								<i class="bi bi-chat-left-text"></i>
+
+								<textarea id="paymentRemarks" class="form-control" rows="3"
+									placeholder="Optional remarks"></textarea>
+
+							</div>
+
+						</div>
+
+					</div>
+
+					<div class="modal-footer">
+
+						<button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+							Close
+						</button>
+
+						<button id="savePaymentBtn" class="btn btn-medi" onclick="submitInvoicePayment()">
+
+							<i class="bi bi-check-circle-fill me-1"></i>
+
+							Update Payment
+
+						</button>
+
+					</div>
+
+				</div>
+
+			</div>
+
+		</div>
+
+
+
+		<!-- ========================================================= -->
+		<!-- VIEW INVOICE MODAL -->
+		<!-- ========================================================= -->
+
+		<div class="modal fade billing-modal" id="invoiceViewModal" tabindex="-1" aria-hidden="true">
+
+			<div class="modal-dialog modal-xl modal-dialog-scrollable">
+
+				<div class="modal-content">
+
+					<div class="modal-header">
+
+						<div>
+
+							<div class="small text-white-50 fw-bold">
+								GST TAX INVOICE
+							</div>
+
+							<h5 class="modal-title">
+								Invoice Details
+							</h5>
+
+						</div>
+
+						<div class="d-flex gap-2">
+
+							<button class="btn btn-light" onclick="printInvoice()">
+
+								<i class="bi bi-printer-fill me-1"></i>
+
+								Print
+
+							</button>
+
+							<button class="btn-close" data-bs-dismiss="modal">
+							</button>
+
+						</div>
+
+					</div>
+
+					<div class="modal-body">
+
+						<div id="invoiceViewContent">
+
+							<!-- ========================================================= -->
+							<!-- PROFESSIONAL GST INVOICE LAYOUT -->
+							<!-- ========================================================= -->
+
+							<div class="invoice-wrapper">
+
+								<!-- Company + Customer -->
+
+								<div class="invoice-detail-grid mb-4">
+
+									<div class="invoice-detail">
+
+										<small>Company Information</small>
+
+										<strong id="invoiceCompanyInfo">
+
+											MediRevolution Healthcare Pvt. Ltd.
+											GSTIN :
+											Address :
+											Phone :
+											Email :
+
+										</strong>
+
+									</div>
+
+									<div class="invoice-detail">
+
+										<small>Customer Information</small>
+
+										<strong id="invoiceCustomerInfo">
+
+											Customer Name
+											Mobile
+											GSTIN
+											Address
+
+										</strong>
+
+									</div>
+
+									<div class="invoice-detail">
+
+										<small>Invoice Information</small>
+
+										<strong id="invoiceBasicInfo">
+
+											Invoice No :
+											Invoice Date :
+											Invoice Type :
+											Payment Status :
+
+										</strong>
+
+									</div>
+
+									<div class="invoice-detail">
+
+										<small>Sales Information</small>
+
+										<strong id="invoiceSalesInfo">
+
+											Sales Person :
+											Payment Mode :
+											Transport :
+											Vehicle No :
+
+										</strong>
+
+									</div>
+
+								</div>
+
+								<!-- ========================================================= -->
+								<!-- COMPANY LOGO + GST HEADER -->
+								<!-- ========================================================= -->
+
+								<div class="row align-items-center mb-4">
+
+									<div class="col-lg-8">
+
+										<div class="d-flex align-items-center gap-3">
+
+											<img src="/images/logo.png" alt="MediRevolution"
+												style="width:80px;height:80px;object-fit:contain;">
+
+											<div>
+
+												<h3 class="fw-bold text-primary mb-1">
+													MediRevolution Healthcare
+												</h3>
+
+												<div class="text-muted">
+
+													Complete Healthcare & Pharmacy Management System
+
+												</div>
+
+												<div class="small mt-2">
+
+													<strong>GSTIN :</strong>
+													<span id="companyGstin">----------</span>
+
+												</div>
+
+												<div class="small">
+
+													<strong>Drug License :</strong>
+													<span id="companyDrugLicense">----------</span>
+
+												</div>
+
+											</div>
+
+										</div>
+
+									</div>
+
+									<div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+
+										<span id="invoiceStatusBadge"
+											class="badge rounded-pill fs-6 bg-success px-4 py-2">
+
+											PAID
+
+										</span>
+
+									</div>
+
+								</div>
+
+								<hr>
+
+
+
+								<!-- ========================================================= -->
+								<!-- GST INVOICE HEADER -->
+								<!-- ========================================================= -->
+
+								<div class="text-center mb-4">
+
+									<h2 class="fw-bold text-primary mb-2">
+
+										TAX INVOICE
+
+									</h2>
+
+									<div class="text-muted">
+
+										GST Invoice generated through MediRevolution SaaS
+
+									</div>
+
+								</div>
+
+
+
+								<!-- ========================================================= -->
+								<!-- ADDRESS SECTION -->
+								<!-- ========================================================= -->
+
+								<div class="row mb-4">
+
+									<!-- Company -->
+
+									<div class="col-lg-6">
+
+										<div class="invoice-detail h-100">
+
+											<small>Billing From</small>
+
+											<strong id="companyAddressBlock">
+
+												Company Name
+
+												Address Line
+
+												City
+
+												State
+
+												PIN
+
+												Phone
+
+												Email
+
+												GSTIN
+
+											</strong>
+
+										</div>
+
+									</div>
+
+
+
+									<!-- Customer -->
+
+									<div class="col-lg-6">
+
+										<div class="invoice-detail h-100">
+
+											<small>Billing To</small>
+
+											<strong id="customerAddressBlock">
+
+												Customer Name
+
+												Address
+
+												City
+
+												State
+
+												PIN
+
+												Phone
+
+											</strong>
+
+										</div>
+
+									</div>
+
+								</div>
+
+
+
+								<!-- ========================================================= -->
+								<!-- GST INFORMATION -->
+								<!-- ========================================================= -->
+
+								<div class="row mb-4">
+
+									<div class="col-lg-6">
+
+										<div class="invoice-detail">
+
+											<small>Customer GST Details</small>
+
+											<strong>
+
+												GST Number :
+												<span id="customerGSTNumber">N/A</span>
+
+												State Code :
+												<span id="customerStateCode">--</span>
+
+											</strong>
+
+										</div>
+
+									</div>
+
+									<div class="col-lg-6">
+
+										<div class="invoice-detail">
+
+											<small>Invoice Information</small>
+
+											<strong>
+
+												Invoice No :
+												<span id="invoiceNumberView"></span>
+
+												Invoice Date :
+												<span id="invoiceDateView"></span>
+
+												Invoice Type :
+												<span id="invoiceTypeView"></span>
+
+											</strong>
+
+										</div>
+
+									</div>
+
+								</div>
+
+
+
+								<!-- ========================================================= -->
+								<!-- QR CODE -->
+								<!-- ========================================================= -->
+
+								<div class="row mb-4">
+
+									<div class="col-lg-9">
+
+										<div class="invoice-detail">
+
+											<small>Payment Information</small>
+
+											<strong>
+
+												UPI / Bank / Online payment supported.
+
+												Please verify invoice before payment.
+
+											</strong>
+
+										</div>
+
+									</div>
+
+									<div class="col-lg-3 text-center">
+
+										<div class="invoice-detail">
+
+											<small>QR Code</small>
+
+											<img id="invoiceQRCode" src="/images/qr-placeholder.png" alt="QR"
+												style="width:130px;height:130px;object-fit:contain;">
+
+										</div>
+
+									</div>
+
+								</div>
+
+								<!-- ===================================================== -->
+								<!-- ITEMS TABLE -->
+								<!-- ===================================================== -->
+
+								<div class="invoice-item-table mb-4">
+
+									<table class="table table-bordered align-middle">
+
+										<thead>
+
+											<tr>
+
+												<th>#</th>
+
+												<th>Medicine</th>
+
+												<th>Batch</th>
+
+												<th>Expiry</th>
+
+												<th>Qty</th>
+
+												<th>Rate</th>
+
+												<th>GST%</th>
+
+												<th>Discount</th>
+
+												<th>Total</th>
+
+											</tr>
+
+										</thead>
+
+										<tbody id="invoiceItemViewBody">
+
+										</tbody>
+
+									</table>
+
+								</div>
+
+
+								<!-- ===================================================== -->
+								<!-- GST SUMMARY -->
+								<!-- ===================================================== -->
+
+								<div class="invoice-preview mb-4">
+
+									<div>
+
+										<small>Sub Total</small>
+
+										<strong id="invoiceSubTotal">
+											₹0.00
+										</strong>
+
+									</div>
+
+									<div>
+
+										<small>CGST</small>
+
+										<strong id="invoiceCGST">
+											₹0.00
+										</strong>
+
+									</div>
+
+									<div>
+
+										<small>SGST</small>
+
+										<strong id="invoiceSGST">
+											₹0.00
+										</strong>
+
+									</div>
+
+									<div>
+
+										<small>IGST</small>
+
+										<strong id="invoiceIGST">
+											₹0.00
+										</strong>
+
+									</div>
+
+									<div>
+
+										<small>Total Discount</small>
+
+										<strong id="invoiceDiscount">
+											₹0.00
+										</strong>
+
+									</div>
+
+									<div>
+
+										<small>Grand Total</small>
+
+										<strong id="invoiceGrandTotal">
+											₹0.00
+										</strong>
+
+									</div>
+
+									<div>
+
+										<small>Paid Amount</small>
+
+										<strong id="invoicePaidAmount">
+											₹0.00
+										</strong>
+
+									</div>
+
+									<div>
+
+										<small>Balance Due</small>
+
+										<strong id="invoiceBalanceAmount">
+											₹0.00
+										</strong>
+
+									</div>
+
+								</div>
+
+
+								<!-- ===================================================== -->
+								<!-- PAYMENT HISTORY -->
+								<!-- ===================================================== -->
+
+								<div class="invoice-item-table mb-4">
+
+									<div class="p-3 fw-bold text-primary">
+
+										Payment History
+
+									</div>
+
+									<table class="table table-bordered mb-0">
+
+										<thead>
+
+											<tr>
+
+												<th>Date</th>
+
+												<th>Mode</th>
+
+												<th>Transaction</th>
+
+												<th>Amount</th>
+
+												<th>Collected By</th>
+
+											</tr>
+
+										</thead>
+
+										<tbody id="invoicePaymentHistoryBody">
+
+										</tbody>
+
+									</table>
+
+								</div>
+
+
+								<!-- ========================================================= -->
+								<!-- BANK DETAILS + TRANSPORT + DECLARATION -->
+								<!-- ========================================================= -->
+
+								<div class="row mt-4">
+
+									<!-- Bank Details -->
+
+									<div class="col-lg-4 mb-3">
+
+										<div class="invoice-detail h-100">
+
+											<small>Bank Details</small>
+
+											<strong id="invoiceBankDetails">
+
+												Bank Name : ______________________
+
+												A/C No : ______________________
+
+												IFSC Code : ______________________
+
+												Branch : ______________________
+
+												UPI ID : ______________________
+
+											</strong>
+
+										</div>
+
+									</div>
+
+									<!-- Transport Details -->
+
+									<div class="col-lg-4 mb-3">
+
+										<div class="invoice-detail h-100">
+
+											<small>Transport Details</small>
+
+											<strong id="invoiceTransportDetails">
+
+												Transport Name : _____________
+
+												Vehicle No : _____________
+
+												LR No : _____________
+
+												Dispatch Date : _____________
+
+												Delivery Date : _____________
+
+											</strong>
+
+										</div>
+
+									</div>
+
+									<!-- Declaration -->
+
+									<div class="col-lg-4 mb-3">
+
+										<div class="invoice-detail h-100">
+
+											<small>Declaration</small>
+
+											<strong>
+
+												We declare that this invoice
+												shows the actual price of the goods
+												described and that all particulars
+												are true and correct.
+
+											</strong>
+
+										</div>
+
+									</div>
+
+								</div>
+
+								<!-- ========================================================= -->
+								<!-- SIGNATURE AREA -->
+								<!-- ========================================================= -->
+
+								<div class="row mt-5">
+
+									<div class="col-md-6 text-center">
+
+										<div style="height:70px;"></div>
+
+										<hr>
+
+										<strong>Customer Signature</strong>
+
+									</div>
+
+									<div class="col-md-6 text-center">
+
+										<div style="height:70px;"></div>
+
+										<hr>
+
+										<strong>Authorized Signatory</strong>
+
+									</div>
+
+								</div>
+
+
+
+								<!-- ========================================================= -->
+								<!-- FOOTER -->
+								<!-- ========================================================= -->
+
+								<div class="text-center mt-5">
+
+									<hr>
+
+									<div class="fw-bold text-primary">
+
+										MediRevolution Healthcare ERP
+
+									</div>
+
+									<div class="text-muted small">
+
+										GST Compliant Invoice • Pharmacy Management •
+										Inventory • Billing • Sales • Purchase
+
+									</div>
+
+									<div class="text-muted small mt-2">
+
+										Powered by MediRevolution SaaS Platform
+
+									</div>
+
+								</div>
+
+
+
+								<!-- ========================================================= -->
+								<!-- PRINT ONLY SECTION -->
+								<!-- ========================================================= -->
+
+								<div id="invoicePrintSection" class="d-none">
+
+								</div>
+
+								<!-- ===================================================== -->
+								<!-- GRAND TOTAL -->
+								<!-- ===================================================== -->
+
+								<div class="row mt-4">
+
+									<div class="col-lg-6">
+
+										<div class="invoice-detail full">
+
+											<small>Terms & Conditions</small>
+
+											<strong>
+
+												Goods once sold will not be taken back.
+
+												Subject to local jurisdiction.
+
+												Please keep this invoice safely.
+
+												Thank you for choosing MediRevolution.
+
+											</strong>
+
+										</div>
+
+									</div>
+
+									<div class="col-lg-6">
+
+										<div class="invoice-preview">
+
+											<div>
+
+												<small>Invoice Total</small>
+
+												<strong id="invoiceFooterTotal">
+
+													₹0.00
+
+												</strong>
+
+											</div>
+
+											<div>
+
+												<small>Received</small>
+
+												<strong id="invoiceFooterPaid">
+
+													₹0.00
+
+												</strong>
+
+											</div>
+
+											<div>
+
+												<small>Balance Due</small>
+
+												<strong id="invoiceFooterDue">
+
+													₹0.00
+
+												</strong>
+
+											</div>
+
+											<div>
+
+												<small>Status</small>
+
+												<strong id="invoiceFooterStatus">
+
+													PENDING
+
+												</strong>
+
+											</div>
+
+										</div>
+
+									</div>
+
+								</div>
+
+							</div>
+
+						</div>
+
+					</div>
+
+				</div>
+
+			</div>
+
+		</div>
+
+		<!-- ========================================================= -->
+		<!-- DELETE INVOICE CONFIRMATION MODAL -->
+		<!-- ========================================================= -->
+
+		<div class="modal fade billing-modal" id="deleteInvoiceModal" tabindex="-1" aria-hidden="true">
+
+			<div class="modal-dialog modal-dialog-centered">
+
+				<div class="modal-content">
+
+					<div class="modal-header bg-danger text-white">
+
+						<h5 class="modal-title">
+							Delete Invoice
+						</h5>
+
+						<button class="btn-close btn-close-white" data-bs-dismiss="modal">
+						</button>
+
+					</div>
+
+					<div class="modal-body text-center">
+
+						<i class="bi bi-trash-fill text-danger" style="font-size:70px;"></i>
+
+						<h4 class="mt-3">
+							Delete this Invoice?
+						</h4>
+
+						<p class="text-muted mb-0">
+
+							This action cannot be undone.
+
+						</p>
+
+						<input type="hidden" id="deleteInvoiceId">
+
+					</div>
+
+					<div class="modal-footer">
+
+						<button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+
+							Cancel
+
+						</button>
+
+						<button class="btn btn-danger" onclick="deleteInvoiceConfirmed()">
+
+							<i class="bi bi-trash-fill me-1"></i>
+
+							Delete Invoice
+
+						</button>
+
+					</div>
+
+				</div>
+
+			</div>
+
+		</div>
+
+
+
+		<!-- ========================================================= -->
+		<!-- CANCEL INVOICE MODAL -->
+		<!-- ========================================================= -->
+
+		<div class="modal fade billing-modal" id="cancelInvoiceModal" tabindex="-1" aria-hidden="true">
+
+			<div class="modal-dialog modal-dialog-centered">
+
+				<div class="modal-content">
+
+					<div class="modal-header bg-warning">
+
+						<h5 class="modal-title">
+
+							Cancel Invoice
+
+						</h5>
+
+						<button class="btn-close" data-bs-dismiss="modal">
+						</button>
+
+					</div>
+
+					<div class="modal-body">
+
+						<input type="hidden" id="cancelInvoiceId">
+
+						<label class="form-label">
+
+							Cancellation Reason
+
+						</label>
+
+						<textarea id="cancelReason" rows="4" class="form-control"
+							placeholder="Reason for cancellation"></textarea>
+
+					</div>
+
+					<div class="modal-footer">
+
+						<button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+
+							Close
+
+						</button>
+
+						<button class="btn btn-warning" onclick="cancelInvoiceConfirmed()">
+
+							<i class="bi bi-x-circle-fill me-1"></i>
+
+							Cancel Invoice
+
+						</button>
+
+					</div>
+
+				</div>
+
+			</div>
+
+		</div>
+
+
+
+		<!-- ========================================================= -->
+		<!-- GLOBAL LOADING OVERLAY -->
+		<!-- ========================================================= -->
+
+		<div id="billingLoadingOverlay" class="position-fixed top-0 start-0 w-100 h-100
+		            d-none justify-content-center align-items-center" style="
+		        z-index:5000;
+		        background:rgba(255,255,255,.80);
+		        backdrop-filter:blur(4px);
+		">
+
+			<div class="text-center">
+
+				<div class="spinner-border text-primary" style="width:70px;height:70px;">
+				</div>
+
+				<h5 class="mt-4 fw-bold text-primary">
+
+					Processing...
+
+				</h5>
+
+				<div class="text-muted">
+
+					Please wait...
+
+				</div>
+
+			</div>
+
+		</div>
+
+
+
+		<!-- ========================================================= -->
+		<!-- SUCCESS TOAST -->
+		<!-- ========================================================= -->
+
+		<div class="toast-container position-fixed
+		            top-0 end-0 p-3" style="z-index:6000;">
+
+			<div id="successToast" class="toast border-success">
+
+				<div class="toast-header">
+
+					<i class="bi bi-check-circle-fill
+		                      text-success me-2"></i>
+
+					<strong class="me-auto">
+
+						Success
+
+					</strong>
+
+					<button class="btn-close" data-bs-dismiss="toast">
+					</button>
+
+				</div>
+
+				<div class="toast-body" id="successToastMessage">
+
+					Operation completed successfully.
+
+				</div>
+
+			</div>
+
+		</div>
+
+
+
+		<!-- ========================================================= -->
+		<!-- ERROR TOAST -->
+		<!-- ========================================================= -->
+
+		<div class="toast-container position-fixed
+		            top-0 end-0 p-3" style="z-index:6000;">
+
+			<div id="errorToast" class="toast border-danger">
+
+				<div class="toast-header">
+
+					<i class="bi bi-exclamation-circle-fill
+		                      text-danger me-2"></i>
+
+					<strong class="me-auto">
+
+						Error
+
+					</strong>
+
+					<button class="btn-close" data-bs-dismiss="toast">
+					</button>
+
+				</div>
+
+				<div class="toast-body" id="errorToastMessage">
+
+					Something went wrong.
+
+				</div>
+
+			</div>
+
+		</div>
+
+
+
+		<!-- ========================================================= -->
+		<!-- EMPTY STATE -->
+		<!-- ========================================================= -->
+
+		<div id="emptyInvoiceState" class="billing-state d-none">
+
+			<div class="billing-state-icon">
+
+				<i class="bi bi-receipt-cutoff"></i>
+
+			</div>
+
+			<h4 class="fw-bold text-primary">
+
+				No Invoices Found
+
+			</h4>
+
+			<p class="text-muted">
+
+				Create your first sales invoice to begin billing.
+
+			</p>
+
+		</div>
+
+
+
+		<!-- ========================================================= -->
+		<!-- NO RECORDS ILLUSTRATION -->
+		<!-- ========================================================= -->
+
+		<div id="noRecordsIllustration" class="text-center py-5 d-none">
+
+			<i class="bi bi-folder2-open" style="font-size:90px;color:#08c7d4;"></i>
+
+			<h4 class="fw-bold mt-3 text-primary">
+
+				No Records Available
+
+			</h4>
+
+			<p class="text-muted">
+
+				Records will appear here once data is available.
+
+			</p>
+
+		</div>
+
+
+
+		<!-- ========================================================= -->
+		<!-- GLOBAL PROCESSING SPINNER -->
+		<!-- ========================================================= -->
+
+		<div id="globalProcessingSpinner" class="position-fixed bottom-0 end-0 p-4 d-none" style="z-index:6000;">
+
+			<div class="bg-white rounded-4 shadow p-3 d-flex align-items-center">
+
+				<div class="spinner-border spinner-border-sm
+		                    text-primary me-3">
+				</div>
+
+				<strong>
+
+					Processing...
+
+				</strong>
+
+			</div>
+
+		</div>
+
+		<!-- ========================================================= -->
+		<!-- BOOTSTRAP -->
+		<!-- ========================================================= -->
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+		<!-- ========================================================= -->
+		<!-- COMMON DASHBOARD -->
+		<!-- ========================================================= -->
+		<script th:src="@{/js/common-dashboard.js}"></script>
+
+		<!-- ========================================================= -->
+		<!-- MODULE SWITCH -->
+		<!-- ========================================================= -->
+		<script th:src="@{/js/module-switch.js}"></script>
+
+		<!-- ========================================================= -->
+		<!-- SAAS AUTH GUARD -->
+		<!-- ========================================================= -->
+		<script th:src="@{/js/saas-auth-guard.js}"></script>
+
+		<!-- ========================================================= -->
+		<!-- COMMON UTILITY (OPTIONAL) -->
+		<!-- ========================================================= -->
+		<script th:src="@{/js/common-utils.js}"></script>
+
+		<!-- ========================================================= -->
+		<!-- WHOLESALER BILLING -->
+		<!-- ========================================================= -->
+		<script th:src="@{/js/saas-wholesaler-billing.js?v=1.0.0}"></script>
+
+		<!-- ========================================================= -->
+		<!-- PWA -->
+		<!-- ========================================================= -->
+		<script th:src="@{/js/pwa.js}"></script>
+
+</body>
+
+</html>

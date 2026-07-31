@@ -1,10 +1,13 @@
 package com.example.medi.saas.service;
 
+import com.example.medi.saas.client.MedicineServiceClient;
 import com.example.medi.saas.dto.*;
 import com.example.medi.saas.entity.*;
 import com.example.medi.saas.enums.*;
 import com.example.medi.saas.repository.*;
 import com.example.medi.saas.security.CurrentUserUtil;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,25 +28,30 @@ public class SaasPurchaseService {
 	private final SaasPurchaseRepository purchaseRepository;
 	private final SaasPurchaseItemRepository purchaseItemRepository;
 	private final SaasSupplierRepository supplierRepository;
-	private final SaasMedicineRepository medicineRepository;
 	private final SaasInventoryService inventoryService;
 	private final TenantAccessService tenantAccessService;
 	private final SaasPermissionService permissionService;
 	private final SaasPartyLedgerService ledgerService;
+	private final MedicineServiceClient medicineServiceClient;
+
+	@Value("${internal.service.key}")
+	private String internalServiceKey;
 
 	public SaasPurchaseService(SaasPurchaseRepository purchaseRepository,
 			SaasPurchaseItemRepository purchaseItemRepository, SaasSupplierRepository supplierRepository,
 			SaasMedicineRepository medicineRepository, SaasInventoryService inventoryService,
 			TenantAccessService tenantAccessService, SaasPermissionService permissionService,
-			SaasPartyLedgerService ledgerService) {
+			SaasPartyLedgerService ledgerService,MedicineServiceClient medicineServiceClient,
+			@Value("${internal.service.key}") String internalServiceKey) {
 		this.purchaseRepository = purchaseRepository;
 		this.purchaseItemRepository = purchaseItemRepository;
 		this.supplierRepository = supplierRepository;
-		this.medicineRepository = medicineRepository;
 		this.inventoryService = inventoryService;
 		this.tenantAccessService = tenantAccessService;
 		this.permissionService = permissionService;
 		this.ledgerService = ledgerService;
+		this.medicineServiceClient = medicineServiceClient;
+		this.internalServiceKey = internalServiceKey;
 	}
 
 	public List<SaasPurchaseResponse> getPurchases(Long tenantId) {
@@ -90,7 +98,7 @@ public class SaasPurchaseService {
 	}
 
 	@Transactional
-	public SaasPurchaseResponse createPurchase(SaasPurchaseRequest request) {
+	public SaasPurchaseResponse createPurchase(SaasPurchaseRequest request ,String authorization) {
 
 		validateRequest(request);
 
@@ -188,9 +196,27 @@ public class SaasPurchaseService {
 
 		for (SaasPurchaseItemRequest itemRequest : request.getItems()) {
 
-			SaasMedicine medicine = medicineRepository
-					.findByIdAndTenantIdAndActiveTrue(itemRequest.getMedicineId(), tenantId)
-					.orElseThrow(() -> new RuntimeException("Medicine not found in this workspace"));
+			GlobalMedicineResponse medicine;
+
+			try {
+
+			    medicine = medicineServiceClient.getMedicine(
+			            authorization,
+			            internalServiceKey,
+			            itemRequest.getMedicineId());
+
+			} catch (Exception ex) {
+
+			    throw new RuntimeException("Medicine not found in Global Medicine Master");
+			}
+
+			if (medicine == null || medicine.getId() == null) {
+			    throw new RuntimeException("Medicine not found in Global Medicine Master");
+			}
+
+			if (Boolean.FALSE.equals(medicine.isActive())) {
+			    throw new RuntimeException("Selected medicine is inactive");
+			}
 
 			CalculatedItem calculatedItem = calculateItem(itemRequest);
 
@@ -240,7 +266,7 @@ public class SaasPurchaseService {
 			inventoryService.addOrMergePurchaseStock(tenantId, medicine.getId(), item.getBatchNumber(),
 					item.getManufacturingDate(), item.getExpiryDate(), receivedQuantity, item.getPurchaseRate(),
 					item.getSaleRate(), item.getMrp(), item.getGstPercentage(), supplier.getId(),
-					supplier.getSupplierName(), savedPurchase.getId());
+					supplier.getSupplierName(), savedPurchase.getId(), authorization);
 		}
 		ledgerService.postLedgerEntry(savedPurchase.getTenantId(), SaasPaymentPartyType.SUPPLIER,
 				savedPurchase.getSupplierId(), savedPurchase.getSupplierCode(), savedPurchase.getSupplierName(),

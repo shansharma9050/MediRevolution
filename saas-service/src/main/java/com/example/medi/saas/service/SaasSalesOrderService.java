@@ -1,10 +1,13 @@
 package com.example.medi.saas.service;
 
+import com.example.medi.saas.client.MedicineServiceClient;
 import com.example.medi.saas.dto.*;
 import com.example.medi.saas.entity.*;
 import com.example.medi.saas.enums.*;
 import com.example.medi.saas.repository.*;
 import com.example.medi.saas.security.CurrentUserUtil;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,26 +31,28 @@ public class SaasSalesOrderService {
 	private final SaasSalesOrderItemRepository itemRepository;
 	private final SaasSalesOrderTimelineRepository timelineRepository;
 	private final SaasCustomerRepository customerRepository;
-	private final SaasMedicineRepository medicineRepository;
 	private final SaasMedicineStockRepository stockRepository;
 	private final SaasSaleService saleService;
 	private final TenantAccessService tenantAccessService;
 	private final SaasPermissionService permissionService;
+	private final MedicineServiceClient medicineServiceClient;
+	private final String internalServiceKey;
 
 	public SaasSalesOrderService(SaasSalesOrderRepository orderRepository, SaasSalesOrderItemRepository itemRepository,
 			SaasSalesOrderTimelineRepository timelineRepository, SaasCustomerRepository customerRepository,
-			SaasMedicineRepository medicineRepository, SaasMedicineStockRepository stockRepository,
-			SaasSaleService saleService, TenantAccessService tenantAccessService,
-			SaasPermissionService permissionService) {
+			SaasMedicineStockRepository stockRepository, MedicineServiceClient medicineServiceClient,
+			@Value("${internal.service.key}") String internalServiceKey, SaasSaleService saleService,
+			TenantAccessService tenantAccessService, SaasPermissionService permissionService) {
 		this.orderRepository = orderRepository;
 		this.itemRepository = itemRepository;
 		this.timelineRepository = timelineRepository;
 		this.customerRepository = customerRepository;
-		this.medicineRepository = medicineRepository;
 		this.stockRepository = stockRepository;
 		this.saleService = saleService;
 		this.tenantAccessService = tenantAccessService;
 		this.permissionService = permissionService;
+		this.medicineServiceClient = medicineServiceClient;
+		this.internalServiceKey = internalServiceKey;
 	}
 
 	public List<SaasSalesOrderResponse> getOrders(Long tenantId) {
@@ -102,7 +107,7 @@ public class SaasSalesOrderService {
 	}
 
 	@Transactional
-	public SaasSalesOrderResponse createOrder(SaasSalesOrderRequest request) {
+	public SaasSalesOrderResponse createOrder(SaasSalesOrderRequest request, String authorization) {
 
 		validateRequest(request);
 
@@ -126,7 +131,7 @@ public class SaasSalesOrderService {
 			throw new RuntimeException("Expected delivery date cannot be before order date");
 		}
 
-		CalculatedOrder calculatedOrder = calculateOrder(request, orderDate);
+		CalculatedOrder calculatedOrder = calculateOrder(request, orderDate,authorization);
 
 		BigDecimal otherCharges = nonNegativeAmount(request.getOtherCharges(), "Other charges");
 
@@ -189,7 +194,7 @@ public class SaasSalesOrderService {
 
 		for (SaasSalesOrderItemRequest itemRequest : request.getItems()) {
 
-			SaasMedicine medicine = findActiveMedicine(tenantId, itemRequest.getMedicineId());
+			GlobalMedicineResponse medicine = findActiveMedicine(itemRequest.getMedicineId(), authorization);
 
 			CalculatedItem calculatedItem = calculateItem(itemRequest);
 
@@ -461,7 +466,8 @@ public class SaasSalesOrderService {
 		return request;
 	}
 
-	private CalculatedOrder calculateOrder(SaasSalesOrderRequest request, LocalDate requiredDate) {
+	private CalculatedOrder calculateOrder(SaasSalesOrderRequest request, LocalDate requiredDate,
+			String authorization) {
 
 		BigDecimal grossAmount = BigDecimal.ZERO;
 
@@ -484,7 +490,7 @@ public class SaasSalesOrderService {
 				throw new RuntimeException("Duplicate medicine items are not allowed");
 			}
 
-			SaasMedicine medicine = findActiveMedicine(request.getTenantId(), item.getMedicineId());
+			GlobalMedicineResponse medicine = findActiveMedicine(item.getMedicineId(), authorization);
 
 			int availableQuantity = getAvailableQuantity(request.getTenantId(), medicine.getId(), requiredDate);
 
@@ -624,10 +630,32 @@ public class SaasSalesOrderService {
 				.orElseThrow(() -> new RuntimeException("Sales order not found"));
 	}
 
-	private SaasMedicine findActiveMedicine(Long tenantId, Long medicineId) {
+	private GlobalMedicineResponse findActiveMedicine(Long medicineId, String authorization) {
 
-		return medicineRepository.findByIdAndTenantIdAndActiveTrue(medicineId, tenantId)
-				.orElseThrow(() -> new RuntimeException("Medicine not found in this workspace"));
+		if (medicineId == null) {
+			throw new RuntimeException("Medicine is required");
+		}
+
+		GlobalMedicineResponse medicine;
+
+		try {
+
+			medicine = medicineServiceClient.getMedicine(authorization, internalServiceKey, medicineId);
+
+		} catch (Exception ex) {
+
+			throw new RuntimeException("Medicine not found in Global Medicine Master");
+		}
+
+		if (medicine == null || medicine.getId() == null) {
+			throw new RuntimeException("Medicine not found in Global Medicine Master");
+		}
+
+		if (Boolean.FALSE.equals(medicine.isActive())) {
+			throw new RuntimeException("Selected medicine is inactive");
+		}
+
+		return medicine;
 	}
 
 	private void requireStatus(SaasSalesOrder order, SaasSalesOrderStatus requiredStatus, String message) {
