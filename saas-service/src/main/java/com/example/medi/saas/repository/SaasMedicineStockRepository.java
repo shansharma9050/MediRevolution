@@ -159,4 +159,15 @@ public interface SaasMedicineStockRepository extends JpaRepository<SaasMedicineS
 
 	List<SaasMedicineStock> findByTenantIdAndActiveTrueOrderByExpiryDateAsc(Long tenantId);
 
+	Optional<SaasMedicineStock> findByIdAndTenantId(
+            Long id,
+            Long tenantId
+    );
+
+	List<SaasMedicineStock>
+	findByTenantIdAndMedicineIdAndCurrentQuantityGreaterThanOrderByExpiryDateAscCreatedAtAsc(
+	        Long tenantId,
+	        Long medicineId,
+	        Integer currentQuantity
+	);
 }

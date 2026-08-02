@@ -8,5 +8,6 @@ public enum SaasNotificationType {
     RADIOLOGY_REPORT,
     IPD,
     PHARMACY,
-    SYSTEM
+    SYSTEM,
+    SUCCESS
 }

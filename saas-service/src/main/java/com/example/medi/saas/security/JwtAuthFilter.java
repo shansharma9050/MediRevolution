@@ -53,7 +53,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
 					SecurityContextHolder.getContext().setAuthentication(authentication);
 
-					CurrentUserUtil.set(userId, role, email, userName);
+					CurrentUserUtil.set(
+					        userId,
+					        role,
+					        email,
+					        userName,
+					        token
+					);
 				}
 			}
 

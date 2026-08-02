@@ -158,6 +158,21 @@ public class SaasBusinessPageController {
 	
 	@GetMapping("/saas/wholesaler/billing")
 	public String wholesalerBilling() {
-	    return "saas/saas-wholesaler-billing";
+	    return "saas/wholesaler/billing";
+	}
+
+	@GetMapping("/saas/retailer/billing")
+	public String retailerBilling() {
+	    return "saas/retailer/billing";
+	}
+
+	@GetMapping("/saas/hospital/billing")
+	public String hospitalBilling() {
+	    return "saas/hospital/billing";
+	}
+
+	@GetMapping("/saas/doctor/billing")
+	public String doctorBilling() {
+	    return "saas/doctor/billing";
 	}
 }
