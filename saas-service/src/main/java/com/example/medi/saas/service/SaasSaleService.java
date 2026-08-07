@@ -32,12 +32,14 @@ public class SaasSaleService {
 	private final TenantAccessService tenantAccessService;
 	private final SaasPermissionService permissionService;
 	private final SaasPartyLedgerService ledgerService;
+	private final SaasPartyLedgerEntryRepository ledgerRepository;
 
 	public SaasSaleService(SaasSaleRepository saleRepository, SaasSaleItemRepository saleItemRepository,
 			SaasSaleStockAllocationRepository allocationRepository, SaasCustomerRepository customerRepository,
 			SaasMedicineRepository medicineRepository, SaasMedicineStockRepository stockRepository,
 			SaasInventoryService inventoryService, TenantAccessService tenantAccessService,
-			SaasPermissionService permissionService, SaasPartyLedgerService ledgerService) {
+			SaasPermissionService permissionService, SaasPartyLedgerService ledgerService,
+			SaasPartyLedgerEntryRepository ledgerRepository) {
 		this.saleRepository = saleRepository;
 		this.saleItemRepository = saleItemRepository;
 		this.allocationRepository = allocationRepository;
@@ -48,6 +50,7 @@ public class SaasSaleService {
 		this.tenantAccessService = tenantAccessService;
 		this.permissionService = permissionService;
 		this.ledgerService = ledgerService;
+		this.ledgerRepository = ledgerRepository;
 	}
 
 	public List<SaasSaleResponse> getSales(Long tenantId) {
@@ -160,7 +163,7 @@ public class SaasSaleService {
 		sale.setTaxableAmount(calculatedSale.taxableAmount());
 
 		sale.setGstAmount(calculatedSale.gstAmount());
-		
+
 		sale.setPaymentMode(request.getPaymentMode());
 
 		sale.setOtherCharges(otherCharges);
@@ -261,6 +264,15 @@ public class SaasSaleService {
 
 		List<SaasMedicineStock> batches = stockRepository.findAvailableBatchesForSale(tenantId, request.getMedicineId(),
 				sale.getSaleDate());
+		
+		
+		 if (batches.isEmpty()) {
+		        throw new RuntimeException(
+		                "No valid stock batch available for "
+		                        + saleItem.getMedicineName()
+		                        + ". The stock may be expired or unavailable for the selected sale date ("
+		                        + sale.getSaleDate() + ").");
+		    }
 
 		int totalAvailable = batches.stream()
 				.mapToInt(stock -> stock.getCurrentQuantity() == null ? 0 : stock.getCurrentQuantity()).sum();
@@ -565,5 +577,365 @@ public class SaasSaleService {
 	private record CalculatedItem(BigDecimal saleRate, BigDecimal discountPercentage, BigDecimal gstPercentage,
 			BigDecimal grossAmount, BigDecimal discountAmount, BigDecimal taxableAmount, BigDecimal gstAmount,
 			BigDecimal lineTotal) {
+	}
+
+	private void deleteLedgerEntries(Long tenantId, Long saleId) {
+
+		ledgerRepository.deleteByTenantIdAndReferenceId(tenantId, saleId);
+
+	}
+
+	private void rollbackStock(Long tenantId, Long saleId) {
+
+		List<SaasSaleStockAllocation> allocations = allocationRepository.findByTenantIdAndSaleIdOrderByIdAsc(tenantId,
+				saleId);
+
+		for (SaasSaleStockAllocation allocation : allocations) {
+
+			SaasMedicineStock stock = stockRepository.findStockForUpdate(allocation.getStockId(), tenantId)
+					.orElseThrow(() -> new RuntimeException("Allocated stock not found."));
+
+			int current = stock.getCurrentQuantity() == null ? 0 : stock.getCurrentQuantity();
+
+			int rollbackQty = allocation.getAllocatedQuantity() == null ? 0 : allocation.getAllocatedQuantity();
+
+			stock.setCurrentQuantity(current + rollbackQty);
+
+			stock.touch();
+
+			stockRepository.save(stock);
+
+			inventoryService.createMovement(tenantId, allocation.getMedicineId(), stock.getId(),
+					SaasStockMovementType.RETURN, rollbackQty, "Sale rollback", saleId);
+		}
+	}
+
+	private void deleteSaleItems(Long tenantId, Long saleId) {
+
+		List<SaasSaleStockAllocation> allocations = allocationRepository.findByTenantIdAndSaleIdOrderByIdAsc(tenantId,
+				saleId);
+
+		allocationRepository.deleteAll(allocations);
+
+		List<SaasSaleItem> items = saleItemRepository.findByTenantIdAndSaleIdOrderByIdAsc(tenantId, saleId);
+
+		saleItemRepository.deleteAll(items);
+	}
+
+	private void repostLedger(SaasSale sale) {
+
+		ledgerService.postLedgerEntry(
+
+				sale.getTenantId(),
+
+				SaasPaymentPartyType.CUSTOMER,
+
+				sale.getCustomerId(),
+
+				sale.getCustomerCode(),
+
+				sale.getCustomerName(),
+
+				sale.getSaleDate(),
+
+				SaasLedgerEntryType.SALE,
+
+				"SALE",
+
+				sale.getId(),
+
+				sale.getSaleNumber(),
+
+				sale.getGrandTotal(),
+
+				BigDecimal.ZERO,
+
+				"Sale invoice updated : " + sale.getSaleNumber());
+
+		if (sale.getPaidAmount() != null && sale.getPaidAmount().compareTo(BigDecimal.ZERO) > 0) {
+
+			ledgerService.postLedgerEntry(
+
+					sale.getTenantId(),
+
+					SaasPaymentPartyType.CUSTOMER,
+
+					sale.getCustomerId(),
+
+					sale.getCustomerCode(),
+
+					sale.getCustomerName(),
+
+					sale.getSaleDate(),
+
+					SaasLedgerEntryType.CUSTOMER_RECEIPT,
+
+					"SALE_INITIAL_RECEIPT",
+
+					sale.getId(),
+
+					sale.getSaleNumber(),
+
+					BigDecimal.ZERO,
+
+					sale.getPaidAmount(),
+
+					"Initial payment received against sale " + sale.getSaleNumber());
+		}
+	}
+
+	private void recalculatePayment(SaasSale sale) {
+
+		BigDecimal grandTotal = money(sale.getGrandTotal());
+
+		BigDecimal paid = money(sale.getPaidAmount());
+
+		if (paid.compareTo(grandTotal) > 0) {
+
+			throw new RuntimeException("Paid amount cannot exceed grand total.");
+		}
+
+		BigDecimal due = money(grandTotal.subtract(paid));
+
+		sale.setDueAmount(due);
+
+		sale.setPaymentStatus(resolvePaymentStatus(grandTotal, paid));
+	}
+
+	@Transactional
+	public SaasSaleResponse updateSale(Long tenantId, Long saleId, SaasSaleRequest request) {
+
+		validateWorkspace(tenantId);
+
+		permissionService.requirePermission(tenantId, TenantModule.SALES, SaasPermissionAction.UPDATE);
+
+		if (request == null) {
+			throw new RuntimeException("Sale request is required");
+		}
+
+		SaasSale sale = findSale(tenantId, saleId);
+
+		if (sale.getSaleStatus() == SaasSaleStatus.CANCELLED) {
+
+			throw new RuntimeException("Cancelled sale cannot be updated");
+		}
+
+		if (request.getCustomerId() == null) {
+
+			throw new RuntimeException("Customer is required");
+		}
+
+		if (request.getItems() == null || request.getItems().isEmpty()) {
+
+			throw new RuntimeException("At least one sale item is required");
+		}
+
+		request.getItems().forEach(this::validateItem);
+
+		SaasCustomer customer = customerRepository.findByIdAndTenantId(request.getCustomerId(), tenantId)
+				.orElseThrow(() -> new RuntimeException("Customer not found in this workspace"));
+
+		if (!Boolean.TRUE.equals(customer.getActive())) {
+
+			throw new RuntimeException("Selected customer is inactive");
+		}
+
+		CalculatedSale calculatedSale = calculateSale(request);
+
+		BigDecimal otherCharges = nonNegativeAmount(request.getOtherCharges(), "Other charges");
+
+		BigDecimal roundOffAmount = money(request.getRoundOffAmount());
+
+		BigDecimal grandTotal = money(
+				calculatedSale.taxableAmount().add(calculatedSale.gstAmount()).add(otherCharges).add(roundOffAmount));
+
+		if (grandTotal.compareTo(BigDecimal.ZERO) < 0) {
+
+			throw new RuntimeException("Grand total cannot be negative");
+		}
+
+		BigDecimal paidAmount = nonNegativeAmount(request.getPaidAmount(), "Paid amount");
+
+		if (paidAmount.compareTo(grandTotal) > 0) {
+
+			throw new RuntimeException("Paid amount cannot exceed grand total");
+		}
+
+		BigDecimal dueAmount = money(grandTotal.subtract(paidAmount));
+
+		/*
+		 * Remove previous ledger entries because sale amount/customer/payment may
+		 * change during update
+		 */
+		deleteLedgerEntries(tenantId, saleId);
+
+		/*
+		 * Restore previous stock quantity before creating new allocations
+		 */
+		rollbackStock(tenantId, saleId);
+
+		/*
+		 * Remove old sale items New items will be created from request
+		 */
+		deleteSaleItems(tenantId, saleId);
+
+		/*
+		 * Update Sale Header
+		 */
+
+		sale.setSaleDate(request.getSaleDate() == null ? sale.getSaleDate() : request.getSaleDate());
+
+		sale.setCustomerId(customer.getId());
+
+		sale.setCustomerCode(customer.getCustomerCode());
+
+		sale.setCustomerName(customer.getCustomerName());
+
+		sale.setCustomerType(customer.getCustomerType());
+
+		sale.setCustomerGstin(customer.getGstin());
+
+		sale.setTotalQuantity(calculatedSale.totalQuantity());
+
+		sale.setGrossAmount(calculatedSale.grossAmount());
+
+		sale.setDiscountAmount(calculatedSale.discountAmount());
+
+		sale.setTaxableAmount(calculatedSale.taxableAmount());
+
+		sale.setGstAmount(calculatedSale.gstAmount());
+
+		sale.setOtherCharges(otherCharges);
+
+		sale.setRoundOffAmount(roundOffAmount);
+
+		sale.setGrandTotal(grandTotal);
+
+		sale.setPaidAmount(paidAmount);
+
+		sale.setDueAmount(dueAmount);
+
+		sale.setPaymentStatus(resolvePaymentStatus(grandTotal, paidAmount));
+
+		sale.setPaymentMode(request.getPaymentMode());
+
+		sale.setRemarks(normalizeOptional(request.getRemarks()));
+
+		sale.setSaleStatus(SaasSaleStatus.POSTED);
+
+		SaasSale savedSale = saleRepository.save(sale);
+
+		for (SaasSaleItemRequest itemRequest : request.getItems()) {
+
+			Long medicineId = itemRequest.getMedicineId();
+
+			if (medicineId == null) {
+				throw new RuntimeException("Medicine id is required");
+			}
+
+			List<SaasMedicineStock> availableStocks = stockRepository.findAvailableBatchesForSale(tenantId, medicineId,
+					LocalDate.now());
+
+			if (availableStocks.isEmpty()) {
+				throw new RuntimeException("No saleable stock is available for selected medicine");
+			}
+
+			SaasMedicineStock firstStock = availableStocks.get(0);
+
+			CalculatedItem calculatedItem = calculateItem(itemRequest);
+
+			SaasSaleItem saleItem = new SaasSaleItem();
+
+			saleItem.setTenantId(tenantId);
+			saleItem.setSaleId(savedSale.getId());
+			saleItem.setMedicineId(medicineId);
+
+			saleItem.setMedicineName(firstStock.getMedicineName());
+
+			saleItem.setMedicineType(firstStock.getMedicineType());
+
+			saleItem.setManufacturer(firstStock.getManufacturer());
+
+			saleItem.setQuantity(itemRequest.getQuantity());
+
+			saleItem.setSaleRate(calculatedItem.saleRate());
+
+			saleItem.setGrossAmount(calculatedItem.grossAmount());
+
+			saleItem.setDiscountPercentage(calculatedItem.discountPercentage());
+
+			saleItem.setDiscountAmount(calculatedItem.discountAmount());
+
+			saleItem.setTaxableAmount(calculatedItem.taxableAmount());
+
+			saleItem.setGstPercentage(calculatedItem.gstPercentage());
+
+			saleItem.setGstAmount(calculatedItem.gstAmount());
+
+			saleItem.setLineTotal(calculatedItem.lineTotal());
+
+			SaasSaleItem savedItem = saleItemRepository.save(saleItem);
+
+			allocateStockUsingFefo(tenantId, savedSale, savedItem, itemRequest);
+		}
+
+		recalculatePayment(savedSale);
+
+		saleRepository.save(savedSale);
+
+		repostLedger(savedSale);
+
+		return toResponse(savedSale);
+
+	}
+
+	@Transactional
+	public SaasSaleResponse deleteSale(Long tenantId, Long saleId) {
+
+		validateWorkspace(tenantId);
+
+		permissionService.requirePermission(tenantId, TenantModule.SALES, SaasPermissionAction.DELETE);
+
+		SaasSale sale = findSale(tenantId, saleId);
+
+		if (SaasSaleStatus.CANCELLED.equals(sale.getSaleStatus())) {
+
+			return toResponse(sale);
+		}
+
+		// Remove customer ledger
+		deleteLedgerEntries(tenantId, saleId);
+
+		// Restore inventory
+		rollbackStock(tenantId, saleId);
+
+		// Remove stock allocation history
+		allocationRepository.deleteByTenantIdAndSaleId(tenantId, saleId);
+
+		sale.setSaleStatus(SaasSaleStatus.CANCELLED);
+
+		sale.setPaidAmount(BigDecimal.ZERO);
+
+		sale.setDueAmount(BigDecimal.ZERO);
+
+		sale.setPaymentStatus(SaasSalePaymentStatus.UNPAID);
+
+		sale.setRemarks(appendCancellationRemark(sale.getRemarks()));
+
+		SaasSale saved = saleRepository.save(sale);
+
+		return toResponse(saved);
+	}
+
+	private String appendCancellationRemark(String oldRemark) {
+
+		String cancellationText = "Sale cancelled";
+
+		if (oldRemark == null || oldRemark.isBlank()) {
+
+			return cancellationText;
+		}
+
+		return oldRemark + " | " + cancellationText;
 	}
 }

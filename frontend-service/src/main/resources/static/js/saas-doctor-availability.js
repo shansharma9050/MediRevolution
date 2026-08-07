@@ -106,119 +106,136 @@ function setAvailabilityDateMinimum() {
 }
 
 async function loadDoctorsDropdown() {
-	if (isLoadingDoctors) {
+
+	const formSelect = document.getElementById("doctorAuthUserId");
+	const filterSelect = document.getElementById("filterDoctorAuthUserId");
+
+	if (!formSelect && !filterSelect) {
+		console.error("Doctor dropdowns not found.");
 		return;
 	}
 
-	isLoadingDoctors = true;
-
-	const token =
-		localStorage.getItem("token");
-
-	const tenantId =
-		localStorage.getItem("tenantId");
-
-	if (!tenantId) {
-		showMsg(
-			"Please select SaaS workspace first."
-		);
-
-		isLoadingDoctors = false;
-		return;
+	if (formSelect) {
+		formSelect.innerHTML = `
+			<option value="">Loading doctors...</option>
+		`;
 	}
 
-	setDoctorDropdownLoadingState();
+	if (filterSelect) {
+		filterSelect.innerHTML = `
+			<option value="">All Doctors</option>
+		`;
+	}
 
 	try {
-		const query =
-			new URLSearchParams({
-				tenantId: tenantId
-			});
 
-		const response =
-			await fetch(
-				`${API_BASE}/saas/permissions/members?${query.toString()}`,
-				{
-					method: "GET",
+		const tenantId = localStorage.getItem("tenantId");
+		const token = localStorage.getItem("token");
 
-					headers: {
-						"Authorization":
-							"Bearer " + token,
+		const query = new URLSearchParams({
+			tenantId: tenantId
+		});
 
-						"Accept":
-							"application/json"
-					}
+		const response = await fetch(
+			`${API_BASE}/saas/staff/doctors/for-clinical?${query.toString()}`,
+			{
+				method: "GET",
+				headers: {
+					"Authorization": "Bearer " + token,
+					"Accept": "application/json"
 				}
-			);
+			}
+		);
 
-		const result =
-			await safeJson(response);
+		const result = await safeJson(response);
+
+		console.log("Doctor API Result :", result);
 
 		if (!response.ok) {
-			doctorList = [];
 
-			showMsg(
-				getApiErrorMessage(
-					result,
-					"Unable to load doctors."
-				)
-			);
+			if (formSelect) {
+				formSelect.innerHTML =
+					`<option value="">Unable to load doctors</option>`;
+			}
 
-			renderDoctorDropdowns();
-			updateAvailabilitySummary();
+			console.error(result);
+			return;
+		}
+
+		if (formSelect) {
+			formSelect.innerHTML =
+				`<option value="">Select Doctor</option>`;
+		}
+
+		if (filterSelect) {
+			filterSelect.innerHTML =
+				`<option value="">All Doctors</option>`;
+		}
+
+		if (!Array.isArray(result) || result.length === 0) {
+
+			if (formSelect) {
+				formSelect.innerHTML =
+					`<option value="">No doctors found</option>`;
+			}
 
 			return;
 		}
 
-		const members =
-			Array.isArray(result)
-				? result
-				: [];
+		result.forEach(staff => {
 
-		doctorList =
-			members.filter(
-				function(member) {
-					const role =
-						String(
-							member.memberRole ||
-							member.role ||
-							""
-						)
-							.trim()
-							.toUpperCase();
+			/*
+			 * Form dropdown
+			 */
+			if (formSelect) {
 
-					return (
-						role === "DOCTOR" ||
-						role === "OWNER" ||
-						role === "ADMIN"
-					);
-				}
-			);
+				const option = document.createElement("option");
 
-		renderDoctorDropdowns();
-		updateAvailabilitySummary();
+				/*
+				 * Availability authUserId se save hoti hai
+				 */
+				option.value = staff.authUserId;
 
-	} catch (error) {
-		console.error(
-			"Load doctors error:",
-			error
-		);
+				option.dataset.staffId = staff.id;
+				option.dataset.authUserId = staff.authUserId;
+				option.dataset.staffName = staff.staffName || "";
+				option.dataset.department = staff.department || "";
+				option.dataset.specialization = staff.specialization || "";
 
-		doctorList = [];
+				option.textContent =
+					(staff.staffName || "Doctor") +
+					(staff.department ? " - " + staff.department : "") +
+					(staff.specialization ? " (" + staff.specialization + ")" : "");
 
-		renderDoctorDropdowns();
+				formSelect.appendChild(option);
+			}
 
-		showMsg(
-			"SaaS service not reachable while loading doctors."
-		);
+			/*
+			 * Filter dropdown
+			 */
+			if (filterSelect) {
 
-		updateAvailabilitySummary();
+				const option = document.createElement("option");
 
-	} finally {
-		isLoadingDoctors = false;
+				option.value = staff.authUserId;
+				option.textContent =
+					staff.staffName || "Doctor";
+
+				filterSelect.appendChild(option);
+			}
+		});
+
+	}
+	catch (error) {
+
+		console.error("Doctor dropdown load error :", error);
+
+		if (formSelect) {
+			formSelect.innerHTML =
+				`<option value="">Service not reachable</option>`;
+		}
 	}
 }
-
 function setDoctorDropdownLoadingState() {
 	const filterSelect =
 		document.getElementById(

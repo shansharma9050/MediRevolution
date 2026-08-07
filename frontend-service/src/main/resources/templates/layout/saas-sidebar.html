@@ -88,7 +88,7 @@
 
 	<a th:href="@{/saas/ipd}" data-saas-module="IPD" data-saas-action="VIEW">
 
-		<i class="bi bi-bed-fill"></i>
+		<i class="bi bi-heart-pulse-fill"></i>
 		<span>IPD</span>
 
 	</a>
@@ -192,86 +192,13 @@
 		Finance &amp; Analytics
 	</div>
 
-	<!--<a th:href="@{/saas/billing}" data-saas-module="BILLING" data-saas-action="VIEW">
+	<a href="javascript:void(0)" id="saasBillingMenu" data-saas-module="BILLING" data-saas-action="VIEW"
+		onclick="openBillingPage(event)">
 
 		<i class="bi bi-receipt-cutoff"></i>
 		<span>Billing</span>
 
-	</a>-->
-	<!-- ===========================================================
-	     WHOLESALER BILLING
-	=========================================================== -->
-	
-	<li class="nav-item saas-module saas-wholesaler-only"
-	    data-module="BILLING">
-	
-	    <a class="nav-link"
-	       th:href="@{/saas/wholesaler/billing}">
-	
-	        <i class="bi bi-receipt-cutoff"></i>
-	
-	        <span>Billing</span>
-	
-	    </a>
-	
-	</li>
-	
-	
-	<!-- ===========================================================
-	     RETAILER BILLING
-	=========================================================== -->
-	
-	<li class="nav-item saas-module saas-retailer-only"
-	    data-module="BILLING">
-	
-	    <a class="nav-link"
-	       th:href="@{/saas/retailer/billing}">
-	
-	        <i class="bi bi-receipt-cutoff"></i>
-	
-	        <span>Billing</span>
-	
-	    </a>
-	
-	</li>
-	
-	
-	<!-- ===========================================================
-	     HOSPITAL BILLING
-	=========================================================== -->
-	
-	<li class="nav-item saas-module saas-hospital-only"
-	    data-module="BILLING">
-	
-	    <a class="nav-link"
-	       th:href="@{/saas/hospital/billing}">
-	
-	        <i class="bi bi-hospital"></i>
-	
-	        <span>Billing</span>
-	
-	    </a>
-	
-	</li>
-	
-	
-	<!-- ===========================================================
-	     DOCTOR BILLING
-	=========================================================== -->
-	
-	<li class="nav-item saas-module saas-doctor-only"
-	    data-module="BILLING">
-	
-	    <a class="nav-link"
-	       th:href="@{/saas/doctor/billing}">
-	
-	        <i class="bi bi-file-medical"></i>
-	
-	        <span>Billing</span>
-	
-	    </a>
-	
-	</li>
+	</a>
 
 	<a th:href="@{/saas/payments}" data-saas-module="PAYMENTS" data-saas-action="VIEW">
 

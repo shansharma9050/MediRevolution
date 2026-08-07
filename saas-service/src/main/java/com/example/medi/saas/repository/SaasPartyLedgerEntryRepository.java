@@ -5,6 +5,7 @@ import com.example.medi.saas.enums.SaasPaymentPartyType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -71,4 +72,16 @@ public interface SaasPartyLedgerEntryRepository extends JpaRepository<SaasPartyL
 	BigDecimal calculateTotalBalanceByPartyType(@Param("tenantId") Long tenantId,
 
 			@Param("partyType") SaasPaymentPartyType partyType);
+	
+	void deleteByTenantIdAndReferenceTypeAndReferenceId(
+	        Long tenantId,
+	        String referenceType,
+	        Long referenceId
+	);
+	
+	@Transactional
+	void deleteByTenantIdAndReferenceId(
+	        Long tenantId,
+	        Long referenceId
+	);
 }

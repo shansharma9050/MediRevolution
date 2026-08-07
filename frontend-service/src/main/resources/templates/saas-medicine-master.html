@@ -1,47 +1,34 @@
 <!DOCTYPE html>
-<html lang="en"
-	  xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
 	<meta charset="UTF-8">
 
 	<title>MediRevolution | SaaS Medicine Master</title>
 
-	<meta name="viewport"
-		  content="width=device-width, initial-scale=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 
-	<link rel="manifest"
-		  href="/manifest.json">
+	<link rel="manifest" href="/manifest.json">
 
-	<meta name="theme-color"
-		  content="#05285f">
+	<meta name="theme-color" content="#05285f">
 
-	<meta name="mobile-web-app-capable"
-		  content="yes">
+	<meta name="mobile-web-app-capable" content="yes">
 
-	<meta name="apple-mobile-web-app-capable"
-		  content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
 
-	<meta name="apple-mobile-web-app-status-bar-style"
-		  content="black-translucent">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-	<meta name="apple-mobile-web-app-title"
-		  content="MediRevolution">
+	<meta name="apple-mobile-web-app-title" content="MediRevolution">
 
-	<link rel="apple-touch-icon"
-		  href="/images/icon-192.png">
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
 
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-		  rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-		  rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
-	<link th:href="@{/css/medirevolution.css}"
-		  rel="stylesheet">
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
 
-	<link th:href="@{/css/module-shell.css}"
-		  rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
 
 	<style>
 		.saas-medicine-page {
@@ -61,12 +48,10 @@
 			border-radius: 30px;
 			color: #ffffff;
 			background:
-				linear-gradient(
-					135deg,
+				linear-gradient(135deg,
 					#05285f 0%,
 					#076a9c 52%,
-					#08c7d4 100%
-				);
+					#08c7d4 100%);
 			box-shadow:
 				0 25px 65px rgba(5, 40, 95, 0.22);
 		}
@@ -91,11 +76,9 @@
 			border-radius: 50%;
 			content: "";
 			background:
-				radial-gradient(
-					circle,
+				radial-gradient(circle,
 					rgba(123, 214, 0, 0.23),
-					transparent 68%
-				);
+					transparent 68%);
 		}
 
 		.saas-medicine-hero-content,
@@ -239,11 +222,9 @@
 			border-radius: 16px;
 			color: #ffffff;
 			background:
-				linear-gradient(
-					135deg,
+				linear-gradient(135deg,
 					#05285f,
-					#08c7d4
-				);
+					#08c7d4);
 			font-size: 20px;
 		}
 
@@ -300,11 +281,9 @@
 			border-radius: 15px;
 			color: #ffffff;
 			background:
-				linear-gradient(
-					135deg,
+				linear-gradient(135deg,
 					#05285f,
-					#08c7d4
-				);
+					#08c7d4);
 			font-size: 20px;
 		}
 
@@ -327,7 +306,7 @@
 			position: relative;
 		}
 
-		.saas-medicine-control > i {
+		.saas-medicine-control>i {
 			position: absolute;
 			top: 39px;
 			left: 14px;
@@ -423,11 +402,9 @@
 			border-radius: 14px;
 			color: #ffffff;
 			background:
-				linear-gradient(
-					135deg,
+				linear-gradient(135deg,
 					#05285f,
-					#08c7d4
-				);
+					#08c7d4);
 		}
 
 		.saas-medicine-chip,
@@ -479,11 +456,9 @@
 			border-radius: 23px;
 			color: #ffffff;
 			background:
-				linear-gradient(
-					135deg,
+				linear-gradient(135deg,
 					#05285f,
-					#08c7d4
-				);
+					#08c7d4);
 			font-size: 28px;
 		}
 
@@ -610,10 +585,8 @@
 
 				</div>
 
-				<button type="button"
-						id="addMedicineBtn"
-						class="saas-medicine-add-button"
-						onclick="openCreateMedicinePanel()">
+				<button type="button" id="addMedicineBtn" class="saas-medicine-add-button"
+					onclick="openCreateMedicinePanel()">
 
 					<i class="bi bi-plus-circle-fill"></i>
 					Add Medicine
@@ -686,12 +659,9 @@
 
 		</section>
 
-		<section class="saas-medicine-panel"
-				 id="medicineFormPanel"
-				 style="display:none;">
+		<section class="saas-medicine-panel" id="medicineFormPanel" style="display:none;">
 
-			<input type="hidden"
-				   id="medicineId">
+			<input type="hidden" id="medicineId">
 
 			<div class="saas-medicine-section-header">
 
@@ -715,9 +685,7 @@
 
 				</div>
 
-				<button type="button"
-						class="btn btn-sm btn-outline-secondary"
-						onclick="closeMedicinePanel()">
+				<button type="button" class="btn btn-sm btn-outline-secondary" onclick="closeMedicinePanel()">
 
 					<i class="bi bi-x-lg"></i>
 
@@ -729,83 +697,65 @@
 
 				<div class="col-lg-6 saas-medicine-control">
 
-					<label for="medicineName"
-						   class="form-label">
+					<label for="medicineName" class="form-label">
 						Medicine Name *
 					</label>
 
 					<i class="bi bi-capsule-pill"></i>
 
-					<input type="text"
-						   id="medicineName"
-						   class="form-control"
-						   maxlength="180"
-						   placeholder="Example: Paracetamol 650">
+					<input type="text" id="medicineName" class="form-control" maxlength="180"
+						placeholder="Example: Paracetamol 650">
 
 				</div>
 
 				<div class="col-lg-6 saas-medicine-control">
 
-					<label for="brandName"
-						   class="form-label">
+					<label for="brandName" class="form-label">
 						Brand Name *
 					</label>
 
 					<i class="bi bi-tag-fill"></i>
 
-					<input type="text"
-						   id="brandName"
-						   class="form-control"
-						   maxlength="180"
-						   placeholder="Example: Dolo 650">
+					<input type="text" id="brandName" class="form-control" maxlength="180"
+						placeholder="Example: Dolo 650">
 
 				</div>
 
 				<div class="col-lg-6 saas-medicine-control">
 
-					<label for="composition"
-						   class="form-label">
+					<label for="composition" class="form-label">
 						Composition *
 					</label>
 
 					<i class="bi bi-prescription2"></i>
 
-					<input type="text"
-						   id="composition"
-						   class="form-control"
-						   maxlength="500"
-						   placeholder="Example: Paracetamol 650mg">
+					<input type="text" id="composition" class="form-control" maxlength="500"
+						placeholder="Example: Paracetamol 650mg">
 
 				</div>
 
 				<div class="col-lg-6 saas-medicine-control">
 
-					<label for="manufacturer"
-						   class="form-label">
+					<label for="manufacturer" class="form-label">
 						Manufacturer *
 					</label>
 
 					<i class="bi bi-building-fill"></i>
 
-					<input type="text"
-						   id="manufacturer"
-						   class="form-control"
-						   maxlength="180"
-						   placeholder="Example: Micro Labs">
+					<input type="text" id="manufacturer" class="form-control" maxlength="180"
+						placeholder="Example: Micro Labs">
 
 				</div>
 
 				<div class="col-lg-6 saas-medicine-control">
 
-					<label for="category"
-						   class="form-label">
+					<label for="category" class="form-label">
 						Category *
 					</label>
 
 					<i class="bi bi-grid-fill"></i>
 
-					<select id="category"
-							class="form-select">
+					<select id="category" class="form-select">
 
 						<option value="">
 							Select Category
@@ -827,15 +777,13 @@
 
 				<div class="col-lg-6 saas-medicine-control">
 
-					<label for="medicineType"
-						   class="form-label">
+					<label for="medicineType" class="form-label">
 						Medicine Type *
 					</label>
 
 					<i class="bi bi-ui-checks-grid"></i>
 
-					<select id="medicineType"
-							class="form-select">
+					<select id="medicineType" class="form-select">
 
 						<option value="">
 							Select Type
@@ -857,33 +805,25 @@
 
 				<div class="col-12 saas-medicine-control">
 
-					<label for="imageUrl"
-						   class="form-label">
+					<label for="imageUrl" class="form-label">
 						Image URL
 					</label>
 
 					<i class="bi bi-image-fill"></i>
 
-					<input type="text"
-						   id="imageUrl"
-						   class="form-control"
-						   maxlength="1000"
-						   placeholder="Example: /images/medicines/dolo650.png">
+					<input type="text" id="imageUrl" class="form-control" maxlength="1000"
+						placeholder="Example: /images/medicines/dolo650.png">
 
 				</div>
 
 				<div class="col-12">
 
-					<label for="description"
-						   class="form-label">
+					<label for="description" class="form-label">
 						Description
 					</label>
 
-					<textarea id="description"
-							  class="form-control"
-							  rows="3"
-							  maxlength="1000"
-							  placeholder="Enter medicine description"></textarea>
+					<textarea id="description" class="form-control" rows="3" maxlength="1000"
+						placeholder="Enter medicine description"></textarea>
 
 				</div>
 
@@ -891,19 +831,14 @@
 
 			<div class="saas-medicine-form-actions">
 
-				<button type="button"
-						class="btn btn-outline-secondary"
-						onclick="clearMedicineForm()">
+				<button type="button" class="btn btn-outline-secondary" onclick="clearMedicineForm()">
 
 					<i class="bi bi-eraser-fill me-1"></i>
 					Clear
 
 				</button>
 
-				<button type="button"
-						id="saveMedicineBtn"
-						class="btn btn-medi"
-						onclick="saveMedicine()">
+				<button type="button" id="saveMedicineBtn" class="btn btn-medi" onclick="saveMedicine()">
 
 					<i class="bi bi-check2-circle me-1"></i>
 					Save Medicine
@@ -944,27 +879,20 @@
 
 						<i class="bi bi-search"></i>
 
-						<input type="text"
-							   id="searchKeyword"
-							   class="form-control"
-							   placeholder="Search medicine, brand, composition or manufacturer">
+						<input type="text" id="searchKeyword" class="form-control"
+							placeholder="Search medicine, brand, composition or manufacturer">
 
 					</div>
 
-					<button type="button"
-							id="searchMedicineBtn"
-							class="btn btn-medi"
-							onclick="searchMedicines()">
+					<button type="button" id="searchMedicineBtn" class="btn btn-medi" onclick="searchMedicines()">
 
 						<i class="bi bi-search me-1"></i>
 						Search
 
 					</button>
 
-					<button type="button"
-							id="refreshMedicineBtn"
-							class="btn btn-outline-secondary"
-							onclick="refreshMedicines()">
+					<button type="button" id="refreshMedicineBtn" class="btn btn-outline-secondary"
+						onclick="refreshMedicines()">
 
 						<i class="bi bi-arrow-clockwise me-1"></i>
 						Refresh

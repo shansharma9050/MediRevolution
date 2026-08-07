@@ -5,15 +5,13 @@
 
 	<meta charset="UTF-8">
 
-	<title>
-		MediRevolution | SaaS Billing
-	</title>
+	<title>MediRevolution | Wholesaler Billing</title>
 
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
-	<meta name="theme-color" content="#05285f">
-
 	<link rel="manifest" href="/manifest.json">
+
+	<meta name="theme-color" content="#05285f">
 
 	<meta name="mobile-web-app-capable" content="yes">
 
@@ -38,15 +36,13 @@
 			position: relative;
 		}
 
-		/*==========================================================
+		/*==================================================
  HERO
-==========================================================*/
+==================================================*/
 
 		.billing-hero {
 
 			position: relative;
-
-			overflow: hidden;
 
 			display: flex;
 
@@ -56,28 +52,26 @@
 
 			gap: 30px;
 
-			min-height: 250px;
-
-			margin-bottom: 28px;
-
-			padding: clamp(30px, 4vw, 50px);
+			overflow: hidden;
 
 			border-radius: 30px;
 
+			padding: clamp(28px, 4vw, 48px);
+
+			margin-bottom: 28px;
+
 			color: #fff;
+
+			min-height: 240px;
 
 			background:
 				linear-gradient(135deg,
-					#031d48 0%,
-					#05285f 40%,
-					#0879a7 70%,
+					#05285f 0%,
+					#076a9c 52%,
 					#08c7d4 100%);
 
 			box-shadow:
-				0 28px 70px rgba(5, 40, 95, .24);
-
-			animation:
-				billingHero .7s ease both;
+				0 25px 60px rgba(5, 40, 95, .22);
 
 		}
 
@@ -87,17 +81,17 @@
 
 			position: absolute;
 
-			top: -150px;
+			right: -90px;
 
-			right: -120px;
+			top: -120px;
 
-			width: 380px;
+			width: 340px;
 
-			height: 380px;
+			height: 340px;
 
 			border-radius: 50%;
 
-			border: 60px solid rgba(255, 255, 255, .07);
+			border: 60px solid rgba(255, 255, 255, .08);
 
 		}
 
@@ -109,26 +103,24 @@
 
 			left: 25%;
 
-			bottom: -210px;
+			bottom: -170px;
 
-			width: 420px;
+			width: 340px;
 
-			height: 420px;
+			height: 340px;
 
 			border-radius: 50%;
 
 			background:
 
 				radial-gradient(circle,
-
-					rgba(184, 242, 103, .24),
-
+					rgba(123, 214, 0, .25),
 					transparent 70%);
 
 		}
 
 		.billing-hero-content,
-		.billing-hero-panel {
+		.billing-hero-action {
 
 			position: relative;
 
@@ -150,17 +142,17 @@
 
 			border-radius: 999px;
 
-			border: 1px solid rgba(255, 255, 255, .20);
-
 			background: rgba(255, 255, 255, .12);
 
-			backdrop-filter: blur(10px);
+			border: 1px solid rgba(255, 255, 255, .22);
 
-			font-size: 10px;
+			backdrop-filter: blur(12px);
 
-			font-weight: 900;
+			font-size: 11px;
 
 			letter-spacing: 1px;
+
+			font-weight: 800;
 
 			text-transform: uppercase;
 
@@ -170,11 +162,11 @@
 
 			margin: 0;
 
-			font-size: clamp(32px, 4vw, 52px);
+			font-size: clamp(34px, 4vw, 52px);
 
 			font-weight: 900;
 
-			letter-spacing: -1px;
+			letter-spacing: -2px;
 
 		}
 
@@ -188,11 +180,11 @@
 
 			margin-top: 16px;
 
-			max-width: 760px;
+			max-width: 720px;
 
-			color: rgba(255, 255, 255, .85);
+			color: rgba(255, 255, 255, .82);
 
-			line-height: 1.75;
+			line-height: 1.8;
 
 		}
 
@@ -202,7 +194,7 @@
 
 			flex-wrap: wrap;
 
-			gap: 10px;
+			gap: 12px;
 
 			margin-top: 22px;
 
@@ -210,29 +202,27 @@
 
 		.billing-meta span {
 
-			display: inline-flex;
+			display: flex;
 
 			align-items: center;
 
 			gap: 8px;
 
-			padding: 8px 12px;
+			padding: 8px 13px;
 
 			border-radius: 999px;
 
 			background: rgba(255, 255, 255, .12);
 
-			font-size: 11px;
+			font-size: 12px;
 
 			font-weight: 700;
 
 		}
 
-		/*==========================================================
- HERO RIGHT
-==========================================================*/
+		.billing-hero-action {
 
-		.billing-hero-panel {
+			min-width: 220px;
 
 			display: flex;
 
@@ -240,21 +230,17 @@
 
 			align-items: center;
 
-			justify-content: center;
-
-			min-width: 260px;
+			text-align: center;
 
 			padding: 24px;
 
-			border-radius: 24px;
+			border-radius: 25px;
 
-			border: 1px solid rgba(255, 255, 255, .18);
+			background: rgba(255, 255, 255, .12);
 
-			background: rgba(255, 255, 255, .10);
+			border: 1px solid rgba(255, 255, 255, .20);
 
-			backdrop-filter: blur(14px);
-
-			text-align: center;
+			backdrop-filter: blur(16px);
 
 		}
 
@@ -270,9 +256,7 @@
 
 			justify-content: center;
 
-			border-radius: 22px;
-
-			margin-bottom: 15px;
+			border-radius: 20px;
 
 			background: #fff;
 
@@ -280,103 +264,80 @@
 
 			font-size: 30px;
 
-			box-shadow:
+			margin-bottom: 16px;
 
-				0 14px 35px rgba(0, 0, 0, .18);
-
-		}
-
-		.billing-workspace {
-
-			display: inline-flex;
-
-			align-items: center;
-
-			gap: 8px;
-
-			margin-top: 12px;
-
-			padding: 8px 12px;
-
-			border-radius: 999px;
-
-			background: rgba(255, 255, 255, .13);
-
-			font-size: 11px;
-
-			font-weight: 800;
+			box-shadow: 0 15px 35px rgba(0, 0, 0, .18);
 
 		}
 
-		.billing-btn {
+		.billing-add-button {
 
 			margin-top: 18px;
 
-			min-height: 46px;
-
-			padding: 0 18px;
-
 			border: none;
 
-			border-radius: 14px;
+			border-radius: 16px;
 
 			background: #fff;
 
 			color: #05285f;
 
-			font-weight: 900;
+			min-height: 48px;
 
-			transition: .30s;
+			padding: 0 20px;
+
+			display: flex;
+
+			align-items: center;
+
+			gap: 8px;
+
+			font-size: 13px;
+
+			font-weight: 800;
+
+			transition: .3s;
 
 		}
 
-		.billing-btn:hover {
+		.billing-add-button:hover {
 
-			transform: translateY(-3px);
+			transform: translateY(-4px);
 
-			box-shadow:
-
-				0 15px 30px rgba(0, 0, 0, .18);
+			box-shadow: 0 14px 30px rgba(0, 0, 0, .18);
 
 		}
 
-		/*==========================================================
- SUMMARY CARDS
-==========================================================*/
+		/*==================================================
+SUMMARY
+==================================================*/
 
 		.billing-summary-grid {
 
 			display: grid;
 
 			grid-template-columns:
-
-				repeat(4, 1fr);
+				repeat(4, minmax(0, 1fr));
 
 			gap: 18px;
 
-			margin-bottom: 25px;
+			margin-bottom: 28px;
 
 		}
 
 		.billing-summary-card {
 
-			position: relative;
-
-			overflow: hidden;
-
-			padding: 22px;
+			background: #fff;
 
 			border-radius: 22px;
 
-			border: 1px solid rgba(8, 199, 212, .12);
+			padding: 22px;
 
-			background: #fff;
+			border: 1px solid rgba(8, 199, 212, .14);
 
-			box-shadow:
+			box-shadow: 0 15px 35px rgba(5, 40, 95, .08);
 
-				0 15px 35px rgba(5, 40, 95, .08);
-
-			transition: .30s;
+			transition: .35s;
 
 		}
 
@@ -384,13 +345,17 @@
 
 			transform: translateY(-6px);
 
+			box-shadow: 0 20px 45px rgba(5, 40, 95, .15);
+
 		}
 
 		.billing-summary-icon {
 
-			width: 48px;
+			width: 50px;
 
-			height: 48px;
+			height: 50px;
+
+			border-radius: 16px;
 
 			display: flex;
 
@@ -400,55 +365,15 @@
 
 			margin-bottom: 15px;
 
-			border-radius: 16px;
-
 			background:
 
 				linear-gradient(135deg,
-
 					#05285f,
-
 					#08c7d4);
 
 			color: #fff;
 
-			font-size: 20px;
-
-		}
-
-		.billing-summary-card.success .billing-summary-icon {
-
-			background:
-
-				linear-gradient(135deg,
-
-					#047857,
-
-					#10b981);
-
-		}
-
-		.billing-summary-card.warning .billing-summary-icon {
-
-			background:
-
-				linear-gradient(135deg,
-
-					#d97706,
-
-					#fbbf24);
-
-		}
-
-		.billing-summary-card.danger .billing-summary-icon {
-
-			background:
-
-				linear-gradient(135deg,
-
-					#b91c1c,
-
-					#ef4444);
+			font-size: 21px;
 
 		}
 
@@ -456,7 +381,7 @@
 
 			display: block;
 
-			color: #6b7b8c;
+			color: #73869b;
 
 			font-weight: 700;
 
@@ -466,1027 +391,102 @@
 
 			display: block;
 
-			margin-top: 6px;
+			margin-top: 5px;
 
 			color: #05285f;
-
-			font-size: 26px;
-
-			font-weight: 900;
-
-		}
-
-		@keyframes billingHero {
-
-			from {
-
-				opacity: 0;
-
-				transform: translateY(25px);
-
-			}
-
-			to {
-
-				opacity: 1;
-
-				transform: none;
-
-			}
-
-		}
-
-
-		/* ==========================================================
-		   BILLING PANEL
-		========================================================== */
-
-		.billing-panel {
-
-			position: relative;
-
-			overflow: hidden;
-
-			margin-bottom: 24px;
-
-			padding: 24px;
-
-			border: 1px solid rgba(5, 40, 95, .08);
-
-			border-radius: 24px;
-
-			background: #ffffff;
-
-			box-shadow:
-				0 16px 40px rgba(5, 40, 95, .08);
-
-			animation:
-				billingPanelReveal .45s cubic-bezier(.22, 1, .36, 1) both;
-
-		}
-
-		.billing-panel::after {
-
-			content: "";
-
-			position: absolute;
-
-			top: -100px;
-
-			right: -100px;
-
-			width: 220px;
-
-			height: 220px;
-
-			border-radius: 50%;
-
-			background:
-
-				radial-gradient(circle,
-
-					rgba(8, 199, 212, .10),
-
-					transparent 70%);
-
-			pointer-events: none;
-
-		}
-
-		.billing-panel-header {
-
-			position: relative;
-
-			z-index: 2;
-
-			display: flex;
-
-			align-items: center;
-
-			justify-content: space-between;
-
-			gap: 18px;
-
-			margin-bottom: 22px;
-
-			padding-bottom: 18px;
-
-			border-bottom: 1px solid #e9f1f5;
-
-		}
-
-		/* ==========================================================
-		   PANEL TITLE
-		========================================================== */
-
-		.billing-title-wrap {
-
-			display: flex;
-
-			align-items: center;
-
-			gap: 14px;
-
-		}
-
-		.billing-title-icon {
-
-			width: 48px;
-
-			height: 48px;
-
-			display: flex;
-
-			align-items: center;
-
-			justify-content: center;
-
-			border-radius: 16px;
-
-			color: #ffffff;
-
-			background:
-
-				linear-gradient(135deg,
-					#05285f,
-					#08c7d4);
-
-			font-size: 20px;
-
-			box-shadow:
-
-				0 12px 26px rgba(5, 40, 95, .18);
-
-		}
-
-		.billing-title-wrap small {
-
-			display: block;
-
-			color: #6b7b8c;
-
-			font-size: 10px;
-
-			font-weight: 900;
-
-			letter-spacing: 1px;
-
-			text-transform: uppercase;
-
-		}
-
-		.billing-title-wrap h5 {
-
-			margin-top: 4px;
-
-			margin-bottom: 0;
-
-			color: #05285f;
-
-			font-weight: 900;
-
-		}
-
-		/* ==========================================================
-		   TOOLBAR
-		========================================================== */
-
-		.billing-toolbar {
-
-			display: flex;
-
-			flex-wrap: wrap;
-
-			align-items: center;
-
-			gap: 10px;
-
-		}
-
-		.billing-search {
-
-			position: relative;
-
-			min-width: 340px;
-
-		}
-
-		.billing-search i {
-
-			position: absolute;
-
-			top: 50%;
-
-			left: 14px;
-
-			transform: translateY(-50%);
-
-			color: #0879a7;
-
-		}
-
-		.billing-search .form-control {
-
-			min-height: 46px;
-
-			padding-left: 42px;
-
-			border-radius: 14px;
-
-			border: 1px solid #d7e5ef;
-
-			transition: .30s;
-
-		}
-
-		.billing-search .form-control:focus {
-
-			border-color: #08c7d4;
-
-			box-shadow:
-
-				0 0 0 .18rem rgba(8, 199, 212, .18);
-
-		}
-
-		/* ==========================================================
-		   BUTTONS
-		========================================================== */
-
-		.btn-medi {
-
-			color: #fff;
-
-			border: none;
-
-			border-radius: 14px;
-
-			background:
-
-				linear-gradient(135deg,
-					#05285f,
-					#08c7d4);
-
-			font-weight: 700;
-
-			transition: .30s;
-
-		}
-
-		.btn-medi:hover {
-
-			transform: translateY(-2px);
-
-			box-shadow:
-
-				0 15px 28px rgba(5, 40, 95, .22);
-
-		}
-
-		.btn-outline-secondary {
-
-			border-radius: 14px;
-
-		}
-
-		/* ==========================================================
-		   TABLE
-		========================================================== */
-
-		.billing-table-wrap {
-
-			overflow: hidden;
-
-			border: 1px solid #e5edf4;
-
-			border-radius: 20px;
-
-		}
-
-		.billing-table {
-
-			margin-bottom: 0;
-
-		}
-
-		.billing-table thead th {
-
-			padding: 15px 14px;
-
-			border: none;
-
-			color: #05285f;
-
-			background: #eef9fc;
-
-			font-size: 11px;
-
-			font-weight: 900;
-
-			white-space: nowrap;
-
-			text-transform: uppercase;
-
-		}
-
-		.billing-table tbody td {
-
-			padding: 16px 14px;
-
-			border-color: #edf3f7;
-
-			vertical-align: middle;
-
-			color: #56697b;
-
-			font-size: 13px;
-
-		}
-
-		.billing-table tbody tr {
-
-			transition: .25s;
-
-		}
-
-		.billing-table tbody tr:hover {
-
-			background: #f8fdff;
-
-		}
-
-		/* ==========================================================
-		   STATUS BADGES
-		========================================================== */
-
-		.billing-status {
-
-			display: inline-flex;
-
-			align-items: center;
-
-			justify-content: center;
-
-			padding: 7px 12px;
-
-			border-radius: 999px;
-
-			font-size: 11px;
-
-			font-weight: 900;
-
-		}
-
-		.billing-status.paid {
-
-			color: #0f5132;
-
-			background: #d1e7dd;
-
-		}
-
-		.billing-status.partial {
-
-			color: #664d03;
-
-			background: #fff3cd;
-
-		}
-
-		.billing-status.unpaid {
-
-			color: #842029;
-
-			background: #f8d7da;
-
-		}
-
-		.billing-status.cancelled {
-
-			color: #495057;
-
-			background: #dee2e6;
-
-		}
-
-		/* ==========================================================
-		   ACTION BUTTONS
-		========================================================== */
-
-		.billing-actions {
-
-			display: flex;
-
-			gap: 8px;
-
-			flex-wrap: wrap;
-
-		}
-
-		.billing-actions .btn {
-
-			width: 36px;
-
-			height: 36px;
-
-			display: flex;
-
-			align-items: center;
-
-			justify-content: center;
-
-			padding: 0;
-
-			border-radius: 12px;
-
-		}
-
-		/* ==========================================================
-		   EMPTY STATE
-		========================================================== */
-
-		.billing-empty {
-
-			padding: 65px 20px;
-
-			text-align: center;
-
-		}
-
-		.billing-empty-icon {
-
-			width: 78px;
-
-			height: 78px;
-
-			margin: auto;
-
-			margin-bottom: 18px;
-
-			display: flex;
-
-			align-items: center;
-
-			justify-content: center;
-
-			border-radius: 24px;
-
-			color: #ffffff;
 
 			font-size: 30px;
 
-			background:
-
-				linear-gradient(135deg,
-					#05285f,
-					#08c7d4);
-
-			box-shadow:
-
-				0 16px 35px rgba(5, 40, 95, .18);
-
-		}
-
-		.billing-empty h5 {
-
-			color: #05285f;
-
 			font-weight: 900;
 
 		}
 
-		.billing-empty p {
+		@media(max-width:1100px) {
 
-			color: #728191;
+			.billing-summary-grid {
 
-			margin-bottom: 0;
+				grid-template-columns:
+					repeat(2, 1fr);
 
-		}
-
-		/* ===========================================================
-		   SALES TABLE
-		=========================================================== */
-
-		.sales-table-card {
-			background: #ffffff;
-			border-radius: 22px;
-			border: 1px solid rgba(5, 40, 95, .08);
-			overflow: hidden;
-			box-shadow: 0 18px 45px rgba(5, 40, 95, .08);
-			animation: salesFade .45s ease;
-		}
-
-		.sales-table-header {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			padding: 22px 25px;
-			border-bottom: 1px solid #edf3f8;
-			background: #ffffff;
-		}
-
-		.sales-table-title {
-			display: flex;
-			align-items: center;
-			gap: 14px;
-		}
-
-		.sales-table-title-icon {
-			width: 52px;
-			height: 52px;
-			border-radius: 16px;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			background: linear-gradient(135deg, #05285f, #08c7d4);
-			color: #fff;
-			font-size: 22px;
-			box-shadow: 0 12px 30px rgba(5, 40, 95, .18);
-		}
-
-		.sales-table-title small {
-			display: block;
-			color: #8b99ab;
-			text-transform: uppercase;
-			font-size: 10px;
-			font-weight: 800;
-			letter-spacing: 1px;
-		}
-
-		.sales-table-title h5 {
-			margin: 4px 0 0;
-			font-size: 22px;
-			font-weight: 800;
-			color: #05285f;
-		}
-
-		.sales-table-actions {
-			display: flex;
-			gap: 10px;
-			flex-wrap: wrap;
-		}
-
-		.sales-table-wrapper {
-			overflow-x: auto;
-		}
-
-		.sales-table {
-			width: 100%;
-			margin: 0;
-		}
-
-		.sales-table thead th {
-			border: none;
-			padding: 16px;
-			background: #eef9fc;
-			color: #05285f;
-			font-size: 13px;
-			font-weight: 800;
-			white-space: nowrap;
-		}
-
-		.sales-table tbody td {
-			padding: 16px;
-			vertical-align: middle;
-			border-color: #eef2f7;
-			color: #4c6175;
-			font-size: 13px;
-		}
-
-		.sales-table tbody tr {
-			transition: .25s;
-		}
-
-		.sales-table tbody tr:hover {
-			background: #f8fcff;
-		}
-
-		.sales-number {
-			font-weight: 800;
-			color: #05285f;
-		}
-
-		.sales-customer {
-			font-weight: 700;
-			color: #074b8a;
-		}
-
-		.sales-money {
-			font-weight: 700;
-			color: #047857;
-		}
-
-		.sales-due {
-			color: #dc2626;
-			font-weight: 700;
-		}
-
-		.sales-actions {
-			display: flex;
-			gap: 6px;
-			flex-wrap: wrap;
-		}
-
-		.sales-actions .btn {
-			width: 36px;
-			height: 36px;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			border-radius: 10px;
-		}
-
-		/* ===========================================================
-		   STATUS BADGES
-		=========================================================== */
-
-		.sales-status {
-			display: inline-flex;
-			align-items: center;
-			gap: 6px;
-			padding: 7px 12px;
-			border-radius: 50px;
-			font-size: 11px;
-			font-weight: 800;
-		}
-
-		.sales-status.paid {
-			background: #dcfce7;
-			color: #047857;
-		}
-
-		.sales-status.partial {
-			background: #fef3c7;
-			color: #92400e;
-		}
-
-		.sales-status.unpaid {
-			background: #fee2e2;
-			color: #b91c1c;
-		}
-
-		.sales-status.cancelled {
-			background: #ececec;
-			color: #616161;
-		}
-
-		.sales-status.completed {
-			background: #dcfce7;
-			color: #047857;
-		}
-
-		.sales-status.pending {
-			background: #fef3c7;
-			color: #92400e;
-		}
-
-		/* ===========================================================
-		   LOADING / EMPTY STATE
-		=========================================================== */
-
-		.sales-empty {
-			padding: 70px 20px;
-			text-align: center;
-		}
-
-		.sales-empty-icon {
-			width: 90px;
-			height: 90px;
-			margin: auto;
-			margin-bottom: 20px;
-			border-radius: 24px;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			background: linear-gradient(135deg, #05285f, #08c7d4);
-			color: #fff;
-			font-size: 40px;
-			box-shadow: 0 18px 40px rgba(5, 40, 95, .20);
-		}
-
-		.sales-empty h5 {
-			color: #05285f;
-			font-weight: 800;
-		}
-
-		.sales-empty p {
-			color: #8b99ab;
-		}
-
-		.sales-loading {
-			padding: 70px;
-			text-align: center;
-		}
-
-		.sales-loading .spinner-border {
-			width: 3rem;
-			height: 3rem;
-			color: #08c7d4;
-		}
-
-		.sales-loading h6 {
-			margin-top: 20px;
-			color: #05285f;
-			font-weight: 800;
-		}
-
-		/* ===========================================================
-		   MODAL
-		=========================================================== */
-
-		.modal-content {
-			border: none;
-			border-radius: 24px;
-		}
-
-		.modal-header {
-			border-bottom: 1px solid #eef2f7;
-		}
-
-		.modal-footer {
-			border-top: 1px solid #eef2f7;
-		}
-
-		/* ===========================================================
-		   ANIMATION
-		=========================================================== */
-
-		@keyframes salesFade {
-
-			from {
-				opacity: 0;
-				transform: translateY(18px);
-			}
-
-			to {
-				opacity: 1;
-				transform: translateY(0);
 			}
 
 		}
-
-		/* ===========================================================
-		   RESPONSIVE
-		=========================================================== */
 
 		@media(max-width:992px) {
 
-			.sales-table-header {
+			.billing-hero {
+
 				flex-direction: column;
+
 				align-items: flex-start;
-				gap: 18px;
+
 			}
 
-		}
+			.billing-hero-action {
 
-		@media(max-width:768px) {
-
-			.sales-table-actions {
 				width: 100%;
-			}
 
-			.sales-table-actions .btn {
-				flex: 1;
 			}
 
 		}
 
 		@media(max-width:576px) {
 
-			.sales-table-title h5 {
-				font-size: 18px;
-			}
+			.billing-summary-grid {
 
-			.sales-table thead th,
-			.sales-table tbody td {
-				padding: 12px;
-				font-size: 12px;
-			}
-
-		}
-
-		/* ===========================================================
-		   BUTTONS
-		=========================================================== */
-
-		.btn-medi {
-			background: linear-gradient(135deg, #05285f, #08c7d4);
-			color: #fff;
-			border: none;
-			border-radius: 12px;
-			font-weight: 700;
-			transition: .3s;
-		}
-
-		.btn-medi:hover {
-			color: #fff;
-			transform: translateY(-2px);
-			box-shadow: 0 12px 30px rgba(5, 40, 95, .20);
-		}
-
-		.btn-outline-medi {
-			border: 1px solid #08c7d4;
-			color: #05285f;
-			background: #fff;
-			border-radius: 12px;
-			font-weight: 700;
-			transition: .3s;
-		}
-
-		.btn-outline-medi:hover {
-			background: #08c7d4;
-			color: #fff;
-		}
-
-		/* ===========================================================
-		   SCROLLBAR
-		=========================================================== */
-
-		.sales-table-wrapper::-webkit-scrollbar {
-			height: 10px;
-		}
-
-		.sales-table-wrapper::-webkit-scrollbar-track {
-			background: #edf2f7;
-			border-radius: 20px;
-		}
-
-		.sales-table-wrapper::-webkit-scrollbar-thumb {
-			background: #08c7d4;
-			border-radius: 20px;
-		}
-
-		.sales-table-wrapper::-webkit-scrollbar-thumb:hover {
-			background: #057da5;
-		}
-
-		/* ===========================================================
-		   FORM CONTROLS
-		=========================================================== */
-
-		.form-control,
-		.form-select {
-			border-radius: 12px;
-			border: 1px solid #d9e5ef;
-			min-height: 46px;
-			box-shadow: none !important;
-		}
-
-		.form-control:focus,
-		.form-select:focus {
-			border-color: #08c7d4;
-			box-shadow: 0 0 0 .2rem rgba(8, 199, 212, .15) !important;
-		}
-
-		/* ===========================================================
-		   BADGES
-		=========================================================== */
-
-		.badge-soft-primary {
-			background: #eaf7fb;
-			color: #05285f;
-			font-weight: 700;
-		}
-
-		.badge-soft-success {
-			background: #dcfce7;
-			color: #047857;
-			font-weight: 700;
-		}
-
-		.badge-soft-warning {
-			background: #fef3c7;
-			color: #92400e;
-			font-weight: 700;
-		}
-
-		.badge-soft-danger {
-			background: #fee2e2;
-			color: #b91c1c;
-			font-weight: 700;
-		}
-
-		/* ===========================================================
-		   UTILITIES
-		=========================================================== */
-
-		.text-medi {
-			color: #05285f !important;
-		}
-
-		.bg-medi {
-			background: #05285f !important;
-		}
-
-		.shadow-soft {
-			box-shadow: 0 18px 45px rgba(5, 40, 95, .08);
-		}
-
-		.rounded-20 {
-			border-radius: 20px;
-		}
-
-		/* ===========================================================
-		   RESPONSIVE
-		=========================================================== */
-
-		@media(max-width:992px) {
-
-			.sales-summary-grid {
-				grid-template-columns: repeat(2, 1fr);
-			}
-
-			.sales-search-panel {
-				flex-direction: column;
-				align-items: stretch;
-			}
-
-			.sales-search-actions {
-				width: 100%;
-				justify-content: flex-start;
-			}
-
-		}
-
-		@media(max-width:768px) {
-
-			.sales-hero {
-				flex-direction: column;
-				align-items: flex-start;
-			}
-
-			.sales-hero-panel {
-				width: 100%;
-			}
-
-			.sales-summary-grid {
 				grid-template-columns: 1fr;
+
 			}
 
-			.sales-search-box {
-				width: 100%;
-			}
+			.billing-hero {
 
-		}
+				padding: 25px 20px;
 
-		@media(max-width:576px) {
-
-			.sales-hero {
-				padding: 25px;
-			}
-
-			.sales-hero h1 {
-				font-size: 30px;
-			}
-
-			.sales-summary-card strong {
-				font-size: 22px;
 			}
 
 		}
 	</style>
+
 </head>
 
-<body class="dashboard-body saas-dashboard-body">
+<body class="dashboard-body platform-dashboard-body">
 
 	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
 
 	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
 
-	<main class="mr-main saas-main saas-sales-page">
+	<main class="mr-main saas-main billing-page">
 
-		<!-- ==========================================================
-                            HERO
-    =========================================================== -->
+		<section class="billing-hero">
 
-		<section class="sales-hero">
+			<div class="billing-hero-content">
 
-			<div class="sales-hero-content">
-
-				<span class="sales-kicker">
+				<span class="billing-kicker">
 
 					<i class="bi bi-receipt-cutoff"></i>
 
-					WHOLESALER SALES
+					Wholesaler Billing Center
 
 				</span>
 
 				<h1>
 
-					Sales
-					<span>Management</span>
+					Wholesaler
+
+					<span>Billing</span>
 
 				</h1>
 
 				<p>
 
-					Create customer invoices, manage payment collection,
-					maintain stock deduction automatically,
-					monitor pending dues and generate professional sales bills.
+					Create sales invoices, manage customer billing,
+					track payment status, print invoices and monitor
+					your complete wholesaler revenue from one secure
+					workspace.
 
 				</p>
 
-				<div class="sales-meta">
+				<div class="billing-meta">
 
 					<span>
 
@@ -1498,9 +498,9 @@
 
 					<span>
 
-						<i class="bi bi-box-seam"></i>
+						<i class="bi bi-capsule"></i>
 
-						Live Stock
+						Medicine Sales
 
 					</span>
 
@@ -1512,61 +512,39 @@
 
 					</span>
 
-					<span>
-
-						<i class="bi bi-printer-fill"></i>
-
-						Invoice Printing
-
-					</span>
-
 				</div>
 
 			</div>
 
-			<div class="sales-hero-panel">
+			<div class="billing-hero-action">
 
-				<div class="sales-hero-icon">
+				<div class="billing-hero-icon">
 
-					<i class="bi bi-cart-check-fill"></i>
+					<i class="bi bi-receipt"></i>
 
 				</div>
 
-				<h5 class="fw-bold mb-2">
+				<strong>Create Sales Invoice</strong>
 
-					New Sale Invoice
-
-				</h5>
-
-				<small class="text-center">
-
-					Create professional GST invoices with automatic inventory deduction.
-
-				</small>
-
-				<button id="btnCreateSale" class="sales-hero-button mt-4">
+				<button id="heroCreateSaleBtn" type="button" class="billing-add-button">
 
 					<i class="bi bi-plus-circle-fill"></i>
 
-					Create Sale
+					Create Invoice
 
 				</button>
 
 			</div>
 
 		</section>
+		
+		<div id="msg"></div>
 
+		<section class="billing-summary-grid">
 
+			<article class="billing-summary-card">
 
-		<!-- ==========================================================
-                        SUMMARY CARDS
-    =========================================================== -->
-
-		<section class="sales-summary-grid">
-
-			<div class="sales-summary-card">
-
-				<div class="sales-summary-icon">
+				<div class="billing-summary-icon">
 
 					<i class="bi bi-receipt"></i>
 
@@ -1580,13 +558,11 @@
 
 				</strong>
 
-			</div>
+			</article>
 
+			<article class="billing-summary-card">
 
-
-			<div class="sales-summary-card">
-
-				<div class="sales-summary-icon">
+				<div class="billing-summary-icon">
 
 					<i class="bi bi-currency-rupee"></i>
 
@@ -1596,19 +572,17 @@
 
 				<strong id="summaryTotalAmount">
 
-					₹0.00
+					₹0
 
 				</strong>
 
-			</div>
+			</article>
 
+			<article class="billing-summary-card">
 
+				<div class="billing-summary-icon">
 
-			<div class="sales-summary-card success">
-
-				<div class="sales-summary-icon">
-
-					<i class="bi bi-wallet2"></i>
+					<i class="bi bi-check2-circle"></i>
 
 				</div>
 
@@ -1616,17 +590,15 @@
 
 				<strong id="summaryPaidAmount">
 
-					₹0.00
+					₹0
 
 				</strong>
 
-			</div>
+			</article>
 
+			<article class="billing-summary-card">
 
-
-			<div class="sales-summary-card warning">
-
-				<div class="sales-summary-icon">
+				<div class="billing-summary-icon">
 
 					<i class="bi bi-hourglass-split"></i>
 
@@ -1636,57 +608,567 @@
 
 				<strong id="summaryDueAmount">
 
-					₹0.00
+					₹0
 
 				</strong>
 
-			</div>
-
-
-
-			<div class="sales-summary-card">
-
-				<div class="sales-summary-icon">
-
-					<i class="bi bi-graph-up-arrow"></i>
-
-				</div>
-
-				<small>Collection</small>
-
-				<strong id="summaryCollectionPercent">
-
-					0%
-
-				</strong>
-
-			</div>
+			</article>
 
 		</section>
+		<!-- ===========================================================
+		     CREATE / UPDATE SALE PANEL
+		=========================================================== -->
 
+		<section class="mr-card hospital-billing-form-card mb-4"
+		         id="saleFormPanel"
+		         style="display:none;">
 
+		    <div class="hospital-billing-form-header">
 
-		<!-- ==========================================================
-                        SEARCH PANEL
-    =========================================================== -->
+		        <div class="hospital-billing-title-wrap">
 
-		<section class="sales-panel">
+		            <div class="hospital-billing-title-icon">
+		                <i class="bi bi-receipt-cutoff"></i>
+		            </div>
 
-			<div class="sales-panel-header">
+		            <div>
 
-				<div class="sales-title-wrap">
+		                <small>Customer Billing</small>
 
-					<div class="sales-title-icon">
+		                <h5 id="saleModalTitle">
+		                    Create Sale
+		                </h5>
 
+		            </div>
+
+		        </div>
+
+		        <button
+		            type="button"
+		            class="btn btn-outline-secondary btn-sm"
+		            onclick="closeSaleForm()">
+
+		            <i class="bi bi-x-lg"></i>
+
+		        </button>
+
+		    </div>
+
+		    <input type="hidden" id="saleId">
+
+		    <input type="hidden" id="tenantId">
+
+		    <div class="row g-3">
+
+		        <div class="col-lg-4 hospital-billing-control-wrap">
+
+		            <label class="form-label">
+
+		                Customer
+
+		            </label>
+
+		            <i class="bi bi-people-fill"></i>
+
+		            <select id="customerId"
+		                    class="form-select">
+
+		                <option value="">
+		                    Loading Customers...
+		                </option>
+
+		            </select>
+
+		        </div>
+
+		        <div class="col-lg-4 hospital-billing-control-wrap">
+
+		            <label class="form-label">
+
+		                Sale Date
+
+		            </label>
+
+		            <i class="bi bi-calendar-event"></i>
+
+		            <input
+		                type="datetime-local"
+		                id="saleDate"
+		                class="form-control">
+
+		        </div>
+
+		        <div class="col-lg-4 hospital-billing-control-wrap">
+
+		            <label class="form-label">
+
+		                Payment Mode
+
+		            </label>
+
+		            <i class="bi bi-wallet2"></i>
+
+		            <select id="paymentMode"
+		                    class="form-select">
+
+		                <option value="CASH">Cash</option>
+		                <option value="UPI">UPI</option>
+		                <option value="CARD">Card</option>
+		                <option value="BANK_TRANSFER">Bank Transfer</option>
+		                <option value="CHEQUE">Cheque</option>
+
+		            </select>
+
+		        </div>
+
+		        <div class="col-lg-4 hospital-billing-control-wrap">
+
+		            <label class="form-label">
+
+		                Customer Code
+
+		            </label>
+
+		            <i class="bi bi-upc-scan"></i>
+
+		            <input
+		                id="customerCode"
+		                class="form-control"
+		                readonly>
+
+		        </div>
+
+		        <div class="col-lg-4 hospital-billing-control-wrap">
+
+		            <label class="form-label">
+
+		                Customer Type
+
+		            </label>
+
+		            <i class="bi bi-person-badge"></i>
+
+		            <input
+		                id="customerType"
+		                class="form-control"
+		                readonly>
+
+		        </div>
+
+		        <div class="col-lg-4 hospital-billing-control-wrap">
+
+		            <label class="form-label">
+
+		                GSTIN
+
+		            </label>
+
+		            <i class="bi bi-file-earmark-text"></i>
+
+		            <input
+		                id="customerGstin"
+		                class="form-control"
+		                readonly>
+
+		        </div>
+
+		    </div>
+
+		    <hr class="my-4">
+			
+			<!-- ======================================================
+			     MEDICINE DETAILS
+			====================================================== -->
+
+			<div id="medicineGridContainer">
+
+			    <div class="hospital-billing-form-header mt-4">
+
+			        <div class="hospital-billing-title-wrap">
+
+			            <div class="hospital-billing-title-icon">
+			                <i class="bi bi-capsule-pill"></i>
+			            </div>
+
+			            <div>
+
+			                <small>Invoice Medicines</small>
+
+			                <h5>Medicine Details</h5>
+
+			            </div>
+
+			        </div>
+
+			        <button
+			            type="button"
+			            class="btn btn-medi"
+			            id="btnAddMedicine">
+
+			            <i class="bi bi-plus-circle-fill me-1"></i>
+
+			            Add Medicine
+
+			        </button>
+
+			    </div>
+
+			    <div class="table-responsive hospital-billing-table-wrap mb-4">
+
+			        <table class="table table-hover align-middle">
+
+			            <thead>
+
+			                <tr>
+
+			                    <th width="28%">
+			                        Medicine
+			                    </th>
+
+			                    <th width="10%">
+			                        Qty
+			                    </th>
+
+			                    <th width="12%">
+			                        Rate
+			                    </th>
+
+			                    <th width="10%">
+			                        Disc %
+			                    </th>
+
+			                    <th width="10%">
+			                        GST %
+			                    </th>
+
+			                    <th width="15%">
+			                        Line Total
+			                    </th>
+
+			                    <th width="8%">
+			                        Stock
+			                    </th>
+
+			                    <th width="7%">
+			                        Action
+			                    </th>
+
+			                </tr>
+
+			            </thead>
+
+			            <tbody id="medicineTableBody">
+
+			                <tr>
+
+			                    <td colspan="8">
+
+			                        <div class="hospital-billing-state">
+
+			                            <div class="hospital-billing-state-icon">
+
+			                                <i class="bi bi-capsule-pill"></i>
+
+			                            </div>
+
+			                            <h5 class="fw-bold text-primary">
+
+			                                No Medicines Added
+
+			                            </h5>
+
+			                            <p class="text-muted mb-0">
+
+			                                Click
+			                                <strong>Add Medicine</strong>
+			                                to create your sales invoice.
+
+			                            </p>
+
+			                        </div>
+
+			                    </td>
+
+			                </tr>
+
+			            </tbody>
+
+			        </table>
+
+			    </div>
+
+			    <hr class="my-4">
+
+			    <!-- ======================================================
+			         OTHER DETAILS
+			    ====================================================== -->
+
+			    <div class="row g-3">
+
+			        <div class="col-md-3 hospital-billing-control-wrap">
+
+			            <label class="form-label">
+
+			                Other Charges
+
+			            </label>
+
+			            <i class="bi bi-plus-circle"></i>
+
+			            <input
+			                type="number"
+			                step="0.01"
+			                id="otherCharges"
+			                class="form-control"
+			                value="0">
+
+			        </div>
+
+			        <div class="col-md-3 hospital-billing-control-wrap">
+
+			            <label class="form-label">
+
+			                Round Off
+
+			            </label>
+
+			            <i class="bi bi-arrow-repeat"></i>
+
+			            <input
+			                type="number"
+			                step="0.01"
+			                id="roundOffAmount"
+			                class="form-control"
+			                value="0">
+
+			        </div>
+
+			        <div class="col-md-3 hospital-billing-control-wrap">
+
+			            <label class="form-label">
+
+			                Paid Amount
+
+			            </label>
+
+			            <i class="bi bi-cash-stack"></i>
+
+			            <input
+			                type="number"
+			                step="0.01"
+			                id="paidAmount"
+			                class="form-control"
+			                value="0">
+
+			        </div>
+
+			        <div class="col-md-3 d-flex align-items-end">
+
+			            <div
+			                id="paymentStatus"
+			                class="badge bg-danger fs-6 w-100 py-3">
+
+			                UNPAID
+
+			            </div>
+
+			        </div>
+
+			    </div>
+
+			    <div class="mt-4">
+
+			        <label class="form-label">
+
+			            Remarks
+
+			        </label>
+
+			        <textarea
+			            id="remarks"
+			            rows="3"
+			            class="form-control"
+			            placeholder="Enter remarks if any..."></textarea>
+
+			    </div>
+
+			</div>
+
+			<hr class="my-4">
+			<!-- ===========================================================
+			     BILLING SUMMARY
+			=========================================================== -->
+
+			<div class="hospital-billing-form-header">
+
+			    <div class="hospital-billing-title-wrap">
+
+			        <div class="hospital-billing-title-icon">
+			            <i class="bi bi-calculator-fill"></i>
+			        </div>
+
+			        <div>
+
+			            <small>Billing Summary</small>
+
+			            <h5>Invoice Calculation</h5>
+
+			        </div>
+
+			    </div>
+
+			</div>
+
+			<div class="row g-3">
+
+			    <div class="col-lg-4">
+
+			        <div class="hospital-billing-total-box">
+
+			            <span>Gross Amount</span>
+
+			            <strong id="grossAmount">
+			                ₹0.00
+			            </strong>
+
+			        </div>
+
+			    </div>
+
+			    <div class="col-lg-4">
+
+			        <div class="hospital-billing-total-box">
+
+			            <span>Total Discount</span>
+
+			            <strong id="discountAmount">
+			                ₹0.00
+			            </strong>
+
+			        </div>
+
+			    </div>
+
+			    <div class="col-lg-4">
+
+			        <div class="hospital-billing-total-box">
+
+			            <span>Taxable Amount</span>
+
+			            <strong id="taxableAmount">
+			                ₹0.00
+			            </strong>
+
+			        </div>
+
+			    </div>
+
+			    <div class="col-lg-4">
+
+			        <div class="hospital-billing-total-box">
+
+			            <span>Total GST</span>
+
+			            <strong id="gstAmount">
+			                ₹0.00
+			            </strong>
+
+			        </div>
+
+			    </div>
+
+			    <div class="col-lg-4">
+
+			        <div class="hospital-billing-total-box">
+
+			            <span>Grand Total</span>
+
+			            <strong id="grandTotal">
+			                ₹0.00
+			            </strong>
+
+			        </div>
+
+			    </div>
+
+			    <div class="col-lg-4">
+
+			        <div class="hospital-billing-total-box">
+
+			            <span>Due Amount</span>
+
+			            <strong id="dueAmount">
+			                ₹0.00
+			            </strong>
+
+			        </div>
+
+			    </div>
+
+			</div>
+
+			<!-- ===========================================================
+			     FORM ACTIONS
+			=========================================================== -->
+
+			<div class="hospital-billing-form-actions">
+
+			    <button
+			        type="button"
+			        class="btn btn-secondary"
+			        onclick="closeSaleForm()">
+
+			        <i class="bi bi-x-circle me-1"></i>
+
+			        Cancel
+
+			    </button>
+
+			    <button
+			        type="button"
+			        class="btn btn-outline-primary print-sale-btn"
+			        id="btnPreviewPrint">
+
+			        <i class="bi bi-printer me-1"></i>
+
+			        Print Invoice
+
+			    </button>
+
+			    <button
+			        type="button"
+			        class="btn btn-medi"
+			        id="btnSaveSale">
+
+			        <i class="bi bi-check-circle me-1"></i>
+
+			        Save Sale
+
+			    </button>
+
+			</div>
+
+			</section>
+		
+		<!-- ===========================================================
+		     SEARCH + SALES LIST
+		=========================================================== -->
+
+		<section class="mr-card mb-4">
+
+			<div class="hospital-billing-list-header">
+
+				<div class="hospital-billing-title-wrap">
+
+					<div class="hospital-billing-title-icon">
 						<i class="bi bi-search"></i>
-
 					</div>
 
 					<div>
 
-						<small>SEARCH SALES</small>
+						<small>Search Sales</small>
 
-						<h5>Sales Register</h5>
+						<h5>Customer Billing Search</h5>
 
 					</div>
 
@@ -1694,30 +1176,42 @@
 
 			</div>
 
+			<div class="row g-3 align-items-end">
 
+				<div class="col-lg-8 col-md-7">
 
-			<div class="sales-search-panel">
+					<label class="form-label">
+						Search Invoice / Customer / Payment Status
+					</label>
 
-				<div class="sales-search-box flex-grow-1">
+					<div class="hospital-billing-control-wrap">
 
-					<input type="text" id="searchKeyword" class="form-control"
-						placeholder="Search by Invoice No, Customer Name, Payment Status...">
+						<i class="bi bi-search"></i>
+
+						<input type="text" id="searchKeyword" class="form-control"
+							placeholder="Search invoice number, customer or payment status..." onkeyup="filterSales()">
+
+					</div>
 
 				</div>
 
-				<div class="sales-search-actions d-flex gap-2">
+				<div class="col-lg-2 col-md-3">
 
-					<button id="btnSearch" class="btn btn-medi">
+					<button type="button" class="btn btn-medi w-100" id="btnSearch">
 
-						<i class="bi bi-search"></i>
+						<i class="bi bi-search me-1"></i>
 
 						Search
 
 					</button>
 
-					<button id="btnRefresh" class="btn btn-outline-medi">
+				</div>
 
-						<i class="bi bi-arrow-clockwise"></i>
+				<div class="col-lg-2 col-md-2">
+
+					<button type="button" class="btn btn-outline-primary w-100" id="btnRefresh">
+
+						<i class="bi bi-arrow-clockwise me-1"></i>
 
 						Refresh
 
@@ -1728,102 +1222,67 @@
 			</div>
 
 		</section>
-		<!-- ==========================================================
-	                    SALES TABLE
-	========================================================== -->
 
-		<section class="sales-panel">
 
-			<div class="sales-panel-header">
 
-				<div class="sales-title-wrap">
+		<!-- ===========================================================
+		     SALES TABLE
+		=========================================================== -->
 
-					<div class="sales-title-icon">
+		<section class="mr-card">
 
-						<i class="bi bi-table"></i>
+			<div class="hospital-billing-list-header">
+
+				<div class="hospital-billing-title-wrap">
+
+					<div class="hospital-billing-title-icon">
+
+						<i class="bi bi-receipt-cutoff"></i>
 
 					</div>
 
 					<div>
 
-						<small>
+						<small>Sales Register</small>
 
-							SALES REGISTER
-
-						</small>
-
-						<h5>
-
-							Customer Sales
-
-						</h5>
+						<h5>Sales Invoice List</h5>
 
 					</div>
 
 				</div>
 
+				<button type="button" class="btn btn-medi" id="btnCreateSale">
+
+					<i class="bi bi-plus-circle-fill me-1"></i>
+
+					Create Sale
+
+				</button>
+
 			</div>
 
-			<div class="sales-table-wrapper">
+			<div class="table-responsive hospital-billing-table-wrap">
 
-				<table class="table sales-table align-middle">
+				<table class="table table-hover align-middle">
 
 					<thead>
 
 						<tr>
 
-							<th style="width:70px">
+							<th>Invoice</th>
 
-								#
+							<th>Customer</th>
 
-							</th>
+							<th>Grand Total</th>
 
-							<th>
+							<th>Paid</th>
 
-								Invoice No
+							<th>Due</th>
 
-							</th>
+							<th>Status</th>
 
-							<th>
-
-								Date
-
-							</th>
-
-							<th>
-
-								Customer
-
-							</th>
-
-							<th class="text-end">
-
-								Grand Total
-
-							</th>
-
-							<th class="text-end">
-
-								Paid
-
-							</th>
-
-							<th class="text-end">
-
-								Due
-
-							</th>
-
-							<th>
-
-								Payment
-
-							</th>
-
-							<th style="width:180px">
-
-								Action
-
+							<th width="220">
+								Actions
 							</th>
 
 						</tr>
@@ -1832,7 +1291,35 @@
 
 					<tbody id="salesTableBody">
 
-						<!-- JS -->
+						<tr>
+
+							<td colspan="7">
+
+								<div class="hospital-billing-state">
+
+									<div class="hospital-billing-state-icon hospital-billing-loading-icon">
+
+										<i class="bi bi-receipt-cutoff"></i>
+
+									</div>
+
+									<h5 class="fw-bold text-primary">
+
+										Loading Sales
+
+									</h5>
+
+									<p class="text-muted mb-0">
+
+										Please wait while customer sales invoices are loading.
+
+									</p>
+
+								</div>
+
+							</td>
+
+						</tr>
 
 					</tbody>
 
@@ -1842,101 +1329,109 @@
 
 		</section>
 
+		<!-- ===========================================================
+		     MESSAGE AREA
+		=========================================================== -->
 
+		<div id="loadingArea" style="display:none;" class="mt-4">
 
-		<!-- ==========================================================
-	                    LOADING STATE
-	========================================================== -->
+			<div class="hospital-billing-state">
 
-		<div id="loadingArea" class="sales-loading d-none">
+				<div class="hospital-billing-state-icon hospital-billing-loading-icon">
 
-			<div class="spinner-border">
+					<i class="bi bi-arrow-repeat"></i>
 
-			</div>
+				</div>
 
-			<h6>
+				<h5 class="fw-bold text-primary">
 
-				Loading Sales...
+					Please Wait
 
-			</h6>
+				</h5>
 
-			<p class="text-muted mb-0">
+				<p class="text-muted mb-0">
 
-				Please wait while we prepare your sales register.
+					Processing sales invoice...
 
-			</p>
-
-		</div>
-
-
-
-		<!-- ==========================================================
-	                    EMPTY STATE
-	========================================================== -->
-
-		<div id="emptyState" class="sales-empty d-none">
-
-			<div class="sales-empty-icon">
-
-				<i class="bi bi-receipt-cutoff"></i>
+				</p>
 
 			</div>
 
-			<h5>
-
-				No Sales Found
-
-			</h5>
-
-			<p>
-
-				There are no sales available for this workspace.
-
-			</p>
-
 		</div>
 
+		<div id="msg" class="mt-3"></div>
 
+		<!-- ===========================================================
+		     PART 5 : SALE PREVIEW MODAL
+		=========================================================== -->
 
-		<!-- ==========================================================
-	                    SALE PREVIEW MODAL
-	========================================================== -->
+		<div class="modal fade" id="salePreviewModal" tabindex="-1" aria-hidden="true">
 
-		<div class="modal fade" id="salePreviewModal" tabindex="-1">
-
-			<div class="modal-dialog modal-lg modal-dialog-scrollable">
+			<div class="modal-dialog modal-xl modal-dialog-scrollable">
 
 				<div class="modal-content">
 
 					<div class="modal-header">
 
-						<h5 class="modal-title">
+						<div class="hospital-billing-title-wrap">
 
-							<i class="bi bi-receipt-cutoff me-2"></i>
+							<div class="hospital-billing-title-icon">
 
-							Sale Details
+								<i class="bi bi-eye-fill"></i>
 
-						</h5>
+							</div>
 
-						<button class="btn-close" data-bs-dismiss="modal">
+							<div>
 
+								<small>Invoice Preview</small>
+
+								<h5>
+
+									Sales Invoice Details
+
+								</h5>
+
+							</div>
+
+						</div>
+
+						<button type="button" class="btn-close" data-bs-dismiss="modal">
 						</button>
 
 					</div>
 
-					<div class="modal-body" id="salePreviewBody">
+					<div class="modal-body">
+
+						<!-- JS will completely replace this -->
+
+						<div id="salePreviewBody">
+
+							<div class="hospital-billing-state">
+
+								<div class="hospital-billing-state-icon hospital-billing-loading-icon">
+
+									<i class="bi bi-receipt-cutoff"></i>
+
+								</div>
+
+								<h5 class="fw-bold text-primary">
+
+									Loading Invoice
+
+								</h5>
+
+								<p class="text-muted mb-0">
+
+									Please wait while invoice details are loading.
+
+								</p>
+
+							</div>
+
+						</div>
 
 					</div>
 
-					<div class="modal-footer">
-
-						<button class="btn btn-outline-secondary" data-bs-dismiss="modal">
-
-							Close
-
-						</button>
-
-					</div>
 
 				</div>
 
@@ -1945,676 +1440,62 @@
 		</div>
 
 
+		<div th:replace="~{layout/footer :: footer}"></div>
 
-		<!-- ==========================================================
-	                    HIDDEN FIELDS
-	========================================================== -->
+	</main>
 
-		<input type="hidden" id="tenantId">
+	<!-- ===========================================================
+		     MODULE SWITCH OVERLAY
+		=========================================================== -->
 
-		<input type="hidden" id="saleId">
+	<div class="module-exit-overlay" id="moduleExitOverlay">
 
+		<div class="module-exit-content">
 
+			<div class="module-exit-icon">
 
-		<!-- ==========================================================
-	                    ACTION BUTTON TEMPLATE
-	                    (Rendered by JS)
-	========================================================== -->
+				<i class="bi bi-arrow-left-right"></i>
 
+			</div>
 
+			<h2>
 
-		<button class="btn btn-outline-primary" onclick="viewSale(id)">
+				Switching Workspace
 
-			<i class="bi bi-eye"></i>
+			</h2>
 
-		</button>
+			<p>
 
-		<button class="btn btn-outline-success" onclick="openEditModal(id)">
+				Returning to MediRevolution SaaS workspace...
 
-			<i class="bi bi-pencil"></i>
+			</p>
 
-		</button>
+			<div class="module-exit-progress">
 
-		<button class="btn btn-outline-danger" onclick="deleteSale(id)">
+				<span></span>
 
-			<i class="bi bi-trash"></i>
+			</div>
 
-		</button>
+		</div>
 
-		<button class="btn btn-outline-dark" onclick="printInvoice(id)">
+	</div>
 
-			<i class="bi bi-printer"></i>
+	<!-- ===========================================================
+		     JAVASCRIPT
+		=========================================================== -->
 
-		</button>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-		<!-- ==========================================================
-	                    CREATE / EDIT SALE MODAL
-	========================================================== -->
+	<script th:src="@{/js/common-dashboard.js}"></script>
 
-		<div class="modal fade" id="saleModal" tabindex="-1" aria-hidden="true">
+	<script th:src="@{/js/module-switch.js}"></script>
 
-			<div class="modal-dialog modal-xl modal-dialog-scrollable">
+	<script th:src="@{/js/saas-auth-guard.js}"></script>
 
-				<div class="modal-content rounded-4 border-0 shadow-lg">
+	<script th:src="@{/js/saas-wholesaler-billing.js?v=1}"></script>
 
-					<div class="modal-header">
+	<script th:src="@{/js/pwa.js}"></script>
 
-						<div>
+</body>
 
-							<small class="text-uppercase fw-bold text-muted">
-
-								Customer Sale
-
-							</small>
-
-							<h4 class="mb-0 fw-bold text-medi" id="saleModalTitle">
-
-								Create Sale
-
-							</h4>
-
-						</div>
-
-						<button type="button" class="btn-close" data-bs-dismiss="modal">
-
-						</button>
-
-					</div>
-
-					<div class="modal-body">
-
-						<input type="hidden" id="saleId">
-
-						<input type="hidden" id="tenantId">
-
-						<!-- ========================================= -->
-						<!-- BASIC DETAILS -->
-						<!-- ========================================= -->
-
-						<div class="row g-3">
-
-							<div class="col-lg-3">
-
-								<label class="form-label fw-semibold">
-
-									Sale Date
-
-								</label>
-
-								<input type="date" id="saleDate" class="form-control">
-
-							</div>
-
-							<div class="col-lg-5">
-
-								<label class="form-label fw-semibold">
-
-									Customer
-
-								</label>
-
-								<select id="customerId" class="form-select">
-
-									<option value="">
-
-										Select Customer
-
-									</option>
-
-								</select>
-
-							</div>
-
-							<div class="col-lg-4">
-
-								<label class="form-label fw-semibold">
-
-									Payment Mode
-
-								</label>
-
-								<select id="paymentMode" class="form-select">
-
-									<option value="CASH">
-
-										CASH
-
-									</option>
-
-									<option value="UPI">
-
-										UPI
-
-									</option>
-
-									<option value="CARD">
-
-										CARD
-
-									</option>
-
-									<option value="BANK_TRANSFER">
-
-										BANK TRANSFER
-
-									</option>
-
-									<option value="CHEQUE">
-
-										CHEQUE
-
-									</option>
-
-									<option value="CREDIT">
-
-										CREDIT
-
-									</option>
-
-								</select>
-
-							</div>
-
-						</div>
-
-						<div class="row g-3 mt-2">
-
-							<div class="col-lg-4">
-
-								<label class="form-label">
-
-									Customer Code
-
-								</label>
-
-								<input type="text" id="customerCode" class="form-control" readonly>
-
-							</div>
-
-							<div class="col-lg-4">
-
-								<label class="form-label">
-
-									Customer Type
-
-								</label>
-
-								<input type="text" id="customerType" class="form-control" readonly>
-
-							</div>
-
-							<div class="col-lg-4">
-
-								<label class="form-label">
-
-									GSTIN
-
-								</label>
-
-								<input type="text" id="customerGstin" class="form-control" readonly>
-
-							</div>
-
-						</div>
-
-						<hr class="my-4">
-
-						<!-- ========================================= -->
-						<!-- SALE ITEMS -->
-						<!-- ========================================= -->
-
-						<div class="d-flex justify-content-between align-items-center mb-3">
-
-							<h5 class="fw-bold text-medi mb-0">
-
-								Medicines
-
-							</h5>
-
-							<button type="button" id="btnAddMedicine" class="btn btn-medi">
-
-								<i class="bi bi-plus-circle me-1"></i>
-
-								Add Medicine
-
-							</button>
-
-						</div>
-
-						<div class="table-responsive sales-table-wrapper">
-
-							<table class="table sales-table align-middle">
-
-								<thead>
-
-									<tr>
-
-										<th width="28%">
-
-											Medicine
-
-										</th>
-
-										<th width="10%">
-
-											Qty
-
-										</th>
-
-										<th width="12%">
-
-											Rate
-
-										</th>
-
-										<th width="10%">
-
-											Discount %
-
-										</th>
-
-										<th width="10%">
-
-											GST %
-
-										</th>
-
-										<th width="15%">
-
-											Total
-
-										</th>
-
-										<th width="8%">
-
-											Action
-
-										</th>
-
-									</tr>
-
-								</thead>
-
-								<tbody id="medicineTableBody">
-
-								</tbody>
-
-							</table>
-
-						</div>
-						<!-- ========================================= -->
-						<!-- BILLING TOTALS -->
-						<!-- ========================================= -->
-						
-						<div class="row mt-4">
-						
-						    <div class="col-lg-7">
-						
-						        <label class="form-label fw-semibold">
-						
-						            Remarks
-						
-						        </label>
-						
-						        <textarea
-						            id="remarks"
-						            class="form-control"
-						            rows="9"
-						            placeholder="Enter Remarks (Optional)"></textarea>
-						
-						    </div>
-						
-						    <div class="col-lg-5">
-						
-						        <div class="card border-0 shadow-sm rounded-4">
-						
-						            <div class="card-header bg-white">
-						
-						                <h5 class="fw-bold text-medi mb-0">
-						
-						                    Billing Summary
-						
-						                </h5>
-						
-						            </div>
-						
-						            <div class="card-body">
-						
-						                <div class="row mb-3">
-						
-						                    <div class="col-6">
-						
-						                        <label class="form-label">
-						
-						                            Gross Amount
-						
-						                        </label>
-						
-						                    </div>
-						
-						                    <div class="col-6">
-						
-						                        <input
-						                            id="grossAmount"
-						                            class="form-control text-end"
-						                            readonly>
-						
-						                    </div>
-						
-						                </div>
-						
-						                <div class="row mb-3">
-						
-						                    <div class="col-6">
-						
-						                        <label class="form-label">
-						
-						                            Discount
-						
-						                        </label>
-						
-						                    </div>
-						
-						                    <div class="col-6">
-						
-						                        <input
-						                            id="discountAmount"
-						                            class="form-control text-end"
-						                            readonly>
-						
-						                    </div>
-						
-						                </div>
-						
-						                <div class="row mb-3">
-						
-						                    <div class="col-6">
-						
-						                        <label class="form-label">
-						
-						                            Taxable Amount
-						
-						                        </label>
-						
-						                    </div>
-						
-						                    <div class="col-6">
-						
-						                        <input
-						                            id="taxableAmount"
-						                            class="form-control text-end"
-						                            readonly>
-						
-						                    </div>
-						
-						                </div>
-						
-						                <div class="row mb-3">
-						
-						                    <div class="col-6">
-						
-						                        <label class="form-label">
-						
-						                            GST Amount
-						
-						                        </label>
-						
-						                    </div>
-						
-						                    <div class="col-6">
-						
-						                        <input
-						                            id="gstAmount"
-						                            class="form-control text-end"
-						                            readonly>
-						
-						                    </div>
-						
-						                </div>
-						
-						                <div class="row mb-3">
-						
-						                    <div class="col-6">
-						
-						                        <label class="form-label">
-						
-						                            Other Charges
-						
-						                        </label>
-						
-						                    </div>
-						
-						                    <div class="col-6">
-						
-						                        <input
-						                            type="number"
-						                            step="0.01"
-						                            id="otherCharges"
-						                            class="form-control text-end"
-						                            value="0">
-						
-						                    </div>
-						
-						                </div>
-						
-						                <div class="row mb-3">
-						
-						                    <div class="col-6">
-						
-						                        <label class="form-label">
-						
-						                            Round Off
-						
-						                        </label>
-						
-						                    </div>
-						
-						                    <div class="col-6">
-						
-						                        <input
-						                            type="number"
-						                            step="0.01"
-						                            id="roundOffAmount"
-						                            class="form-control text-end"
-						                            value="0">
-						
-						                    </div>
-						
-						                </div>
-						
-						                <hr>
-						
-						                <div class="row mb-3">
-						
-						                    <div class="col-6">
-						
-						                        <label class="form-label fw-bold">
-						
-						                            Grand Total
-						
-						                        </label>
-						
-						                    </div>
-						
-						                    <div class="col-6">
-						
-						                        <input
-						                            id="grandTotal"
-						                            class="form-control text-end fw-bold bg-light"
-						                            readonly>
-						
-						                    </div>
-						
-						                </div>
-						
-						                <div class="row mb-3">
-						
-						                    <div class="col-6">
-						
-						                        <label class="form-label">
-						
-						                            Paid Amount
-						
-						                        </label>
-						
-						                    </div>
-						
-						                    <div class="col-6">
-						
-						                        <input
-						                            type="number"
-						                            step="0.01"
-						                            id="paidAmount"
-						                            class="form-control text-end"
-						                            value="0">
-						
-						                    </div>
-						
-						                </div>
-						
-						                <div class="row">
-						
-						                    <div class="col-6">
-						
-						                        <label class="form-label fw-bold">
-						
-						                            Due Amount
-						
-						                        </label>
-						
-						                    </div>
-						
-						                    <div class="col-6">
-						
-						                        <input
-						                            id="dueAmount"
-						                            class="form-control text-end fw-bold text-danger"
-						                            readonly>
-						
-						                    </div>
-						
-						                </div>
-						
-						                <div class="mt-4">
-						
-						                    <span
-						                        id="paymentStatus"
-						                        class="badge bg-danger">
-						
-						                        UNPAID
-						
-						                    </span>
-						
-						                </div>
-						
-						            </div>
-						
-						        </div>
-						
-						    </div>
-						
-						</div>
-						            </div>
-						
-						            <div class="modal-footer">
-						
-						                <button
-						                    type="button"
-						                    class="btn btn-outline-secondary"
-						                    data-bs-dismiss="modal">
-						
-						                    <i class="bi bi-x-circle me-1"></i>
-						
-						                    Close
-						
-						                </button>
-						
-						                <button
-						                    type="button"
-						                    class="btn btn-outline-medi"
-						                    onclick="resetSaleForm()">
-						
-						                    <i class="bi bi-arrow-counterclockwise me-1"></i>
-						
-						                    Reset
-						
-						                </button>
-						
-						                <button
-						                    type="button"
-						                    id="btnSaveSale"
-						                    class="btn btn-medi">
-						
-						                    <i class="bi bi-check-circle-fill me-1"></i>
-						
-						                    Save Sale
-						
-						                </button>
-						
-						            </div>
-						
-						        </div>
-						
-						    </div>
-						
-						</div>
-						
-						<!-- ==========================================================
-						                    PAGE LOADER
-						========================================================== -->
-						
-						<div
-						    id="pageLoader"
-						    class="position-fixed top-0 start-0 w-100 h-100 d-none"
-						    style="
-						        z-index:99999;
-						        background:rgba(255,255,255,.75);
-						        backdrop-filter:blur(2px);
-						    ">
-						
-						    <div
-						        class="d-flex justify-content-center align-items-center h-100">
-						
-						        <div class="text-center">
-						
-						            <div
-						                class="spinner-border text-primary"
-						                style="width:3rem;height:3rem;">
-						
-						            </div>
-						
-						            <div class="mt-3 fw-bold text-medi">
-						
-						                Please wait...
-						
-						            </div>
-						
-						        </div>
-						
-						    </div>
-						
-						</div>
-						
-						<div th:replace="~{layout/footer :: footer}"></div>
-						
-						</main>
-						
-						<!-- ==========================================================
-						                    JAVASCRIPT
-						========================================================== -->
-						
-						<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-						
-						<script th:src="@{/js/common-dashboard.js}"></script>
-						
-						<script th:src="@{/js/module-switch.js?v=20260716_4}"></script>
-						
-						<script th:src="@{/js/saas-auth-guard.js?v=20260716_4}"></script>
-						
-						<script th:src="@{/js/saas-wholesaler-billing.js?v=20260731_1}"></script>
-						
-						<script th:src="@{/js/pwa.js?v=20260716_4}"></script>
-						
-						</body>
-						
-						</html>
+</html>

@@ -174,6 +174,8 @@ public class SaasPermissionService {
 		case DOCTOR -> {
 			allowAllActions(tenantId, authUserId, TenantModule.PATIENTS);
 			allowAllActions(tenantId, authUserId, TenantModule.APPOINTMENTS);
+			allowAllActions(tenantId, authUserId, TenantModule.DOCTOR_AVAILABILITY);
+			
 			allowAllActions(tenantId, authUserId, TenantModule.PRESCRIPTIONS);
 
 			allowViewCreateUpdate(tenantId, authUserId, TenantModule.OPD);
@@ -183,6 +185,7 @@ public class SaasPermissionService {
 			allowViewCreateUpdate(tenantId, authUserId, TenantModule.LAB);
 
 			allowViewCreateUpdate(tenantId, authUserId, TenantModule.RADIOLOGY);
+			
 		}
 
 		case RECEPTIONIST -> {

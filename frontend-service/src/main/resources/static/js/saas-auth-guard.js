@@ -588,25 +588,10 @@ async function applySaasPermissionMenu() {
 		return;
 	}
 
-	if (
-		!isSaasMode() ||
-		!getSaasTenantId()
-	) {
+	if (!isSaasMode() || !getSaasTenantId()) {
 		sidebar.style.display = "none";
 		return;
 	}
-
-	/*
-	 * API complete hone se pehle SaaS module links hide rahenge.
-	 * Isse incorrect modules ka flash nahi dikhega.
-	 */
-	sidebar
-		.querySelectorAll(
-			"[data-saas-module], [data-saas]"
-		)
-		.forEach(function(link) {
-			link.style.display = "none";
-		});
 
 	sidebar.style.display = "";
 
@@ -615,77 +600,101 @@ async function applySaasPermissionMenu() {
 		loadCurrentSaasEnabledModules()
 	]);
 
-	sidebar
-		.querySelectorAll(
-			"[data-saas-module], [data-saas]"
-		)
-		.forEach(function(link) {
+	/*
+	 * Future proof
+	 * <a>, <li>, <div> sab support karega.
+	 */
+	const menuItems = sidebar.querySelectorAll(
+		"[data-saas-module], [data-saas]"
+	);
 
-			const moduleName =
-				link.getAttribute(
-					"data-saas-module"
-				) ||
-				link.getAttribute(
-					"data-saas"
-				) ||
-				"";
+	menuItems.forEach(function (item) {
 
-			const action =
-				link.getAttribute(
-					"data-saas-action"
-				) ||
-				link.getAttribute(
-					"data-action"
-				) ||
-				"VIEW";
+		item.style.display = "none";
 
-			const ownerAdminOnly =
-				link.getAttribute(
-					"data-owner-admin"
-				) === "true";
+		const moduleName =
+			String(
+				item.getAttribute("data-saas-module") ||
+				item.getAttribute("data-saas") ||
+				""
+			).trim().toUpperCase();
 
-			const tenantTypeAllowed =
-				isModuleAllowedForCurrentTenantType(
-					moduleName
-				);
+		if (!moduleName) {
+			return;
+		}
 
-			const moduleEnabled =
-				isSaasModuleEnabled(
-					moduleName
-				);
+		const action =
+			String(
+				item.getAttribute("data-saas-action") ||
+				item.getAttribute("data-action") ||
+				"VIEW"
+			).trim().toUpperCase();
 
-			let permissionAllowed =
-				hasCachedSaasPermission(
-					moduleName,
-					action
-				);
+		const ownerOnly =
+			item.getAttribute("data-owner-admin") === "true";
 
-			if (
-				ownerAdminOnly &&
-				window.SAAS_OWNER_OR_ADMIN !== true
-			) {
-				permissionAllowed = false;
-			}
+		if (ownerOnly && !window.SAAS_OWNER_OR_ADMIN) {
+			return;
+		}
 
-			/*
-			 * Final visibility:
-			 *
-			 * 1. Selected tenant type module support karta ho
-			 * 2. Backend enabled modules me module available ho
-			 * 3. User ke paas required permission ho
-			 */
-			const visible =
-				tenantTypeAllowed &&
-				moduleEnabled &&
-				permissionAllowed;
+		/*
+		 * Tenant Type Check
+		 */
 
-			link.style.display =
-				visible ? "" : "none";
-		});
+		if (!isModuleAllowedForCurrentTenantType(moduleName)) {
+			return;
+		}
+
+		/*
+		 * Backend Enabled Module Check
+		 */
+
+		if (!isSaasModuleEnabled(moduleName)) {
+			return;
+		}
+
+		/*
+		 * Permission Check
+		 */
+
+		if (!hasCachedSaasPermission(moduleName, action)) {
+			return;
+		}
+
+		item.style.display = "";
+	});
 
 	updateSaasSidebarSectionVisibility();
-
 	updateSaasSidebarWorkspaceDetails();
+	
+	updateBillingMenuHref();
+}
+
+function updateBillingMenuHref() {
+
+	const billingMenu = document.getElementById("saasBillingMenu");
+
+	if (!billingMenu) {
+		return;
+	}
+
+	const tenantType = (
+		localStorage.getItem("tenantType") || ""
+	).trim().toUpperCase();
+
+	console.log("Billing tenantType :", tenantType);
+
+	const billingUrls = {
+		DOCTOR_CLINIC: "/saas/doctor/billing",
+		HOSPITAL: "/saas/hospital/billing",
+		WHOLESALER: "/saas/wholesaler/billing",
+		RETAILER: "/saas/retailer/billing"
+	};
+
+	billingMenu.setAttribute(
+		"href",
+		billingUrls[tenantType] || "/saas/billing"
+	);
 }
 
 function updateSaasSidebarWorkspaceDetails() {

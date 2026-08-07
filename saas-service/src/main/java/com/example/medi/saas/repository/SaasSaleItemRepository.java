@@ -13,4 +13,6 @@ public interface SaasSaleItemRepository
             Long tenantId,
             Long saleId
     );
+    
+    void deleteByTenantIdAndSaleId(Long tenantId, Long saleId);
 }

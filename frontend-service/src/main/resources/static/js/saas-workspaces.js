@@ -831,6 +831,10 @@ function selectTenant(
 		selectedTenantType
 	);
 
+
+	updateBillingMenuHref();
+	updateSaasSidebarWorkspaceDetails();
+
 	localStorage.setItem(
 		"saasMode",
 		"true"

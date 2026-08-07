@@ -1,30 +1,64 @@
 'use strict';
 
 /* ===========================================================
+   SAAS WHOLESALER BILLING
+   MediRevolution
+=========================================================== */
+
+/* ===========================================================
    GLOBAL VARIABLES
 =========================================================== */
 
-let saleModal;
+let saleFormPanel;
+let previewModal;
 
 let tenantId = null;
-
 let editingSaleId = null;
 
 let customers = [];
-
-let medicineRows = [];
-
 let medicines = [];
-
+let medicineRows = [];
 let sales = [];
 
-const currencyFormatter = new Intl.NumberFormat('en-IN', {
+let medicineOptionsHtml = "";
+
+let searchTimer = null;
+
+/* ===========================================================
+   REQUEST FLAGS
+=========================================================== */
+
+let isLoadingSales = false;
+let isSavingSale = false;
+let isDeletingSale = false;
+let isPrintingSale = false;
+
+/* ===========================================================
+   PERMISSIONS
+=========================================================== */
+
+let salesPermissions = {
+
+	create: false,
+	update: false,
+	delete: false,
+	print: false
+
+};
+
+/* ===========================================================
+   FORMATTER
+=========================================================== */
+
+const currencyFormatter = new Intl.NumberFormat("en-IN", {
+
 	minimumFractionDigits: 2,
 	maximumFractionDigits: 2
+
 });
 
 /* ===========================================================
-   DOM READY
+   INITIALIZE
 =========================================================== */
 
 document.addEventListener("DOMContentLoaded", async function() {
@@ -39,31 +73,154 @@ document.addEventListener("DOMContentLoaded", async function() {
 
 	if (!tenantId) {
 
-		showErrorMessage("Tenant not found.");
+		showError("Please select SaaS workspace first.");
 
 		return;
+
 	}
 
-	document.getElementById("tenantId").value = tenantId;
 
-	saleModal = new bootstrap.Modal(
-		document.getElementById("saleModal")
-	);
+	const tenantInput = document.getElementById("tenantId");
+
+	if (tenantInput) {
+
+		tenantInput.value = tenantId;
+
+	}
+
+
+	saleFormPanel = document.getElementById("saleFormPanel");
+
+
+	const previewElement =
+		document.getElementById("salePreviewModal");
+
+
+	if (previewElement) {
+
+		previewModal =
+			bootstrap.Modal.getOrCreateInstance(previewElement);
+
+	}
+
 
 	bindEvents();
 
-	await loadSummary();
 
-	await loadCustomers();
-	
-	
+	await loadSalesPermissions();
+
+
+	await Promise.all([
+
+		loadSummary(),
+		loadCustomers(),
+		loadMedicines()
+
+	]);
+
+
 	bindCustomerSelection();
 
-	await loadMedicines();
 
 	await loadSales();
-	
+
+
 });
+
+
+function openSaleForm() {
+
+	if (!saleFormPanel) {
+		return;
+	}
+
+	saleFormPanel.style.display = "block";
+
+	saleFormPanel.scrollIntoView({
+		behavior: "smooth",
+		block: "start"
+	});
+
+}
+
+function closeSaleForm() {
+
+	if (!saleFormPanel) {
+		return;
+	}
+
+	saleFormPanel.style.display = "none";
+
+	resetSaleForm();
+
+}
+/* ===========================================================
+   LOAD PERMISSIONS
+=========================================================== */
+
+async function loadSalesPermissions() {
+
+	const [
+
+		canCreate,
+		canUpdate,
+		canDelete,
+		canPrint
+
+	] = await Promise.all([
+
+		hasSaasPermission("SALES", "CREATE"),
+		hasSaasPermission("SALES", "UPDATE"),
+		hasSaasPermission("SALES", "DELETE"),
+		hasSaasPermission("SALES", "PRINT")
+
+	]);
+
+	salesPermissions = {
+
+		create: Boolean(canCreate),
+		update: Boolean(canUpdate),
+		delete: Boolean(canDelete),
+		print: Boolean(canPrint)
+
+	};
+
+	applySalesPermissions();
+
+}
+
+/* ===========================================================
+   APPLY PERMISSIONS
+=========================================================== */
+
+function applySalesPermissions() {
+
+	showOrHideById(
+		"btnCreateSale",
+		salesPermissions.create
+	);
+
+	showOrHideById(
+		"heroCreateSaleBtn",
+		salesPermissions.create
+	);
+
+	showOrHideByClass(
+		"update-sale-btn",
+		salesPermissions.update
+	);
+
+	showOrHideByClass(
+		"delete-sale-btn",
+		salesPermissions.delete
+	);
+
+	showOrHideByClass(
+		"print-sale-btn",
+		salesPermissions.print
+	);
+
+}
 
 /* ===========================================================
    EVENT BINDINGS
@@ -71,37 +228,77 @@ document.addEventListener("DOMContentLoaded", async function() {
 
 function bindEvents() {
 
-	document
-		.getElementById("btnCreateSale")
-		.addEventListener("click", openCreateModal);
+	bindClick("btnCreateSale", openCreateModal);
 
-	document
-		.getElementById("btnSaveSale")
-		.addEventListener("click", saveSale);
+	bindClick("heroCreateSaleBtn", openCreateModal);
 
-	document
-		.getElementById("btnRefresh")
-		.addEventListener("click", loadSales);
+	bindClick("btnSaveSale", saveSale);
 
-	document
-		.getElementById("btnSearch")
-		.addEventListener("click", searchSales);
+	bindClick("btnRefresh", refreshBillingPage);
 
-	document
-		.getElementById("btnAddMedicine")
-		.addEventListener("click", addMedicineRow);
+	bindClick("btnSearch", searchSales);
 
-	document
-		.getElementById("otherCharges")
-		.addEventListener("input", calculateTotals);
+	bindClick("btnAddMedicine", addMedicineRow);
 
-	document
-		.getElementById("roundOffAmount")
-		.addEventListener("input", calculateTotals);
+	bindInput("otherCharges", calculateTotals);
 
-	document
-		.getElementById("paidAmount")
-		.addEventListener("input", calculateTotals);
+	bindInput("roundOffAmount", calculateTotals);
+
+	bindInput("paidAmount", calculateTotals);
+
+	bindClick("btnPreviewPrint", printCurrentSale);
+
+	bindInput("searchKeyword", debounceSearch);
+
+}
+
+/* ===========================================================
+   SMALL EVENT HELPERS
+=========================================================== */
+
+function bindClick(id, callback) {
+
+	const element = document.getElementById(id);
+
+	if (!element) return;
+
+	element.addEventListener("click", callback);
+
+}
+
+function bindInput(id, callback) {
+
+	const element = document.getElementById(id);
+
+	if (!element) return;
+
+	element.addEventListener("input", callback);
+
+}
+
+function debounceSearch() {
+
+	clearTimeout(searchTimer);
+
+	searchTimer = setTimeout(function() {
+
+		filterSales();
+
+	}, 300);
+
+}
+
+async function printCurrentSale() {
+
+	if (!editingSaleId) {
+
+		showError("No invoice selected.");
+
+		return;
+
+	}
+
+	await printInvoice(editingSaleId);
 
 }
 
@@ -111,544 +308,560 @@ function bindEvents() {
 
 async function loadSummary() {
 
-    try {
+	try {
 
-        const response = await fetch(
-            `${API_BASE}/summary?tenantId=${tenantId}`,
-            {
-                headers: authHeaders()
-            }
-        );
+		const response = await fetch(
+			`${API_BASE}/saas/sales/summary?tenantId=${tenantId}`,
+			{
+				headers: authHeaders()
+			}
+		);
 
-        if (!response.ok) {
-            throw new Error("Unable to load summary");
-        }
+		if (handleUnauthorized(response)) {
 
-        const data = await response.json();
+			clearSelect("customerId");
 
-        document.getElementById("summaryTotalSales").textContent =
-            data.totalSales ?? 0;
+			appendOption(
+				document.getElementById("customerId"),
+				"",
+				"Unable to load"
+			);
 
-        document.getElementById("summaryTotalAmount").textContent =
-            formatMoney(data.totalAmount);
+			return;
 
-        document.getElementById("summaryPaidAmount").textContent =
-            formatMoney(data.paidAmount);
+		}
 
-        document.getElementById("summaryDueAmount").textContent =
-            formatMoney(data.dueAmount);
+		const result = await safeJson(response);
 
-    }
-    catch (e) {
-        console.error(e);
-    }
+		if (!response.ok) {
+
+			console.error(result);
+
+			return;
+
+		}
+
+		setText(
+			"summaryTotalSales",
+			result.totalSales ?? 0
+		);
+
+		setText(
+			"summaryTotalAmount",
+			"₹" + formatMoney(result.totalAmount)
+		);
+
+		setText(
+			"summaryPaidAmount",
+			"₹" + formatMoney(result.paidAmount)
+		);
+
+		setText(
+			"summaryDueAmount",
+			"₹" + formatMoney(result.dueAmount)
+		);
+
+	}
+	catch (error) {
+
+		console.error(
+			"Load summary error:",
+			error
+		);
+
+	}
 
 }
 
-function renderSalesTable(salesList) {
+/* ===========================================================
+   LOAD SALES
+=========================================================== */
 
-	const tbody = document.getElementById("salesTableBody");
+async function loadSales() {
 
-	tbody.innerHTML = "";
-
-	if (!salesList || salesList.length === 0) {
-
-		tbody.innerHTML = `
-        <tr>
-            <td colspan="8" class="text-center py-5">
-                No Sales Found
-            </td>
-        </tr>`;
+	if (isLoadingSales) {
 		return;
 	}
 
-	salesList.forEach(sale => {
+	isLoadingSales = true;
 
-		const due =
-			(sale.grandTotal || 0) -
-			(sale.paidAmount || 0);
+	showSalesLoadingState();
 
-		tbody.innerHTML += `
+	setButtonLoading(
+		"btnRefresh",
+		"Refreshing...",
+		true
+	);
+
+	try {
+
+		const response = await fetch(
+			`${API_BASE}/saas/sales?tenantId=${tenantId}`,
+			{
+				headers: authHeaders()
+			}
+		);
+
+		if (handleUnauthorized(response)) {
+
+			clearSelect("customerId");
+
+			appendOption(
+				document.getElementById("customerId"),
+				"",
+				"Unable to load"
+			);
+
+			return;
+
+		}
+
+		const result = await safeJson(response);
+
+		if (!response.ok) {
+
+			sales = [];
+
+			const message =
+				getApiErrorMessage(
+					result,
+					"Unable to load sales."
+				);
+
+			showError(message);
+
+			showSalesErrorState(message);
+
+			return;
+
+		}
+
+		sales = Array.isArray(result)
+			? result
+			: [];
+
+		sales.sort((a, b) => {
+
+			const dateA =
+				new Date(
+					a.saleDate ||
+					a.createdAt ||
+					0
+				).getTime();
+
+			const dateB =
+				new Date(
+					b.saleDate ||
+					b.createdAt ||
+					0
+				).getTime();
+
+			return dateB - dateA;
+
+		});
+
+		if (!sales.length) {
+
+			renderEmptyState();
+
+		} else {
+
+			renderSalesTable(sales);
+
+		}
+
+		applySalesPermissions();
+
+		updateSalesSummary(sales);
+
+	}
+	catch (error) {
+
+		console.error(error);
+
+		sales = [];
+
+		showSalesErrorState(
+			"SaaS service is currently unavailable."
+		);
+
+	}
+	finally {
+
+		isLoadingSales = false;
+
+		setButtonLoading(
+			"btnRefresh",
+			"Refresh",
+			false
+		);
+
+	}
+
+}
+
+/* ===========================================================
+   RENDER SALES TABLE
+=========================================================== */
+
+function renderSalesTable(list) {
+
+	const tbody =
+		document.getElementById(
+			"salesTableBody"
+		);
+
+	if (!tbody) {
+		return;
+	}
+
+	if (!Array.isArray(list) || !list.length) {
+
+		renderEmptyState();
+
+		return;
+
+	}
+
+	tbody.innerHTML = list.map((sale) => {
+
+		const dueAmount =
+			toMoneyNumber(
+				sale.grandTotal
+			) -
+			toMoneyNumber(
+				sale.paidAmount
+			);
+
+		return `
 
 <tr>
 
-<td>${sale.saleNumber ?? "-"}</td>
+    <td>
 
-<td>${formatDate(sale.saleDate)}</td>
+        <strong class="text-primary">
 
-<td>${sale.customerName ?? "-"}</td>
+            ${safe(sale.saleNumber)}
 
-<td>₹ ${Number(sale.grandTotal || 0).toFixed(2)}</td>
+        </strong>
 
-<td>₹ ${Number(sale.paidAmount || 0).toFixed(2)}</td>
+        <div class="small text-muted">
 
-<td>₹ ${Number(due).toFixed(2)}</td>
+            ${formatDate(sale.saleDate)}
 
-<td>
+        </div>
 
-<span class="badge bg-${paymentStatusColor(sale.paymentStatus)}">
+    </td>
 
-${sale.paymentStatus ?? "-"}
+    <td>
 
-</span>
+        ${safe(sale.customerName)}
 
-</td>
+    </td>
 
-<td>
+    <td>
 
-<button class="btn btn-sm btn-outline-primary"
-onclick="viewSale(${sale.id})">
+        ₹${formatMoney(
+			sale.grandTotal
+		)}
 
-<i class="bi bi-eye"></i>
+    </td>
 
-</button>
+    <td class="text-success fw-semibold">
 
-<button class="btn btn-sm btn-outline-success"
-onclick="openEditModal(${sale.id})">
+        ₹${formatMoney(
+			sale.paidAmount
+		)}
 
-<i class="bi bi-pencil"></i>
+    </td>
 
-</button>
+    <td class="text-danger fw-semibold">
 
-<button class="btn btn-sm btn-outline-danger"
-onclick="deleteSale(${sale.id})">
+        ₹${formatMoney(
+			dueAmount
+		)}
 
-<i class="bi bi-trash"></i>
+    </td>
 
-</button>
+    <td>
 
-<button class="btn btn-sm btn-outline-dark"
-onclick="printInvoice(${sale.id})">
+        ${paymentStatusBadge(
+			sale.paymentStatus
+		)}
 
-<i class="bi bi-printer"></i>
+    </td>
 
-</button>
+    <td>
 
-</td>
+        <div class="d-flex gap-2">
+
+            <button
+                type="button"
+                class="btn btn-sm btn-outline-info"
+                onclick="viewSale(${sale.id})">
+
+                <i class="bi bi-eye"></i>
+
+            </button>
+
+            <button
+                type="button"
+                class="btn btn-sm btn-outline-success update-sale-btn"
+                onclick="openEditModal(${sale.id})">
+
+                <i class="bi bi-pencil"></i>
+
+            </button>
+
+            <button
+                type="button"
+                class="btn btn-sm btn-outline-danger delete-sale-btn"
+                onclick="deleteSale(${sale.id})">
+
+                <i class="bi bi-trash"></i>
+
+            </button>
+
+            <button
+                type="button"
+                class="btn btn-sm btn-outline-secondary print-sale-btn"
+                onclick="printInvoice(${sale.id})">
+
+                <i class="bi bi-printer"></i>
+
+            </button>
+
+        </div>
+
+    </td>
 
 </tr>
 
 `;
 
-	});
+	}).join("");
+
+	applySalesPermissions();
 
 }
 
-// =======================================================
-// Create Sale
-// =======================================================
+/* ===========================================================
+   SEARCH SALES (API SEARCH)
+=========================================================== */
 
-function openCreateModal() {
+async function searchSales() {
 
-	editingSaleId = null;
+	const keyword =
+		getValue("searchKeyword");
 
-	resetSaleForm();
+	if (!keyword) {
 
-	document.getElementById("saleModalTitle").innerText =
-		"Create Sale";
+		await loadSales();
 
-	saleModal.show();
+		return;
 
-}
+	}
 
-
-function resetSaleForm() {
-
-    editingSaleId = null;
-
-    document.getElementById("saleId").value = "";
-
-    document.getElementById("customerId").value = "";
-
-    document.getElementById("saleDate").value = "";
-
-    document.getElementById("paymentMode").value = "CASH";
-
-    document.getElementById("remarks").value = "";
-
-    document.getElementById("paidAmount").value = 0;
-
-    document.getElementById("otherCharges").value = 0;
-
-    document.getElementById("roundOffAmount").value = 0;
-
-    medicineRows = [];
-
-    document.getElementById("medicineTableBody").innerHTML = "";
-
-    calculateTotals();
-
-}
-
-// =======================================================
-// Edit Sale
-// =======================================================
-
-async function openEditModal(saleId) {
-
-	editingSaleId = saleId;
-
-	resetSaleForm();
-
-	document.getElementById("saleModalTitle").innerText =
-		"Update Sale";
-
-	await loadSale(saleId);
-
-	saleModal.show();
-
-}
-
-
-
-
-// =======================================================
-// Delete Sale
-// =======================================================
-
-async function deleteSale(saleId) {
-
-	if (!confirm("Cancel this sale?")) {
+	if (isLoadingSales) {
 		return;
 	}
 
-	try {
+	isLoadingSales = true;
 
-		showLoader();
+	showSalesLoadingState();
 
-		const response = await fetch(
-
-			`${API_BASE}/${saleId}?tenantId=${tenantId}`,
-
-			{
-				method: "DELETE",
-				headers: authHeaders()
-			}
-
-		);
-
-		if (!response.ok) {
-
-			throw new Error("Unable to cancel sale.");
-
-		}
-
-		showSuccess("Sale cancelled successfully.");
-
-		await loadSummary();
-
-		await loadSales();
-
-	}
-
-	catch (e) {
-
-		console.error(e);
-
-		showError(e.message);
-
-	}
-
-	finally {
-
-		hideLoader();
-
-	}
-
-}
-
-
-// =======================================================
-// Print Invoice
-// =======================================================
-
-function printInvoice(saleId) {
-
-	window.open(
-
-		`${API_BASE}/saas/wholesaler/invoice/${saleId}/pdf?tenantId=${tenantId}`,
-
-		"_blank"
-
+	setButtonLoading(
+		"btnSearch",
+		"Searching...",
+		true
 	);
 
-}
-
-
-// =======================================================
-// View Sale
-// =======================================================
-
-async function viewSale(saleId) {
-
 	try {
 
-		showLoader();
-
 		const response = await fetch(
-
-			`${API_BASE}/${saleId}?tenantId=${tenantId}`,
-
+			`${API_BASE}/saas/sales/search?tenantId=${tenantId}&keyword=${encodeURIComponent(keyword)}`,
 			{
 				headers: authHeaders()
 			}
-
 		);
+
+		if (handleUnauthorized(response)) {
+
+			clearSelect("customerId");
+
+			appendOption(
+				document.getElementById("customerId"),
+				"",
+				"Unable to load"
+			);
+
+			return;
+
+		}
+
+		const result =
+			await safeJson(response);
 
 		if (!response.ok) {
 
-			throw new Error("Unable to load sale.");
-
-		}
-
-		const sale = await response.json();
-
-		let html = "";
-
-		html += `
-            <b>Invoice No :</b> ${sale.saleNumber}<br>
-            <b>Date :</b> ${formatDate(sale.saleDate)}<br>
-            <b>Customer :</b> ${sale.customerName}<br>
-            <b>Payment :</b> ${sale.paymentStatus}<br>
-            <hr/>
-        `;
-
-		if (sale.items) {
-
-			sale.items.forEach(item => {
-
-				html += `
-                    <div class="mb-2">
-
-                        <b>${item.medicineName}</b>
-
-                        (${item.quantity})
-
-                        ×
-
-                        ${formatMoney(item.saleRate)}
-
-                        =
-
-                        ${formatMoney(item.lineTotal)}
-
-                    </div>
-                `;
-
-			});
-
-		}
-
-		html += `
-            <hr/>
-
-            <h5 class="text-end">
-
-                Grand Total :
-                ${formatMoney(sale.grandTotal)}
-
-            </h5>
-        `;
-
-		document.getElementById("salePreviewBody").innerHTML =
-			html;
-
-	}
-
-	catch (e) {
-
-		console.error(e);
-
-		showError(e.message);
-
-	}
-
-	finally {
-
-		hideLoader();
-
-	}
-
-}
-
-// =======================================================
-// Save Sale
-// =======================================================
-
-async function saveSale() {
-
-	try {
-
-		const request = collectSaleRequest();
-
-		showLoader();
-
-		let response;
-
-		if (editingSaleId == null) {
-
-			response = await fetch(
-				API_BASE,
-				{
-					method: "POST",
-					headers: authHeaders(),
-					body: JSON.stringify(request)
-				}
+			showSalesErrorState(
+				getApiErrorMessage(
+					result,
+					"Search failed."
+				)
 			);
 
-		} else {
-
-			response = await fetch(
-				`${API_BASE}/${editingSaleId}`,
-				{
-					method: "PUT",
-					headers: authHeaders(),
-					body: JSON.stringify(request)
-				}
-			);
+			return;
 
 		}
 
-		if (!response.ok) {
+		sales = Array.isArray(result)
+			? result
+			: [];
 
-			const message = await response.text();
+		if (!sales.length) {
 
-			throw new Error(message || "Unable to save sale.");
+			renderEmptyState();
+
+			return;
 
 		}
 
-		saleModal.hide();
+		renderSalesTable(sales);
 
-		showSuccess(
-			editingSaleId == null
-				? "Sale created successfully."
-				: "Sale updated successfully."
+		updateSalesSummary(sales);
+
+	}
+	catch (error) {
+
+		console.error(error);
+
+		showSalesErrorState(
+			"Search service unavailable."
 		);
-
-		await loadSummary();
-
-		await loadSales();
-
-	}
-	catch (e) {
-
-		console.error(e);
-
-		showError(e.message);
 
 	}
 	finally {
 
-		hideLoader();
+		isLoadingSales = false;
+
+		setButtonLoading(
+			"btnSearch",
+			"Search",
+			false
+		);
 
 	}
 
 }
 
+/* ===========================================================
+   LOCAL FILTER
+=========================================================== */
 
+function filterSales() {
 
-// =======================================================
-// Collect Request
-// =======================================================
+	const keyword =
+		getValue("searchKeyword")
+			.toLowerCase();
 
-function collectSaleRequest() {
+	if (!keyword) {
 
-	if (medicineRows.length === 0) {
+		renderSalesTable(sales);
 
-		throw new Error("Add at least one medicine.");
+		return;
 
 	}
 
-	return {
+	const filteredSales =
+		sales.filter(sale =>
 
-		tenantId: tenantId,
+			(sale.saleNumber || "")
+				.toLowerCase()
+				.includes(keyword)
 
-		customerId: Number(
-			document.getElementById("customerId").value
-		),
+			||
 
-		saleDate:
-			document.getElementById("saleDate").value,
+			(sale.customerName || "")
+				.toLowerCase()
+				.includes(keyword)
 
-		remarks:
-			document.getElementById("remarks").value,
+			||
 
-		paidAmount: Number(
-			document.getElementById("paidAmount").value || 0
-		),
+			(sale.paymentStatus || "")
+				.toLowerCase()
+				.includes(keyword)
 
-		otherCharges: Number(
-			document.getElementById("otherCharges").value || 0
-		),
+		);
 
-		roundOffAmount: Number(
-			document.getElementById("roundOffAmount").value || 0
-		),
+	renderSalesTable(filteredSales);
 
-		paymentMode:
-			document.getElementById("paymentMode").value,
-
-		items: medicineRows.map(r => ({
-
-			medicineId: Number(r.medicineId),
-
-			quantity: Number(r.quantity),
-
-			saleRate: Number(r.saleRate),
-
-			discountPercentage:
-				Number(r.discountPercentage),
-
-			gstPercentage:
-				Number(r.gstPercentage)
-
-		}))
-
-	};
+	updateSalesSummary(filteredSales);
 
 }
 
+/* ===========================================================
+   REFRESH PAGE
+=========================================================== */
 
+async function refreshBillingPage() {
 
-// =======================================================
-// Add Medicine Row
-// =======================================================
+	await Promise.all([
 
-function addMedicineRow(data = null) {
+		loadSummary(),
+		loadSales()
+
+	]);
+
+}
+
+/* ===========================================================
+   REFRESH SUMMARY ONLY
+=========================================================== */
+
+async function refreshSummary() {
+
+	await loadSummary();
+
+}
+
+/* ===========================================================
+   MEDICINE ROW MANAGEMENT
+=========================================================== */
+
+function addMedicineRow(data = {}) {
 
 	medicineRows.push({
 
-		medicineId:
-			data?.medicineId || "",
+		medicineId: data.medicineId || "",
 
-		quantity:
-			data?.quantity || 1,
+		medicineName: data.medicineName || "",
 
-		saleRate:
-			data?.saleRate || 0,
+		quantity: Number(data.quantity || 1),
 
-		discountPercentage:
-			data?.discountPercentage || 0,
+		saleRate: Number(data.saleRate || 0),
 
-		gstPercentage:
-			data?.gstPercentage || 0,
+		discountPercentage: Number(data.discountPercentage || 0),
 
-		lineTotal:
-			data?.lineTotal || 0
+		gstPercentage: Number(data.gstPercentage || 0),
+
+		availableStock: Number(data.availableStock || 0),
+
+		lineTotal: Number(data.lineTotal || 0)
 
 	});
 
 	renderMedicineRows();
 
+	calculateTotals();
+
 }
 
-
-
-// =======================================================
-// Remove Medicine
-// =======================================================
-
 function removeMedicineRow(index) {
+
+	if (index < 0 || index >= medicineRows.length) {
+		return;
+	}
 
 	medicineRows.splice(index, 1);
 
@@ -658,634 +871,903 @@ function removeMedicineRow(index) {
 
 }
 
-
-
-// =======================================================
-// Render Medicine Rows
-// =======================================================
-
 function renderMedicineRows() {
 
-	const tbody =
-		document.getElementById("medicineTableBody");
+	const tbody = document.getElementById("medicineTableBody");
 
-	tbody.innerHTML = "";
+	if (!tbody) {
+		return;
+	}
 
-	medicineRows.forEach((row, index) => {
+	if (medicineRows.length === 0) {
 
-		tbody.innerHTML += `
+		tbody.innerHTML = `
+			<tr>
+				<td colspan="8" class="text-center text-muted py-4">
+					No medicines added.
+				</td>
+			</tr>
+		`;
 
-<tr>
+		return;
+	}
 
-<td>
+	tbody.innerHTML = medicineRows.map((row, index) => {
 
-<select
-class="form-select medicine-select"
-data-index="${index}">
+		return `
+			<tr>
 
-<option value="">Select</option>
+				<td>
+					<select
+						class="form-select medicine-select"
+						data-index="${index}">
 
-${medicineOptions()}
+						<option value="">Select Medicine</option>
 
-</select>
+						${medicineOptions(row.medicineId)}
 
-</td>
+					</select>
+				</td>
 
-<td>
+				<td>
+					<input
+						type="number"
+						class="form-control quantity-input"
+						data-index="${index}"
+						min="1"
+						value="${row.quantity}">
+				</td>
 
-<input
-type="number"
-class="form-control quantity-input"
-data-index="${index}"
-value="${row.quantity}">
+				<td>
+					<input
+						type="number"
+						step="0.01"
+						class="form-control rate-input"
+						data-index="${index}"
+						value="${row.saleRate}">
+				</td>
 
-</td>
+				<td>
+					<input
+						type="number"
+						step="0.01"
+						class="form-control discount-input"
+						data-index="${index}"
+						value="${row.discountPercentage}">
+				</td>
 
-<td>
+				<td>
+					<input
+						type="number"
+						step="0.01"
+						class="form-control gst-input"
+						data-index="${index}"
+						value="${row.gstPercentage}">
+				</td>
 
-<input
-type="number"
-step="0.01"
-class="form-control rate-input"
-data-index="${index}"
-value="${row.saleRate}">
+				<td>
+					<span class="badge bg-info stock-badge-${index}">
+						Stock : ${row.availableStock}
+					</span>
+				</td>
 
-</td>
+				<td class="fw-bold text-end line-total">
+					₹${formatMoney(row.lineTotal)}
+				</td>
 
-<td>
+				<td>
+					<button
+						type="button"
+						class="btn btn-sm btn-outline-danger"
+						onclick="removeMedicineRow(${index})">
+						<i class="bi bi-trash"></i>
+					</button>
+				</td>
 
-<input
-type="number"
-step="0.01"
-class="form-control discount-input"
-data-index="${index}"
-value="${row.discountPercentage}">
+			</tr>
+		`;
 
-</td>
+	}).join("");
 
-<td>
+	// Ensure correct selected medicine is shown
+	document.querySelectorAll(".medicine-select").forEach(select => {
 
-<input
-type="number"
-step="0.01"
-class="form-control gst-input"
-data-index="${index}"
-value="${row.gstPercentage}">
+		const index = Number(select.dataset.index);
+		const row = medicineRows[index];
 
-</td>
-
-<td class="line-total">
-
-${formatMoney(row.lineTotal)}
-
-</td>
-
-<td>
-
-<button
-class="btn btn-danger btn-sm"
-onclick="removeMedicineRow(${index})">
-
-<i class="bi bi-trash"></i>
-
-</button>
-
-</td>
-
-</tr>
-
-`;
+		if (row && row.medicineId != null) {
+			select.value = String(row.medicineId);
+		}
 
 	});
 
 	bindMedicineEvents();
 
+	calculateTotals();
 }
 
+/* ===========================================================
+   MEDICINE OPTIONS
+=========================================================== */
 
+function medicineOptions(selectedId = "") {
 
-// =======================================================
-// Medicine Row Events
-// =======================================================
+	if (!selectedId) {
 
-function bindMedicineEvents() {
-
-	document
-		.querySelectorAll(".medicine-select")
-		.forEach(el => {
-
-			el.addEventListener("change", function() {
-
-				const i = Number(this.dataset.index);
-
-				medicineRows[i].medicineId = this.value;
-
-				validateMedicineStock(i);
-
-			});
-
-		});
-
-	document
-		.querySelectorAll(".quantity-input")
-		.forEach(el => {
-
-			el.addEventListener("input", function() {
-
-				const i = Number(this.dataset.index);
-
-				medicineRows[i].quantity =
-					Number(this.value);
-
-				calculateTotals();
-
-				validateMedicineStock(i);
-
-			});
-
-		});
-
-	document
-		.querySelectorAll(".rate-input")
-		.forEach(el => {
-
-			el.addEventListener("input", function() {
-
-				medicineRows[
-					Number(this.dataset.index)
-				].saleRate = Number(this.value);
-
-				calculateTotals();
-
-			});
-
-		});
-
-	document
-		.querySelectorAll(".discount-input")
-		.forEach(el => {
-
-			el.addEventListener("input", function() {
-
-				medicineRows[
-					Number(this.dataset.index)
-				].discountPercentage =
-					Number(this.value);
-
-				calculateTotals();
-
-			});
-
-		});
-
-	document
-		.querySelectorAll(".gst-input")
-		.forEach(el => {
-
-			el.addEventListener("input", function() {
-
-				medicineRows[
-					Number(this.dataset.index)
-				].gstPercentage =
-					Number(this.value);
-
-				calculateTotals();
-
-			});
-
-		});
-
-}
-
-
-
-function calculateTotals() {
-
-    let gross = 0;
-    let discount = 0;
-    let taxable = 0;
-    let gst = 0;
-
-    medicineRows.forEach(row => {
-
-        const lineGross =
-            row.quantity * row.saleRate;
-
-        const lineDiscount =
-            lineGross * row.discountPercentage / 100;
-
-        const lineTaxable =
-            lineGross - lineDiscount;
-
-        const lineGST =
-            lineTaxable * row.gstPercentage / 100;
-
-        row.lineTotal =
-            lineTaxable + lineGST;
-
-        gross += lineGross;
-        discount += lineDiscount;
-        taxable += lineTaxable;
-        gst += lineGST;
-
-    });
-
-    renderMedicineRows();
-
-    const other =
-        Number(document.getElementById("otherCharges").value || 0);
-
-    const round =
-        Number(document.getElementById("roundOffAmount").value || 0);
-
-    const grand =
-        taxable + gst + other + round;
-
-    document.getElementById("grossAmount").value =
-        gross.toFixed(2);
-
-    document.getElementById("discountAmount").value =
-        discount.toFixed(2);
-
-    document.getElementById("taxableAmount").value =
-        taxable.toFixed(2);
-
-    document.getElementById("gstAmount").value =
-        gst.toFixed(2);
-
-    document.getElementById("grandTotal").value =
-        grand.toFixed(2);
-
-    const paid =
-        Number(document.getElementById("paidAmount").value || 0);
-
-    document.getElementById("dueAmount").value =
-        (grand - paid).toFixed(2);
-
-}
-// =======================================================
-// Load Customers
-// =======================================================
-
-async function loadCustomers() {
-
-    const tenantId = localStorage.getItem("tenantId");
-
-    const response = await fetch(
-        API_BASE + "/saas/customers?tenantId=" + tenantId,
-        {
-            headers: getAuthHeaders()
-        }
-    );
-
-    if (!response.ok) {
-        throw new Error("Unable to load customers");
-    }
-
-    const customers = await response.json();
-
-    const select = document.getElementById("customer");
-
-    select.innerHTML = '<option value="">Select Customer</option>';
-
-    customers.forEach(customer => {
-
-        select.innerHTML += `
-            <option value="${customer.id}">
-                ${customer.customerName}
-            </option>
-        `;
-
-    });
-
-}
-
-
-// =======================================================
-// Load Medicines
-// =======================================================
-
-async function loadMedicines() {
-
-	try {
-
-		const response = await fetch(
-			`${API_BASE}/saas/medicine-master` +
-			`?tenantId=${encodeURIComponent(tenantId)}`,
-			{
-				headers: authHeaders()
-			}
-		);
-
-		if (!response.ok) {
-			throw new Error("Unable to load medicines.");
-		}
-
-		medicines = await response.json();
-
-	}
-	catch (e) {
-
-		console.error(e);
-
-		showError(e.message);
+		return medicineOptionsHtml;
 
 	}
 
-}
+	return medicineOptionsHtml.replace(
 
+		`value="${selectedId}"`,
 
-
-// =======================================================
-// Medicine Options
-// =======================================================
-
-function medicineOptions() {
-
-	let html = "";
-
-	medicines.forEach(medicine => {
-
-		html += `
-
-<option
-value="${medicine.id}">
-
-${medicine.medicineName}
-
-</option>
-
-`;
-
-	});
-
-	return html;
-
-}
-
-
-
-// =======================================================
-// Search Sales
-// =======================================================
-
-async function searchSales() {
-
-	const keyword =
-		document
-			.getElementById("searchKeyword")
-			.value
-			.trim();
-
-	if (keyword === "") {
-
-		loadSales();
-
-		return;
-
-	}
-
-	try {
-
-		showLoader();
-
-		const response = await fetch(
-
-			`${API_BASE}/search?tenantId=${tenantId}&keyword=${encodeURIComponent(keyword)}`,
-
-			{
-				headers: authHeaders()
-			}
-
-		);
-
-		if (!response.ok) {
-			throw new Error("Search failed.");
-		}
-
-		sales = await response.json();
-
-		renderSalesTable(sales);
-
-	}
-	catch (e) {
-
-		console.error(e);
-
-		showError(e.message);
-
-	}
-	finally {
-
-		hideLoader();
-
-	}
-
-}
-
-
-
-// =======================================================
-// Filter Sales
-// =======================================================
-
-function filterSales() {
-
-	const keyword =
-		document
-			.getElementById("searchKeyword")
-			.value
-			.toLowerCase();
-
-	const filtered = sales.filter(sale =>
-
-		(sale.saleNumber || "")
-			.toLowerCase()
-			.includes(keyword)
-
-		||
-
-		(sale.customerName || "")
-			.toLowerCase()
-			.includes(keyword)
-
-		||
-
-		(sale.paymentStatus || "")
-			.toLowerCase()
-			.includes(keyword)
+		`value="${selectedId}" selected`
 
 	);
 
-	renderSalesTable(filtered);
+}
+/* ===========================================================
+   BIND ROW EVENTS
+=========================================================== */
+
+function bindMedicineEvents() {
+
+	document.querySelectorAll(".medicine-select")
+		.forEach(select => {
+
+			select.onchange = async function() {
+
+				const index = Number(this.dataset.index);
+
+				/* ==========================================
+				   DUPLICATE MEDICINE CHECK
+				========================================== */
+
+				const selectedMedicineId = String(this.value);
+
+				if (
+					selectedMedicineId &&
+					medicineRows.some((row, i) =>
+						i !== index &&
+						String(row.medicineId || "") === selectedMedicineId
+					)
+				) {
+
+					showError("Medicine already added.");
+
+					this.value = "";
+
+					medicineRows[index].medicineId = "";
+					medicineRows[index].medicineName = "";
+					medicineRows[index].saleRate = 0;
+					medicineRows[index].availableStock = 0;
+
+					calculateTotals();
+
+					return;
+				}
+
+				/* ==========================================
+				   LOAD MEDICINE DETAILS
+				========================================== */
+
+				const stock = medicines.find(s =>
+					String(s.medicineId) === String(this.value)
+				);
+
+				if (stock) {
+
+					medicineRows[index].medicineId = stock.medicineId;
+
+					medicineRows[index].stockId = stock.id;
+
+					medicineRows[index].medicineName =
+						stock.medicineName;
+
+					medicineRows[index].saleRate =
+						Number(stock.salePrice || 0);
+
+					medicineRows[index].gstPercentage =
+						Number(stock.gstPercentage || 0);
+
+					medicineRows[index].availableStock =
+						Number(stock.currentQuantity || 0);
+
+				}
+
+				await loadMedicineStock(index);
+
+				renderMedicineRows();
+
+				calculateTotals();
+
+			};
+
+		});
+
+	document.querySelectorAll(".quantity-input")
+		.forEach(input => {
+
+			input.oninput = function() {
+
+				const index = Number(this.dataset.index);
+
+				medicineRows[index].quantity =
+					Number(this.value || 0);
+
+				calculateTotals();
+
+				validateMedicineStock(index);
+
+			};
+
+		});
+
+	document.querySelectorAll(".rate-input")
+		.forEach(input => {
+
+			input.oninput = function() {
+
+				const index = Number(this.dataset.index);
+
+				medicineRows[index].saleRate =
+					Number(this.value || 0);
+
+				calculateTotals();
+
+			};
+
+		});
+
+	document.querySelectorAll(".discount-input")
+		.forEach(input => {
+
+			input.oninput = function() {
+
+				const index = Number(this.dataset.index);
+
+				medicineRows[index].discountPercentage =
+					Number(this.value || 0);
+
+				calculateTotals();
+
+			};
+
+		});
+
+	document.querySelectorAll(".gst-input")
+		.forEach(input => {
+
+			input.oninput = function() {
+
+				const index = Number(this.dataset.index);
+
+				medicineRows[index].gstPercentage =
+					Number(this.value || 0);
+
+				calculateTotals();
+
+			};
+
+		});
 
 }
 
+/* ===========================================================
+   TOTAL CALCULATION
+=========================================================== */
 
+function calculateTotals() {
 
-// =======================================================
-// Refresh Summary
-// =======================================================
+	let gross = 0;
+	let discount = 0;
+	let taxable = 0;
+	let gst = 0;
 
-async function refreshSummary() {
+	medicineRows.forEach(row => {
 
-	await loadSummary();
+		const qty = toMoneyNumber(row.quantity);
+
+		const rate = toMoneyNumber(row.saleRate);
+
+		const grossLine = qty * rate;
+
+		const discountLine =
+			grossLine *
+			toMoneyNumber(row.discountPercentage) / 100;
+
+		const taxableLine =
+			grossLine -
+			discountLine;
+
+		const gstLine =
+			taxableLine *
+			toMoneyNumber(row.gstPercentage) / 100;
+
+		row.lineTotal = Number(
+
+			(taxableLine + gstLine)
+
+				.toFixed(2)
+
+		);
+
+		gross += grossLine;
+
+		discount += discountLine;
+
+		taxable += taxableLine;
+
+		gst += gstLine;
+
+	});
+
+	const other =
+		toMoneyNumber(getValue("otherCharges"));
+
+	const round =
+		toMoneyNumber(getValue("roundOffAmount"));
+
+	const grand =
+		taxable +
+		gst +
+		other +
+		round;
+
+	const paid =
+		toMoneyNumber(getValue("paidAmount"));
+
+	const due =
+		Math.max(0, grand - paid);
+
+	const grossElement = document.getElementById("grossAmount");
+	if (grossElement) {
+		grossElement.textContent = "₹" + formatMoney(gross);
+		grossElement.dataset.value = gross;
+	}
+
+	const discountElement = document.getElementById("discountAmount");
+	if (discountElement) {
+		discountElement.textContent = "₹" + formatMoney(discount);
+		discountElement.dataset.value = discount;
+	}
+
+	const taxableElement = document.getElementById("taxableAmount");
+	if (taxableElement) {
+		taxableElement.textContent = "₹" + formatMoney(taxable);
+		taxableElement.dataset.value = taxable;
+	}
+
+	const gstElement = document.getElementById("gstAmount");
+	if (gstElement) {
+		gstElement.textContent = "₹" + formatMoney(gst);
+		gstElement.dataset.value = gst;
+	}
+
+	const grandElement = document.getElementById("grandTotal");
+	if (grandElement) {
+		grandElement.textContent = "₹" + formatMoney(grand);
+		grandElement.dataset.value = grand;
+	}
+
+	const dueElement = document.getElementById("dueAmount");
+	if (dueElement) {
+		dueElement.textContent = "₹" + formatMoney(due);
+		dueElement.dataset.value = due;
+	}
+
+	updatePaymentStatus();
+
+	document.querySelectorAll(".line-total")
+		.forEach((cell, index) => {
+
+			if (medicineRows[index]) {
+
+				cell.innerHTML =
+					"₹" +
+					formatMoney(
+						medicineRows[index].lineTotal
+					);
+
+			}
+
+		});
 
 }
 
+/* ===========================================================
+   VALIDATION
+=========================================================== */
 
+function validateSaleForm() {
 
-// =======================================================
-// Format Money
-// =======================================================
+	const grand = Number(
+		document.getElementById("grandTotal").dataset.value || 0
+	);
 
-function formatMoney(value) {
+	const paid = toMoneyNumber(getValue("paidAmount"));
 
-	const amount = Number(value || 0);
+	if (paid > grand) {
 
-	return "₹ " + amount.toFixed(2);
+		showError("Paid amount cannot exceed Grand Total.");
 
-}
-
-
-
-// =======================================================
-// Format Date
-// =======================================================
-
-function formatDate(value) {
-
-	if (!value) {
-
-		return "-";
+		return false;
 
 	}
 
-	return new Date(value)
-		.toLocaleDateString("en-IN");
+	if (
+		paid > 0 &&
+		!getValue("paymentMode").trim()
+	) {
+
+		showError("Please select payment mode.");
+
+		return false;
+
+	}
+
+	if (!getValue("customerId")) {
+
+		showError("Please select customer.");
+
+		return false;
+
+	}
+
+	if (!medicineRows.length) {
+
+		showError("Please add at least one medicine.");
+
+		return false;
+
+	}
+
+	if (toMoneyNumber(getValue("paidAmount")) < 0) {
+
+		showError("Paid amount cannot be negative.");
+
+		return false;
+
+	}
+
+	if (toMoneyNumber(getValue("otherCharges")) < 0) {
+
+		showError("Other charges cannot be negative.");
+
+		return false;
+
+	}
+
+	if (toMoneyNumber(getValue("roundOffAmount")) < 0) {
+
+		showError("Round off cannot be negative.");
+
+		return false;
+
+	}
+
+	for (const row of medicineRows) {
+
+		if (!row.medicineId) {
+
+			showError("Please select medicine.");
+
+			return false;
+
+		}
+
+		if (Number(row.quantity) <= 0) {
+
+			showError("Quantity must be greater than zero.");
+
+			return false;
+
+		}
+
+		if (Number(row.saleRate) <= 0) {
+
+			showError("Sale rate must be greater than zero.");
+
+			return false;
+
+		}
+
+		if (Number(row.discountPercentage) < 0) {
+
+			showError("Discount cannot be negative.");
+
+			return false;
+
+		}
+
+		if (Number(row.gstPercentage) < 0) {
+
+			showError("GST cannot be negative.");
+
+			return false;
+
+		}
+
+		if (
+			row.availableStock >= 0 &&
+			Number(row.quantity) > Number(row.availableStock)
+		) {
+
+			showError(
+				`${row.medicineName || "Selected medicine"} stock is only ${row.availableStock}.`
+			);
+
+			return false;
+
+		}
+
+	}
+
+	return true;
 
 }
 
+/* ===========================================================
+   REQUEST BODY
+=========================================================== */
 
-
-// =======================================================
-// Authorization Headers
-// =======================================================
-
-function authHeaders() {
+function collectSaleRequest() {
 
 	return {
 
-		"Content-Type": "application/json",
+		tenantId,
 
-		"Authorization":
-			"Bearer " + localStorage.getItem("token")
+		customerId: Number(getValue("customerId")),
+
+		saleDate: getValue("saleDate"),
+
+		paymentMode: getValue("paymentMode"),
+
+		remarks: getValue("remarks"),
+
+		paidAmount:
+			toMoneyNumber(getValue("paidAmount")),
+
+		otherCharges:
+			toMoneyNumber(getValue("otherCharges")),
+
+		roundOffAmount:
+			toMoneyNumber(getValue("roundOffAmount")),
+
+		items: medicineRows.map(row => ({
+
+			medicineId: Number(row.medicineId),
+
+			quantity: Number(row.quantity),
+
+			saleRate: Number(row.saleRate),
+
+			discountPercentage:
+				Number(row.discountPercentage),
+
+			gstPercentage:
+				Number(row.gstPercentage)
+
+		}))
 
 	};
 
 }
 
+/* ===========================================================
+   SALES CRUD
+=========================================================== */
 
+/* ===========================================================
+   OPEN CREATE SALE
+=========================================================== */
 
-// =======================================================
-// Loader
-// =======================================================
+function openCreateModal() {
 
-function showLoader() {
+	if (!salesPermissions.create) {
 
-	const loader =
-		document.getElementById("pageLoader");
+		showError("You do not have permission to create sales.");
 
-	if (loader) {
-
-		loader.classList.remove("d-none");
-
-	}
-
-}
-
-
-
-function hideLoader() {
-
-	const loader =
-		document.getElementById("pageLoader");
-
-	if (loader) {
-
-		loader.classList.add("d-none");
+		return;
 
 	}
 
+	editingSaleId = null;
+
+	resetSaleForm();
+
+	addMedicineRow();
+
+	document.getElementById("saleModalTitle").textContent =
+		"Create Sale";
+
+	openSaleForm();
+
 }
+/* ===========================================================
+   OPEN EDIT SALE
+=========================================================== */
 
+async function openEditModal(id) {
 
+	if (!salesPermissions.update) {
 
-// =======================================================
-// Success
-// =======================================================
-
-function showSuccess(message) {
-
-	if (window.Toastify) {
-
-		Toastify({
-
-			text: message,
-
-			duration: 3000,
-
-			gravity: "top",
-
-			position: "right",
-
-			className: "bg-success"
-
-		}).showToast();
-
-	} else {
-
-		alert(message);
+		showError("You do not have permission.");
+		return;
 
 	}
 
+	resetSaleForm();
+
+	editingSaleId = id;
+
+	document.getElementById("saleModalTitle").textContent =
+		"Update Sales Invoice";
+
+	await loadSale(id);
+
+	openSaleForm();
+
 }
 
+/* ===========================================================
+   RESET SALE FORM
+=========================================================== */
+
+function resetSaleForm() {
+
+	editingSaleId = null;
+
+	setValue("saleId", "");
+	setValue("customerId", "");
+	setValue("customerCode", "");
+	setValue("customerType", "");
+	setValue("customerGstin", "");
+
+	setValue(
+		"saleDate",
+		new Date().toISOString().split("T")[0]
+	);
+
+	setValue("paymentMode", "CASH");
+
+	setValue("remarks", "");
+
+	setValue("paidAmount", 0);
+
+	setValue("otherCharges", 0);
+
+	setValue("roundOffAmount", 0);
+
+	medicineRows = [];
+
+	document.getElementById("medicineTableBody").innerHTML = "";
+
+	setText("grossAmount", "₹0.00");
+	setText("discountAmount", "₹0.00");
+	setText("taxableAmount", "₹0.00");
+	setText("gstAmount", "₹0.00");
+	setText("grandTotal", "₹0.00");
+	setText("dueAmount", "₹0.00");
+
+	document.getElementById("grandTotal")?.setAttribute("data-value", "0");
+	document.getElementById("dueAmount")?.setAttribute("data-value", "0");
+
+	updatePaymentStatus();
+	renderMedicineRows();
+}
+/* ===========================================================
+   SAVE SALE
+=========================================================== */
+
+async function saveSale() {
+
+	if (isSavingSale) return;
+
+	if (!validateSaleForm()) return;
+
+	isSavingSale = true;
+
+	setButtonLoading(
+		"btnSaveSale",
+		editingSaleId ? "Updating..." : "Saving...",
+		true
+	);
+
+	try {
+
+		const payload = collectSaleRequest();
+
+		let url =
+			`${API_BASE}/saas/sales?tenantId=${tenantId}`;
+
+		let method = "POST";
+
+		if (editingSaleId) {
+
+			url =
+				`${API_BASE}/saas/sales/${editingSaleId}?tenantId=${tenantId}`
+
+			method = "PUT";
+		}
 
 
-// =======================================================
-// Error
-// =======================================================
+		const response = await fetch(
 
-function showError(message) {
+			url,
 
-	if (window.Toastify) {
+			{
+				method,
+				headers: authHeaders(),
+				body: JSON.stringify(payload)
+			}
 
-		Toastify({
+		);
 
-			text: message,
+		if (handleUnauthorized(response)) {
 
-			duration: 4000,
+			clearSelect("customerId");
 
-			gravity: "top",
+			appendOption(
+				document.getElementById("customerId"),
+				"",
+				"Unable to load"
+			);
 
-			position: "right",
+			return;
 
-			className: "bg-danger"
+		}
 
-		}).showToast();
+		const result = await safeJson(response);
 
-	} else {
+		if (!response.ok) {
 
-		alert(message);
+			showError(
+
+				getApiErrorMessage(
+
+					result,
+
+					editingSaleId
+						? "Unable to update sale."
+						: "Unable to save sale."
+
+				)
+
+			);
+
+			return;
+		}
+
+		closeSaleForm();
+
+		showSuccess(
+
+			editingSaleId
+				? "Sale updated successfully."
+				: "Sale created successfully."
+
+		);
+
+		await loadSales();
+
+		await loadSummary();
+
+		await loadMedicines();
+		updateSummaryCards();
 
 	}
+	catch (error) {
 
+		console.error(error);
+
+		showError("Unable to save sale.");
+
+	}
+	finally {
+
+		isSavingSale = false;
+
+		setButtonLoading(
+			"btnSaveSale",
+			"Save Sale",
+			false
+		);
+
+	}
+}
+/* ===========================================================
+   DELETE SALE
+=========================================================== */
+
+async function deleteSale(id) {
+
+	if (isDeletingSale) return;
+
+	if (!salesPermissions.delete) {
+
+		showError("Permission denied.");
+
+		return;
+	}
+
+	if (!confirm("Cancel this sale?")) {
+		return;
+	}
+
+	isDeletingSale = true;
+
+	try {
+
+		const response = await fetch(
+
+			`${API_BASE}/saas/sales/${id}?tenantId=${tenantId}`,
+
+			{
+				method: "DELETE",
+				headers: authHeaders()
+			}
+
+		);
+
+		if (handleUnauthorized(response)) {
+
+			clearSelect("customerId");
+
+			appendOption(
+				document.getElementById("customerId"),
+				"",
+				"Unable to load"
+			);
+
+			return;
+
+		}
+
+		const result = await safeJson(response);
+
+		if (!response.ok) {
+
+			showError(
+
+				getApiErrorMessage(
+
+					result,
+
+					"Unable to delete sale."
+
+				)
+
+			);
+
+			return;
+		}
+
+		showSuccess("Sale cancelled successfully.");
+
+		await loadSales();
+
+		await loadSummary();
+
+	}
+	catch (error) {
+
+		console.error(error);
+
+		showError("Unable to delete sale.");
+
+	}
+	finally {
+
+		isDeletingSale = false;
+
+	}
 }
 
-// =======================================================
-// Load Sale
-// =======================================================
+/* ===========================================================
+   LOAD SINGLE SALE
+=========================================================== */
 
 async function loadSale(id) {
 
@@ -1295,7 +1777,7 @@ async function loadSale(id) {
 
 		const response = await fetch(
 
-			`${API_BASE}/${id}?tenantId=${tenantId}`,
+			`${API_BASE}/saas/sales/${id}?tenantId=${tenantId}`,
 
 			{
 				headers: authHeaders()
@@ -1303,71 +1785,118 @@ async function loadSale(id) {
 
 		);
 
-		if (!response.ok) {
+		if (handleUnauthorized(response)) {
 
-			throw new Error("Unable to load sale.");
+			clearSelect("customerId");
+
+			appendOption(
+				document.getElementById("customerId"),
+				"",
+				"Unable to load"
+			);
+
+			return;
 
 		}
+		const sale = await safeJson(response);
 
-		const sale = await response.json();
+		if (!response.ok) {
 
-		document.getElementById("customerId").value =
-			sale.customerId;
+			showError(
+				getApiErrorMessage(
+					sale,
+					"Unable to load sale."
+				)
+			);
 
-		document.getElementById("saleDate").value =
-			sale.saleDate;
+			return;
+		}
 
-		document.getElementById("remarks").value =
-			sale.remarks || "";
+		setValue("saleId", sale.id);
 
-		document.getElementById("paidAmount").value =
-			sale.paidAmount || 0;
+		setValue("customerId", sale.customerId);
 
-		document.getElementById("otherCharges").value =
-			sale.otherCharges || 0;
+		setValue(
+			"saleDate",
+			(sale.saleDate || "").substring(0, 10)
+		);
 
-		document.getElementById("roundOffAmount").value =
-			sale.roundOffAmount || 0;
+		setValue("remarks", sale.remarks);
+
+		setValue(
+			"paymentMode",
+			sale.paymentMode || "CASH"
+		);
+
+		setValue(
+			"paidAmount",
+			sale.paidAmount || 0
+		);
+
+		setValue(
+			"otherCharges",
+			sale.otherCharges || 0
+		);
+
+		setValue(
+			"roundOffAmount",
+			sale.roundOffAmount || 0
+		);
 
 		medicineRows = [];
 
-		if (sale.items) {
+		if (Array.isArray(sale.items)) {
 
 			sale.items.forEach(item => {
 
+				const stock = medicines.find(
+					s => Number(s.medicineId) === Number(item.medicineId)
+				);
+
 				medicineRows.push({
 
-					medicineId:
-						item.medicineId,
+					medicineId: item.medicineId,
 
-					quantity:
-						item.quantity,
+					stockId: stock ? stock.id : "",
 
-					saleRate:
-						item.saleRate,
+					medicineName: item.medicineName,
 
-					discountPercentage:
-						item.discountPercentage,
+					quantity: item.quantity,
 
-					gstPercentage:
-						item.gstPercentage,
+					saleRate: item.saleRate,
 
-					lineTotal:
-						item.lineTotal,
+					discountPercentage: item.discountPercentage,
 
-					availableStock: 0
+					gstPercentage: item.gstPercentage,
+
+					lineTotal: item.lineTotal,
+
+					availableStock: stock ? Number(stock.currentQuantity || 0) : 0
 
 				});
 
 			});
+		}
+		for (let i = 0; i < medicineRows.length; i++) {
+
+			await loadMedicineStock(i);
 
 		}
-
 		renderMedicineRows();
 
 		calculateTotals();
 
 		updatePaymentStatus();
+
+		document.getElementById("customerId")
+			?.dispatchEvent(new Event("change"));
+
+	}
+	catch (error) {
+
+		console.error(error);
+
+		showError("Unable to load sale.");
 
 	}
 	finally {
@@ -1375,66 +1904,164 @@ async function loadSale(id) {
 		hideLoader();
 
 	}
-
 }
+async function printInvoice(id) {
 
+	if (isPrintingSale) return;
 
+	if (!salesPermissions.print) {
 
-// =======================================================
-// Customer Auto Fill
-// =======================================================
-
-function bindCustomerSelection() {
-
-	document
-		.getElementById("customerId")
-		.addEventListener("change", function() {
-
-			const customer =
-				customers.find(c =>
-					c.id == this.value
-				);
-
-			if (!customer) {
-
-				return;
-
-			}
-
-			document.getElementById("customerCode").value =
-				customer.customerCode || "";
-
-			document.getElementById("customerType").value =
-				customer.customerType || "";
-
-			document.getElementById("customerGstin").value =
-				customer.gstin || "";
-
-		});
-
-}
-
-
-
-// =======================================================
-// Medicine Stock Display
-// =======================================================
-
-async function loadMedicineStock(index) {
-
-	const row = medicineRows[index];
-
-	if (!row.medicineId) {
+		showError("Permission denied.");
 
 		return;
 
 	}
 
+	isPrintingSale = true;
+
+	try {
+
+		const win = window.open(
+
+			`${API_BASE}/saas/sales/${id}/pdf?tenantId=${tenantId}`,
+
+			"_blank"
+
+		);
+
+		if (!win) {
+
+			showError("Please allow popups to print invoice.");
+
+		}
+
+	}
+	finally {
+
+		isPrintingSale = false;
+
+	}
+
+}
+
+/* ===========================================================
+   CUSTOMER & MEDICINE LOADING
+=========================================================== */
+
+async function loadCustomers() {
+
+	const select = document.getElementById("customerId");
+
+	if (!select) return;
+
+	clearSelect("customerId");
+
+	appendOption(select, "", "Loading Customers...");
+
+	try {
+
+		const response = await fetch(
+			`${API_BASE}/saas/customers?tenantId=${tenantId}&activeOnly=true`,
+			{
+				headers: authHeaders()
+			}
+		);
+
+		if (handleUnauthorized(response)) {
+
+			clearSelect("customerId");
+
+			appendOption(
+				document.getElementById("customerId"),
+				"",
+				"Unable to load"
+			);
+
+			return;
+
+		}
+
+		const result = await safeJson(response);
+
+		clearSelect("customerId");
+
+		appendOption(select, "", "Select Customer");
+
+		if (!response.ok) {
+
+			customers = [];
+
+			showError(
+				getApiErrorMessage(
+					result,
+					"Unable to load customers."
+				)
+			);
+
+			return;
+		}
+
+		customers = Array.isArray(result)
+			? result
+			: [];
+
+		if (!customers.length) {
+
+			clearSelect("customerId");
+
+			appendOption(
+				select,
+				"",
+				"No Customers Available"
+			);
+
+			return;
+		}
+
+		customers.forEach(customer => {
+
+			appendOption(
+
+				select,
+
+				customer.id,
+
+				customer.customerName || "Customer"
+
+			);
+
+		});
+
+	}
+	catch (e) {
+
+		console.error(e);
+
+		customers = [];
+
+		clearSelect("customerId");
+
+		appendOption(
+			select,
+			"",
+			"Service Unavailable"
+		);
+
+		showError(
+			"Unable to load customers."
+		);
+
+	}
+
+}
+
+async function loadMedicines() {
+
 	try {
 
 		const response = await fetch(
 
-			`${API_BASE}/stock?tenantId=${tenantId}&medicineId=${row.medicineId}`,
+			`${API_BASE}/saas/inventory/stocks?tenantId=${tenantId}`,
 
 			{
 				headers: authHeaders()
@@ -1442,133 +2069,852 @@ async function loadMedicineStock(index) {
 
 		);
 
-		if (!response.ok) {
+		if (handleUnauthorized(response)) {
+
+			clearSelect("customerId");
+
+			appendOption(
+				document.getElementById("customerId"),
+				"",
+				"Unable to load"
+			);
 
 			return;
 
 		}
 
-		const stock = await response.json();
+		const result = await safeJson(response);
 
-		row.availableStock = stock;
+		if (!response.ok) {
 
-		const badge =
-			document.querySelector(
-				`.stock-badge-${index}`
+			medicines = [];
+
+			showError(
+				getApiErrorMessage(
+					result,
+					"Unable to load inventory medicines."
+				)
 			);
 
-		if (badge) {
-
-			badge.innerHTML =
-				"Stock : " + stock;
-
+			return;
 		}
+
+		/* Only active medicines having stock */
+
+		medicines = Array.isArray(result)
+			? result.filter(stock =>
+				stock.active === true &&
+				(stock.currentQuantity ?? 0) > 0
+			)
+			: [];
+
+		console.log("Inventory Medicines :", medicines);
+
+		medicineOptionsHtml = medicines.map(stock => `
+
+    <option value="${stock.medicineId}">
+        ${escapeHtml(stock.medicineName)}
+        (Batch : ${escapeHtml(stock.batchNumber || "-")})
+        - Stock : ${stock.currentQuantity}
+    </option>
+
+`).join("");
 
 	}
 	catch (e) {
 
 		console.error(e);
 
+		medicines = [];
+
+		showError("Unable to load inventory medicines.");
+
 	}
 
 }
 
+function bindCustomerSelection() {
+
+	const customer = document.getElementById("customerId");
+
+	if (!customer) return;
+
+	customer.addEventListener("change", function() {
+
+		const selected = customers.find(
+
+			c => Number(c.id) === Number(this.value)
+
+		);
+
+		if (!selected) {
+
+			setValue("customerCode", "");
+			setValue("customerType", "");
+			setValue("customerGstin", "");
+
+			return;
+		}
+
+		setValue(
+			"customerCode",
+			selected.customerCode || ""
+		);
+
+		setValue(
+			"customerType",
+			selected.customerType || ""
+		);
+
+		setValue(
+			"customerGstin",
+			selected.gstin || ""
+		);
+
+	});
+
+}
 
 
-// =======================================================
-// Live Stock Validation
-// =======================================================
+/* ===========================================================
+   PART 8
+   MISSING HELPERS
+=========================================================== */
 
-async function validateMedicineStock(index) {
+function loadingContent(title, message) {
 
-	const row = medicineRows[index];
+	return `
+        <div class="hospital-billing-state">
 
-	if (!row.medicineId) {
+            <div class="hospital-billing-state-icon hospital-billing-loading-icon">
+                <i class="bi bi-arrow-repeat"></i>
+            </div>
 
+            <h5 class="fw-bold text-primary">
+                ${title}
+            </h5>
+
+            <p class="text-muted mb-0">
+                ${message}
+            </p>
+
+        </div>
+    `;
+
+}
+
+function showOrHideById(id, show) {
+
+	const element = document.getElementById(id);
+
+	if (!element) {
 		return;
+	}
+
+	element.style.display = show ? "" : "none";
+
+}
+
+function showOrHideByClass(className, show) {
+
+	document.querySelectorAll("." + className).forEach(element => {
+
+		element.style.display = show ? "" : "none";
+
+	});
+
+}
+
+function formatShortMoney(value) {
+
+	value = Number(value || 0);
+
+	if (value >= 10000000) {
+		return "₹" + (value / 10000000).toFixed(2) + " Cr";
+	}
+
+	if (value >= 100000) {
+		return "₹" + (value / 100000).toFixed(2) + " L";
+	}
+
+	if (value >= 1000) {
+		return "₹" + (value / 1000).toFixed(1) + " K";
+	}
+
+	return "₹" + currencyFormatter.format(value);
+
+}
+
+function setAnimatedNumber(id, value, prefix = "") {
+
+	const element = document.getElementById(id);
+
+	if (!element) {
+		return;
+	}
+
+	const target = Number(value || 0);
+
+	const start = Number(element.dataset.value || 0);
+
+	const duration = 500;
+
+	const startTime = performance.now();
+
+	function animate(time) {
+
+		const progress = Math.min((time - startTime) / duration, 1);
+
+		const current = start + ((target - start) * progress);
+
+		element.dataset.value = target;
+
+		if (prefix === "₹") {
+			element.textContent = prefix + currencyFormatter.format(current);
+		} else {
+			element.textContent = Math.round(current);
+		}
+
+		if (progress < 1) {
+			requestAnimationFrame(animate);
+		}
 
 	}
 
-	await loadMedicineStock(index);
+	requestAnimationFrame(animate);
 
-	if (
-		row.availableStock <
-		row.quantity
-	) {
+}
 
-		showError(
+/* ===========================================================
+   PART 9
+   SALE PREVIEW / VIEW / PRINT
+=========================================================== */
 
-			"Only " +
-			row.availableStock +
-			" stock available."
+async function viewSale(saleId) {
 
+	if (!saleId) {
+		return;
+	}
+
+	editingSaleId = saleId;
+
+	const previewBody = document.getElementById("salePreviewBody");
+
+	if (previewBody) {
+
+		previewBody.innerHTML = loadingContent(
+			"Loading Invoice",
+			"Please wait while invoice details are loading..."
 		);
 
 	}
 
+	previewModal?.show();
+
+	try {
+
+		const response = await fetch(
+			`${API_BASE}/saas/sales/${saleId}?tenantId=${tenantId}`,
+			{
+				headers: authHeaders()
+			}
+		);
+
+		if (handleUnauthorized(response)) {
+
+			clearSelect("customerId");
+
+			appendOption(
+				document.getElementById("customerId"),
+				"",
+				"Unable to load"
+			);
+
+			return;
+
+		}
+
+		if (!response.ok) {
+			throw new Error("Unable to load invoice.");
+		}
+
+		const sale = await response.json();
+
+		renderSalePreview(sale);
+
+	} catch (error) {
+
+		if (previewBody) {
+
+			previewBody.innerHTML = `
+                <div class="hospital-billing-state">
+
+                    <div class="hospital-billing-state-icon bg-danger text-white">
+
+                        <i class="bi bi-exclamation-circle"></i>
+
+                    </div>
+
+                    <h5 class="text-danger fw-bold">
+
+                        Failed to Load Invoice
+
+                    </h5>
+
+                    <p class="text-muted mb-0">
+
+                        ${error.message}
+
+                    </p>
+
+                </div>
+            `;
+
+		}
+
+	}
+
 }
 
+/* ===========================================================
+   PREVIEW HTML
+=========================================================== */
 
+function renderSalePreview(sale) {
 
-function updatePaymentStatus() {
+	const previewBody = document.getElementById("salePreviewBody");
 
-    const grand =
-        Number(document.getElementById("grandTotal").value || 0);
+	if (!previewBody) {
+		return;
+	}
 
-    const paid =
-        Number(document.getElementById("paidAmount").value || 0);
+	const items = sale.items || [];
 
-    let status = "UNPAID";
+	previewBody.innerHTML = `
 
-    if (paid >= grand && grand > 0) {
+        <div class="row mb-4">
 
-        status = "PAID";
+            <div class="col-md-6">
 
-    }
-    else if (paid > 0) {
+                <h5 class="fw-bold text-primary">
+                    ${sale.saleNumber || "-"}
+                </h5>
 
-        status = "PARTIALLY_PAID";
+                <div>Customer :
+                    <strong>${sale.customerName || "-"}</strong>
+                </div>
 
-    }
+                <div>Date :
+                    ${formatDateTime(sale.saleDate)}
+                </div>
 
-    const badge =
-        document.getElementById("paymentStatus");
+            </div>
 
-    if (!badge) return;
+            <div class="col-md-6 text-md-end">
 
-    badge.innerText = status;
+                <div>
+                    Payment :
+                    <strong>${sale.paymentStatus || "-"}</strong>
+                </div>
 
-    badge.className =
-        "badge " +
-        (
-            status === "PAID"
-                ? "bg-success"
-                : status === "PARTIALLY_PAID"
-                    ? "bg-warning text-dark"
-                    : "bg-danger"
-        );
+                <div>
+                    Mode :
+                    ${sale.paymentMode || "-"}
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Medicine</th>
+
+                        <th>Qty</th>
+
+                        <th>Rate</th>
+
+                        <th>Discount</th>
+
+                        <th>GST</th>
+
+                        <th>Total</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    ${items.map(item => `
+
+                        <tr>
+
+                            <td>${item.medicineName || "-"}</td>
+
+                            <td>${item.quantity}</td>
+
+                            <td>${formatMoney(item.saleRate || item.rate)}</td>
+
+                            <td>${item.discountPercentage || 0}%</td>
+
+                            <td>${item.gstPercentage || 0}%</td>
+
+                            <td>${formatMoney(item.lineTotal)}</td>
+
+                        </tr>
+
+                    `).join("")}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <hr>
+
+        <div class="row">
+
+            <div class="col-md-4">
+
+                <strong>Gross :</strong>
+                ${formatMoney(sale.grossAmount || 0)}
+
+            </div>
+
+            <div class="col-md-4">
+
+                <strong>Discount :</strong>
+                ${formatMoney(sale.discountAmount || 0)}
+
+            </div>
+
+            <div class="col-md-4">
+
+                <strong>GST :</strong>
+                ${formatMoney(sale.gstAmount || 0)}
+
+            </div>
+
+            <div class="col-md-4 mt-3">
+
+                <strong>Grand Total :</strong>
+                ${formatMoney(sale.grandTotal || 0)}
+
+            </div>
+
+            <div class="col-md-4 mt-3">
+
+                <strong>Paid :</strong>
+                ${formatMoney(sale.paidAmount || 0)}
+
+            </div>
+
+            <div class="col-md-4 mt-3">
+
+                <strong>Due :</strong>
+                ${formatMoney(sale.dueAmount || 0)}
+
+            </div>
+
+        </div>
+
+    `;
 
 }
 
-// =======================================================
-// Empty State
-// =======================================================
+/* ===========================================================
+   CLOSE PREVIEW
+=========================================================== */
 
-function renderEmptyState() {
+function closeSalePreview() {
 
-	document.getElementById(
-		"salesTableBody"
-	).innerHTML = `
+	editingSaleId = null;
+
+	previewModal?.hide();
+
+}
+
+/* ===========================================================
+   UPDATE SALES SUMMARY
+=========================================================== */
+
+function updateSalesSummary(list) {
+
+	list = Array.isArray(list) ? list : [];
+
+	let totalSales = list.length;
+
+	let totalAmount = 0;
+
+	let totalPaid = 0;
+
+	let totalDue = 0;
+
+	list.forEach(sale => {
+
+		totalAmount += Number(sale.grandTotal || 0);
+
+		totalPaid += Number(sale.paidAmount || 0);
+
+		totalDue += Number(sale.dueAmount || 0);
+
+	});
+
+	setAnimatedNumber(
+		"summaryTotalSales",
+		totalSales
+	);
+
+	setAnimatedNumber(
+		"summaryTotalAmount",
+		totalAmount,
+		"₹"
+	);
+
+	setAnimatedNumber(
+		"summaryPaidAmount",
+		totalPaid,
+		"₹"
+	);
+
+	setAnimatedNumber(
+		"summaryDueAmount",
+		totalDue,
+		"₹"
+	);
+
+}
+
+/* ===========================================================
+   CLEAR SEARCH
+=========================================================== */
+
+function clearSearch() {
+
+	const input = document.getElementById("searchKeyword");
+
+	if (!input) {
+		return;
+	}
+
+	input.value = "";
+
+	filterSales();
+
+}
+
+function authHeaders() {
+
+	const token = localStorage.getItem("token");
+
+	return {
+
+		"Authorization": "Bearer " + token,
+		"Content-Type": "application/json",
+		"Accept": "application/json"
+
+	};
+
+}
+
+function showLoader() {
+
+	const loader = document.getElementById("pageLoader");
+
+	if (loader) {
+
+		loader.classList.remove("d-none");
+
+	}
+
+}
+
+function hideLoader() {
+
+	const loader = document.getElementById("pageLoader");
+
+	if (loader) {
+
+		loader.classList.add("d-none");
+
+	}
+
+}
+
+/* ===========================================================
+   HANDLE UNAUTHORIZED
+=========================================================== */
+
+function handleUnauthorized(response) {
+
+	if (response.status === 401) {
+
+		localStorage.clear();
+
+		showError("Your session has expired. Please login again.");
+
+		setTimeout(() => {
+
+			window.location.href = "/login";
+
+		}, 1000);
+
+		return true;
+
+	}
+
+	if (response.status === 403) {
+
+		showError("You do not have permission to perform this action.");
+
+		return true;
+
+	}
+
+	return false;
+
+}
+
+async function safeJson(response) {
+
+	const type =
+		response.headers.get("content-type");
+
+	if (
+		!type ||
+		!type.includes("application/json")
+	) {
+
+		return {};
+
+	}
+
+	try {
+
+		return await response.json();
+
+	}
+
+	catch {
+
+		return {};
+
+	}
+
+}
+
+function safe(value) {
+
+	return value == null ? "" : escapeHtml(String(value));
+
+}
+
+function escapeHtml(text) {
+
+	return String(text || "")
+
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#39;");
+
+}
+
+function setButtonLoading(id, text, loading) {
+
+	const button = document.getElementById(id);
+
+	if (!button) {
+		return;
+	}
+
+	if (!button.dataset.originalText) {
+
+		button.dataset.originalText = button.innerHTML;
+
+	}
+
+	if (loading) {
+
+		button.disabled = true;
+
+		button.innerHTML =
+			`<span class="spinner-border spinner-border-sm me-2"></span>${text}`;
+
+	} else {
+
+		button.disabled = false;
+
+		button.innerHTML = button.dataset.originalText;
+
+	}
+
+}
+
+function setText(id, value) {
+
+	const element = document.getElementById(id);
+
+	if (element) {
+
+		element.textContent = value;
+
+	}
+
+}
+
+function setValue(id, value) {
+
+	const element = document.getElementById(id);
+
+	if (element) {
+
+		element.value = value;
+
+	}
+
+}
+
+function getValue(id) {
+
+	const element = document.getElementById(id);
+
+	return element ? element.value : "";
+
+}
+
+function appendOption(select, value, text) {
+
+	const option = document.createElement("option");
+
+	option.value = value;
+
+	option.textContent = text;
+
+	select.appendChild(option);
+
+}
+
+function clearSelect(id) {
+
+	const select = document.getElementById(id);
+
+	if (select) {
+
+		select.innerHTML = "";
+
+	}
+
+}
+
+function toMoneyNumber(value) {
+
+	const number = Number(value);
+
+	return isNaN(number) ? 0 : number;
+
+}
+
+function formatMoney(value) {
+
+	return currencyFormatter.format(Number(value || 0));
+
+}
+
+function formatDate(value) {
+
+	if (!value) {
+		return "-";
+	}
+
+	const datePart = String(value).split("T")[0];
+
+	const parts = datePart.split("-");
+
+	if (parts.length !== 3) {
+		return value;
+	}
+
+	return `${parts[2]}/${parts[1]}/${parts[0]}`;
+
+}
+
+function formatDateTime(value) {
+
+	if (!value) {
+		return "-";
+	}
+
+	const date = new Date(value);
+
+	if (isNaN(date.getTime())) {
+		return "-";
+	}
+
+	const formatter = new Intl.DateTimeFormat("en-IN", {
+
+		day: "2-digit",
+		month: "2-digit",
+		year: "numeric",
+		hour: "2-digit",
+		minute: "2-digit",
+		second: "2-digit",
+		hour12: true
+
+	});
+
+	return formatter.format(date);
+
+}
+
+function paymentStatusBadge(status) {
+
+	status = (status || "UNPAID").toUpperCase();
+
+	let cls = "bg-danger";
+
+	if (status === "PAID") {
+
+		cls = "bg-success";
+
+	} else if (status === "PARTIAL") {
+
+		cls = "bg-warning text-dark";
+
+	}
+
+	return `<span class="badge ${cls}">${status}</span>`;
+
+}
+
+function showSalesLoadingState() {
+
+	const tbody = document.getElementById("salesTableBody");
+
+	if (!tbody) {
+		return;
+	}
+
+	tbody.innerHTML = `
 
 <tr>
 
-<td colspan="9" class="text-center py-5">
+<td colspan="7" class="text-center py-5">
 
-<i class="bi bi-receipt-cutoff fs-1 text-muted"></i>
+<div class="spinner-border text-primary"></div>
 
-<div class="mt-3 fw-bold">
+<div class="mt-2">
 
-No Sales Found
+Loading sales...
 
 </div>
 
@@ -1580,92 +2926,200 @@ No Sales Found
 
 }
 
-function paymentStatusColor(status) {
+function showSalesErrorState(message) {
 
-    switch (status) {
+	const tbody = document.getElementById("salesTableBody");
 
-        case "PAID":
-            return "success";
+	if (!tbody) {
+		return;
+	}
 
-        case "PARTIALLY_PAID":
-            return "warning text-dark";
+	tbody.innerHTML = `
 
-        case "UNPAID":
-            return "danger";
+<tr>
 
-        default:
-            return "secondary";
-    }
+<td colspan="7" class="text-center text-danger py-5">
 
-}
+${message}
 
-function saleStatusColor(status) {
+</td>
 
-    switch (status) {
+</tr>
 
-        case "COMPLETED":
-            return "success";
-
-        case "PENDING":
-            return "warning text-dark";
-
-        case "CANCELLED":
-            return "danger";
-
-        default:
-            return "secondary";
-    }
+`;
 
 }
 
-function showLoading(show) {
+function renderEmptyState() {
 
-    const loading =
-        document.getElementById("loadingArea");
+	const tbody = document.getElementById("salesTableBody");
 
-    if (!loading) return;
+	if (!tbody) {
+		return;
+	}
 
-    loading.style.display =
-        show ? "block" : "none";
+	tbody.innerHTML = `
+
+<tr>
+
+<td colspan="7" class="text-center text-muted py-5">
+
+No sales found.
+
+</td>
+
+</tr>
+
+`;
 
 }
 
-// =======================================================
-// Validation
-// =======================================================
+function showMsg(message, type = "danger") {
 
-function validateSaleForm() {
+	const msg = document.getElementById("msg");
 
-	if (!document.getElementById("customerId").value) {
+	if (!msg) {
 
-		showError("Select customer.");
+		alert(message);
+		return;
+	}
 
-		return false;
+	msg.innerHTML = `
+		<div class="alert alert-${type} alert-dismissible fade show"
+			 role="alert">
+
+			${escapeHtml(message)}
+
+			<button type="button"
+					class="btn-close"
+					data-bs-dismiss="alert">
+			</button>
+
+		</div>
+	`;
+
+	window.scrollTo({
+		top: 0,
+		behavior: "smooth"
+	});
+}
+
+function showSuccess(message) {
+	showMsg(message, "success");
+}
+
+function showError(message) {
+	showMsg(message, "danger");
+}
+
+function getApiErrorMessage(result, defaultMessage) {
+
+	if (!result) {
+
+		return defaultMessage;
 
 	}
 
-	if (medicineRows.length === 0) {
+	return (
 
-		showError("Add at least one medicine.");
+		result.message ||
 
-		return false;
+		result.error ||
 
-	}
+		result.details ||
 
-	return true;
+		defaultMessage
+
+	);
 
 }
 
+async function loadMedicineStock(index) {
 
+	const row = medicineRows[index];
 
-// =======================================================
-// Professional Refresh
-// =======================================================
+	if (!row) return;
 
-async function refreshBillingPage() {
+	const stock = medicines.find(s =>
+		Number(s.id) === Number(row.stockId)
+	);
 
-	await loadSummary();
+	if (!stock) return;
 
-	await loadSales();
+	row.availableStock = Number(stock.currentQuantity || 0);
+
+}
+function validateMedicineStock(index) {
+
+	const row = medicineRows[index];
+
+	if (!row) {
+
+		return;
+
+	}
+
+	if (
+
+		row.availableStock > 0 &&
+
+		row.quantity > row.availableStock
+
+	) {
+
+		showError(
+			`${row.medicineName || "Selected medicine"} stock is only ${row.availableStock}.`
+		);
+
+	}
+
+}
+
+function updatePaymentStatus() {
+
+	const grandElement = document.getElementById("grandTotal");
+
+	const grand = grandElement
+		? Number(grandElement.dataset.value || 0)
+		: 0;
+
+	const paid = toMoneyNumber(getValue("paidAmount"));
+
+	const badge = document.getElementById("paymentStatus");
+
+	if (!badge) {
+
+		return;
+
+	}
+
+	badge.className = "badge";
+
+	if (paid <= 0) {
+
+		badge.classList.add("bg-danger");
+
+		badge.textContent = "UNPAID";
+
+	} else if (paid < grand) {
+
+		badge.classList.add("bg-warning");
+
+		badge.textContent = "PARTIAL";
+
+	} else if (paid === grand) {
+
+		badge.classList.add("bg-success");
+
+		badge.textContent = "PAID";
+
+	}
+	else {
+
+		badge.classList.add("bg-danger");
+
+		badge.textContent = "INVALID";
+
+	}
 
 }

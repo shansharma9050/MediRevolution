@@ -13,4 +13,7 @@ public interface SaasSaleStockAllocationRepository extends JpaRepository<SaasSal
 	List<SaasSaleStockAllocation> findByTenantIdAndSaleIdOrderByIdAsc(Long tenantId, Long saleId);
 
 	Optional<SaasSaleStockAllocation> findByIdAndTenantIdAndSaleId(Long id, Long tenantId, Long saleId);
+	
+	void deleteByTenantIdAndSaleId(Long tenantId, Long saleId);
+
 }

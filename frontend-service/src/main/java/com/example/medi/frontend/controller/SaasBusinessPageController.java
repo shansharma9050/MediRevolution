@@ -101,11 +101,6 @@ public class SaasBusinessPageController {
 		return "saas-ipd";
 	}
 
-	@GetMapping("/saas/billing")
-	public String saasBillingPage() {
-		return "saas-billing";
-	}
-
 	@GetMapping("/saas/inventory")
 	public String saasInventoryPage() {
 		return "saas-inventory";
@@ -158,21 +153,21 @@ public class SaasBusinessPageController {
 	
 	@GetMapping("/saas/wholesaler/billing")
 	public String wholesalerBilling() {
-	    return "saas/wholesaler/billing";
+	    return "wholesaler/billing";
 	}
 
 	@GetMapping("/saas/retailer/billing")
 	public String retailerBilling() {
-	    return "saas/retailer/billing";
+	    return "retailer/billing";
 	}
 
 	@GetMapping("/saas/hospital/billing")
 	public String hospitalBilling() {
-	    return "saas/hospital/billing";
+	    return "hospital/saas-billing";
 	}
 
 	@GetMapping("/saas/doctor/billing")
 	public String doctorBilling() {
-	    return "saas/doctor/billing";
+	    return "doctor/saas-billing";
 	}
 }

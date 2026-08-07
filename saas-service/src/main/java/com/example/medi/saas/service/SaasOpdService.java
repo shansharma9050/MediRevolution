@@ -6,6 +6,7 @@ import com.example.medi.saas.dto.SaasOpdVisitResponse;
 import com.example.medi.saas.entity.SaasDoctorProfile;
 import com.example.medi.saas.entity.SaasOpdVisit;
 import com.example.medi.saas.entity.SaasPatient;
+import com.example.medi.saas.entity.SaasStaff;
 import com.example.medi.saas.enums.SaasAppointmentStatus;
 import com.example.medi.saas.enums.SaasOpdStatus;
 import com.example.medi.saas.enums.SaasPermissionAction;
@@ -14,6 +15,7 @@ import com.example.medi.saas.repository.SaasAppointmentRepository;
 import com.example.medi.saas.repository.SaasDoctorProfileRepository;
 import com.example.medi.saas.repository.SaasOpdVisitRepository;
 import com.example.medi.saas.repository.SaasPatientRepository;
+import com.example.medi.saas.repository.SaasStaffRepository;
 import com.example.medi.saas.security.CurrentUserUtil;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +31,7 @@ public class SaasOpdService {
     private final SaasAppointmentRepository appointmentRepository;
     private final TenantAccessService tenantAccessService;
     private final SaasPermissionService permissionService;
+    private final SaasStaffRepository staffRepository;
     
 
     public SaasOpdService(
@@ -37,7 +40,8 @@ public class SaasOpdService {
             SaasDoctorProfileRepository doctorRepository,
             SaasAppointmentRepository appointmentRepository,
             TenantAccessService tenantAccessService,
-            SaasPermissionService permissionService
+            SaasPermissionService permissionService,
+            SaasStaffRepository staffRepository
             
     ) {
         this.opdRepository = opdRepository;
@@ -46,6 +50,7 @@ public class SaasOpdService {
         this.appointmentRepository = appointmentRepository;
         this.tenantAccessService = tenantAccessService;
         this.permissionService = permissionService;
+        this.staffRepository=staffRepository;
     }
 
     public SaasOpdVisitResponse createOpdVisit(SaasOpdVisitRequest request) {
@@ -63,9 +68,14 @@ public class SaasOpdService {
         SaasPatient patient = patientRepository
                 .findByIdAndTenantIdAndActiveTrue(request.getPatientId(), request.getTenantId())
                 .orElseThrow(() -> new RuntimeException("Patient not found"));
+        
+        
 
-        SaasDoctorProfile doctor = doctorRepository
-                .findByIdAndTenantIdAndActiveTrue(request.getDoctorProfileId(), request.getTenantId())
+        SaasStaff staff = staffRepository
+                .findByIdAndTenantIdAndActiveTrue(
+                    request.getDoctorProfileId(),
+                    request.getTenantId()
+                )
                 .orElseThrow(() -> new RuntimeException("Doctor not found"));
 
         if (request.getAppointmentId() != null) {
@@ -81,7 +91,7 @@ public class SaasOpdService {
         SaasOpdVisit opd = new SaasOpdVisit();
         opd.setTenantId(request.getTenantId());
         opd.setPatientId(patient.getId());
-        opd.setDoctorProfileId(doctor.getId());
+        opd.setDoctorProfileId(staff.getId());
         opd.setAppointmentId(request.getAppointmentId());
         opd.setSymptoms(request.getSymptoms());
         opd.setDiagnosis(request.getDiagnosis());

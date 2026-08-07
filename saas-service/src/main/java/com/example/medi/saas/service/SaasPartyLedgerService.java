@@ -390,4 +390,17 @@ public class SaasPartyLedgerService {
 
 	private record PartySnapshot(Long id, String code, String name) {
 	}
+	
+	@Transactional
+	public void deleteLedgerEntries(
+	        Long tenantId,
+	        String referenceType,
+	        Long referenceId) {
+
+	    ledgerRepository.deleteByTenantIdAndReferenceTypeAndReferenceId(
+	            tenantId,
+	            referenceType,
+	            referenceId
+	    );
+	}
 }

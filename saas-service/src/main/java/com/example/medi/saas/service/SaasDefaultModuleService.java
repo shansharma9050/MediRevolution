@@ -42,7 +42,11 @@ public class SaasDefaultModuleService {
         return EnumSet.of(
                 TenantModule.DASHBOARD,
                 TenantModule.PATIENTS,
+                TenantModule.DOCTOR_AVAILABILITY,
                 TenantModule.APPOINTMENTS,
+                TenantModule.OPD,
+                TenantModule.IPD,
+                TenantModule.STAFF,
                 TenantModule.PRESCRIPTIONS,
                 TenantModule.BILLING,
                 TenantModule.REPORTS,

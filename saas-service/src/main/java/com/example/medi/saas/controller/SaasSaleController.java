@@ -46,4 +46,21 @@ public class SaasSaleController {
 	public SaasSaleResponse createSale(@RequestBody SaasSaleRequest request) {
 		return saleService.createSale(request);
 	}
+	
+	@PutMapping("/{saleId}")
+	public SaasSaleResponse updateSale(
+	        @PathVariable Long saleId,
+	        @RequestParam Long tenantId,
+	        @RequestBody SaasSaleRequest request) {
+
+	    return saleService.updateSale(tenantId, saleId, request);
+	}
+
+	@DeleteMapping("/{saleId}")
+	public SaasSaleResponse deleteSale(
+	        @PathVariable Long saleId,
+	        @RequestParam Long tenantId) {
+
+	    return saleService.deleteSale(tenantId, saleId) ;
+	}
 }
