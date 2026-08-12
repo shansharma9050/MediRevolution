@@ -396,7 +396,7 @@ async function loadSales() {
 	try {
 
 		const response = await fetch(
-			`${API_BASE}/saas/sales?tenantId=${tenantId}`,
+			`${API_BASE}/saas/wholesaler/billing/sales?tenantId=${tenantId}`,
 			{
 				headers: authHeaders()
 			}
@@ -679,7 +679,7 @@ async function searchSales() {
 	try {
 
 		const response = await fetch(
-			`${API_BASE}/saas/sales/search?tenantId=${tenantId}&keyword=${encodeURIComponent(keyword)}`,
+			`${API_BASE}/saas/wholesaler/billing/sales/search?tenantId=${tenantId}&keyword=${encodeURIComponent(keyword)}`,
 			{
 				headers: authHeaders()
 			}
@@ -1655,8 +1655,6 @@ async function saveSale() {
 		await loadSummary();
 
 		await loadMedicines();
-		updateSummaryCards();
-
 	}
 	catch (error) {
 
@@ -1677,91 +1675,102 @@ async function saveSale() {
 
 	}
 }
-/* ===========================================================
-   DELETE SALE
-=========================================================== */
+// =======================================================
+// Cancel Sale
+// =======================================================
 
-async function deleteSale(id) {
-
-	if (isDeletingSale) return;
+async function deleteSale(saleId) {
 
 	if (!salesPermissions.delete) {
 
-		showError("Permission denied.");
+		showMsg(
+			"You do not have permission to cancel sales."
+		);
 
 		return;
 	}
 
-	if (!confirm("Cancel this sale?")) {
+	if (!saleId) {
+
+		showMsg(
+			"Invalid sale selected."
+		);
+
 		return;
 	}
 
-	isDeletingSale = true;
+	if (!confirm(
+		"Cancel this sale?\n\nThe sale will be cancelled and stock will be restored."
+	)) {
+
+		return;
+	}
 
 	try {
 
-		const response = await fetch(
+		const token =
+			localStorage.getItem("token");
 
-			`${API_BASE}/saas/sales/${id}?tenantId=${tenantId}`,
+		const query =
+			new URLSearchParams({
+				tenantId: tenantId
+			});
 
-			{
-				method: "DELETE",
-				headers: authHeaders()
-			}
+		const response =
+			await fetch(
+				`${API_BASE}/saas/wholesaler/billing/sales/${saleId}?${query.toString()}`,
+				{
+					method: "DELETE",
 
-		);
+					headers: {
+						"Authorization":
+							"Bearer " + token,
 
-		if (handleUnauthorized(response)) {
-
-			clearSelect("customerId");
-
-			appendOption(
-				document.getElementById("customerId"),
-				"",
-				"Unable to load"
+						"Accept":
+							"application/json"
+					}
+				}
 			);
 
-			return;
-
-		}
-
-		const result = await safeJson(response);
+		const result =
+			await safeJson(response);
 
 		if (!response.ok) {
 
-			showError(
+			console.error(
+				"Cancel sale failed:",
+				result
+			);
 
+			showMsg(
 				getApiErrorMessage(
-
 					result,
-
-					"Unable to delete sale."
-
+					"Unable to cancel sale."
 				)
-
 			);
 
 			return;
 		}
 
-		showSuccess("Sale cancelled successfully.");
+		showMsg(
+			"Sale cancelled successfully.",
+			"success"
+		);
 
+		// Reload list from server
 		await loadSales();
-
-		await loadSummary();
 
 	}
 	catch (error) {
 
-		console.error(error);
+		console.error(
+			"Cancel sale error:",
+			error
+		);
 
-		showError("Unable to delete sale.");
-
-	}
-	finally {
-
-		isDeletingSale = false;
-
+		showMsg(
+			"SaaS service not reachable."
+		);
 	}
 }
 
@@ -1905,43 +1914,129 @@ async function loadSale(id) {
 
 	}
 }
-async function printInvoice(id) {
+// =======================================================
+// PRINT INVOICE
+// =======================================================
 
-	if (isPrintingSale) return;
+async function printInvoice(saleId) {
 
-	if (!salesPermissions.print) {
+    if (!saleId) {
+        return;
+    }
 
-		showError("Permission denied.");
+    if (!salesPermissions.print) {
 
-		return;
+        showMsg(
+            "You do not have permission to print sales."
+        );
 
-	}
+        return;
+    }
 
-	isPrintingSale = true;
+    try {
 
-	try {
+        showMsg(
+            "Preparing invoice PDF...",
+            "info"
+        );
 
-		const win = window.open(
+        const response = await fetch(
+            `${API_BASE}/saas/wholesaler/billing/invoice/${saleId}/pdf?tenantId=${tenantId}`,
+            {
+                method: "GET",
+                headers: {
+                    ...authHeaders(),
+                    "Accept": "application/pdf"
+                }
+            }
+        );
 
-			`${API_BASE}/saas/sales/${id}/pdf?tenantId=${tenantId}`,
+        if (handleUnauthorized(response)) {
+            return;
+        }
 
-			"_blank"
+        if (!response.ok) {
 
-		);
+            let message =
+                `Unable to generate invoice PDF. (${response.status})`;
 
-		if (!win) {
+            try {
 
-			showError("Please allow popups to print invoice.");
+                const contentType =
+                    response.headers.get("content-type") || "";
 
-		}
+                if (contentType.includes("application/json")) {
 
-	}
-	finally {
+                    const errorData =
+                        await response.json();
 
-		isPrintingSale = false;
+                    message =
+                        errorData.message ||
+                        errorData.error ||
+                        message;
+                }
 
-	}
+            } catch (e) {
+                console.warn(
+                    "Unable to parse PDF error response.",
+                    e
+                );
+            }
 
+            throw new Error(message);
+        }
+
+        const blob =
+            await response.blob();
+
+        if (!blob || blob.size === 0) {
+
+            throw new Error(
+                "Invoice PDF is empty."
+            );
+        }
+
+        const pdfUrl =
+            URL.createObjectURL(blob);
+
+        const newWindow =
+            window.open(
+                pdfUrl,
+                "_blank"
+            );
+
+        if (!newWindow) {
+
+            URL.revokeObjectURL(pdfUrl);
+
+            throw new Error(
+                "Please allow pop-ups for this site to open the invoice."
+            );
+        }
+
+        /*
+         * Keep the object URL alive long enough
+         * for the browser PDF viewer to load it.
+         */
+        setTimeout(() => {
+
+            URL.revokeObjectURL(pdfUrl);
+
+        }, 60000);
+
+    }
+    catch (error) {
+
+        console.error(
+            "Print invoice error:",
+            error
+        );
+
+        showMsg(
+            error.message ||
+            "Unable to open invoice PDF."
+        );
+    }
 }
 
 /* ===========================================================
@@ -2419,7 +2514,7 @@ function renderSalePreview(sale) {
 
                 <div>
                     Mode :
-                    ${sale.paymentMode || "-"}
+                    <strong>${sale.paymentMode || "-"}</strong>
                 </div>
 
             </div>

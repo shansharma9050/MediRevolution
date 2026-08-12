@@ -667,34 +667,43 @@ async function applySaasPermissionMenu() {
 	updateSaasSidebarSectionVisibility();
 	updateSaasSidebarWorkspaceDetails();
 	
-	updateBillingMenuHref();
 }
 
-function updateBillingMenuHref() {
+function openBillingPage(event) {
 
-	const billingMenu = document.getElementById("saasBillingMenu");
-
-	if (!billingMenu) {
-		return;
+	if (event) {
+		event.preventDefault();
 	}
 
 	const tenantType = (
 		localStorage.getItem("tenantType") || ""
 	).trim().toUpperCase();
 
-	console.log("Billing tenantType :", tenantType);
+	console.log("Opening Billing Page for tenantType:", tenantType);
 
-	const billingUrls = {
-		DOCTOR_CLINIC: "/saas/doctor/billing",
-		HOSPITAL: "/saas/hospital/billing",
-		WHOLESALER: "/saas/wholesaler/billing",
-		RETAILER: "/saas/retailer/billing"
-	};
+	switch (tenantType) {
 
-	billingMenu.setAttribute(
-		"href",
-		billingUrls[tenantType] || "/saas/billing"
-	);
+		case "DOCTOR_CLINIC":
+			window.location.href = "/saas/doctor/billing";
+			break;
+
+		case "HOSPITAL":
+			window.location.href = "/saas/hospital/billing";
+			break;
+
+		case "WHOLESALER":
+			window.location.href = "/saas/wholesaler/billing";
+			break;
+
+		case "RETAILER":
+			window.location.href = "/saas/retailer/billing";
+			break;
+
+		default:
+			alert("Invalid SaaS workspace type.");
+			window.location.href = "/saas/dashboard";
+			break;
+	}
 }
 
 function updateSaasSidebarWorkspaceDetails() {

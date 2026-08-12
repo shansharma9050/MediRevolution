@@ -433,9 +433,10 @@ body.module-page-loading {
 .welcome-banner-content {
     position: relative;
     z-index: 2;
+    flex: 1 1 auto;
+    min-width: 0;
     max-width: 760px;
 }
-
 .welcome-banner-label {
     display: inline-flex;
     align-items: center;
@@ -478,12 +479,15 @@ body.module-page-loading {
 .welcome-role-card {
     position: relative;
     z-index: 2;
-    display: flex;
+
+    flex: 0 0 150px;
     min-width: 150px;
-    flex-direction: column;
+
     padding: 20px;
+
     border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 22px;
+
     background: rgba(255, 255, 255, 0.11);
     backdrop-filter: blur(15px);
 }
@@ -1366,4 +1370,16 @@ body.module-page-loading {
         letter-spacing: -1.1px;
     }
 
+}
+
+.dashboard-welcome-banner {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+}
+
+.welcome-banner-content {
+    margin-right: auto !important;
+    margin-left: 0 !important;
+    text-align: left !important;
 }

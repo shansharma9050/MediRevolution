@@ -23,6 +23,7 @@
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
 	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
 
 	<style>
 		.subscription-plans-page {
@@ -550,10 +551,10 @@
 	</style>
 </head>
 
-<body class="dashboard-body">
+<body class="dashboard-body platform-dashboard-body">
 
-	<div th:replace="~{layout/topnavbar :: topnavbar}"></div>
-	<div th:replace="~{layout/sidebar :: sidebar}"></div>
+	<div th:replace="~{layout/platform-topnavbar :: platformTopnavbar}"></div>
+	<div th:replace="~{layout/platform-sidebar :: platformSidebar}"></div>
 
 	<main class="mr-main subscription-plans-page">
 

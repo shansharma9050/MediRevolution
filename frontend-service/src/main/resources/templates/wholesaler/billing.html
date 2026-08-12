@@ -445,6 +445,690 @@ SUMMARY
 			}
 
 		}
+		
+		/* ===========================================================
+		   SALES INVOICE PREVIEW MODAL
+		   MediRevolution SaaS Theme
+		=========================================================== */
+
+		.sale-preview-theme-modal {
+		    border: 0;
+		    border-radius: 14px;
+		    overflow: hidden;
+		    box-shadow: 0 25px 70px rgba(5, 40, 95, 0.28);
+		    background: #ffffff;
+		}
+
+		/* ===========================================================
+		   HEADER
+		=========================================================== */
+
+		.sale-preview-theme-modal .modal-header {
+		    position: relative;
+		    min-height: 78px;
+		    padding: 15px 22px;
+		    border: 0;
+		    color: #ffffff;
+
+		    background:
+		        linear-gradient(
+		            135deg,
+		            #05285f 0%,
+		            #076a9c 52%,
+		            #08c7d4 100%
+		        );
+		}
+
+		.sale-preview-theme-modal .modal-header::after {
+		    content: "";
+		    position: absolute;
+		    right: -60px;
+		    top: -90px;
+		    width: 220px;
+		    height: 220px;
+		    border-radius: 50%;
+		    border: 35px solid rgba(255, 255, 255, 0.07);
+		    pointer-events: none;
+		}
+
+		.sale-preview-header-left {
+		    display: flex;
+		    align-items: center;
+		    gap: 12px;
+		    position: relative;
+		    z-index: 2;
+		}
+
+		.sale-preview-header-icon {
+		    width: 42px;
+		    height: 42px;
+
+		    display: flex;
+		    align-items: center;
+		    justify-content: center;
+
+		    border-radius: 12px;
+
+		    background: rgba(255, 255, 255, 0.15);
+		    border: 1px solid rgba(255, 255, 255, 0.22);
+
+		    color: #ffffff;
+		    font-size: 19px;
+
+		    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+		}
+
+		.sale-preview-header-text small {
+		    display: block;
+		    margin-bottom: 2px;
+
+		    color: rgba(255, 255, 255, 0.72);
+
+		    font-size: 10px;
+		    font-weight: 800;
+		    letter-spacing: 0.7px;
+		    text-transform: uppercase;
+		}
+
+		.sale-preview-header-text h5 {
+		    margin: 0;
+
+		    color: #ffffff;
+
+		    font-size: 17px;
+		    font-weight: 800;
+		}
+
+		.sale-preview-theme-modal .btn-close {
+		    position: relative;
+		    z-index: 3;
+
+		    width: 34px;
+		    height: 34px;
+
+		    margin-left: 900px;
+		    padding: 0;
+
+		    border-radius: 10px;
+
+		    opacity: 1;
+
+		    background-color: rgba(255, 255, 255, 0.13);
+		    background-image: none;
+
+		    display: flex;
+		    align-items: center;
+		    justify-content: center;
+		}
+
+		.sale-preview-theme-modal .btn-close::before {
+		    content: "\f62a";
+
+		    font-family: "bootstrap-icons";
+		    font-size: 16px;
+
+		    color: #ffffff;
+		}
+
+		.sale-preview-theme-modal .btn-close:hover {
+		    background-color: rgba(255, 255, 255, 0.22);
+		}
+
+		/* ===========================================================
+		   BODY
+		=========================================================== */
+
+		.sale-preview-theme-modal .modal-body {
+		    padding: 20px;
+		    background: #f7faff;
+		}
+
+		/* ===========================================================
+		   MAIN INVOICE CARD
+		=========================================================== */
+
+		.sale-preview-card {
+		    background: #ffffff;
+
+		    border: 1px solid #dbe7f2;
+		    border-radius: 14px;
+
+		    overflow: hidden;
+
+		    box-shadow:
+		        0 8px 25px rgba(5, 40, 95, 0.06);
+		}
+
+		/* ===========================================================
+		   INVOICE TOP INFORMATION
+		=========================================================== */
+
+		.sale-preview-invoice-head {
+		    display: flex;
+		    justify-content: space-between;
+		    gap: 20px;
+
+		    padding: 18px 20px;
+
+		    border-bottom: 1px solid #e4edf5;
+		}
+
+		.sale-preview-invoice-number {
+		    color: #0569a6;
+
+		    font-size: 16px;
+		    font-weight: 900;
+		    letter-spacing: 0.2px;
+		}
+
+		.sale-preview-invoice-meta {
+		    margin-top: 8px;
+
+		    display: flex;
+		    flex-wrap: wrap;
+		    gap: 8px 18px;
+		}
+
+		.sale-preview-invoice-meta-item {
+		    display: flex;
+		    align-items: center;
+		    gap: 6px;
+
+		    color: #526579;
+
+		    font-size: 12px;
+		}
+
+		.sale-preview-invoice-meta-item i {
+		    color: #087fae;
+		}
+
+		/* ===========================================================
+		   PAYMENT STATUS
+		=========================================================== */
+
+		.sale-preview-payment-box {
+		    min-width: 170px;
+
+		    display: flex;
+		    flex-direction: column;
+		    align-items: flex-end;
+		    gap: 7px;
+		}
+
+		.sale-preview-payment-line {
+		    display: flex;
+		    align-items: center;
+		    gap: 7px;
+
+		    color: #65788c;
+
+		    font-size: 12px;
+		}
+
+		.sale-preview-payment-line strong {
+		    color: #05285f;
+		}
+
+		.sale-preview-status {
+		    display: inline-flex;
+		    align-items: center;
+		    gap: 6px;
+
+		    padding: 6px 11px;
+
+		    border-radius: 999px;
+
+		    font-size: 10px;
+		    font-weight: 900;
+		    letter-spacing: 0.4px;
+		}
+
+		.sale-preview-status.unpaid {
+		    color: #9d1c2c;
+		    background: #ffe5e9;
+		}
+
+		.sale-preview-status.partial {
+		    color: #9a6500;
+		    background: #fff2c9;
+		}
+
+		.sale-preview-status.paid {
+		    color: #087a4a;
+		    background: #dff7eb;
+		}
+
+		/* ===========================================================
+		   CUSTOMER / SALE INFORMATION SECTION
+		=========================================================== */
+
+		.sale-preview-section {
+		    margin: 16px 20px 0;
+
+		    border: 1px solid #dfe9f3;
+		    border-radius: 12px;
+
+		    overflow: hidden;
+		}
+
+		.sale-preview-section-header {
+		    display: flex;
+		    align-items: center;
+		    gap: 9px;
+
+		    padding: 10px 13px;
+
+		    background: #f2f7fc;
+
+		    border-bottom: 1px solid #dfe9f3;
+
+		    color: #05285f;
+
+		    font-size: 12px;
+		    font-weight: 800;
+		}
+
+		.sale-preview-section-icon {
+		    width: 28px;
+		    height: 28px;
+
+		    display: flex;
+		    align-items: center;
+		    justify-content: center;
+
+		    border-radius: 8px;
+
+		    background: #e5f1ff;
+
+		    color: #087bb0;
+
+		    font-size: 13px;
+		}
+
+		.sale-preview-section-body {
+		    padding: 13px;
+		}
+
+		.sale-preview-info-grid {
+		    display: grid;
+
+		    grid-template-columns:
+		        repeat(4, minmax(0, 1fr));
+
+		    gap: 10px;
+		}
+
+		.sale-preview-info-item {
+		    min-width: 0;
+		}
+
+		.sale-preview-info-label {
+		    display: block;
+
+		    margin-bottom: 3px;
+
+		    color: #8192a3;
+
+		    font-size: 9px;
+		    font-weight: 800;
+
+		    text-transform: uppercase;
+		    letter-spacing: 0.45px;
+		}
+
+		.sale-preview-info-value {
+		    color: #263c52;
+
+		    font-size: 12px;
+		    font-weight: 700;
+
+		    word-break: break-word;
+		}
+
+		/* ===========================================================
+		   MEDICINE SECTION
+		=========================================================== */
+
+		.sale-preview-medicine-section {
+		    margin-top: 16px;
+		}
+
+		.sale-preview-table-wrap {
+		    overflow-x: auto;
+		}
+
+		.sale-preview-table {
+		    width: 100%;
+
+		    margin: 0;
+
+		    border-collapse: separate;
+		    border-spacing: 0;
+		}
+
+		.sale-preview-table thead th {
+		    padding: 10px 10px;
+
+		    background: #f1f6fb;
+
+		    border-bottom: 1px solid #d8e4ef;
+
+		    color: #173e63;
+
+		    font-size: 10px;
+		    font-weight: 900;
+
+		    text-transform: uppercase;
+		    letter-spacing: 0.35px;
+
+		    white-space: nowrap;
+		}
+
+		.sale-preview-table tbody td {
+		    padding: 10px;
+
+		    border-bottom: 1px solid #edf2f7;
+
+		    color: #43576b;
+
+		    font-size: 11px;
+
+		    vertical-align: middle;
+		}
+
+		.sale-preview-table tbody tr:last-child td {
+		    border-bottom: 0;
+		}
+
+		.sale-preview-table tbody tr:hover {
+		    background: #f9fcff;
+		}
+
+		.sale-preview-medicine-name {
+		    color: #05285f !important;
+		    font-weight: 800 !important;
+		}
+
+		.sale-preview-money {
+		    color: #243f5b !important;
+		    font-weight: 700 !important;
+		    white-space: nowrap;
+		}
+
+		.sale-preview-stock {
+		    display: inline-flex;
+
+		    padding: 4px 8px;
+
+		    border-radius: 999px;
+
+		    background: #e8f7ef;
+		    color: #087a4a;
+
+		    font-size: 9px;
+		    font-weight: 800;
+		}
+
+		/* ===========================================================
+		   TOTALS
+		=========================================================== */
+
+		.sale-preview-total-area {
+		    margin: 16px 20px 20px;
+
+		    display: grid;
+
+		    grid-template-columns:
+		        repeat(3, minmax(0, 1fr));
+
+		    gap: 10px;
+		}
+
+		.sale-preview-total-item {
+		    padding: 11px 13px;
+
+		    border: 1px solid #e0eaf3;
+		    border-radius: 10px;
+
+		    background: #fbfdff;
+		}
+
+		.sale-preview-total-label {
+		    display: block;
+
+		    margin-bottom: 4px;
+
+		    color: #7c8d9e;
+
+		    font-size: 9px;
+		    font-weight: 800;
+
+		    text-transform: uppercase;
+		}
+
+		.sale-preview-total-value {
+		    color: #173e63;
+
+		    font-size: 13px;
+		    font-weight: 900;
+		}
+
+		.sale-preview-grand-total {
+		    background:
+		        linear-gradient(
+		            135deg,
+		            #05285f,
+		            #087fae
+		        );
+
+		    border-color: transparent;
+		}
+
+		.sale-preview-grand-total .sale-preview-total-label {
+		    color: rgba(255, 255, 255, 0.72);
+		}
+
+		.sale-preview-grand-total .sale-preview-total-value {
+		    color: #b8f267;
+
+		    font-size: 17px;
+		}
+
+		/* ===========================================================
+		   DUE / PAID SUMMARY
+		=========================================================== */
+
+		.sale-preview-payment-summary {
+		    margin: 0 20px 20px;
+
+		    display: grid;
+
+		    grid-template-columns:
+		        repeat(3, minmax(0, 1fr));
+
+		    gap: 10px;
+		}
+
+		.sale-preview-payment-card {
+		    padding: 12px 14px;
+
+		    border-radius: 11px;
+
+		    background: #f5f9fd;
+
+		    border: 1px solid #dce8f2;
+		}
+
+		.sale-preview-payment-card span {
+		    display: block;
+
+		    color: #7b8c9d;
+
+		    font-size: 9px;
+		    font-weight: 800;
+
+		    text-transform: uppercase;
+		}
+
+		.sale-preview-payment-card strong {
+		    display: block;
+
+		    margin-top: 4px;
+
+		    color: #173e63;
+
+		    font-size: 15px;
+		    font-weight: 900;
+		}
+
+		.sale-preview-payment-card.paid strong {
+		    color: #087a4a;
+		}
+
+		.sale-preview-payment-card.due strong {
+		    color: #c0392b;
+		}
+
+		/* ===========================================================
+		   REMARKS
+		=========================================================== */
+
+		.sale-preview-remarks {
+		    margin: 0 20px 20px;
+
+		    padding: 12px 14px;
+
+		    border-radius: 10px;
+
+		    background: #f8fbfe;
+		    border: 1px solid #dfe9f3;
+		}
+
+		.sale-preview-remarks-label {
+		    display: flex;
+		    align-items: center;
+		    gap: 6px;
+
+		    margin-bottom: 5px;
+
+		    color: #05285f;
+
+		    font-size: 10px;
+		    font-weight: 900;
+
+		    text-transform: uppercase;
+		}
+
+		.sale-preview-remarks-text {
+		    color: #5e7184;
+
+		    font-size: 11px;
+		    line-height: 1.6;
+		}
+
+		/* ===========================================================
+		   FOOTER
+		=========================================================== */
+
+		.sale-preview-theme-modal .modal-footer {
+		    padding: 12px 20px;
+
+		    background: #ffffff;
+
+		    border-top: 1px solid #e3ebf3;
+		}
+
+		.sale-preview-footer-info {
+		    margin-right: auto;
+
+		    color: #8292a2;
+
+		    font-size: 10px;
+		}
+
+		.sale-preview-close-btn {
+		    min-width: 90px;
+
+		    border-radius: 8px;
+
+		    font-size: 11px;
+		    font-weight: 700;
+		}
+
+		/* ===========================================================
+		   RESPONSIVE
+		=========================================================== */
+
+		@media (max-width: 992px) {
+
+		    .sale-preview-info-grid {
+		        grid-template-columns:
+		            repeat(2, minmax(0, 1fr));
+		    }
+
+		    .sale-preview-total-area {
+		        grid-template-columns:
+		            repeat(2, minmax(0, 1fr));
+		    }
+
+		}
+
+		@media (max-width: 768px) {
+
+		    .sale-preview-invoice-head {
+		        flex-direction: column;
+		    }
+
+		    .sale-preview-payment-box {
+		        align-items: flex-start;
+		    }
+
+		    .sale-preview-payment-summary {
+		        grid-template-columns: 1fr;
+		    }
+
+		}
+
+		@media (max-width: 576px) {
+
+		    .sale-preview-theme-modal .modal-body {
+		        padding: 10px;
+		    }
+
+		    .sale-preview-section {
+		        margin-left: 10px;
+		        margin-right: 10px;
+		    }
+
+		    .sale-preview-total-area {
+		        margin-left: 10px;
+		        margin-right: 10px;
+
+		        grid-template-columns: 1fr;
+		    }
+
+		    .sale-preview-payment-summary {
+		        margin-left: 10px;
+		        margin-right: 10px;
+		    }
+
+		    .sale-preview-remarks {
+		        margin-left: 10px;
+		        margin-right: 10px;
+		    }
+
+		    .sale-preview-info-grid {
+		        grid-template-columns: 1fr;
+		    }
+
+		}
+		
+		.btn-mediRefresh {
+		        width: 100% !important;
+		        font-size: 14px !important;
+		        padding: 12px !important;
+		    }
 	</style>
 
 </head>
@@ -1124,7 +1808,7 @@ SUMMARY
 
 			    </button>
 
-			    <button
+			    <!--<button
 			        type="button"
 			        class="btn btn-outline-primary print-sale-btn"
 			        id="btnPreviewPrint">
@@ -1133,7 +1817,7 @@ SUMMARY
 
 			        Print Invoice
 
-			    </button>
+			    </button>-->
 
 			    <button
 			        type="button"
@@ -1209,7 +1893,7 @@ SUMMARY
 
 				<div class="col-lg-2 col-md-2">
 
-					<button type="button" class="btn btn-outline-primary w-100" id="btnRefresh">
+					<button type="button" class="btn btn-outline-primary btn-mediRefresh w-100" id="btnRefresh">
 
 						<i class="bi bi-arrow-clockwise me-1"></i>
 
@@ -1359,90 +2043,134 @@ SUMMARY
 
 		</div>
 
-		<div id="msg" class="mt-3"></div>
+		<div th:replace="~{layout/footer :: footer}"></div>
 
+		</main>
 		<!-- ===========================================================
-		     PART 5 : SALE PREVIEW MODAL
+		     SALES INVOICE PREVIEW MODAL
 		=========================================================== -->
 
-		<div class="modal fade" id="salePreviewModal" tabindex="-1" aria-hidden="true">
+		<div class="modal fade"
+		     id="salePreviewModal"
+		     tabindex="-1"
+		     aria-hidden="true">
 
-			<div class="modal-dialog modal-xl modal-dialog-scrollable">
+		    <div class="modal-dialog modal-xl modal-dialog-scrollable">
 
-				<div class="modal-content">
+		        <div class="modal-content sale-preview-theme-modal">
 
-					<div class="modal-header">
+		            <!-- =================================================
+		                 MODAL HEADER
+		            ================================================== -->
 
-						<div class="hospital-billing-title-wrap">
+		            <div class="modal-header">
 
-							<div class="hospital-billing-title-icon">
+		                <div class="sale-preview-header-left">
 
-								<i class="bi bi-eye-fill"></i>
+		                    <div class="sale-preview-header-icon">
 
-							</div>
+		                        <i class="bi bi-receipt-cutoff"></i>
 
-							<div>
+		                    </div>
 
-								<small>Invoice Preview</small>
+		                    <div class="sale-preview-header-text">
 
-								<h5>
+		                        <small>Wholesaler Billing</small>
 
-									Sales Invoice Details
+		                        <h5>
+		                            Sales Invoice Details
+		                        </h5>
 
-								</h5>
+		                    </div>
 
-							</div>
+		                </div>
 
-						</div>
+		                <button type="button"
+		                        class="btn-close"
+		                        data-bs-dismiss="modal"
+		                        aria-label="Close">
+		                </button>
 
-						<button type="button" class="btn-close" data-bs-dismiss="modal">
-						</button>
-
-					</div>
-
-					<div class="modal-body">
-
-						<!-- JS will completely replace this -->
-
-						<div id="salePreviewBody">
-
-							<div class="hospital-billing-state">
-
-								<div class="hospital-billing-state-icon hospital-billing-loading-icon">
-
-									<i class="bi bi-receipt-cutoff"></i>
-
-								</div>
-
-								<h5 class="fw-bold text-primary">
-
-									Loading Invoice
-
-								</h5>
-
-								<p class="text-muted mb-0">
-
-									Please wait while invoice details are loading.
-
-								</p>
-
-							</div>
-
-						</div>
-
-					</div>
+		            </div>
 
 
-				</div>
+		            <!-- =================================================
+		                 MODAL BODY
+		            ================================================== -->
 
-			</div>
+		            <div class="modal-body">
+
+		                <!--
+		                    IMPORTANT:
+
+		                    JS will populate this container.
+
+		                    Keep this ID exactly the same.
+		                -->
+
+		                <div id="salePreviewBody">
+
+		                    <div class="hospital-billing-state">
+
+		                        <div class="hospital-billing-state-icon
+		                                    hospital-billing-loading-icon">
+
+		                            <i class="bi bi-receipt-cutoff"></i>
+
+		                        </div>
+
+		                        <h5 class="fw-bold text-primary">
+		                            Loading Invoice
+		                        </h5>
+
+		                        <p class="text-muted mb-0">
+
+		                            Please wait while invoice details
+		                            are loading.
+
+		                        </p>
+
+		                    </div>
+
+		                </div>
+
+		            </div>
+
+
+		            <!-- =================================================
+		                 MODAL FOOTER
+		            ================================================== -->
+
+		            <div class="modal-footer">
+
+		                <div class="sale-preview-footer-info">
+
+		                    <i class="bi bi-shield-check me-1"></i>
+
+		                    MediRevolution SaaS Billing
+
+		                </div>
+
+		                <button type="button"
+		                        class="btn btn-secondary sale-preview-close-btn"
+		                        data-bs-dismiss="modal">
+
+		                    <i class="bi bi-x-circle me-1"></i>
+
+		                    Close
+
+		                </button>
+
+		            </div>
+
+		        </div>
+
+		    </div>
 
 		</div>
 
 
-		<div th:replace="~{layout/footer :: footer}"></div>
-
-	</main>
+	
 
 	<!-- ===========================================================
 		     MODULE SWITCH OVERLAY
@@ -1492,7 +2220,7 @@ SUMMARY
 
 	<script th:src="@{/js/saas-auth-guard.js}"></script>
 
-	<script th:src="@{/js/saas-wholesaler-billing.js?v=1}"></script>
+	<script th:src="@{/js/saas-wholesaler-billing.js?v=2}"></script>
 
 	<script th:src="@{/js/pwa.js}"></script>
 

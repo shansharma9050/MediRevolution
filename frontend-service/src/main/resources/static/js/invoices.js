@@ -364,24 +364,68 @@ function showInvoiceErrorState(message) {
 }
 
 async function downloadInvoice(orderNo) {
+
 	const token =
 		localStorage.getItem("token");
 
+	if (!orderNo) {
+		showInvoiceMessage("Order ID required");
+		return;
+	}
+
 	try {
+
 		const response =
 			await fetch(
 				`${API_BASE}/billing/invoice/order/${encodeURIComponent(orderNo)}/download`,
 				{
+					method: "GET",
 					headers: {
-						"Authorization":
-							"Bearer " + token
+						"Authorization": "Bearer " + token,
+						"Accept": "application/pdf, application/json"
 					}
 				}
 			);
 
 		if (!response.ok) {
+
+			let errorMessage =
+				"PDF download failed";
+
+			try {
+
+				const errorData =
+					await response.json();
+
+				errorMessage =
+					getErrorMessage(
+						errorData,
+						errorMessage
+					);
+
+			} catch (e) {
+
+				try {
+
+					const text =
+						await response.text();
+
+					if (text) {
+						errorMessage = text;
+					}
+
+				} catch (ignored) {
+				}
+			}
+
+			console.error(
+				"Invoice PDF download failed:",
+				response.status,
+				errorMessage
+			);
+
 			showInvoiceMessage(
-				"PDF download failed"
+				errorMessage
 			);
 
 			return;
@@ -390,6 +434,13 @@ async function downloadInvoice(orderNo) {
 		const blob =
 			await response.blob();
 
+		if (!blob || blob.size === 0) {
+			showInvoiceMessage(
+				"PDF file is empty"
+			);
+			return;
+		}
+
 		const url =
 			window.URL.createObjectURL(blob);
 
@@ -397,16 +448,27 @@ async function downloadInvoice(orderNo) {
 			document.createElement("a");
 
 		anchor.href = url;
+
 		anchor.download =
 			`invoice-${orderNo}.pdf`;
 
 		document.body.appendChild(anchor);
+
 		anchor.click();
+
 		anchor.remove();
 
-		window.URL.revokeObjectURL(url);
+		setTimeout(function() {
+			window.URL.revokeObjectURL(url);
+		}, 1000);
+
+		showInvoiceMessage(
+			"Invoice PDF downloaded successfully",
+			"success"
+		);
 
 	} catch (e) {
+
 		console.error(
 			"Invoice download error:",
 			e

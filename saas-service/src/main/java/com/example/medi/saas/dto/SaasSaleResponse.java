@@ -8,6 +8,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.example.medi.saas.enums.SaasPaymentMode;
+
 @Data
 @AllArgsConstructor
 public class SaasSaleResponse {
@@ -51,6 +53,8 @@ public class SaasSaleResponse {
     private BigDecimal dueAmount;
 
     private String paymentStatus;
+    
+    private SaasPaymentMode paymentMode;
 
     private String saleStatus;
 

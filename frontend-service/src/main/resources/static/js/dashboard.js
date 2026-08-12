@@ -439,8 +439,10 @@ function loadDashboardByRole() {
 	const dashboards = {
 
 		SUPER_ADMIN: {
+			heroTitle: "Control your",
+			heroHighlight: "healthcare platform",
 			description:
-				"System control center for approvals, users and reports.",
+				"Manage users, approvals, healthcare services, medicines and platform-wide operations from one central control center.",
 
 			cards: [
 				["Pending Approvals", "0"],
@@ -468,9 +470,12 @@ function loadDashboardByRole() {
 			]
 		},
 
+
 		WHOLESALER: {
+			heroTitle: "Grow your",
+			heroHighlight: "medicine business",
 			description:
-				"Manage medicine inventory, retailer orders and invoices.",
+				"Manage medicines, inventory, retailer orders, sales and invoices from one powerful healthcare platform.",
 
 			cards: [
 				["Total Medicines", "0"],
@@ -508,9 +513,12 @@ function loadDashboardByRole() {
 			]
 		},
 
+
 		RETAILER: {
+			heroTitle: "Simplify your",
+			heroHighlight: "medicine ordering",
 			description:
-				"Search medicines, place orders and download invoices.",
+				"Search medicines, manage your cart, place orders and track invoices with ease.",
 
 			cards: [
 				["My Orders", "0"],
@@ -548,9 +556,12 @@ function loadDashboardByRole() {
 			]
 		},
 
+
 		DOCTOR: {
+			heroTitle: "Deliver better",
+			heroHighlight: "patient care",
 			description:
-				"Manage appointments, patients and prescriptions.",
+				"Manage appointments, patients, prescriptions and your professional healthcare workflow from one place.",
 
 			cards: [
 				["Prescriptions", "0"],
@@ -588,9 +599,12 @@ function loadDashboardByRole() {
 			]
 		},
 
+
 		HOSPITAL: {
+			heroTitle: "Power your",
+			heroHighlight: "hospital operations",
 			description:
-				"Manage hospital patients, doctors, billing and departments.",
+				"Manage patients, doctors, departments, billing, inventory and daily hospital operations from one connected platform.",
 
 			cards: [
 				["Departments", "0"],
@@ -628,9 +642,12 @@ function loadDashboardByRole() {
 			]
 		},
 
+
 		PATIENT: {
+			heroTitle: "Take control of your",
+			heroHighlight: "healthcare journey",
 			description:
-				"Book appointments and manage your healthcare journey.",
+				"Book appointments, manage prescriptions and stay connected with your healthcare providers.",
 
 			cards: [
 				["My Appointments", "0"],
@@ -662,7 +679,6 @@ function loadDashboardByRole() {
 				]
 			]
 		}
-
 	};
 
 	const selectedDashboard =
@@ -673,6 +689,8 @@ function loadDashboardByRole() {
 	}
 
 	setDashboard(
+		selectedDashboard.heroTitle,
+		selectedDashboard.heroHighlight,
 		selectedDashboard.description,
 		selectedDashboard.cards,
 		selectedDashboard.actions
@@ -949,10 +967,22 @@ async function loadOrderCounts() {
 
 
 function setDashboard(
+	heroTitle,
+	heroHighlight,
 	description,
 	cards,
 	actions
 ) {
+
+	setText(
+		"dashboardHeroTitle",
+		heroTitle
+	);
+
+	setText(
+		"dashboardHeroHighlight",
+		heroHighlight
+	);
 
 	setText(
 		"roleDescription",
@@ -962,8 +992,7 @@ function setDashboard(
 	cards.forEach(
 		function(card, index) {
 
-			const position =
-				index + 1;
+			const position = index + 1;
 
 			setText(
 				`card${position}Title`,
@@ -975,7 +1004,6 @@ function setDashboard(
 				card[1],
 				false
 			);
-
 		}
 	);
 
@@ -993,27 +1021,26 @@ function setDashboard(
 			function(action, index) {
 
 				return `
-					<a href="${action[1]}"
-					   class="dashboard-quick-action"
-					   style="--quick-delay:${index * 65}ms">
+                    <a href="${action[1]}"
+                       class="dashboard-quick-action"
+                       style="--quick-delay:${index * 65}ms">
 
-						<span class="quick-action-icon">
-							<i class="bi ${action[2]}"></i>
-						</span>
+                        <span class="quick-action-icon">
+                            <i class="bi ${action[2]}"></i>
+                        </span>
 
-						<span class="quick-action-label">
-							${escapeHtml(action[0])}
-						</span>
+                        <span class="quick-action-label">
+                            ${escapeHtml(action[0])}
+                        </span>
 
-						<span class="quick-action-arrow">
-							<i class="bi bi-arrow-right"></i>
-						</span>
-					</a>
-				`;
+                        <span class="quick-action-arrow">
+                            <i class="bi bi-arrow-right"></i>
+                        </span>
 
+                    </a>
+                `;
 			}
 		).join("");
-
 }
 
 

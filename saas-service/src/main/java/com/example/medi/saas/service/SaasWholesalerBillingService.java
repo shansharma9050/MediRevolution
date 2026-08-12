@@ -681,6 +681,8 @@ public class SaasWholesalerBillingService {
 				sale.getDueAmount(),
 
 				sale.getPaymentStatus().name(),
+				
+				sale.getPaymentMode(),
 
 				sale.getSaleStatus().name(),
 
@@ -704,7 +706,7 @@ public class SaasWholesalerBillingService {
 
 				SaasPermissionAction.VIEW);
 
-		return saleRepository.findByTenantIdOrderBySaleDateDescCreatedAtDesc(tenantId).stream().map(sale -> {
+		return saleRepository.findByTenantIdOrderBySaleDateDescCreatedAtDesc(tenantId).stream().filter(sale->sale.getSaleStatus()!= SaasSaleStatus.CANCELLED).map(sale -> {
 
 			List<SaasSaleItem> items = saleItemRepository.findByTenantIdAndSaleIdOrderByIdAsc(tenantId, sale.getId());
 
@@ -751,7 +753,7 @@ public class SaasWholesalerBillingService {
 			return getAllSales(tenantId);
 		}
 
-		return saleRepository.searchSales(tenantId, keyword.trim()).stream().map(sale -> {
+		return saleRepository.searchSales(tenantId, keyword.trim()).stream().filter(sale->sale.getSaleStatus()!=SaasSaleStatus.CANCELLED).map(sale -> {
 
 			List<SaasSaleItem> items = saleItemRepository.findByTenantIdAndSaleIdOrderByIdAsc(tenantId, sale.getId());
 

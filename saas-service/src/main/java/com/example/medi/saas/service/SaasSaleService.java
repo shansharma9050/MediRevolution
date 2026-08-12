@@ -469,7 +469,7 @@ public class SaasSaleService {
 				sale.getCustomerId(), sale.getCustomerCode(), sale.getCustomerName(), sale.getCustomerType(),
 				sale.getCustomerGstin(), sale.getTotalQuantity(), sale.getGrossAmount(), sale.getDiscountAmount(),
 				sale.getTaxableAmount(), sale.getGstAmount(), sale.getOtherCharges(), sale.getRoundOffAmount(),
-				sale.getGrandTotal(), sale.getPaidAmount(), sale.getDueAmount(), sale.getPaymentStatus().name(),
+				sale.getGrandTotal(), sale.getPaidAmount(), sale.getDueAmount(), sale.getPaymentStatus().name(),sale.getPaymentMode(),
 				sale.getSaleStatus().name(), sale.getRemarks(), sale.getCreatedAt(), items);
 	}
 
