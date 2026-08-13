@@ -832,7 +832,6 @@ function selectTenant(
 	);
 
 
-	updateBillingMenuHref();
 	updateSaasSidebarWorkspaceDetails();
 
 	localStorage.setItem(

@@ -384,12 +384,24 @@ function getActionButtons(orderId, order) {
 	}
 
 	if (!order.invoiceId) {
+
 		html += `
-			<button type="button" class="btn btn-sm btn-outline-secondary"
-					onclick="createInvoice(${orderId})">
-				<i class="bi bi-receipt me-1"></i>Invoice
-			</button>
-		`;
+		<button type="button"
+				class="btn btn-sm btn-outline-secondary"
+				onclick="createInvoice(${orderId})">
+			<i class="bi bi-receipt me-1"></i>Invoice
+		</button>
+	`;
+
+	} else {
+
+		html += `
+		<button type="button"
+				class="btn btn-sm btn-outline-success"
+				onclick="downloadInvoicePdf(${order.invoiceId})">
+			<i class="bi bi-file-earmark-pdf-fill me-1"></i>Invoice PDF
+		</button>
+	`;
 	}
 
 	return html || "-";
@@ -705,16 +717,34 @@ async function submitResult() {
 }
 
 async function createInvoice(orderId) {
+
 	if (isCreatingInvoice) return;
-	if (!isValidId(orderId)) return showMsg("Invalid order selected.");
-	if (!confirm("Create invoice for this order?")) return;
+
+	if (!isValidId(orderId)) {
+		showMsg("Invalid order selected.");
+		return;
+	}
+
+	if (!diagnosticPermissions.create) {
+		showMsg("You do not have permission to create invoices.");
+		return;
+	}
+
+	if (!confirm("Create invoice for this order?")) {
+		return;
+	}
 
 	isCreatingInvoice = true;
 
 	try {
+
 		const query = new URLSearchParams({
 			tenantId: localStorage.getItem("tenantId")
 		});
+
+		/* =========================================================
+		   STEP 1: CREATE INVOICE
+		========================================================= */
 
 		const response = await fetch(
 			`${API_BASE}/saas/diagnostics/orders/${encodeURIComponent(orderId)}/invoice?${query.toString()}`,
@@ -730,21 +760,144 @@ async function createInvoice(orderId) {
 		const result = await safeJson(response);
 
 		if (!response.ok) {
-			showMsg(getApiErrorMessage(result, "Unable to create invoice."));
+
+			showMsg(
+				getApiErrorMessage(
+					result,
+					"Unable to create invoice."
+				)
+			);
+
 			return;
 		}
 
-		showMsg("Invoice created successfully.", "success");
+		/* =========================================================
+		   STEP 2: GET CREATED INVOICE ID
+		========================================================= */
+
+		const invoiceId =
+			toPositiveNumberOrNull(result?.id) ||
+			toPositiveNumberOrNull(result?.invoiceId);
+
+		if (!invoiceId) {
+
+			console.error(
+				"Invoice created but invoice ID was not returned:",
+				result
+			);
+
+			showMsg(
+				"Invoice was created, but invoice ID was not returned by the server."
+			);
+
+			await loadOrders();
+
+			return;
+		}
+
+		/* =========================================================
+		   STEP 3: DOWNLOAD INVOICE PDF
+		========================================================= */
+
+		await downloadInvoicePdf(invoiceId);
+
+		/* =========================================================
+		   STEP 4: RELOAD ORDERS
+		========================================================= */
+
 		await loadOrders();
 
+		showMsg(
+			"Invoice created and PDF downloaded successfully.",
+			"success"
+		);
+
 	} catch (error) {
-		console.error("Create invoice error:", error);
-		showMsg("SaaS service not reachable.");
+
+		console.error(
+			"Create invoice error:",
+			error
+		);
+
+		showMsg(
+			error.message ||
+			"SaaS service not reachable."
+		);
+
 	} finally {
+
 		isCreatingInvoice = false;
 	}
 }
 
+async function downloadInvoicePdf(invoiceId) {
+
+	if (!isValidId(invoiceId)) {
+		throw new Error("Invalid invoice selected.");
+	}
+
+	const query = new URLSearchParams({
+		tenantId: localStorage.getItem("tenantId")
+	});
+
+	try {
+
+		const response = await fetch(
+			`${API_BASE}/saas/billing/invoices/${encodeURIComponent(invoiceId)}/pdf?${query.toString()}`,
+			{
+				method: "GET",
+				headers: {
+					"Authorization": "Bearer " + localStorage.getItem("token"),
+					"Accept": "application/pdf"
+				}
+			}
+		);
+
+		if (!response.ok) {
+
+			const result = await safeJson(response);
+
+			throw new Error(
+				getApiErrorMessage(
+					result,
+					"Unable to download invoice PDF."
+				)
+			);
+		}
+
+		const blob = await response.blob();
+
+		if (!blob.size) {
+			throw new Error("Invoice PDF is empty.");
+		}
+
+		const url = window.URL.createObjectURL(blob);
+
+		const anchor = document.createElement("a");
+
+		anchor.href = url;
+		anchor.download = `saas-invoice-${invoiceId}.pdf`;
+
+		document.body.appendChild(anchor);
+
+		anchor.click();
+
+		anchor.remove();
+
+		setTimeout(() => {
+			window.URL.revokeObjectURL(url);
+		}, 1000);
+
+	} catch (error) {
+
+		console.error(
+			"Download invoice PDF error:",
+			error
+		);
+
+		throw error;
+	}
+}
 async function downloadPdf(orderId) {
 	if (isDownloadingPdf) return;
 
