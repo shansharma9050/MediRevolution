@@ -31,6 +31,7 @@ public class SaasBillingService {
     private final TenantAccessService tenantAccessService;
     private final SaasNotificationService notificationService;
     private final SaasPermissionService permissionService;
+    private final SaasStaffRepository staffRepository;
     
 
     public SaasBillingService(
@@ -44,7 +45,8 @@ public class SaasBillingService {
             SaasIpdChargeRepository ipdChargeRepository,
             TenantAccessService tenantAccessService,
             SaasNotificationService notificationService,
-            SaasPermissionService permissionService
+            SaasPermissionService permissionService,
+            SaasStaffRepository staffRepository
     ) {
         this.invoiceRepository = invoiceRepository;
         this.itemRepository = itemRepository;
@@ -57,6 +59,7 @@ public class SaasBillingService {
         this.tenantAccessService = tenantAccessService;
         this.notificationService = notificationService;
         this.permissionService = permissionService;
+        this.staffRepository=staffRepository;
     }
 
     @Transactional
@@ -77,9 +80,9 @@ public class SaasBillingService {
                 .orElseThrow(() -> new RuntimeException("Patient not found"));
 
         if (request.getDoctorProfileId() != null) {
-            doctorRepository
-                    .findByIdAndTenantIdAndActiveTrue(request.getDoctorProfileId(), request.getTenantId())
-                    .orElseThrow(() -> new RuntimeException("Doctor not found"));
+        	staffRepository
+			.findByIdAndTenantIdAndActiveTrue(request.getDoctorProfileId(), request.getTenantId())
+			.orElseThrow(() -> new RuntimeException("Doctor not found"));
         }
 
         SaasInvoiceType invoiceType = SaasInvoiceType.valueOf(request.getInvoiceType().toUpperCase());
