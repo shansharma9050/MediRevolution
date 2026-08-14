@@ -1190,17 +1190,15 @@
 
 				<div class="modal-body">
 
-					<div id="addStockFormAlert" class="alert alert-danger alert-dismissible fade show d-none"
-						role="alert">
+					<div class="common-modal-form-alert alert d-none" role="alert">
 
-						<i class="bi bi-exclamation-triangle-fill me-2"></i>
+						<div class="d-flex align-items-start gap-2">
 
-						<span id="addStockFormAlertMessage">
-							Unable to save stock.
-						</span>
+							<i class="common-modal-form-alert-icon bi bi-exclamation-triangle-fill"></i>
 
-						<button type="button" class="btn-close" aria-label="Close" onclick="hideAddStockFormAlert()">
-						</button>
+							<div class="common-modal-form-alert-message"></div>
+
+						</div>
 
 					</div>
 
@@ -1383,6 +1381,18 @@
 				</div>
 
 				<div class="modal-body">
+
+					<div class="common-modal-form-alert alert d-none" role="alert">
+
+						<div class="d-flex align-items-start gap-2">
+
+							<i class="common-modal-form-alert-icon bi bi-exclamation-triangle-fill"></i>
+
+							<div class="common-modal-form-alert-message"></div>
+
+						</div>
+
+					</div>
 
 					<input type="hidden" id="adjustmentStockId">
 

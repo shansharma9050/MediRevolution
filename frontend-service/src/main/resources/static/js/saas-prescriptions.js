@@ -1025,17 +1025,26 @@ async function savePrescription() {
 	};
 
 	if (!payload.patientId) {
-		showMsg("Please select patient.");
+		showModalFormError(
+			document.getElementById("prescriptionModal"),
+			"Please select patient."
+		);
 		return;
 	}
 
 	if (!payload.doctorProfileId) {
-		showMsg("Please select doctor.");
+		showModalFormError(
+			document.getElementById("prescriptionModal"),
+			"Please select doctor."
+		);
 		return;
 	}
 
 	if (!payload.diagnosis) {
-		showMsg("Diagnosis is required.");
+		showModalFormError(
+			document.getElementById("prescriptionModal"),
+			"Diagnosis is required."
+		);
 		return;
 	}
 

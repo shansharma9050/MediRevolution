@@ -430,7 +430,10 @@ async function saveExpiryConfiguration() {
 
 	if (validationMessage) {
 
-		showMsg(
+		showModalFormError(
+			document.getElementById(
+				"expiryConfigurationModal"
+			),
 			validationMessage
 		);
 
@@ -2383,7 +2386,10 @@ async function saveExpiryAction() {
 
 	if (validationMessage) {
 
-		showMsg(
+		showModalFormError(
+			document.getElementById(
+				"expiryActionModal"
+			),
 			validationMessage
 		);
 

@@ -270,28 +270,78 @@ async function saveInvoice() {
 		items
 	};
 
-	if (!payload.tenantId) return showMsg("Please select SaaS workspace first.");
-	if (!payload.patientId) return showMsg("Please select patient.");
-	if (!payload.invoiceType) return showMsg("Please select invoice type.");
-	if (!payload.items.length) return showMsg("Please add at least one valid invoice item.");
-
-	if (payload.items.some(item => item.quantity <= 0 || item.unitPrice < 0)) {
-		return showMsg("Invoice item quantity and unit price must be valid.");
+	if (!payload.tenantId) {
+		showModalFormError(
+			document.getElementById("invoiceModal"),
+			"Please select SaaS workspace first."
+		);
+		return;
 	}
 
-	const subtotal = payload.items.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
-	const finalTotal = Math.max(0, subtotal - payload.discountAmount + payload.taxAmount);
+	if (!payload.patientId) {
+		showModalFormError(
+			document.getElementById("invoiceModal"),
+			"Please select patient."
+		);
+		return;
+	}
+
+	if (!payload.invoiceType) {
+		showModalFormError(
+			document.getElementById("invoiceModal"),
+			"Please select invoice type."
+		);
+		return;
+	}
+
+	if (!payload.items.length) {
+		showModalFormError(
+			document.getElementById("invoiceModal"),
+			"Please add at least one valid invoice item."
+		);
+		return;
+	}
+
+	if (payload.items.some(item => item.quantity <= 0 || item.unitPrice < 0)) {
+		showModalFormError(
+			document.getElementById("invoiceModal"),
+			"Invoice item quantity and unit price must be valid."
+		);
+		return;
+	}
+
+	const subtotal = payload.items.reduce(
+		(sum, item) => sum + item.quantity * item.unitPrice,
+		0
+	);
+
+	const finalTotal = Math.max(
+		0,
+		subtotal - payload.discountAmount + payload.taxAmount
+	);
 
 	if (payload.discountAmount > subtotal + payload.taxAmount) {
-		return showMsg("Discount cannot exceed invoice amount.");
+		showModalFormError(
+			document.getElementById("invoiceModal"),
+			"Discount cannot exceed invoice amount."
+		);
+		return;
 	}
 
 	if (payload.paidAmount > finalTotal) {
-		return showMsg("Paid amount cannot exceed final invoice total.");
+		showModalFormError(
+			document.getElementById("invoiceModal"),
+			"Paid amount cannot exceed final invoice total."
+		);
+		return;
 	}
 
 	if (payload.paidAmount > 0 && !payload.paymentMode) {
-		return showMsg("Please select payment mode.");
+		showModalFormError(
+			document.getElementById("invoiceModal"),
+			"Please select payment mode."
+		);
+		return;
 	}
 
 	isSavingInvoice = true;

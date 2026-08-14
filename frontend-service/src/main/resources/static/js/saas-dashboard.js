@@ -658,16 +658,53 @@ function updateEnabledWorkspaceModules(
 	modules
 ) {
 
+	const tenantType =
+		normalizeTenantType(
+			selectedDashboardTenantType ||
+			localStorage.getItem("tenantType")
+		);
+
+	const allowedModules =
+		typeof getAllowedModulesForTenantType === "function"
+			? getAllowedModulesForTenantType(tenantType)
+			: new Set();
+
 	enabledWorkspaceModules =
 		new Set(
 			modules
 				.filter(
 					function(item) {
 
-						return (
-							item &&
-							item.enabled === true
-						);
+						if (
+							!item ||
+							item.enabled !== true
+						) {
+							return false;
+						}
+
+						const moduleName =
+							normalizeModuleName(
+								getModuleName(item)
+							);
+
+						if (!moduleName) {
+							return false;
+						}
+
+						/*
+						 * IMPORTANT:
+						 * Backend enabled module alone is not enough.
+						 *
+						 * Tenant type must also allow the module.
+						 */
+						if (
+							allowedModules.size > 0 &&
+							!allowedModules.has(moduleName)
+						) {
+							return false;
+						}
+
+						return true;
 					}
 				)
 				.map(
@@ -694,14 +731,48 @@ function renderModules(modules) {
 		return;
 	}
 
+	const tenantType =
+		normalizeTenantType(
+			selectedDashboardTenantType ||
+			localStorage.getItem("tenantType")
+		);
+
+	const allowedModules =
+		typeof getAllowedModulesForTenantType === "function"
+			? getAllowedModulesForTenantType(tenantType)
+			: new Set();
+
 	const enabledModules =
 		modules.filter(
 			function(item) {
 
-				return (
-					item &&
-					item.enabled === true
-				);
+				if (
+					!item ||
+					item.enabled !== true
+				) {
+					return false;
+				}
+
+				const moduleName =
+					normalizeModuleName(
+						getModuleName(item)
+					);
+
+				if (!moduleName) {
+					return false;
+				}
+
+				/*
+				 * Tenant type restriction.
+				 */
+				if (
+					allowedModules.size > 0 &&
+					!allowedModules.has(moduleName)
+				) {
+					return false;
+				}
+
+				return true;
 			}
 		);
 
@@ -718,6 +789,22 @@ function renderModules(modules) {
 					return false;
 				}
 
+				/*
+				 * =====================================================
+				 * TENANT TYPE CHECK
+				 * =====================================================
+				 */
+				if (
+					allowedModules.size > 0 &&
+					!allowedModules.has(moduleName)
+				) {
+					return false;
+				}
+
+				/*
+				 * SETTINGS / PERMISSIONS
+				 * owner/admin only
+				 */
 				if (
 					(
 						moduleName === "SETTINGS" ||
@@ -728,6 +815,9 @@ function renderModules(modules) {
 					return false;
 				}
 
+				/*
+				 * Permission check
+				 */
 				if (
 					typeof hasCachedSaasPermission ===
 					"function"
@@ -865,6 +955,17 @@ function renderModules(modules) {
 
 function applySaasSidebarVisibility() {
 
+	const tenantType =
+		normalizeTenantType(
+			selectedDashboardTenantType ||
+			localStorage.getItem("tenantType")
+		);
+
+	const allowedModules =
+		typeof getAllowedModulesForTenantType === "function"
+			? getAllowedModulesForTenantType(tenantType)
+			: new Set();
+
 	document
 		.querySelectorAll(
 			"#saasSidebar [data-saas-module]"
@@ -878,14 +979,76 @@ function applySaasSidebarVisibility() {
 					);
 
 				const action =
-					item.dataset.saasAction ||
-					"VIEW";
-
-				let visible =
-					enabledWorkspaceModules.has(
-						moduleName
+					normalizeModuleName(
+						item.dataset.saasAction ||
+						"VIEW"
 					);
 
+				let visible = true;
+
+				/*
+				 * =================================================
+				 * 1. VALID MODULE NAME
+				 * =================================================
+				 */
+				if (!moduleName) {
+					visible = false;
+				}
+
+				/*
+				 * =================================================
+				 * 2. TENANT TYPE CHECK
+				 *
+				 * HOSPITAL:
+				 *   PATIENTS
+				 *   DOCTORS
+				 *   OPD
+				 *   IPD
+				 *   PHARMACY
+				 *   LAB
+				 *   RADIOLOGY
+				 *   etc.
+				 *
+				 * NOT:
+				 *   MEDICINE_MASTER
+				 *   SUPPLIERS
+				 *   CUSTOMERS
+				 *   SALES
+				 *   SALES_ORDERS
+				 *   PURCHASES
+				 *   etc.
+				 * =================================================
+				 */
+				if (
+					visible &&
+					allowedModules.size > 0 &&
+					!allowedModules.has(moduleName)
+				) {
+
+					visible = false;
+				}
+
+				/*
+				 * =================================================
+				 * 3. BACKEND ENABLED MODULE CHECK
+				 * =================================================
+				 */
+				if (
+					visible &&
+					!enabledWorkspaceModules.has(
+						moduleName
+					)
+				) {
+
+					visible = false;
+				}
+
+				/*
+				 * =================================================
+				 * 4. SETTINGS / PERMISSIONS
+				 * OWNER / ADMIN ONLY
+				 * =================================================
+				 */
 				if (
 					visible &&
 					(
@@ -898,6 +1061,11 @@ function applySaasSidebarVisibility() {
 					visible = false;
 				}
 
+				/*
+				 * =================================================
+				 * 5. PERMISSION CHECK
+				 * =================================================
+				 */
 				if (
 					visible &&
 					typeof hasCachedSaasPermission ===
@@ -911,6 +1079,11 @@ function applySaasSidebarVisibility() {
 						);
 				}
 
+				/*
+				 * =================================================
+				 * FINAL VISIBILITY
+				 * =================================================
+				 */
 				item.style.display =
 					visible
 						? ""

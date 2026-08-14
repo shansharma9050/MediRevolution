@@ -335,10 +335,32 @@ async function saveWard() {
 		description: getValue("wardDescription")
 	};
 
-	if (!payload.tenantId) return showMsg("Please select SaaS workspace first.");
-	if (!payload.wardName) return showMsg("Ward name is required.");
-	if (isDuplicateWard(payload.wardName)) return showMsg("Ward already exists in this workspace.");
+	if (!payload.tenantId) {
+		const validationMessage = "Please select SaaS workspace first.";
+		showModalFormError(
+			document.getElementById("wardModal"),
+			validationMessage
+		);
+		return;
+	}
 
+	if (!payload.wardName) {
+		const validationMessage = "Ward name is required.";
+		showModalFormError(
+			document.getElementById("wardModal"),
+			validationMessage
+		);
+		return;
+	}
+
+	if (isDuplicateWard(payload.wardName)) {
+		const validationMessage = "Ward already exists in this workspace.";
+		showModalFormError(
+			document.getElementById("wardModal"),
+			validationMessage
+		);
+		return;
+	}
 	isSavingWard = true;
 	setButtonLoading("saveWardBtn", "Saving...", true);
 
@@ -395,11 +417,41 @@ async function saveBed() {
 		dailyCharge: toNonNegativeNumber(getValue("dailyCharge"))
 	};
 
-	if (!payload.tenantId) return showMsg("Please select SaaS workspace first.");
-	if (!payload.wardId) return showMsg("Please select ward.");
-	if (!payload.bedNumber) return showMsg("Bed number is required.");
-	if (isDuplicateBed(payload.wardId, payload.bedNumber)) return showMsg("Bed number already exists in this ward.");
+	if (!payload.tenantId) {
+		const validationMessage = "Please select SaaS workspace first.";
+		showModalFormError(
+			document.getElementById("bedModal"),
+			validationMessage
+		);
+		return;
+	}
 
+	if (!payload.wardId) {
+		const validationMessage = "Please select ward.";
+		showModalFormError(
+			document.getElementById("bedModal"),
+			validationMessage
+		);
+		return;
+	}
+
+	if (!payload.bedNumber) {
+		const validationMessage = "Bed number is required.";
+		showModalFormError(
+			document.getElementById("bedModal"),
+			validationMessage
+		);
+		return;
+	}
+
+	if (isDuplicateBed(payload.wardId, payload.bedNumber)) {
+		const validationMessage = "Bed number already exists in this ward.";
+		showModalFormError(
+			document.getElementById("bedModal"),
+			validationMessage
+		);
+		return;
+	}
 	isSavingBed = true;
 	setButtonLoading("saveBedBtn", "Saving...", true);
 
@@ -463,9 +515,49 @@ async function admitPatient() {
 		advanceAmount: toNonNegativeNumber(getValue("advanceAmount"))
 	};
 
-	if (!payload.tenantId) return showMsg("Please select SaaS workspace first.");
-	if (!payload.patientId || !payload.doctorProfileId || !payload.wardId || !payload.bedId) {
-		return showMsg("Patient, Doctor and Bed are required.");
+	if (!payload.tenantId) {
+		const validationMessage = "Please select SaaS workspace first.";
+		showModalFormError(
+			document.getElementById("admissionModal"),
+			validationMessage
+		);
+		return;
+	}
+
+	if (!payload.patientId) {
+		const validationMessage = "Please select patient.";
+		showModalFormError(
+			document.getElementById("admissionModal"),
+			validationMessage
+		);
+		return;
+	}
+
+	if (!payload.doctorProfileId) {
+		const validationMessage = "Please select doctor.";
+		showModalFormError(
+			document.getElementById("admissionModal"),
+			validationMessage
+		);
+		return;
+	}
+
+	if (!payload.wardId) {
+		const validationMessage = "Please select ward.";
+		showModalFormError(
+			document.getElementById("admissionModal"),
+			validationMessage
+		);
+		return;
+	}
+
+	if (!payload.bedId) {
+		const validationMessage = "Please select bed.";
+		showModalFormError(
+			document.getElementById("admissionModal"),
+			validationMessage
+		);
+		return;
 	}
 
 	isAdmittingPatient = true;
@@ -545,10 +637,50 @@ async function submitCharge() {
 
 	const allowedTypes = ["BED", "DOCTOR_VISIT", "NURSING", "MEDICINE", "LAB", "PROCEDURE", "SURGERY", "OTHER"];
 
-	if (!payload.admissionId) return showMsg("Invalid admission selected.");
-	if (!allowedTypes.includes(payload.chargeType)) return showMsg("Please select valid charge type.");
-	if (!payload.description) return showMsg("Charge description is required.");
-	if (!payload.amount) return showMsg("Charge amount must be greater than 0.");
+	if (!payload.tenantId) {
+		const validationMessage = "Please select SaaS workspace first.";
+		showModalFormError(
+			document.getElementById("chargeModal"),
+			validationMessage
+		);
+		return;
+	}
+
+	if (!payload.admissionId) {
+		const validationMessage = "Invalid admission selected.";
+		showModalFormError(
+			document.getElementById("chargeModal"),
+			validationMessage
+		);
+		return;
+	}
+
+	if (!allowedTypes.includes(payload.chargeType)) {
+		const validationMessage = "Please select valid charge type.";
+		showModalFormError(
+			document.getElementById("chargeModal"),
+			validationMessage
+		);
+		return;
+	}
+
+	if (!payload.description) {
+		const validationMessage = "Charge description is required.";
+		showModalFormError(
+			document.getElementById("chargeModal"),
+			validationMessage
+		);
+		return;
+	}
+
+	if (!payload.amount) {
+		const validationMessage = "Charge amount must be greater than 0.";
+		showModalFormError(
+			document.getElementById("chargeModal"),
+			validationMessage
+		);
+		return;
+	}
 
 	isSavingCharge = true;
 	setButtonLoading("saveChargeBtn", "Saving...", true);
@@ -612,8 +744,41 @@ async function submitDailyNote() {
 		vitals: getValue("vitals")
 	};
 
-	if (!payload.admissionId) return showMsg("Invalid admission selected.");
-	if (!payload.progressNote) return showMsg("Progress note is required.");
+	if (!payload.tenantId) {
+		const validationMessage = "Please select SaaS workspace first.";
+		showModalFormError(
+			document.getElementById("noteModal"),
+			validationMessage
+		);
+		return;
+	}
+
+	if (!payload.admissionId) {
+		const validationMessage = "Invalid admission selected.";
+		showModalFormError(
+			document.getElementById("noteModal"),
+			validationMessage
+		);
+		return;
+	}
+
+	if (!payload.doctorProfileId) {
+		const validationMessage = "Please select doctor.";
+		showModalFormError(
+			document.getElementById("noteModal"),
+			validationMessage
+		);
+		return;
+	}
+
+	if (!payload.progressNote) {
+		const validationMessage = "Progress note is required.";
+		showModalFormError(
+			document.getElementById("noteModal"),
+			validationMessage
+		);
+		return;
+	}
 
 	isSavingNote = true;
 	setButtonLoading("saveNoteBtn", "Saving...", true);
@@ -672,9 +837,23 @@ async function submitDischarge() {
 		dischargeAdvice: getValue("dischargeAdvice")
 	};
 
-	if (!admissionId) return showMsg("Invalid admission selected.");
-	if (!payload.dischargeSummary) return showMsg("Discharge summary is required.");
+	if (!admissionId) {
+		const validationMessage = "Invalid admission selected.";
+		showModalFormError(
+			document.getElementById("dischargeModal"),
+			validationMessage
+		);
+		return;
+	}
 
+	if (!payload.dischargeSummary) {
+		const validationMessage = "Discharge summary is required.";
+		showModalFormError(
+			document.getElementById("dischargeModal"),
+			validationMessage
+		);
+		return;
+	}
 	isDischarging = true;
 	setButtonLoading("confirmDischargeBtn", "Discharging...", true);
 

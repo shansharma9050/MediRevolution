@@ -1373,15 +1373,12 @@ async function saveSalesOrder() {
 	const payload =
 		buildSalesOrderPayload();
 
-	const validationMessage =
+	const isValid =
 		validateSalesOrderPayload(
 			payload
 		);
 
-	if (validationMessage) {
-
-		showMsg(validationMessage);
-
+	if (!isValid) {
 		return;
 	}
 
@@ -1544,12 +1541,32 @@ function buildSalesOrderPayload() {
 }
 
 
-function validateSalesOrderPayload(
-	payload
-) {
+function validateSalesOrderPayload(payload) {
+
+	if (!payload.tenantId) {
+
+		const validationMessage =
+			"Please select SaaS workspace first.";
+
+		showModalFormError(
+			document.getElementById("salesOrderFormPanel"),
+			validationMessage
+		);
+
+		return false;
+	}
 
 	if (!payload.customerId) {
-		return "Please select customer.";
+
+		const validationMessage =
+			"Please select customer.";
+
+		showModalFormError(
+			document.getElementById("salesOrderFormPanel"),
+			validationMessage
+		);
+
+		return false;
 	}
 
 	if (
@@ -1559,11 +1576,28 @@ function validateSalesOrderPayload(
 		payload.orderDate
 	) {
 
-		return "Expected delivery date cannot be before order date.";
+		const validationMessage =
+			"Expected delivery date cannot be before order date.";
+
+		showModalFormError(
+			document.getElementById("salesOrderFormPanel"),
+			validationMessage
+		);
+
+		return false;
 	}
 
 	if (!payload.items.length) {
-		return "At least one order item is required.";
+
+		const validationMessage =
+			"At least one order item is required.";
+
+		showModalFormError(
+			document.getElementById("salesOrderFormPanel"),
+			validationMessage
+		);
+
+		return false;
 	}
 
 	const medicineIds =
@@ -1583,7 +1617,15 @@ function validateSalesOrderPayload(
 
 		if (!item.medicineId) {
 
-			return `Please select medicine in row ${rowNumber}.`;
+			const validationMessage =
+				`Please select medicine in row ${rowNumber}.`;
+
+			showModalFormError(
+				document.getElementById("salesOrderFormPanel"),
+				validationMessage
+			);
+
+			return false;
 		}
 
 		if (
@@ -1592,7 +1634,15 @@ function validateSalesOrderPayload(
 			)
 		) {
 
-			return `Medicine is repeated in row ${rowNumber}.`;
+			const validationMessage =
+				`Medicine is repeated in row ${rowNumber}.`;
+
+			showModalFormError(
+				document.getElementById("salesOrderFormPanel"),
+				validationMessage
+			);
+
+			return false;
 		}
 
 		medicineIds.add(
@@ -1604,7 +1654,15 @@ function validateSalesOrderPayload(
 			item.quantity <= 0
 		) {
 
-			return `Quantity must be greater than 0 in row ${rowNumber}.`;
+			const validationMessage =
+				`Quantity must be greater than 0 in row ${rowNumber}.`;
+
+			showModalFormError(
+				document.getElementById("salesOrderFormPanel"),
+				validationMessage
+			);
+
+			return false;
 		}
 
 		const available =
@@ -1617,12 +1675,28 @@ function validateSalesOrderPayload(
 			available
 		) {
 
-			return `Insufficient stock in row ${rowNumber}. Available quantity is ${available}.`;
+			const validationMessage =
+				`Insufficient stock in row ${rowNumber}. Available quantity is ${available}.`;
+
+			showModalFormError(
+				document.getElementById("salesOrderFormPanel"),
+				validationMessage
+			);
+
+			return false;
 		}
 
 		if (item.saleRate < 0) {
 
-			return `Sale rate cannot be negative in row ${rowNumber}.`;
+			const validationMessage =
+				`Sale rate cannot be negative in row ${rowNumber}.`;
+
+			showModalFormError(
+				document.getElementById("salesOrderFormPanel"),
+				validationMessage
+			);
+
+			return false;
 		}
 
 		if (
@@ -1630,7 +1704,15 @@ function validateSalesOrderPayload(
 			item.discountPercentage > 100
 		) {
 
-			return `Discount must be between 0 and 100 in row ${rowNumber}.`;
+			const validationMessage =
+				`Discount must be between 0 and 100 in row ${rowNumber}.`;
+
+			showModalFormError(
+				document.getElementById("salesOrderFormPanel"),
+				validationMessage
+			);
+
+			return false;
 		}
 
 		if (
@@ -1638,17 +1720,33 @@ function validateSalesOrderPayload(
 			item.gstPercentage > 100
 		) {
 
-			return `GST must be between 0 and 100 in row ${rowNumber}.`;
+			const validationMessage =
+				`GST must be between 0 and 100 in row ${rowNumber}.`;
+
+			showModalFormError(
+				document.getElementById("salesOrderFormPanel"),
+				validationMessage
+			);
+
+			return false;
 		}
 	}
 
 	if (payload.otherCharges < 0) {
-		return "Other charges cannot be negative.";
+
+		const validationMessage =
+			"Other charges cannot be negative.";
+
+		showModalFormError(
+			document.getElementById("salesOrderFormPanel"),
+			validationMessage
+		);
+
+		return false;
 	}
 
-	return "";
+	return true;
 }
-
 
 function clearSalesOrderForm() {
 

@@ -124,9 +124,9 @@ public class SaasMedicineMasterService {
 		String tenantType = tenant.getTenantType() == null ? ""
 				: tenant.getTenantType().name().trim().toUpperCase(Locale.ROOT);
 
-		if (!"WHOLESALER".equals(tenantType) && !"RETAILER".equals(tenantType)) {
+		if (!"WHOLESALER".equals(tenantType) && !"RETAILER".equals(tenantType) && !"DOCTOR_CLINIC".equals(tenantType) && !"HOSPITAL".equals(tenantType)) {
 
-			throw new RuntimeException("Medicine Master is available only for Wholesaler and Retailer workspaces");
+			throw new RuntimeException("Medicine Master is available only for Wholesaler, Retailer ,Doctor and Hospital workspaces");
 		}
 
 		return tenant;

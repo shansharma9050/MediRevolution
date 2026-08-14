@@ -514,28 +514,41 @@ async function saveOpdVisit() {
 	};
 
 	if (!payload.tenantId) {
-		showMsg(
-			"Please select SaaS workspace first."
+		const validationMessage =
+			"Please select SaaS workspace first.";
+
+		showModalFormError(
+			document.getElementById("opdModal"),
+			validationMessage
 		);
 
 		return;
 	}
 
 	if (!payload.patientId) {
-		showMsg(
-			"Please select patient."
+		const validationMessage =
+			"Please select patient.";
+
+		showModalFormError(
+			document.getElementById("opdModal"),
+			validationMessage
 		);
 
 		return;
 	}
 
 	if (!payload.doctorProfileId) {
-		showMsg(
-			"Please select doctor."
+		const validationMessage =
+			"Please select doctor.";
+
+		showModalFormError(
+			document.getElementById("opdModal"),
+			validationMessage
 		);
 
 		return;
 	}
+
 
 	isSavingOpdVisit = true;
 

@@ -599,7 +599,7 @@ function openSaleModal() {
 		return;
 	}
 
-	const availableStocks =
+	/*const availableStocks =
 		getAvailableStockOptions();
 
 	if (!availableStocks.length) {
@@ -608,7 +608,7 @@ function openSaleModal() {
 		);
 
 		return;
-	}
+	}*/
 
 	clearSaleForm();
 	addSaleRow();
@@ -630,6 +630,11 @@ async function saveSale() {
 
 		return;
 	}
+
+
+	hideModalFormAlert(
+		document.getElementById("saleModal")
+	);
 
 	const payload = {
 		tenantId:
@@ -673,7 +678,8 @@ async function saveSale() {
 	};
 
 	if (!payload.tenantId) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("saleModal"),
 			"Please select SaaS workspace first."
 		);
 
@@ -681,7 +687,8 @@ async function saveSale() {
 	}
 
 	if (!payload.patientId) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("saleModal"),
 			"Please select patient."
 		);
 
@@ -689,7 +696,8 @@ async function saveSale() {
 	}
 
 	if (!payload.items.length) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("saleModal"),
 			"Please add at least one valid sale item."
 		);
 
@@ -700,7 +708,8 @@ async function saveSale() {
 		payload.paidAmount > 0 &&
 		!payload.paymentMode
 	) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("saleModal"),
 			"Please select payment mode."
 		);
 
@@ -711,7 +720,8 @@ async function saveSale() {
 		validateSaleRows();
 
 	if (validationError) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("saleModal"),
 			validationError
 		);
 

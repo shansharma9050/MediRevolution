@@ -165,6 +165,7 @@ function clearSaasEnabledModuleCache() {
 }
 
 function isSaasModuleEnabled(module) {
+
 	if (!module) {
 		return false;
 	}
@@ -174,14 +175,37 @@ function isSaasModuleEnabled(module) {
 			.trim()
 			.toUpperCase();
 
+	/*
+	 * Dashboard is always available.
+	 */
 	if (requiredModule === "DASHBOARD") {
 		return true;
 	}
 
 	/*
-	 * Owner/Admin permission bypass sirf permission ke liye hai.
-	 * Tenant type ke enabled modules ko kabhi bypass nahi kiya jayega.
-	 * SETTINGS aur PERMISSIONS owner/admin-only modules hain.
+	 * First enforce tenant-type restriction.
+	 *
+	 * Example:
+	 * HOSPITAL cannot access:
+	 * MEDICINE_MASTER
+	 * SUPPLIERS
+	 * CUSTOMERS
+	 * PURCHASES
+	 * SALES
+	 * SALES_ORDERS
+	 * etc.
+	 */
+	if (
+		!isModuleAllowedForCurrentTenantType(
+			requiredModule
+		)
+	) {
+		return false;
+	}
+
+	/*
+	 * SETTINGS and PERMISSIONS
+	 * are owner/admin-only modules.
 	 */
 	if (
 		requiredModule === "SETTINGS" ||
@@ -190,11 +214,16 @@ function isSaasModuleEnabled(module) {
 		return window.SAAS_OWNER_OR_ADMIN === true;
 	}
 
+	/*
+	 * Backend enabled-module check.
+	 */
 	return (window.SAAS_ENABLED_MODULES || [])
 		.some(function(enabledModule) {
+
 			return String(enabledModule)
 				.trim()
 				.toUpperCase() === requiredModule;
+
 		});
 }
 
@@ -917,4 +946,343 @@ function disableByClass(className, disabled) {
 	document.querySelectorAll("." + className).forEach(element => {
 		element.disabled = disabled;
 	});
+}
+
+
+/* ===========================================================
+   COMMON SAAS MODAL FORM ALERT
+   MediRevolution
+=========================================================== */
+
+/**
+ * Get the alert container belonging to the current modal.
+ *
+ * Pass the modal element or any element inside the modal.
+ */
+function getModalFormAlertContainer(
+	modalElement
+) {
+
+	if (!modalElement) {
+		return null;
+	}
+
+	/*
+	 * If the supplied element itself is the modal.
+	 */
+	if (
+		modalElement.classList &&
+		modalElement.classList.contains("modal")
+	) {
+
+		return modalElement.querySelector(
+			".common-modal-form-alert"
+		);
+	}
+
+	/*
+	 * Otherwise find the nearest modal.
+	 */
+	const modal =
+		modalElement.closest
+			? modalElement.closest(".modal")
+			: null;
+
+	if (!modal) {
+		return null;
+	}
+
+	return modal.querySelector(
+		".common-modal-form-alert"
+	);
+}
+
+
+/**
+ * Show an alert inside a specific modal.
+ *
+ * Usage:
+ *
+ * showModalFormAlert(
+ *     saleModalElement,
+ *     "Customer is required.",
+ *     "danger"
+ * );
+ */
+function showModalFormAlert(
+	modalElement,
+	message,
+	type = "danger"
+) {
+
+	const alertBox =
+		getModalFormAlertContainer(
+			modalElement
+		);
+
+	if (!alertBox) {
+
+		if (typeof showMsg === "function") {
+
+			showMsg(
+				message,
+				type
+			);
+
+		} else {
+
+			alert(message);
+		}
+
+		return;
+	}
+
+	const alertMessage =
+		alertBox.querySelector(
+			".common-modal-form-alert-message"
+		);
+
+	const alertIcon =
+		alertBox.querySelector(
+			".common-modal-form-alert-icon"
+		);
+
+	/*
+	 * Remove previous Bootstrap alert classes.
+	 */
+	alertBox.classList.remove(
+		"alert-danger",
+		"alert-success",
+		"alert-warning",
+		"alert-info",
+		"alert-primary",
+		"alert-secondary"
+	);
+
+	/*
+	 * Add current alert type.
+	 */
+	alertBox.classList.add(
+		`alert-${type}`
+	);
+
+	/*
+	 * Set message safely.
+	 */
+	if (alertMessage) {
+
+		alertMessage.textContent =
+			message ||
+			"Something went wrong.";
+	}
+
+	/*
+	 * Change icon according to message type.
+	 */
+	if (alertIcon) {
+
+		alertIcon.className =
+			getModalFormAlertIcon(
+				type
+			);
+	}
+
+	/*
+	 * Show alert.
+	 */
+	alertBox.classList.remove(
+		"d-none"
+	);
+
+	/*
+	 * Scroll alert into visible area.
+	 */
+	try {
+
+		alertBox.scrollIntoView({
+			behavior: "smooth",
+			block: "center"
+		});
+
+	} catch (error) {
+
+		/*
+		 * Ignore scroll error.
+		 */
+	}
+}
+
+
+/**
+ * Hide alert inside a specific modal.
+ */
+function hideModalFormAlert(
+	modalElement
+) {
+
+	const alertBox =
+		getModalFormAlertContainer(
+			modalElement
+		);
+
+	if (!alertBox) {
+		return;
+	}
+
+	alertBox.classList.add(
+		"d-none"
+	);
+
+	const alertMessage =
+		alertBox.querySelector(
+			".common-modal-form-alert-message"
+		);
+
+	if (alertMessage) {
+
+		alertMessage.textContent =
+			"";
+	}
+
+	alertBox.classList.remove(
+		"alert-danger",
+		"alert-success",
+		"alert-warning",
+		"alert-info",
+		"alert-primary",
+		"alert-secondary"
+	);
+}
+
+
+/**
+ * Error shortcut.
+ */
+function showModalFormError(modalElement, message) {
+	if (!modalElement) {
+		alert(message);
+		return;
+	}
+
+	let errorBox =
+		modalElement.querySelector(
+			".modal-form-error"
+		);
+
+	if (!errorBox) {
+		errorBox =
+			document.createElement("div");
+
+		errorBox.className =
+			"alert alert-danger modal-form-error mb-3";
+
+		const modalBody =
+			modalElement.querySelector(".modal-body");
+
+		if (modalBody) {
+			modalBody.prepend(errorBox);
+		} else {
+			modalElement.prepend(errorBox);
+		}
+	}
+
+	errorBox.innerHTML =
+		escapeHtml(message);
+
+	errorBox.style.display = "block";
+
+	window.clearTimeout(
+		errorBox._hideTimer
+	);
+
+	errorBox._hideTimer =
+		window.setTimeout(
+			function() {
+				errorBox.style.display = "none";
+			},
+			5000
+		);
+}
+
+
+/**
+ * Success shortcut.
+ */
+function showModalFormSuccess(
+	modalElement,
+	message
+) {
+
+	showModalFormAlert(
+		modalElement,
+		message,
+		"success"
+	);
+}
+
+
+/**
+ * Warning shortcut.
+ */
+function showModalFormWarning(
+	modalElement,
+	message
+) {
+
+	showModalFormAlert(
+		modalElement,
+		message,
+		"warning"
+	);
+}
+
+
+/**
+ * Information shortcut.
+ */
+function showModalFormInfo(
+	modalElement,
+	message
+) {
+
+	showModalFormAlert(
+		modalElement,
+		message,
+		"info"
+	);
+}
+
+
+/**
+ * Alert icon helper.
+ */
+function getModalFormAlertIcon(
+	type
+) {
+
+	switch (
+		String(type || "")
+			.toLowerCase()
+	) {
+
+		case "success":
+
+			return "common-modal-form-alert-icon bi bi-check-circle-fill";
+
+		case "warning":
+
+			return "common-modal-form-alert-icon bi bi-exclamation-triangle-fill";
+
+		case "info":
+
+			return "common-modal-form-alert-icon bi bi-info-circle-fill";
+
+		case "primary":
+
+			return "common-modal-form-alert-icon bi bi-info-circle-fill";
+
+		default:
+
+			return "common-modal-form-alert-icon bi bi-exclamation-triangle-fill";
+	}
 }

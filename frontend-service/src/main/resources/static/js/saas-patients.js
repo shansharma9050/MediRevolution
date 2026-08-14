@@ -837,7 +837,8 @@ async function savePatient() {
 	}
 
 	if (!payload.patientName) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("patientModal"),
 			"Patient name is required."
 		);
 
@@ -848,7 +849,8 @@ async function savePatient() {
 		!payload.mobile &&
 		!payload.email
 	) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("patientModal"),
 			"Patient mobile or email is required."
 		);
 
@@ -859,7 +861,8 @@ async function savePatient() {
 		payload.email &&
 		!isValidEmail(payload.email)
 	) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("patientModal"),
 			"Please enter a valid email address."
 		);
 
@@ -870,7 +873,8 @@ async function savePatient() {
 		payload.mobile &&
 		!isValidPhone(payload.mobile)
 	) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("patientModal"),
 			"Please enter a valid patient mobile number."
 		);
 
@@ -883,7 +887,8 @@ async function savePatient() {
 			payload.emergencyContactMobile
 		)
 	) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("patientModal"),
 			"Please enter a valid emergency contact mobile number."
 		);
 
@@ -897,7 +902,8 @@ async function savePatient() {
 			payload.age > 150
 		)
 	) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("patientModal"),
 			"Age must be between 0 and 150."
 		);
 
@@ -911,13 +917,13 @@ async function savePatient() {
 			new Date()
 		)
 	) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("patientModal"),
 			"Date of birth cannot be in the future."
 		);
 
 		return;
 	}
-
 	const numericPatientId =
 		isUpdate
 			? toPositiveNumberOrNull(

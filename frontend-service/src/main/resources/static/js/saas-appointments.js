@@ -1542,42 +1542,42 @@ async function saveAppointment() {
 	};
 
 	if (!payload.tenantId) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("appointmentModal"),
 			"Please select SaaS workspace first."
 		);
-
 		return;
 	}
 
 	if (!payload.patientId) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("appointmentModal"),
 			"Please select patient."
 		);
-
 		return;
 	}
 
 	if (!payload.doctorStaffId) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("appointmentModal"),
 			"Please select doctor."
 		);
-
 		return;
 	}
 
 	if (!payload.doctorAuthUserId) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("appointmentModal"),
 			"Selected doctor login ID is missing."
 		);
-
 		return;
 	}
 
 	if (!payload.appointmentType) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("appointmentModal"),
 			"Please select appointment type."
 		);
-
 		return;
 	}
 
@@ -1585,18 +1585,18 @@ async function saveAppointment() {
 		payload.appointmentType === "ONLINE" &&
 		!isSelectedDoctorOnlineEnabled()
 	) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("appointmentModal"),
 			"Online consultation is not enabled for selected doctor."
 		);
-
 		return;
 	}
 
 	if (!payload.appointmentDate) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("appointmentModal"),
 			"Please select appointment date."
 		);
-
 		return;
 	}
 
@@ -1605,18 +1605,18 @@ async function saveAppointment() {
 		payload.appointmentDate <
 		getLocalDateText(new Date())
 	) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("appointmentModal"),
 			"Appointment date cannot be in the past."
 		);
-
 		return;
 	}
 
 	if (!payload.appointmentTime) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("appointmentModal"),
 			"Please select available slot."
 		);
-
 		return;
 	}
 

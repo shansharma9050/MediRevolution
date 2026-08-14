@@ -1467,6 +1467,7 @@ async function openAddStockModal() {
 		false
 	);
 
+
 	if (!tenantMedicines.length) {
 
 		showMsg(
@@ -1475,6 +1476,12 @@ async function openAddStockModal() {
 
 		return;
 	}
+
+	clearModalFormError(
+		document.getElementById(
+			"addStockModal"
+		)
+	);
 
 	populateMedicineDropdown();
 
@@ -1593,9 +1600,11 @@ async function saveManualStock() {
 
 	if (validationMessage) {
 
-		showAddStockFormAlert(
-			validationMessage,
-			"danger"
+		showModalFormError(
+			document.getElementById(
+				"addStockModal"
+			),
+			validationMessage
 		);
 
 		return;
@@ -1799,6 +1808,12 @@ function openStockAdjustment(
 		return;
 	}
 
+	clearModalFormError(
+		document.getElementById(
+			"stockAdjustmentModal"
+		)
+	);
+
 	setValue(
 		"adjustmentStockId",
 		stock.id
@@ -1876,31 +1891,18 @@ async function saveStockAdjustment() {
 			)
 	};
 
-	if (!payload.stockId) {
-
-		showMsg(
-			"Stock batch is required."
+	const validationMessage =
+		validateStockAdjustmentPayload(
+			payload
 		);
 
-		return;
-	}
+	if (validationMessage) {
 
-	if (!payload.movementType) {
-
-		showMsg(
-			"Please select adjustment type."
-		);
-
-		return;
-	}
-
-	if (
-		!payload.quantity ||
-		payload.quantity <= 0
-	) {
-
-		showMsg(
-			"Adjustment quantity must be greater than 0."
+		showModalFormError(
+			document.getElementById(
+				"stockAdjustmentModal"
+			),
+			validationMessage
 		);
 
 		return;
@@ -1970,6 +1972,30 @@ async function saveStockAdjustment() {
 	]);
 }
 
+function validateStockAdjustmentPayload(
+	payload
+) {
+
+	if (!payload.stockId) {
+
+		return "Stock batch is required.";
+	}
+
+	if (!payload.movementType) {
+
+		return "Please select adjustment type.";
+	}
+
+	if (
+		!payload.quantity ||
+		payload.quantity <= 0
+	) {
+
+		return "Adjustment quantity must be greater than 0.";
+	}
+
+	return "";
+}
 
 function showStockDetails(
 	stockId

@@ -127,9 +127,29 @@ async function saveTest() {
 		price: toNonNegativeNumber(getValue("price"))
 	};
 
-	if (!payload.tenantId) return showMsg("Please select SaaS workspace first.");
-	if (!payload.testName) return showMsg("Test name is required.");
+	if (!payload.tenantId) {
+		showModalFormError(
+			document.getElementById("testModal"),
+			"Please select SaaS workspace first."
+		);
+		return;
+	}
 
+	if (!payload.testName) {
+		showModalFormError(
+			document.getElementById("testModal"),
+			"Test name is required."
+		);
+		return;
+	}
+
+	if (payload.price < 0) {
+		showModalFormError(
+			document.getElementById("testModal"),
+			"Test price cannot be negative."
+		);
+		return;
+	}
 	isSavingTest = true;
 	setButtonLoading("saveTestBtn", "Saving...", true);
 
@@ -552,17 +572,73 @@ async function saveOrder() {
 		items: collectTests()
 	};
 
-	if (!payload.patientId) return showMsg("Please select patient.");
-	if (!payload.items.length) return showMsg("Please select at least one test.");
+	if (!payload.tenantId) {
+		showModalFormError(
+			document.getElementById("orderModal"),
+			"Please select SaaS workspace first."
+		);
+		return;
+	}
+
+	if (!payload.patientId) {
+		showModalFormError(
+			document.getElementById("orderModal"),
+			"Please select patient."
+		);
+		return;
+	}
+
+	if (!payload.items.length) {
+		showModalFormError(
+			document.getElementById("orderModal"),
+			`Please add at least one valid ${diagnosticType.toLowerCase()} test.`
+		);
+		return;
+	}
+
+	if (
+		payload.items.some(item =>
+			!isValidId(item.testId)
+		)
+	) {
+		showModalFormError(
+			document.getElementById("orderModal"),
+			"Diagnostic test selection is invalid."
+		);
+		return;
+	}
 
 	const subtotal = payload.items.reduce((sum, item) => {
-		const test = testOptions.find(option => Number(option.id) === item.testId);
+		const test = testOptions.find(
+			option => Number(option.id) === item.testId
+		);
+
 		return sum + toNonNegativeNumber(test?.price);
 	}, 0);
 
+	const finalTotal = Math.max(
+		0,
+		subtotal -
+		payload.discountAmount +
+		payload.taxAmount
+	);
+
 	if (payload.discountAmount > subtotal + payload.taxAmount) {
-		return showMsg("Discount cannot exceed order amount.");
+		showModalFormError(
+			document.getElementById("orderModal"),
+			"Discount cannot exceed order amount."
+		);
+		return;
 	}
+
+	if (payload.taxAmount < 0) {
+		showModalFormError(
+			document.getElementById("orderModal"),
+			"Tax amount cannot be negative."
+		);
+		return;
+	}
+
 
 	isSavingOrder = true;
 	setButtonLoading("saveOrderBtn", "Saving...", true);
@@ -667,17 +743,42 @@ function openResultModal(orderId) {
 async function submitResult() {
 	if (isSavingResult) return;
 
-	const orderId = toPositiveNumberOrNull(getValue("resultOrderId"));
+	const orderId = toPositiveNumberOrNull(
+		getValue("resultOrderId")
+	);
 
 	const payload = {
-		tenantId: toPositiveNumberOrNull(localStorage.getItem("tenantId")),
+		tenantId: toPositiveNumberOrNull(
+			localStorage.getItem("tenantId")
+		),
 		resultSummary: getValue("resultSummary"),
 		resultDetails: getValue("resultDetails"),
 		reportFileUrl: getValue("reportFileUrl")
 	};
 
-	if (!orderId) return showMsg("Invalid order selected.");
-	if (!payload.resultSummary) return showMsg("Result summary is required.");
+	if (!payload.tenantId) {
+		showModalFormError(
+			document.getElementById("resultModal"),
+			"Please select SaaS workspace first."
+		);
+		return;
+	}
+
+	if (!orderId) {
+		showModalFormError(
+			document.getElementById("resultModal"),
+			"Invalid order selected."
+		);
+		return;
+	}
+
+	if (!payload.resultSummary) {
+		showModalFormError(
+			document.getElementById("resultModal"),
+			"Result summary is required."
+		);
+		return;
+	}
 
 	isSavingResult = true;
 	setButtonLoading("saveResultBtn", "Saving...", true);

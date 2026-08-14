@@ -734,27 +734,19 @@ async function saveAvailability() {
 			"slotDurationMinutes"
 		);
 
-	if (!tenantId) {
-		showMsg(
-			"Please select SaaS workspace first."
-		);
-
-		return;
-	}
-
 	if (!doctorAuthUserId) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("availabilityModal"),
 			"Please select doctor."
 		);
-
 		return;
 	}
 
 	if (!availableDate) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("availabilityModal"),
 			"Please select available date."
 		);
-
 		return;
 	}
 
@@ -762,26 +754,26 @@ async function saveAvailability() {
 		availableDate <
 		getLocalDateText(new Date())
 	) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("availabilityModal"),
 			"Available date cannot be in the past."
 		);
-
 		return;
 	}
 
 	if (!startTime) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("availabilityModal"),
 			"Please enter start time."
 		);
-
 		return;
 	}
 
 	if (!endTime) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("availabilityModal"),
 			"Please enter end time."
 		);
-
 		return;
 	}
 
@@ -789,24 +781,23 @@ async function saveAvailability() {
 		normalizeTime(endTime) <=
 		normalizeTime(startTime)
 	) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("availabilityModal"),
 			"End time must be after start time."
 		);
-
 		return;
 	}
 
-	const slotDuration =
-		Number(slotDurationMinutes);
+	const slotDuration = Number(slotDurationMinutes);
 
 	if (
 		!Number.isFinite(slotDuration) ||
 		slotDuration <= 0
 	) {
-		showMsg(
+		showModalFormError(
+			document.getElementById("availabilityModal"),
 			"Please select valid slot duration."
 		);
-
 		return;
 	}
 
@@ -816,14 +807,11 @@ async function saveAvailability() {
 			endTime
 		);
 
-	if (
-		slotDuration >
-		scheduleMinutes
-	) {
-		showMsg(
+	if (slotDuration > scheduleMinutes) {
+		showModalFormError(
+			document.getElementById("availabilityModal"),
 			"Slot duration cannot exceed available time range."
 		);
-
 		return;
 	}
 
@@ -1432,7 +1420,7 @@ function getSelectedDoctorName(
 
 	const selectedOption =
 		select.options[
-			select.selectedIndex
+		select.selectedIndex
 		];
 
 	if (!selectedOption) {
@@ -1539,7 +1527,7 @@ function setValue(
 	if (element) {
 		element.value =
 			value === null ||
-			value === undefined
+				value === undefined
 				? ""
 				: String(value);
 	}
@@ -1706,7 +1694,7 @@ function setAnimatedNumber(
 		const progress =
 			Math.min(
 				(currentTime - startTime) /
-					duration,
+				duration,
 				1
 			);
 
@@ -1716,7 +1704,7 @@ function setAnimatedNumber(
 		element.textContent =
 			Math.round(
 				start +
-					difference * eased
+				difference * eased
 			);
 
 		if (progress < 1) {

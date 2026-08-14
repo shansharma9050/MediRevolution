@@ -23,6 +23,7 @@ public class SaasPharmacyService {
     private final SaasInventoryService inventoryService;
     private final TenantAccessService tenantAccessService;
     private final SaasPermissionService permissionService;
+    private final SaasMedicineMasterService saasMedicineMasterService;
 
     public SaasPharmacyService(
             SaasPharmacySaleRepository saleRepository,
@@ -33,7 +34,8 @@ public class SaasPharmacyService {
             SaasBillingService billingService,
             SaasInventoryService inventoryService,
             TenantAccessService tenantAccessService,
-            SaasPermissionService permissionService
+            SaasPermissionService permissionService,
+            SaasMedicineMasterService saasMedicineMasterService
     ) {
         this.saleRepository = saleRepository;
         this.saleItemRepository = saleItemRepository;
@@ -44,10 +46,11 @@ public class SaasPharmacyService {
         this.inventoryService = inventoryService;
         this.tenantAccessService = tenantAccessService;
         this.permissionService = permissionService;
+        this.saasMedicineMasterService=saasMedicineMasterService;
     }
 
     @Transactional
-    public SaasPharmacySaleResponse createSale(SaasPharmacySaleRequest request) {
+    public SaasPharmacySaleResponse createSale(String authorization,SaasPharmacySaleRequest request) {
     	
     	permissionService.requirePermission(
     	        request.getTenantId(),
@@ -110,7 +113,7 @@ public class SaasPharmacyService {
         savedSale.setSaleNumber(generateSaleNumber(savedSale));
         savedSale = saleRepository.save(savedSale);
 
-        saveSaleItemsAndReduceStock(savedSale, request.getItems());
+        saveSaleItemsAndReduceStock(savedSale, request.getItems(),authorization);
 
         SaasInvoiceResponse invoice = createPharmacyInvoice(savedSale, request);
 
@@ -203,13 +206,17 @@ public class SaasPharmacyService {
 
     private void saveSaleItemsAndReduceStock(
             SaasPharmacySale sale,
-            List<SaasPharmacySaleItemRequest> items
+            List<SaasPharmacySaleItemRequest> items,String authorization
     ) {
         for (SaasPharmacySaleItemRequest item : items) {
 
-            SaasMedicine medicine = medicineRepository
-                    .findByIdAndTenantIdAndActiveTrue(item.getMedicineId(), sale.getTenantId())
-                    .orElseThrow(() -> new RuntimeException("Medicine not found"));
+			/*
+			 * SaasMedicine medicine = medicineRepository
+			 * .findByIdAndTenantIdAndActiveTrue(item.getMedicineId(), sale.getTenantId())
+			 * .orElseThrow(() -> new RuntimeException("Medicine not found"));
+			 */
+        	
+        	GlobalMedicineResponse medicine=saasMedicineMasterService.getMedicine(sale.getTenantId(), item.getMedicineId(), authorization);
 
             SaasMedicineStock stock = stockRepository
                     .findByIdAndTenantIdAndActiveTrue(item.getStockId(), sale.getTenantId())
