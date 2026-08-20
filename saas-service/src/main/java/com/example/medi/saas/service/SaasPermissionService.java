@@ -2,10 +2,12 @@ package com.example.medi.saas.service;
 
 import com.example.medi.saas.dto.*;
 import com.example.medi.saas.entity.SaasTenantMemberPermission;
+import com.example.medi.saas.entity.Tenant;
 import com.example.medi.saas.entity.TenantMember;
 import com.example.medi.saas.enums.SaasPermissionAction;
 import com.example.medi.saas.enums.TenantMemberRole;
 import com.example.medi.saas.enums.TenantModule;
+import com.example.medi.saas.enums.TenantStatus;
 import com.example.medi.saas.repository.SaasTenantMemberPermissionRepository;
 import com.example.medi.saas.repository.TenantMemberRepository;
 import com.example.medi.saas.security.CurrentUserUtil;
@@ -128,18 +130,38 @@ public class SaasPermissionService {
 	}
 
 	public boolean hasPermission(Long tenantId, TenantModule module, SaasPermissionAction action) {
+
+		if (tenantId == null || tenantId <= 0) {
+
+			throw new RuntimeException("Workspace id is required");
+		}
+
+
 		TenantMember member = tenantAccessService.getCurrentTenantMember(tenantId);
 
-		/*
-		 * OWNER and ADMIN full access.
-		 */
+		Tenant tenant = tenantAccessService.getTenant(tenantId);
+
+		if (tenant.getStatus() != TenantStatus.ACTIVE) {
+
+			if (tenant.getStatus() == TenantStatus.PENDING) {
+
+				throw new RuntimeException("Workspace subscription is required. " + "Please choose a plan.");
+			}
+
+			if (tenant.getStatus() == TenantStatus.SUSPENDED) {
+
+				throw new RuntimeException("Workspace subscription has expired. " + "Please renew your subscription.");
+			}
+
+			throw new RuntimeException("Workspace is not active.");
+		}
+
+
 		if (member.getMemberRole() == TenantMemberRole.OWNER || member.getMemberRole() == TenantMemberRole.ADMIN) {
+
 			return true;
 		}
 
-		/*
-		 * Permission row based access.
-		 */
 		return permissionRepository.existsByTenantIdAndAuthUserIdAndModuleAndPermissionActionAndAllowedTrue(tenantId,
 				member.getAuthUserId(), module, action);
 	}
@@ -175,7 +197,7 @@ public class SaasPermissionService {
 			allowAllActions(tenantId, authUserId, TenantModule.PATIENTS);
 			allowAllActions(tenantId, authUserId, TenantModule.APPOINTMENTS);
 			allowAllActions(tenantId, authUserId, TenantModule.DOCTOR_AVAILABILITY);
-			
+
 			allowAllActions(tenantId, authUserId, TenantModule.PRESCRIPTIONS);
 
 			allowViewCreateUpdate(tenantId, authUserId, TenantModule.OPD);
@@ -185,7 +207,7 @@ public class SaasPermissionService {
 			allowViewCreateUpdate(tenantId, authUserId, TenantModule.LAB);
 
 			allowViewCreateUpdate(tenantId, authUserId, TenantModule.RADIOLOGY);
-			
+
 		}
 
 		case RECEPTIONIST -> {

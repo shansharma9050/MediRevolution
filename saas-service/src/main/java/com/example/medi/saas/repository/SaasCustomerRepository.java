@@ -68,4 +68,6 @@ public interface SaasCustomerRepository extends JpaRepository<SaasCustomer, Long
 	List<SaasCustomer> searchCustomers(@Param("tenantId") Long tenantId,
 
 			@Param("keyword") String keyword);
+	
+	void deleteByTenantId(Long tenantId);
 }

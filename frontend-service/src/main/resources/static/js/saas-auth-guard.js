@@ -3,7 +3,51 @@ window.SAAS_MEMBER_ROLE = window.SAAS_MEMBER_ROLE || null;
 window.SAAS_OWNER_OR_ADMIN = window.SAAS_OWNER_OR_ADMIN || false;
 window.SAAS_ENABLED_MODULES = window.SAAS_ENABLED_MODULES || [];
 
+function isSaasModuleEnabled(module) {
 
+	if (isSaasSubscriptionPage()) {
+		return true;
+	}
+
+	if (!module) {
+		return false;
+	}
+
+	const requiredModule =
+		String(module)
+			.trim()
+			.toUpperCase();
+
+	if (requiredModule === "DASHBOARD") {
+		return true;
+	}
+
+	if (
+		!isModuleAllowedForCurrentTenantType(
+			requiredModule
+		)
+	) {
+		return false;
+	}
+
+	if (
+		requiredModule === "SETTINGS" ||
+		requiredModule === "PERMISSIONS"
+	) {
+		return window.SAAS_OWNER_OR_ADMIN === true;
+	}
+
+	return (
+		window.SAAS_ENABLED_MODULES || []
+	).some(
+		function(enabledModule) {
+
+			return String(enabledModule)
+				.trim()
+				.toUpperCase() === requiredModule;
+		}
+	);
+}
 
 function getApiBase() {
 	if (typeof API_BASE !== "undefined" && API_BASE) {
@@ -34,63 +78,129 @@ function requireSaasWorkspace() {
 }
 
 async function loadCurrentSaasEnabledModules() {
-	const token = localStorage.getItem("token");
-	const tenantId = getSaasTenantId();
 
-	if (!tenantId || !isSaasMode()) {
+
+	if (isSaasSubscriptionPage()) {
+
+		return window.SAAS_ENABLED_MODULES || [];
+	}
+
+
+	const token =
+		localStorage.getItem("token");
+
+
+	const tenantId =
+		getSaasTenantId();
+
+
+	if (
+		!tenantId ||
+		!isSaasMode()
+	) {
+
 		clearSaasEnabledModuleCache();
+
 		return [];
 	}
 
-	if (!token || token === "undefined" || token === "null") {
-		clearSaasEnabledModuleCache();
-		console.warn("JWT token not found while loading SaaS modules");
-		return [];
-	}
 
-	try {
-		const response = await fetch(
-			`${getApiBase()}/saas/tenants/${encodeURIComponent(tenantId)}/modules`,
-			{
-				method: "GET",
-				headers: {
-					"Authorization": "Bearer " + token
-				}
-			}
+	if (
+		!token ||
+		token === "undefined" ||
+		token === "null"
+	) {
+
+		clearSaasEnabledModuleCache();
+
+		console.warn(
+			"JWT token not found while loading SaaS modules"
 		);
 
-		const result = await safeSaasJson(response);
+		return [];
+	}
+
+
+	try {
+
+		const response =
+			await fetch(
+				`${getApiBase()}/saas/tenants/${encodeURIComponent(tenantId)}/modules`,
+				{
+					method: "GET",
+
+					headers: {
+						"Authorization":
+							"Bearer " + token,
+
+						"Accept":
+							"application/json"
+					}
+				}
+			);
+
+
+		const result =
+			await safeSaasJson(response);
+
 
 		if (!response.ok) {
-			console.error("Unable to load SaaS enabled modules", {
-				status: response.status,
-				statusText: response.statusText,
-				body: result
-			});
+
+			console.error(
+				"Unable to load SaaS enabled modules",
+				{
+					status:
+						response.status,
+
+					statusText:
+						response.statusText,
+
+					body:
+						result
+				}
+			);
+
 
 			clearSaasEnabledModuleCache();
+
 			return [];
 		}
 
-		const modules = extractEnabledSaasModules(result);
 
-		window.SAAS_ENABLED_MODULES = modules;
+		const modules =
+			extractEnabledSaasModules(
+				result
+			);
+
+
+		window.SAAS_ENABLED_MODULES =
+			modules;
+
 
 		localStorage.setItem(
 			"saasEnabledModules",
-			JSON.stringify(window.SAAS_ENABLED_MODULES)
+			JSON.stringify(
+				window.SAAS_ENABLED_MODULES
+			)
 		);
+
 
 		return window.SAAS_ENABLED_MODULES;
 
+
 	} catch (error) {
-		console.error("Unable to load SaaS enabled modules", error);
+
+		console.error(
+			"Unable to load SaaS enabled modules",
+			error
+		);
+
 
 		clearSaasEnabledModuleCache();
+
 		return [];
 	}
 }
-
 function extractEnabledSaasModules(result) {
 	let modules = [];
 
@@ -157,6 +267,21 @@ function loadCachedSaasEnabledModulesFromLocalStorage() {
 	} catch (error) {
 		clearSaasEnabledModuleCache();
 	}
+}
+
+function isSaasSubscriptionPage() {
+
+	const currentPath =
+		String(
+			window.location.pathname || ""
+		)
+			.trim()
+			.toLowerCase();
+
+	return (
+		currentPath === "/saas/subscription/plans" ||
+		currentPath === "/saas/subscription/current"
+	);
 }
 
 function clearSaasEnabledModuleCache() {
@@ -228,63 +353,165 @@ function isSaasModuleEnabled(module) {
 }
 
 async function loadCurrentSaasPermissions() {
-	const token = localStorage.getItem("token");
-	const tenantId = getSaasTenantId();
 
-	if (!tenantId || !isSaasMode()) {
+	if (isSaasSubscriptionPage()) {
+
+		return {
+			permissions:
+				window.SAAS_PERMISSIONS || [],
+
+			memberRole:
+				window.SAAS_MEMBER_ROLE || null,
+
+			ownerOrAdmin:
+				window.SAAS_OWNER_OR_ADMIN === true
+		};
+	}
+
+
+	const token =
+		localStorage.getItem("token");
+
+
+	const tenantId =
+		getSaasTenantId();
+
+
+	if (
+		!tenantId ||
+		!isSaasMode()
+	) {
+
 		clearSaasPermissionCache();
+
 		return null;
 	}
 
-	if (!token || token === "undefined" || token === "null") {
-		clearSaasPermissionCache();
-		console.warn("JWT token not found while loading SaaS permissions");
-		return null;
-	}
 
-	try {
-		const response = await fetch(
-			`${getApiBase()}/saas/permissions/current?tenantId=${encodeURIComponent(tenantId)}`,
-			{
-				method: "GET",
-				headers: {
-					"Authorization": "Bearer " + token
-				}
-			}
+	if (
+		!token ||
+		token === "undefined" ||
+		token === "null"
+	) {
+
+		clearSaasPermissionCache();
+
+		console.warn(
+			"JWT token not found while loading SaaS permissions"
 		);
 
-		const result = await safeSaasJson(response);
+		return null;
+	}
+
+
+	try {
+
+		const response =
+			await fetch(
+				`${getApiBase()}/saas/permissions/current?tenantId=${encodeURIComponent(tenantId)}`,
+				{
+					method: "GET",
+
+					headers: {
+						"Authorization":
+							"Bearer " + token,
+
+						"Accept":
+							"application/json"
+					}
+				}
+			);
+
+
+		const result =
+			await safeSaasJson(response);
+
 
 		if (!response.ok) {
-			console.error("Unable to load SaaS permissions", {
-				status: response.status,
-				statusText: response.statusText,
-				body: result
-			});
+
+			console.error(
+				"Unable to load SaaS permissions",
+				{
+					status:
+						response.status,
+
+					statusText:
+						response.statusText,
+
+					body:
+						result
+				}
+			);
+
 
 			clearSaasPermissionCache();
+
 			return null;
 		}
 
-		const normalizedPermissions = normalizeSaasPermissions(result.permissions || []);
 
-		window.SAAS_PERMISSIONS = normalizedPermissions;
-		window.SAAS_MEMBER_ROLE = result.memberRole || null;
-		window.SAAS_OWNER_OR_ADMIN = result.ownerOrAdmin === true;
+		const normalizedPermissions =
+			normalizeSaasPermissions(
+				result.permissions || []
+			);
 
-		localStorage.setItem("saasPermissions", JSON.stringify(window.SAAS_PERMISSIONS));
-		localStorage.setItem("saasMemberRole", window.SAAS_MEMBER_ROLE || "");
-		localStorage.setItem("saasOwnerOrAdmin", window.SAAS_OWNER_OR_ADMIN ? "true" : "false");
+
+		window.SAAS_PERMISSIONS =
+			normalizedPermissions;
+
+
+		window.SAAS_MEMBER_ROLE =
+			result.memberRole || null;
+
+
+		window.SAAS_OWNER_OR_ADMIN =
+			result.ownerOrAdmin === true;
+
+
+		localStorage.setItem(
+			"saasPermissions",
+			JSON.stringify(
+				window.SAAS_PERMISSIONS
+			)
+		);
+
+
+		localStorage.setItem(
+			"saasMemberRole",
+			window.SAAS_MEMBER_ROLE || ""
+		);
+
+
+		localStorage.setItem(
+			"saasOwnerOrAdmin",
+			window.SAAS_OWNER_OR_ADMIN
+				? "true"
+				: "false"
+		);
+
 
 		return {
-			permissions: window.SAAS_PERMISSIONS,
-			memberRole: window.SAAS_MEMBER_ROLE,
-			ownerOrAdmin: window.SAAS_OWNER_OR_ADMIN
+			permissions:
+				window.SAAS_PERMISSIONS,
+
+			memberRole:
+				window.SAAS_MEMBER_ROLE,
+
+			ownerOrAdmin:
+				window.SAAS_OWNER_OR_ADMIN
 		};
 
+
 	} catch (error) {
-		console.error("Unable to load SaaS permissions", error);
+
+		console.error(
+			"Unable to load SaaS permissions",
+			error
+		);
+
+
 		clearSaasPermissionCache();
+
 		return null;
 	}
 }
@@ -430,43 +657,96 @@ async function hasSaasPermission(module, action) {
 	return hasCachedSaasPermission(module, action);
 }
 
-async function protectSaasPage(module, action = "VIEW") {
-	if (!requireSaasWorkspace()) {
+async function protectSaasPage(
+	module,
+	action = "VIEW"
+) {
+	if (isSaasSubscriptionPage()) {
+
+		return true;
+	}
+
+
+	/*
+	 * ============================================================
+	 * WORKSPACE REQUIRED
+	 * ============================================================
+	 */
+
+	if (
+		!requireSaasWorkspace()
+	) {
+
 		return false;
 	}
+
+
+	/*
+	 * ============================================================
+	 * LOAD PERMISSIONS + MODULES
+	 * ============================================================
+	 */
 
 	await Promise.all([
 		loadCurrentSaasPermissions(),
 		loadCurrentSaasEnabledModules()
 	]);
 
+
+	/*
+	 * ============================================================
+	 * MODULE CHECK
+	 * ============================================================
+	 */
+
 	const moduleEnabled =
-		isSaasModuleEnabled(module);
+		isSaasModuleEnabled(
+			module
+		);
+
 
 	if (!moduleEnabled) {
+
 		alert(
 			"This module is not enabled for the selected workspace."
 		);
 
+
 		window.location.href =
 			"/saas/dashboard";
+
 
 		return false;
 	}
 
+
+	/*
+	 * ============================================================
+	 * PERMISSION CHECK
+	 * ============================================================
+	 */
+
 	const allowed =
-		hasCachedSaasPermission(module, action);
+		hasCachedSaasPermission(
+			module,
+			action
+		);
+
 
 	if (!allowed) {
+
 		alert(
 			"You do not have permission to access this page."
 		);
 
+
 		window.location.href =
 			"/saas/dashboard";
 
+
 		return false;
 	}
+
 
 	return true;
 }
@@ -609,93 +889,229 @@ function isModuleAllowedForCurrentTenantType(moduleName) {
 
 async function applySaasPermissionMenu() {
 
+	if (isSaasSubscriptionPage()) {
+
+		console.log(
+			"SaaS subscription page detected. " +
+			"Skipping SaaS permission/module menu loading."
+		);
+
+		return;
+	}
+
+
+	/*
+	 * ============================================================
+	 * SIDEBAR
+	 * ============================================================
+	 */
+
 	const sidebar =
-		document.getElementById("saasSidebar") ||
-		document.getElementById("sidebar");
+		document.getElementById(
+			"saasSidebar"
+		) ||
+		document.getElementById(
+			"sidebar"
+		);
+
 
 	if (!sidebar) {
 		return;
 	}
 
-	if (!isSaasMode() || !getSaasTenantId()) {
-		sidebar.style.display = "none";
+
+	/*
+	 * ============================================================
+	 * SaaS MODE / WORKSPACE
+	 * ============================================================
+	 */
+
+	if (
+		!isSaasMode() ||
+		!getSaasTenantId()
+	) {
+
+		sidebar.style.display =
+			"none";
+
 		return;
 	}
 
-	sidebar.style.display = "";
+
+	sidebar.style.display =
+		"";
+
+
+	/*
+	 * ============================================================
+	 * LOAD CURRENT SAAS PERMISSION + MODULES
+	 * ============================================================
+	 *
+	 * Ye sirf normal SaaS application pages par chalega.
+	 */
 
 	await Promise.all([
 		loadCurrentSaasPermissions(),
 		loadCurrentSaasEnabledModules()
 	]);
 
+
 	/*
-	 * Future proof
-	 * <a>, <li>, <div> sab support karega.
+	 * ============================================================
+	 * MENU ITEMS
+	 * ============================================================
 	 */
-	const menuItems = sidebar.querySelectorAll(
-		"[data-saas-module], [data-saas]"
+
+	const menuItems =
+		sidebar.querySelectorAll(
+			"[data-saas-module], [data-saas]"
+		);
+
+
+	menuItems.forEach(
+		function(item) {
+
+			/*
+			 * Sabse pehle hide.
+			 */
+			item.style.display =
+				"none";
+
+
+			/*
+			 * Module
+			 */
+			const moduleName =
+				String(
+					item.getAttribute(
+						"data-saas-module"
+					) ||
+					item.getAttribute(
+						"data-saas"
+					) ||
+					""
+				)
+					.trim()
+					.toUpperCase();
+
+
+			if (!moduleName) {
+				return;
+			}
+
+
+			/*
+			 * Action
+			 */
+			const action =
+				String(
+					item.getAttribute(
+						"data-saas-action"
+					) ||
+					item.getAttribute(
+						"data-action"
+					) ||
+					"VIEW"
+				)
+					.trim()
+					.toUpperCase();
+
+
+			/*
+			 * Owner/Admin only
+			 */
+			const ownerOnly =
+				item.getAttribute(
+					"data-owner-admin"
+				) === "true";
+
+
+			if (
+				ownerOnly &&
+				!window.SAAS_OWNER_OR_ADMIN
+			) {
+
+				return;
+			}
+
+
+			/*
+			 * ====================================================
+			 * TENANT TYPE CHECK
+			 * ====================================================
+			 */
+
+			if (
+				!isModuleAllowedForCurrentTenantType(
+					moduleName
+				)
+			) {
+
+				return;
+			}
+
+
+			/*
+			 * ====================================================
+			 * ENABLED MODULE CHECK
+			 * ====================================================
+			 */
+
+			if (
+				!isSaasModuleEnabled(
+					moduleName
+				)
+			) {
+
+				return;
+			}
+
+
+			/*
+			 * ====================================================
+			 * PERMISSION CHECK
+			 * ====================================================
+			 */
+
+			if (
+				!hasCachedSaasPermission(
+					moduleName,
+					action
+				)
+			) {
+
+				return;
+			}
+
+
+			/*
+			 * ====================================================
+			 * SHOW
+			 * ====================================================
+			 */
+
+			item.style.display =
+				"";
+		}
 	);
 
-	menuItems.forEach(function (item) {
 
-		item.style.display = "none";
-
-		const moduleName =
-			String(
-				item.getAttribute("data-saas-module") ||
-				item.getAttribute("data-saas") ||
-				""
-			).trim().toUpperCase();
-
-		if (!moduleName) {
-			return;
-		}
-
-		const action =
-			String(
-				item.getAttribute("data-saas-action") ||
-				item.getAttribute("data-action") ||
-				"VIEW"
-			).trim().toUpperCase();
-
-		const ownerOnly =
-			item.getAttribute("data-owner-admin") === "true";
-
-		if (ownerOnly && !window.SAAS_OWNER_OR_ADMIN) {
-			return;
-		}
-
-		/*
-		 * Tenant Type Check
-		 */
-
-		if (!isModuleAllowedForCurrentTenantType(moduleName)) {
-			return;
-		}
-
-		/*
-		 * Backend Enabled Module Check
-		 */
-
-		if (!isSaasModuleEnabled(moduleName)) {
-			return;
-		}
-
-		/*
-		 * Permission Check
-		 */
-
-		if (!hasCachedSaasPermission(moduleName, action)) {
-			return;
-		}
-
-		item.style.display = "";
-	});
+	/*
+	 * ============================================================
+	 * SECTION VISIBILITY
+	 * ============================================================
+	 */
 
 	updateSaasSidebarSectionVisibility();
+
+
+	/*
+	 * ============================================================
+	 * WORKSPACE DETAILS
+	 * ============================================================
+	 */
+
 	updateSaasSidebarWorkspaceDetails();
-	
 }
 
 function openBillingPage(event) {
@@ -1261,8 +1677,8 @@ function getModalFormAlertIcon(
 ) {
 
 	switch (
-		String(type || "")
-			.toLowerCase()
+	String(type || "")
+		.toLowerCase()
 	) {
 
 		case "success":

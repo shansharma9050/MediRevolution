@@ -11,4 +11,6 @@ public interface SaasDiagnosticOrderItemRepository extends JpaRepository<SaasDia
             Long tenantId,
             Long orderId
     );
+    
+    void deleteByTenantId(Long tenantId);
 }

@@ -56,4 +56,6 @@ public interface SaasSalesOrderRepository extends JpaRepository<SaasSalesOrder, 
 			  )
 			""")
 	BigDecimal sumOrderValue(@Param("tenantId") Long tenantId);
+	
+	void deleteByTenantId(Long tenantId);
 }

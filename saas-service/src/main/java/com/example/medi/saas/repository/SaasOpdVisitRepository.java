@@ -30,4 +30,6 @@ public interface SaasOpdVisitRepository extends JpaRepository<SaasOpdVisit, Long
             LocalDateTime fromDateTime,
             LocalDateTime toDateTime
     );
+    
+    void deleteByTenantId(Long tenantId);
 }

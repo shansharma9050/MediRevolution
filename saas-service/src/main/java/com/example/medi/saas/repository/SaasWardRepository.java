@@ -13,4 +13,6 @@ public interface SaasWardRepository extends JpaRepository<SaasWard, Long> {
     Optional<SaasWard> findByIdAndTenantIdAndActiveTrue(Long id, Long tenantId);
     
     boolean existsByTenantIdAndWardNameIgnoreCase(Long tenantId, String wardName);
+    
+    void deleteByTenantId(Long tenantId);
 }

@@ -61,4 +61,6 @@ public interface SaasPurchaseReturnRepository extends JpaRepository<SaasPurchase
 			      com.example.medi.saas.enums.SaasPurchaseReturnStatus.CANCELLED
 			""")
 	Long sumReturnedQuantity(@Param("tenantId") Long tenantId);
+	
+	void deleteByTenantId(Long tenantId);
 }

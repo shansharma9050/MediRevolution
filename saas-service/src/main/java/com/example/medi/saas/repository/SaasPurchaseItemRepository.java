@@ -11,4 +11,6 @@ public interface SaasPurchaseItemRepository extends JpaRepository<SaasPurchaseIt
 	List<SaasPurchaseItem> findByTenantIdAndPurchaseIdOrderByIdAsc(Long tenantId, Long purchaseId);
 
 	Optional<SaasPurchaseItem> findByIdAndTenantIdAndPurchaseId(Long id, Long tenantId, Long purchaseId);
+	
+	void deleteByTenantId(Long tenantId);
 }

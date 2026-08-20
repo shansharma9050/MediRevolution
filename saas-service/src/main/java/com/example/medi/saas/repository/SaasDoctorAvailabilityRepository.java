@@ -36,4 +36,6 @@ public interface SaasDoctorAvailabilityRepository extends JpaRepository<SaasDoct
             java.time.LocalTime endTime,
             SaasAvailabilityStatus status
     );
+    
+    void deleteByTenantId(Long tenantId);
 }

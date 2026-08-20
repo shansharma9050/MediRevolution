@@ -11,4 +11,6 @@ public interface SaasPartyOutstandingProjection {
     String getPartyName();
 
     BigDecimal getOutstandingAmount();
+    
+    void deleteByTenantId(Long tenantId);
 }

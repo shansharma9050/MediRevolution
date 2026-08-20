@@ -5,6 +5,8 @@ let allTenants = [];
 let isLoadingTenants = false;
 let isCreatingTenant = false;
 
+let deletingTenantId = null;
+
 
 document.addEventListener("DOMContentLoaded", async function() {
 
@@ -235,8 +237,17 @@ function renderTenants(tenants) {
 			? tenants
 			: [];
 
+	/*
+	 * ========================================================
+	 * NO WORKSPACES
+	 * ========================================================
+	 */
+
 	if (!list.length) {
 
+		/*
+		 * SAAS STAFF
+		 */
 		if (role === "SAAS_STAFF") {
 
 			container.innerHTML = `
@@ -262,6 +273,9 @@ function renderTenants(tenants) {
 			return;
 		}
 
+		/*
+		 * OWNER / NORMAL SaaS USER
+		 */
 		container.innerHTML = `
 			<div class="saas-workspaces-state">
 
@@ -278,13 +292,16 @@ function renderTenants(tenants) {
 					MediRevolution as your own business software.
 				</p>
 
-				<button type="button"
-						id="createWorkspaceBtnEmpty"
-						class="btn btn-medi"
-						onclick="openCreateTenantModal()">
+				<button
+					type="button"
+					id="createWorkspaceBtnEmpty"
+					class="btn btn-medi"
+					onclick="openCreateTenantModal()">
 
 					<i class="bi bi-plus-circle-fill me-1"></i>
+
 					Create Workspace
+
 				</button>
 
 			</div>
@@ -293,108 +310,936 @@ function renderTenants(tenants) {
 		return;
 	}
 
+	/*
+	 * ========================================================
+	 * WORKSPACE CARDS
+	 * ========================================================
+	 */
+
 	container.innerHTML =
-		list.map(
-			function(tenant, index) {
+		list
+			.map(
+				function(tenant, index) {
 
-				const tenantId =
-					String(
-						tenant.tenantId ?? ""
-					).trim();
+					const tenantId =
+						String(
+							tenant?.tenantId ??
+							tenant?.id ??
+							""
+						).trim();
 
-				const tenantName =
-					String(
-						tenant.tenantName ?? ""
-					).trim();
+					const tenantName =
+						String(
+							tenant?.tenantName ??
+							""
+						).trim();
 
-				const tenantType =
-					String(
-						tenant.tenantType ?? ""
-					)
-						.trim()
-						.toUpperCase();
+					const tenantCode =
+						String(
+							tenant?.tenantCode ??
+							""
+						).trim();
 
-				const tenantData =
-					encodeURIComponent(
-						JSON.stringify({
-							tenantId:
-								tenantId,
+					const tenantType =
+						String(
+							tenant?.tenantType ??
+							""
+						)
+							.trim()
+							.toUpperCase();
 
-							tenantName:
-								tenantName,
+					const tenantStatus =
+						String(
+							tenant?.status ??
+							""
+						)
+							.trim()
+							.toUpperCase();
 
-							tenantType:
-								tenantType
-						})
-					);
+					/*
+					 * Data passed to button.
+					 */
+					const tenantData =
+						encodeURIComponent(
+							JSON.stringify({
 
-				return `
-					<article class="saas-workspace-item"
-							 style="--workspace-delay:${Math.min(index * 75, 450)}ms">
+								tenantId:
+									tenantId,
 
-						<span class="saas-workspace-status">
-							<i class="bi bi-check-circle-fill"></i>
-							${safe(tenant.status)}
-						</span>
+								tenantName:
+									tenantName,
 
-						<div class="saas-workspace-icon">
-							<i class="${getWorkspaceIcon(tenantType)}"></i>
-						</div>
+								tenantType:
+									tenantType,
 
-						<h4>
-							${safe(tenantName)}
-						</h4>
+								status:
+									tenantStatus
 
-						<div class="saas-workspace-code">
-							${safe(tenant.tenantCode)}
-						</div>
+							})
+						);
 
-						<div class="saas-workspace-details">
+					/*
+					 * ==================================================
+					 * STATUS UI
+					 * ==================================================
+					 */
 
-							<div class="saas-workspace-detail">
-								<i class="bi bi-tag-fill"></i>
+					let statusIcon =
+						"bi-dash-circle-fill";
 
-								<strong>
-									Type:
-								</strong>
+					let statusClass =
+						"text-secondary";
+
+					let statusLabel =
+						tenantStatus || "UNKNOWN";
+
+
+					if (
+						tenantStatus === "ACTIVE"
+					) {
+
+						statusIcon =
+							"bi-check-circle-fill";
+
+						statusClass =
+							"text-success";
+
+					} else if (
+						tenantStatus === "PENDING"
+					) {
+
+						statusIcon =
+							"bi-credit-card-fill";
+
+						statusClass =
+							"text-warning";
+
+						statusLabel =
+							"SUBSCRIPTION REQUIRED";
+
+					} else if (
+						tenantStatus === "SUSPENDED"
+					) {
+
+						statusIcon =
+							"bi-exclamation-triangle-fill";
+
+						statusClass =
+							"text-danger";
+
+						statusLabel =
+							"SUBSCRIPTION EXPIRED";
+
+					} else if (
+						tenantStatus === "INACTIVE"
+					) {
+
+						statusIcon =
+							"bi-x-circle-fill";
+
+						statusClass =
+							"text-secondary";
+
+						statusLabel =
+							"INACTIVE";
+					}
+
+					/*
+					 * ==================================================
+					 * ACTION BUTTON
+					 * ==================================================
+					 */
+
+					let actionHtml = "";
+
+					let primaryActionHtml = "";
+
+					if (tenantStatus === "ACTIVE") {
+
+						primaryActionHtml = `
+		<button
+			type="button"
+			class="btn btn-medi w-100"
+			data-tenant="${tenantData}"
+			onclick="selectTenantFromButton(this)">
+
+			<i class="bi bi-box-arrow-in-right me-1"></i>
+
+			Open Workspace
+
+		</button>
+	`;
+
+					} else if (tenantStatus === "PENDING") {
+
+						primaryActionHtml = `
+		<button
+			type="button"
+			class="btn btn-warning w-100"
+			data-tenant="${tenantData}"
+			onclick="selectPendingTenantFromButton(this)">
+
+			<i class="bi bi-credit-card-fill me-1"></i>
+
+			Choose Subscription
+
+		</button>
+	`;
+
+					} else if (tenantStatus === "SUSPENDED") {
+
+						primaryActionHtml = `
+		<button
+			type="button"
+			class="btn btn-danger w-100"
+			data-tenant="${tenantData}"
+			onclick="selectSuspendedTenantFromButton(this)">
+
+			<i class="bi bi-arrow-repeat me-1"></i>
+
+			Renew Subscription
+
+		</button>
+	`;
+
+					} else {
+
+						primaryActionHtml = `
+		<button
+			type="button"
+			class="btn btn-secondary w-100"
+			disabled>
+
+			<i class="bi bi-lock-fill me-1"></i>
+
+			Workspace Unavailable
+
+		</button>
+	`;
+					}
+
+					/*
+					 * =========================================================
+					 * DELETE WORKSPACE
+					 * =========================================================
+					 *
+					 * SaaS Staff ko delete action nahi dikhana hai.
+					 *
+					 * Actual owner authorization backend par hoti hai.
+					 */
+					let deleteActionHtml = "";
+
+					if (role !== "SAAS_STAFF") {
+
+						deleteActionHtml = `
+		<button
+			type="button"
+			class="btn btn-outline-danger w-100"
+			data-tenant="${tenantData}"
+			onclick="deleteWorkspaceFromButton(this)">
+
+			<i class="bi bi-trash3-fill me-1"></i>
+
+			Delete Workspace
+
+		</button>
+	`;
+					}
+
+					actionHtml = `
+	<div class="d-grid gap-2">
+
+		${primaryActionHtml}
+
+		${deleteActionHtml}
+
+	</div>
+`;
+					/*
+					 * ==================================================
+					 * STATUS MESSAGE
+					 * ==================================================
+					 */
+
+					let subscriptionNoticeHtml =
+						"";
+
+					if (
+						tenantStatus === "PENDING"
+					) {
+
+						subscriptionNoticeHtml = `
+
+							<div class="
+								alert
+								alert-warning
+								small
+								py-2
+								px-3
+								mt-3
+								mb-0
+							">
+
+								<i class="
+									bi
+									bi-info-circle-fill
+									me-1
+								"></i>
+
+								Choose a subscription plan
+								to activate this workspace.
+
+							</div>
+						`;
+
+					} else if (
+						tenantStatus === "SUSPENDED"
+					) {
+
+						subscriptionNoticeHtml = `
+
+							<div class="
+								alert
+								alert-danger
+								small
+								py-2
+								px-3
+								mt-3
+								mb-0
+							">
+
+								<i class="
+									bi
+									bi-exclamation-triangle-fill
+									me-1
+								"></i>
+
+								This workspace subscription
+								has expired. Renew to continue.
+
+							</div>
+						`;
+					}
+
+					/*
+					 * ==================================================
+					 * CARD
+					 * ==================================================
+					 */
+
+					return `
+
+						<article
+							class="saas-workspace-item"
+							style="
+								--workspace-delay:
+								${Math.min(
+						index * 75,
+						450
+					)}ms
+							">
+
+							<!-- STATUS -->
+
+							<span
+								class="
+									saas-workspace-status
+									${statusClass}
+								">
+
+								<i class="
+									bi
+									${statusIcon}
+								"></i>
+
+								${escapeHtml(
+						statusLabel
+					)}
+
+							</span>
+
+
+							<!-- ICON -->
+
+							<div class="saas-workspace-icon">
+
+								<i class="
+									${getWorkspaceIcon(
+						tenantType
+					)}
+								"></i>
+
+							</div>
+
+
+							<!-- NAME -->
+
+							<h4>
 
 								${safe(
-					formatTenantType(
+						tenantName
+					)}
+
+							</h4>
+
+
+							<!-- CODE -->
+
+							<div class="saas-workspace-code">
+
+								${safe(
+						tenantCode
+					)}
+
+							</div>
+
+
+							<!-- DETAILS -->
+
+							<div class="saas-workspace-details">
+
+								<div class="saas-workspace-detail">
+
+									<i class="
+										bi
+										bi-tag-fill
+									"></i>
+
+									<strong>
+										Type:
+									</strong>
+
+									${safe(
+						formatTenantType(
+							tenantType
+						)
+					)}
+
+								</div>
+
+
+								<div class="saas-workspace-detail">
+
+									<i class="
+										bi
+										${statusIcon}
+									"></i>
+
+									<strong>
+										Status:
+									</strong>
+
+									${escapeHtml(
+						statusLabel
+					)}
+
+								</div>
+
+							</div>
+
+
+							<!-- MODULE PREVIEW -->
+
+							${renderWorkspaceModulePreview(
 						tenantType
-					)
-				)}
+					)}
+
+
+							<!-- SUBSCRIPTION NOTICE -->
+
+							${subscriptionNoticeHtml}
+
+
+							<!-- ACTION -->
+
+							<div class="mt-auto pt-3">
+
+								${actionHtml}
+
 							</div>
 
-							<div class="saas-workspace-detail">
-								<i class="bi bi-shield-check"></i>
-
-								<strong>
-									Status:
-								</strong>
-
-								${safe(tenant.status)}
-							</div>
-
-						</div>
-
-						${renderWorkspaceModulePreview(tenantType)}
-
-						<button type="button"
-								class="btn btn-medi w-100"
-								data-tenant="${tenantData}"
-								onclick="selectTenantFromButton(this)">
-
-							<i class="bi bi-box-arrow-in-right me-1"></i>
-							Open Workspace
-						</button>
-
-					</article>
-				`;
-			}
-		).join("");
+						</article>
+					`;
+				}
+			)
+			.join("");
 }
 
 
+
+async function deleteWorkspaceFromButton(button) {
+
+	if (!button) {
+
+		showMsg(
+			"Invalid workspace selected."
+		);
+
+		return;
+	}
+
+	const encodedData =
+		button.getAttribute("data-tenant");
+
+	if (!encodedData) {
+
+		showMsg(
+			"Invalid workspace selected."
+		);
+
+		return;
+	}
+
+	let tenant;
+
+	try {
+
+		tenant =
+			JSON.parse(
+				decodeURIComponent(
+					encodedData
+				)
+			);
+
+	} catch (error) {
+
+		console.error(
+			"Unable to read workspace data:",
+			error
+		);
+
+		showMsg(
+			"Invalid workspace selected."
+		);
+
+		return;
+	}
+
+	const tenantId =
+		String(
+			tenant?.tenantId ??
+			tenant?.id ??
+			""
+		).trim();
+
+	const tenantName =
+		String(
+			tenant?.tenantName ??
+			"Workspace"
+		).trim();
+
+	if (!tenantId) {
+
+		showMsg(
+			"Workspace ID is missing."
+		);
+
+		return;
+	}
+
+	/*
+	 * ---------------------------------------------------------
+	 * CONFIRMATION
+	 * ---------------------------------------------------------
+	 */
+
+	const confirmed = window.confirm(
+		`Delete "${tenantName}" permanently?\n\n` +
+		`This will permanently delete the workspace and all ` +
+		`workspace-related data including patients, staff, ` +
+		`appointments, billing, medicines, purchases, sales, ` +
+		`inventory, reports and subscriptions.\n\n` +
+		`This action cannot be undone.`
+	);
+
+	if (!confirmed) {
+
+		return;
+	}
+
+	if (deletingTenantId !== null) {
+
+		return;
+	}
+
+	const token =
+		localStorage.getItem("token");
+
+	if (!token) {
+
+		showMsg(
+			"Your login session has expired. Please login again."
+		);
+
+		return;
+	}
+
+	/*
+	 * ---------------------------------------------------------
+	 * START DELETE
+	 * ---------------------------------------------------------
+	 */
+
+	deletingTenantId = tenantId;
+
+	const originalHtml =
+		button.innerHTML;
+
+	button.disabled = true;
+
+	button.innerHTML = `
+		<span
+			class="spinner-border spinner-border-sm me-2"
+			role="status"
+			aria-hidden="true">
+		</span>
+
+		Deleting...
+	`;
+
+	try {
+
+		const response =
+			await fetch(
+				`${API_BASE}/saas/tenants/${encodeURIComponent(tenantId)}`,
+				{
+					method: "DELETE",
+
+					headers: {
+						"Authorization":
+							"Bearer " + token,
+
+						"Accept":
+							"application/json"
+					}
+				}
+			);
+
+		const result =
+			await safeJson(response);
+
+		/*
+		 * -----------------------------------------------------
+		 * ERROR
+		 * -----------------------------------------------------
+		 */
+
+		if (!response.ok) {
+
+			const message =
+				getApiErrorMessage(
+					result,
+					"Unable to delete workspace."
+				);
+
+			showMsg(message);
+
+			button.disabled = false;
+
+			button.innerHTML =
+				originalHtml;
+
+			return;
+		}
+
+		/*
+		 * -----------------------------------------------------
+		 * CURRENT WORKSPACE CHECK
+		 * -----------------------------------------------------
+		 */
+
+		const selectedTenantId =
+			String(
+				localStorage.getItem(
+					"tenantId"
+				) || ""
+			).trim();
+
+		/*
+		 * Agar delete kiya gaya workspace
+		 * currently selected workspace tha,
+		 * to stale workspace context remove karo.
+		 */
+
+		if (
+			selectedTenantId ===
+			tenantId
+		) {
+
+			localStorage.removeItem(
+				"tenantId"
+			);
+
+			localStorage.removeItem(
+				"tenantName"
+			);
+
+			localStorage.removeItem(
+				"tenantType"
+			);
+
+			localStorage.removeItem(
+				"saasMemberRole"
+			);
+
+			localStorage.removeItem(
+				"saasOwnerOrAdmin"
+			);
+
+			localStorage.removeItem(
+				"saasPermissions"
+			);
+		}
+
+		/*
+		 * -----------------------------------------------------
+		 * SUCCESS
+		 * -----------------------------------------------------
+		 */
+
+		showMsg(
+			`Workspace "${tenantName}" deleted successfully.`,
+			"success"
+		);
+
+		/*
+		 * Reload the workspace list.
+		 */
+		await loadMyTenants();
+
+	} catch (error) {
+
+		console.error(
+			"Unable to delete workspace:",
+			error
+		);
+
+		showMsg(
+			"SaaS service not reachable."
+		);
+
+		button.disabled = false;
+
+		button.innerHTML =
+			originalHtml;
+
+	} finally {
+
+		deletingTenantId = null;
+	}
+}
+
+function selectPendingTenantFromButton(button) {
+
+	if (!button) {
+
+		showMsg(
+			"Invalid workspace selected."
+		);
+
+		return;
+	}
+
+	const encodedData =
+		button.getAttribute(
+			"data-tenant"
+		);
+
+	if (!encodedData) {
+
+		showMsg(
+			"Invalid workspace selected."
+		);
+
+		return;
+	}
+
+	try {
+
+		const tenant =
+			JSON.parse(
+				decodeURIComponent(
+					encodedData
+				)
+			);
+
+		setSelectedWorkspaceContext(
+			tenant
+		);
+
+		/*
+		 * PENDING workspace:
+		 * dashboard par nahi jana.
+		 * Direct subscription plans par jana hai.
+		 */
+		window.location.href =
+			"/saas/subscription/plans";
+
+	} catch (error) {
+
+		console.error(
+			"Unable to open pending workspace subscription:",
+			error
+		);
+
+		showMsg(
+			"Unable to open subscription plans."
+		);
+	}
+}
+
+function selectSuspendedTenantFromButton(button) {
+
+	if (!button) {
+
+		showMsg(
+			"Invalid workspace selected."
+		);
+
+		return;
+	}
+
+	const encodedData =
+		button.getAttribute(
+			"data-tenant"
+		);
+
+	if (!encodedData) {
+
+		showMsg(
+			"Invalid workspace selected."
+		);
+
+		return;
+	}
+
+	try {
+
+		const tenant =
+			JSON.parse(
+				decodeURIComponent(
+					encodedData
+				)
+			);
+
+		setSelectedWorkspaceContext(
+			tenant
+		);
+
+		/*
+		 * Expired/suspended workspace:
+		 * renewal ke liye plans page.
+		 */
+		window.location.href =
+			"/saas/subscription/plans";
+
+	} catch (error) {
+
+		console.error(
+			"Unable to open suspended workspace subscription:",
+			error
+		);
+
+		showMsg(
+			"Unable to open subscription plans."
+		);
+	}
+}
+
+
+function setSelectedWorkspaceContext(tenant) {
+
+	if (!tenant) {
+
+		throw new Error(
+			"Workspace data is missing"
+		);
+	}
+
+	const tenantId =
+		String(
+			tenant.tenantId ??
+			tenant.id ??
+			""
+		).trim();
+
+	const tenantName =
+		String(
+			tenant.tenantName ??
+			"Workspace"
+		).trim();
+
+	const tenantType =
+		String(
+			tenant.tenantType ??
+			""
+		)
+			.trim()
+			.toUpperCase();
+
+	if (!tenantId) {
+
+		throw new Error(
+			"Workspace ID is missing"
+		);
+	}
+
+	if (!tenantType) {
+
+		throw new Error(
+			"Workspace type is missing"
+		);
+	}
+
+	/*
+	 * Selected workspace
+	 */
+	localStorage.setItem(
+		"tenantId",
+		tenantId
+	);
+
+	localStorage.setItem(
+		"tenantName",
+		tenantName || "Workspace"
+	);
+
+	localStorage.setItem(
+		"tenantType",
+		tenantType
+	);
+
+	localStorage.setItem(
+		"saasMode",
+		"true"
+	);
+
+	/*
+	 * Old permission cache clear.
+	 */
+	localStorage.removeItem(
+		"saasMemberRole"
+	);
+
+	localStorage.removeItem(
+		"saasOwnerOrAdmin"
+	);
+
+	localStorage.removeItem(
+		"saasPermissions"
+	);
+
+	/*
+	 * Sidebar refresh.
+	 */
+	if (
+		typeof updateSaasSidebarWorkspaceDetails ===
+		"function"
+	) {
+
+		updateSaasSidebarWorkspaceDetails();
+	}
+}
 function renderWorkspaceModulePreview(tenantType) {
 
 	const modules =
@@ -585,17 +1430,17 @@ async function createTenant() {
 	};
 
 	if (!payload.tenantName) {
-
-		showMsg(
+		showModalFormError(
+			document.getElementById("createTenantModal"),
 			"Workspace name is required."
 		);
-
 		return;
 	}
 
 	if (!payload.tenantType) {
 
-		showMsg(
+		showModalFormError(
+			document.getElementById("createTenantModal"),
 			"Unable to determine workspace type from your login role."
 		);
 
@@ -607,7 +1452,8 @@ async function createTenant() {
 		!isValidEmail(payload.contactEmail)
 	) {
 
-		showMsg(
+		showModalFormError(
+			document.getElementById("createTenantModal"),
 			"Please enter a valid contact email."
 		);
 
@@ -619,7 +1465,8 @@ async function createTenant() {
 		!isValidMobile(payload.contactMobile)
 	) {
 
-		showMsg(
+		showModalFormError(
+			document.getElementById("createTenantModal"),
 			"Please enter a valid contact mobile number."
 		);
 
@@ -631,7 +1478,8 @@ async function createTenant() {
 		!isValidPincode(payload.pincode)
 	) {
 
-		showMsg(
+		showModalFormError(
+			document.getElementById("createTenantModal"),
 			"Please enter a valid 6-digit pincode."
 		);
 
@@ -756,8 +1604,11 @@ function selectTenantFromButton(button) {
 			);
 
 		selectTenant(
-			tenant.tenantId,
+			tenant.tenantId ??
+			tenant.id,
+
 			tenant.tenantName,
+
 			tenant.tenantType
 		);
 
@@ -773,7 +1624,6 @@ function selectTenantFromButton(button) {
 		);
 	}
 }
-
 
 function selectTenant(
 	tenantId,

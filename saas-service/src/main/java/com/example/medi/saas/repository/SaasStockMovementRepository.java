@@ -12,4 +12,7 @@ public interface SaasStockMovementRepository extends JpaRepository<SaasStockMove
 	List<SaasStockMovement> findByTenantIdAndStockIdOrderByCreatedAtDesc(Long tenantId, Long stockId);
 
 	List<SaasStockMovement> findByTenantIdOrderByCreatedAtDesc(Long tenantId);
+	
+	void deleteByTenantId(Long tenantId);
+	
 }

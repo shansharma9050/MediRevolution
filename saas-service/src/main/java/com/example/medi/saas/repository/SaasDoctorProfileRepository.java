@@ -20,4 +20,6 @@ public interface SaasDoctorProfileRepository extends JpaRepository<SaasDoctorPro
     Optional<SaasDoctorProfile> findByTenantIdAndStaffIdAndActiveTrue(Long tenantId, Long staffId);
     
     long countByTenantIdAndActiveTrue(Long tenantId);
+    
+    void deleteByTenantId(Long tenantId);
 }

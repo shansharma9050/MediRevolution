@@ -68,4 +68,6 @@ public interface SaasPurchaseRepository extends JpaRepository<SaasPurchase, Long
 	BigDecimal sumDueAmount(@Param("tenantId") Long tenantId);
 
 	long countByTenantId(Long tenantId);
+	
+	void deleteByTenantId(Long tenantId);
 }

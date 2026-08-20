@@ -11,4 +11,6 @@ public interface SaasPaymentReceiptRepository extends JpaRepository<SaasPaymentR
             Long tenantId,
             Long invoiceId
     );
+    
+    void deleteByTenantId(Long tenantId);
 }

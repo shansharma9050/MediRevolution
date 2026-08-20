@@ -28,4 +28,6 @@ public interface SaasNotificationRepository extends JpaRepository<SaasNotificati
             Long referenceId,
             String referenceType
     );
+    
+    void deleteByTenantId(Long tenantId);
 }

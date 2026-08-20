@@ -25,4 +25,6 @@ public interface SaasSalesReturnItemRepository extends JpaRepository<SaasSalesRe
 	Long sumReturnedQuantityByAllocation(@Param("tenantId") Long tenantId,
 
 			@Param("allocationId") Long allocationId);
+	
+	void deleteByTenantId(Long tenantId);
 }

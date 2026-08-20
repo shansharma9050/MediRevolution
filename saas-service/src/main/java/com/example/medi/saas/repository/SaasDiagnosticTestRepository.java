@@ -15,4 +15,6 @@ public interface SaasDiagnosticTestRepository extends JpaRepository<SaasDiagnost
     );
 
     Optional<SaasDiagnosticTest> findByIdAndTenantIdAndActiveTrue(Long id, Long tenantId);
+    
+    void deleteByTenantId(Long tenantId);
 }

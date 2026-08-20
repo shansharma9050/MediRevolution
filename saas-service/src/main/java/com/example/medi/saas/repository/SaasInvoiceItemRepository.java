@@ -13,4 +13,6 @@ public interface SaasInvoiceItemRepository extends JpaRepository<SaasInvoiceItem
     );
 
     void deleteByTenantIdAndInvoiceId(Long tenantId, Long invoiceId);
+    
+    void deleteByTenantId(Long tenantId);
 }

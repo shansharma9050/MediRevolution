@@ -25,4 +25,6 @@ public interface SaasBedRepository extends JpaRepository<SaasBed, Long> {
             Long wardId,
             String bedNumber
     );
+    
+    void deleteByTenantId(Long tenantId);
 }

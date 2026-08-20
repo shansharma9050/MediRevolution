@@ -15,4 +15,6 @@ public interface TenantMemberRepository extends JpaRepository<TenantMember, Long
     Optional<TenantMember> findByTenantIdAndAuthUserIdAndActiveTrue(Long tenantId, Long authUserId);
 
     boolean existsByTenantIdAndAuthUserId(Long tenantId, Long authUserId);
+    
+    void deleteByTenantId(Long tenantId);
 }

@@ -25,4 +25,6 @@ public interface SaasPatientRepository extends JpaRepository<SaasPatient, Long> 
     long countByTenantId(Long tenantId);
     
     long countByTenantIdAndActiveTrue(Long tenantId);
+    
+    void deleteByTenantId(Long tenantId);
 }

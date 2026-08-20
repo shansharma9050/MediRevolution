@@ -11,4 +11,6 @@ public interface SaasPharmacySaleItemRepository extends JpaRepository<SaasPharma
             Long tenantId,
             Long saleId
     );
+    
+    void deleteByTenantId(Long tenantId);
 }

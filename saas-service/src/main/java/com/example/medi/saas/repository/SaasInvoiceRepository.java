@@ -35,4 +35,6 @@ public interface SaasInvoiceRepository extends JpaRepository<SaasInvoice, Long> 
             LocalDateTime fromDateTime,
             LocalDateTime toDateTime
     );
+    
+    void deleteByTenantId(Long tenantId);
 }

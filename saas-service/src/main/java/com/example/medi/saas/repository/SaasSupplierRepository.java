@@ -99,4 +99,6 @@ public interface SaasSupplierRepository
             @Param("keyword")
             String keyword
     );
+    
+    void deleteByTenantId(Long tenantId);
 }

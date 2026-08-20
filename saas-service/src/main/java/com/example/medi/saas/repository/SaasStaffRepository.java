@@ -32,4 +32,6 @@ public interface SaasStaffRepository extends JpaRepository<SaasStaff, Long> {
     
     long countByTenantIdAndActiveTrue(Long tenantId);
     
+    void deleteByTenantId(Long tenantId);
+    
 }

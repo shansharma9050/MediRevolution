@@ -12,4 +12,5 @@ public interface TenantRepository extends JpaRepository<Tenant, Long> {
     Optional<Tenant> findByTenantCode(String tenantCode);
 
     List<Tenant> findByOwnerAuthUserIdAndStatus(Long ownerAuthUserId, TenantStatus status);
+    
 }

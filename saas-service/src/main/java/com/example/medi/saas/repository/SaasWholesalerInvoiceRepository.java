@@ -16,5 +16,7 @@ public interface SaasWholesalerInvoiceRepository extends JpaRepository<SaasWhole
 			Long customerId);
 
 	Optional<SaasWholesalerInvoice> findByInvoiceNumberAndTenantId(String invoiceNumber, Long tenantId);
+	
+	void deleteByTenantId(Long tenantId);
 
 }

@@ -25,4 +25,6 @@ public interface SaasPharmacySaleRepository extends JpaRepository<SaasPharmacySa
             LocalDateTime fromDateTime,
             LocalDateTime toDateTime
     );
+    
+    void deleteByTenantId(Long tenantId);
 }

@@ -13,4 +13,6 @@ public interface SaasPrescriptionMedicineRepository extends JpaRepository<SaasPr
     );
 
     void deleteByTenantIdAndPrescriptionId(Long tenantId, Long prescriptionId);
+    
+    void deleteByTenantId(Long tenantId);
 }

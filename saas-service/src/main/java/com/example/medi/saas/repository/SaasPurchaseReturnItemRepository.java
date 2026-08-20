@@ -34,4 +34,6 @@ public interface SaasPurchaseReturnItemRepository
             @Param("purchaseItemId")
             Long purchaseItemId
     );
+    
+    void deleteByTenantId(Long tenantId);
 }

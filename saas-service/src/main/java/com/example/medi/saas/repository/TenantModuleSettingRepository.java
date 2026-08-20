@@ -12,4 +12,6 @@ public interface TenantModuleSettingRepository extends JpaRepository<TenantModul
     List<TenantModuleSetting> findByTenantId(Long tenantId);
 
     Optional<TenantModuleSetting> findByTenantIdAndModule(Long tenantId, TenantModule module);
+    
+    void deleteByTenantId(Long tenantId);
 }

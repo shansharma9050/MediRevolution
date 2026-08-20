@@ -8,4 +8,6 @@ import java.util.List;
 public interface SaasSalesOrderTimelineRepository extends JpaRepository<SaasSalesOrderTimeline, Long> {
 
 	List<SaasSalesOrderTimeline> findByTenantIdAndOrderIdOrderByCreatedAtAsc(Long tenantId, Long orderId);
+	
+	void deleteByTenantId(Long tenantId);
 }

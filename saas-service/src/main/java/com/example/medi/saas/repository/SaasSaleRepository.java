@@ -76,4 +76,6 @@ public interface SaasSaleRepository extends JpaRepository<SaasSale, Long> {
 			      com.example.medi.saas.enums.SaasSaleStatus.CANCELLED
 			""")
 	Long sumTotalQuantity(@Param("tenantId") Long tenantId);
+	
+	void deleteByTenantId(Long tenantId);
 }

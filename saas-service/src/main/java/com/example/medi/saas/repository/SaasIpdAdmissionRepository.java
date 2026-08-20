@@ -40,4 +40,6 @@ public interface SaasIpdAdmissionRepository extends JpaRepository<SaasIpdAdmissi
             LocalDateTime fromDateTime,
             LocalDateTime toDateTime
     );
+    
+    void deleteByTenantId(Long tenantId);
 }

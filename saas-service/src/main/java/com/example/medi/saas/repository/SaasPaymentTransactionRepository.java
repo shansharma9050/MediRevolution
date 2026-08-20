@@ -60,4 +60,6 @@ public interface SaasPaymentTransactionRepository extends JpaRepository<SaasPaym
 	BigDecimal sumAmountByTransactionType(@Param("tenantId") Long tenantId,
 
 			@Param("transactionType") SaasPaymentTransactionType transactionType);
+	
+	void deleteByTenantId(Long tenantId);
 }

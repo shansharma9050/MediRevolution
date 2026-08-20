@@ -2,6 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
+
 	<meta charset="UTF-8">
 
 	<title>MediRevolution | Current Subscription</title>
@@ -11,6 +12,7 @@
 	<link rel="manifest" href="/manifest.json">
 
 	<meta name="theme-color" content="#05285f">
+
 	<meta name="mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -18,636 +20,1373 @@
 
 	<link rel="apple-touch-icon" href="/images/icon-192.png">
 
+
+	<!-- ========================================================
+	     BOOTSTRAP
+	========================================================= -->
+
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
+
+	<!-- ========================================================
+	     MEDIREVOLUTION CSS
+	========================================================= -->
+
 	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+
 	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
 
 	<style>
 		.subscription-current-page {
 			position: relative;
 		}
 
+
+		/* ======================================================
+		   HERO
+		====================================================== */
+
 		.subscription-current-hero {
+
 			position: relative;
+
 			display: flex;
+
 			align-items: center;
+
 			justify-content: space-between;
+
 			gap: 28px;
+
 			min-height: 235px;
+
 			margin-bottom: 28px;
-			padding: clamp(28px, 4vw, 48px);
+
+			padding:
+				clamp(28px, 4vw, 48px);
+
 			overflow: hidden;
+
 			border-radius: 30px;
+
 			color: #ffffff;
+
 			background:
-				linear-gradient(135deg, #05285f 0%, #08739f 48%, #08c7d4 100%);
-			box-shadow: 0 25px 65px rgba(5, 40, 95, .22);
-			animation: subscriptionHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both;
+				linear-gradient(135deg,
+					#05285f 0%,
+					#08739f 48%,
+					#08c7d4 100%);
+
+			box-shadow:
+				0 25px 65px rgba(5, 40, 95, .22);
+
+			animation:
+				subscriptionHeroReveal .75s cubic-bezier(.22, 1, .36, 1) both;
 		}
+
 
 		.subscription-current-hero::before {
+
 			position: absolute;
+
 			top: -150px;
+
 			right: -90px;
+
 			width: 340px;
+
 			height: 340px;
-			border: 58px solid rgba(255, 255, 255, .07);
+
+			border:
+				58px solid rgba(255, 255, 255, .07);
+
 			border-radius: 50%;
+
 			content: "";
-			animation: subscriptionHeroFloat 9s ease-in-out infinite;
+
+			animation:
+				subscriptionHeroFloat 9s ease-in-out infinite;
 		}
 
+
 		.subscription-current-hero::after {
+
 			position: absolute;
+
 			bottom: -180px;
+
 			left: 28%;
+
 			width: 360px;
+
 			height: 360px;
+
 			border-radius: 50%;
+
 			content: "";
+
 			background:
-				radial-gradient(circle, rgba(123, 214, 0, .23), transparent 68%);
+				radial-gradient(circle,
+					rgba(123, 214, 0, .23),
+					transparent 68%);
 		}
+
 
 		.subscription-current-hero-content,
 		.subscription-current-hero-action {
+
 			position: relative;
+
 			z-index: 2;
 		}
 
+
 		.subscription-current-kicker {
+
 			display: inline-flex;
+
 			align-items: center;
+
 			gap: 8px;
+
 			margin-bottom: 15px;
+
 			padding: 8px 14px;
-			border: 1px solid rgba(255, 255, 255, .2);
+
+			border:
+				1px solid rgba(255, 255, 255, .2);
+
 			border-radius: 999px;
-			background: rgba(255, 255, 255, .11);
+
+			background:
+				rgba(255, 255, 255, .11);
+
 			font-size: 10px;
+
 			font-weight: 800;
+
 			letter-spacing: 1px;
+
 			text-transform: uppercase;
+
 			backdrop-filter: blur(12px);
 		}
 
+
 		.subscription-current-hero h1 {
+
 			margin: 0;
-			font-size: clamp(31px, 4vw, 51px);
+
+			font-size:
+				clamp(31px, 4vw, 51px);
+
 			font-weight: 900;
+
 			letter-spacing: -1.8px;
 		}
 
+
 		.subscription-current-hero h1 span {
+
 			color: #b8f267;
 		}
 
+
 		.subscription-current-hero p {
+
 			max-width: 760px;
+
 			margin: 14px 0 0;
-			color: rgba(255, 255, 255, .8);
+
+			color:
+				rgba(255, 255, 255, .8);
+
 			line-height: 1.75;
 		}
 
+
 		.subscription-current-meta {
+
 			display: flex;
+
 			flex-wrap: wrap;
+
 			gap: 10px;
+
 			margin-top: 20px;
 		}
 
+
 		.subscription-current-meta span {
+
 			display: inline-flex;
+
 			align-items: center;
+
 			gap: 7px;
+
 			padding: 8px 12px;
+
 			border-radius: 999px;
-			background: rgba(255, 255, 255, .11);
+
+			background:
+				rgba(255, 255, 255, .11);
+
 			font-size: 11px;
+
 			font-weight: 700;
 		}
 
+
 		.subscription-current-hero-action {
+
 			display: flex;
+
 			min-width: 220px;
+
 			flex-direction: column;
+
 			align-items: center;
+
 			padding: 22px;
-			border: 1px solid rgba(255, 255, 255, .18);
+
+			border:
+				1px solid rgba(255, 255, 255, .18);
+
 			border-radius: 25px;
-			background: rgba(255, 255, 255, .11);
+
+			background:
+				rgba(255, 255, 255, .11);
+
 			text-align: center;
+
 			backdrop-filter: blur(15px);
 		}
 
+
 		.subscription-current-hero-icon {
+
 			display: flex;
+
 			align-items: center;
+
 			justify-content: center;
+
 			width: 68px;
+
 			height: 68px;
+
 			margin-bottom: 13px;
+
 			border-radius: 22px;
+
 			color: #05285f;
+
 			background: #ffffff;
+
 			font-size: 28px;
-			box-shadow: 0 15px 35px rgba(0, 0, 0, .17);
-			animation: subscriptionIconFloat 3s ease-in-out infinite;
+
+			box-shadow:
+				0 15px 35px rgba(0, 0, 0, .17);
+
+			animation:
+				subscriptionIconFloat 3s ease-in-out infinite;
 		}
+
 
 		.subscription-current-plans-button {
+
 			display: inline-flex;
+
 			align-items: center;
+
 			justify-content: center;
+
 			gap: 9px;
+
 			min-height: 46px;
+
 			margin-top: 13px;
+
 			padding: 0 18px;
+
 			border: none;
+
 			border-radius: 15px;
+
 			color: #05285f;
+
 			background: #ffffff;
+
 			font-size: 12px;
+
 			font-weight: 800;
+
 			text-decoration: none;
-			transition: transform .3s ease, box-shadow .3s ease;
+
+			transition:
+				transform .3s ease,
+				box-shadow .3s ease;
 		}
+
 
 		.subscription-current-plans-button:hover {
+
 			color: #05285f;
-			transform: translateY(-3px);
-			box-shadow: 0 14px 30px rgba(0, 0, 0, .18);
+
+			transform:
+				translateY(-3px);
+
+			box-shadow:
+				0 14px 30px rgba(0, 0, 0, .18);
 		}
 
+
+		/* ======================================================
+		   EXPIRY WARNING
+		====================================================== */
+
+		.subscription-expiry-warning {
+
+			position: relative;
+
+			z-index: 3;
+
+			margin-bottom: 20px;
+		}
+
+
+		.subscription-expiry-warning .alert {
+
+			margin-bottom: 0;
+
+			border-radius: 16px;
+
+			box-shadow:
+				0 10px 24px rgba(102, 77, 3, .08);
+		}
+
+
+		/* ======================================================
+		   SUMMARY
+		====================================================== */
+
 		.subscription-current-summary-grid {
+
 			display: grid;
-			grid-template-columns: repeat(4, minmax(0, 1fr));
+
+			grid-template-columns:
+				repeat(4, minmax(0, 1fr));
+
 			gap: 16px;
+
 			margin-bottom: 25px;
 		}
 
+
 		.subscription-current-summary-card {
+
 			padding: 20px;
-			border: 1px solid rgba(8, 199, 212, .14);
+
+			border:
+				1px solid rgba(8, 199, 212, .14);
+
 			border-radius: 22px;
-			background: rgba(255, 255, 255, .96);
-			box-shadow: 0 14px 35px rgba(5, 40, 95, .08);
-			transition: transform .35s ease, box-shadow .35s ease;
+
+			background:
+				rgba(255, 255, 255, .96);
+
+			box-shadow:
+				0 14px 35px rgba(5, 40, 95, .08);
+
+			transition:
+				transform .35s ease,
+				box-shadow .35s ease;
 		}
+
 
 		.subscription-current-summary-card:hover {
-			transform: translateY(-6px);
-			box-shadow: 0 22px 48px rgba(5, 40, 95, .14);
+
+			transform:
+				translateY(-6px);
+
+			box-shadow:
+				0 22px 48px rgba(5, 40, 95, .14);
 		}
 
+
 		.subscription-current-summary-icon {
+
 			display: flex;
+
 			align-items: center;
+
 			justify-content: center;
+
 			width: 48px;
+
 			height: 48px;
+
 			margin-bottom: 14px;
+
 			border-radius: 16px;
+
 			color: #ffffff;
-			background: linear-gradient(135deg, #05285f, #08c7d4);
+
+			background:
+				linear-gradient(135deg,
+					#05285f,
+					#08c7d4);
+
 			font-size: 20px;
 		}
 
+
 		.subscription-current-summary-card small {
+
 			display: block;
+
 			color: #6b7b8c;
+
 			font-weight: 700;
 		}
 
+
 		.subscription-current-summary-card strong {
+
 			display: block;
+
 			margin-top: 5px;
+
 			color: #05285f;
+
 			font-size: 20px;
+
 			font-weight: 900;
+
 			word-break: break-word;
 		}
 
+
+		/* ======================================================
+		   CURRENT CARD
+		====================================================== */
+
 		.subscription-current-card {
+
 			position: relative;
+
 			overflow: hidden;
+
 			padding: 28px;
-			border: 1px solid rgba(8, 199, 212, .14);
+
+			border:
+				1px solid rgba(8, 199, 212, .14);
+
 			border-radius: 26px;
+
 			background: #ffffff;
-			box-shadow: 0 18px 46px rgba(5, 40, 95, .1);
+
+			box-shadow:
+				0 18px 46px rgba(5, 40, 95, .1);
 		}
 
+
 		.subscription-current-card::after {
+
 			position: absolute;
+
 			top: -100px;
+
 			right: -100px;
+
 			width: 230px;
+
 			height: 230px;
+
 			border-radius: 50%;
+
 			content: "";
+
 			background:
-				radial-gradient(circle, rgba(8, 199, 212, .12), transparent 68%);
+				radial-gradient(circle,
+					rgba(8, 199, 212, .12),
+					transparent 68%);
+
 			pointer-events: none;
 		}
 
+
+		/* ======================================================
+		   HEADER
+		====================================================== */
+
 		.subscription-current-header {
+
 			position: relative;
+
 			z-index: 2;
+
 			display: flex;
+
 			align-items: flex-start;
+
 			justify-content: space-between;
+
 			gap: 20px;
+
 			padding-bottom: 22px;
-			border-bottom: 1px solid #e8f1f5;
+
+			border-bottom:
+				1px solid #e8f1f5;
 		}
+
 
 		.subscription-current-active-badge,
 		.subscription-current-status {
+
 			display: inline-flex;
+
 			align-items: center;
+
 			gap: 7px;
+
 			padding: 8px 12px;
+
 			border-radius: 999px;
+
 			font-size: 10px;
+
 			font-weight: 900;
+
 			text-transform: uppercase;
 		}
 
+
 		.subscription-current-active-badge {
+
 			margin-bottom: 12px;
+
 			color: #084298;
+
 			background: #cfe2ff;
 		}
 
+
 		.subscription-current-status.active {
+
 			color: #0f5132;
+
 			background: #d1e7dd;
 		}
 
+
 		.subscription-current-status.inactive {
+
 			color: #842029;
+
 			background: #f8d7da;
 		}
 
+
+		.subscription-current-status.warning {
+
+			color: #664d03;
+
+			background: #fff3cd;
+		}
+
+
 		.subscription-current-header h2 {
+
 			margin: 0;
+
 			color: #05285f;
+
 			font-size: 31px;
+
 			font-weight: 900;
 		}
 
+
 		.subscription-current-header p {
+
 			margin: 6px 0 0;
+
 			color: #748698;
+
 			font-weight: 700;
 		}
 
+
+		/* ======================================================
+		   INFO
+		====================================================== */
+
 		.subscription-current-info-grid {
+
 			position: relative;
+
 			z-index: 2;
+
 			display: grid;
-			grid-template-columns: repeat(4, minmax(0, 1fr));
+
+			grid-template-columns:
+				repeat(4, minmax(0, 1fr));
+
 			gap: 14px;
+
 			margin-top: 24px;
 		}
 
+
 		.subscription-current-info-item {
+
 			padding: 17px;
-			border: 1px solid #e3edf2;
+
+			border:
+				1px solid #e3edf2;
+
 			border-radius: 16px;
+
 			background: #f8fbfc;
 		}
 
+
 		.subscription-current-info-item span {
+
 			display: block;
+
 			color: #718496;
+
 			font-size: 10px;
+
 			font-weight: 800;
+
 			text-transform: uppercase;
 		}
 
+
 		.subscription-current-info-item strong {
+
 			display: block;
+
 			margin-top: 6px;
+
 			color: #05285f;
+
 			font-weight: 900;
 		}
 
+
+		/* ======================================================
+		   BENEFITS
+		====================================================== */
+
 		.subscription-current-benefits {
+
 			position: relative;
+
 			z-index: 2;
+
 			margin-top: 26px;
 		}
 
+
 		.subscription-current-benefits h5 {
+
 			color: #05285f;
+
 			font-weight: 900;
 		}
 
+
 		.subscription-current-benefit-list {
+
 			display: grid;
-			grid-template-columns: repeat(3, minmax(0, 1fr));
+
+			grid-template-columns:
+				repeat(3, minmax(0, 1fr));
+
 			gap: 13px;
+
 			margin-top: 15px;
 		}
 
+
 		.subscription-current-benefit-item {
+
 			display: flex;
+
 			align-items: center;
+
 			gap: 11px;
+
 			padding: 16px;
-			border: 1px solid #e3edf2;
+
+			border:
+				1px solid #e3edf2;
+
 			border-radius: 16px;
+
 			background: #f8fbfc;
+
 			color: #526a80;
+
 			font-weight: 700;
 		}
 
+
 		.subscription-current-benefit-icon {
+
 			display: flex;
+
 			align-items: center;
+
 			justify-content: center;
+
 			width: 36px;
+
 			height: 36px;
+
 			border-radius: 12px;
+
 			font-size: 16px;
 		}
 
+
 		.subscription-current-benefit-icon.enabled {
+
 			color: #0f5132;
+
 			background: #d1e7dd;
 		}
 
+
 		.subscription-current-benefit-icon.disabled {
+
 			color: #842029;
+
 			background: #f8d7da;
 		}
 
+
+		/* ======================================================
+		   ACTIONS
+		====================================================== */
+
 		.subscription-current-action-row {
+
 			position: relative;
+
 			z-index: 2;
+
 			display: flex;
+
 			flex-wrap: wrap;
+
 			gap: 10px;
+
 			margin-top: 26px;
+
 			padding-top: 22px;
-			border-top: 1px solid #e8f1f5;
+
+			border-top:
+				1px solid #e8f1f5;
 		}
 
+
+		/* ======================================================
+		   CANCELLATION
+		====================================================== */
+
+		.subscription-cancellation-notice {
+
+			position: relative;
+
+			z-index: 2;
+
+			margin-top: 18px;
+
+			border-radius: 16px;
+		}
+
+
+		/* ======================================================
+		   STATE
+		====================================================== */
+
 		.subscription-current-state {
-			padding: 54px 20px;
+
+			padding:
+				54px 20px;
+
 			text-align: center;
 		}
 
+
 		.subscription-current-state-icon {
+
 			display: flex;
+
 			align-items: center;
+
 			justify-content: center;
+
 			width: 72px;
+
 			height: 72px;
-			margin: 0 auto 17px;
+
+			margin:
+				0 auto 17px;
+
 			border-radius: 23px;
+
 			color: #ffffff;
-			background: linear-gradient(135deg, #05285f, #08c7d4);
+
+			background:
+				linear-gradient(135deg,
+					#05285f,
+					#08c7d4);
+
 			font-size: 28px;
-			box-shadow: 0 15px 32px rgba(5, 40, 95, .17);
+
+			box-shadow:
+				0 15px 32px rgba(5, 40, 95, .17);
 		}
+
 
 		.subscription-current-loading {
-			animation: subscriptionLoadingPulse 1.3s ease-in-out infinite;
+
+			animation:
+				subscriptionLoadingPulse 1.3s ease-in-out infinite;
 		}
 
+
+		/* ======================================================
+		   ANIMATIONS
+		====================================================== */
+
 		@keyframes subscriptionHeroReveal {
+
 			from {
+
 				opacity: 0;
-				transform: translateY(24px);
+
+				transform:
+					translateY(24px);
 			}
 
 			to {
+
 				opacity: 1;
-				transform: translateY(0);
+
+				transform:
+					translateY(0);
 			}
 		}
+
 
 		@keyframes subscriptionHeroFloat {
 
 			0%,
 			100% {
-				transform: translateY(0) rotate(0deg);
+
+				transform:
+					translateY(0) rotate(0deg);
 			}
 
 			50% {
-				transform: translateY(25px) rotate(8deg);
+
+				transform:
+					translateY(25px) rotate(8deg);
 			}
 		}
+
 
 		@keyframes subscriptionIconFloat {
 
 			0%,
 			100% {
-				transform: translateY(0);
+
+				transform:
+					translateY(0);
 			}
 
 			50% {
-				transform: translateY(-7px);
+
+				transform:
+					translateY(-7px);
 			}
 		}
+
 
 		@keyframes subscriptionLoadingPulse {
 
 			0%,
 			100% {
-				transform: scale(.94);
+
+				transform:
+					scale(.94);
+
 				opacity: .72;
 			}
 
 			50% {
-				transform: scale(1.06);
+
+				transform:
+					scale(1.06);
+
 				opacity: 1;
 			}
 		}
+
+
+		/* ======================================================
+		   RESPONSIVE
+		====================================================== */
 
 		@media (max-width: 1150px) {
 
 			.subscription-current-summary-grid,
 			.subscription-current-info-grid {
-				grid-template-columns: repeat(2, minmax(0, 1fr));
+
+				grid-template-columns:
+					repeat(2, minmax(0, 1fr));
 			}
 		}
 
+
 		@media (max-width: 992px) {
+
 			.subscription-current-hero {
-				align-items: flex-start;
-				flex-direction: column;
+
+				align-items:
+					flex-start;
+
+				flex-direction:
+					column;
 			}
 
+
 			.subscription-current-hero-action {
+
 				width: 100%;
 			}
 		}
 
+
 		@media (max-width: 768px) {
+
 			.subscription-current-benefit-list {
-				grid-template-columns: 1fr;
+
+				grid-template-columns:
+					1fr;
 			}
 
+
 			.subscription-current-header {
-				flex-direction: column;
+
+				flex-direction:
+					column;
 			}
 		}
 
+
 		@media (max-width: 576px) {
+
 			.subscription-current-hero {
-				padding: 26px 21px;
-				border-radius: 24px;
+
+				padding:
+					26px 21px;
+
+				border-radius:
+					24px;
 			}
+
 
 			.subscription-current-summary-grid,
 			.subscription-current-info-grid {
-				grid-template-columns: 1fr;
+
+				grid-template-columns:
+					1fr;
 			}
 
+
 			.subscription-current-action-row .btn {
+
 				width: 100%;
 			}
 		}
 	</style>
+
 </head>
+
 
 <body class="dashboard-body platform-dashboard-body">
 
-	<div th:replace="~{layout/platform-topnavbar :: platformTopnavbar}"></div>
-	<div th:replace="~{layout/platform-sidebar :: platformSidebar}"></div>
 
-	<main class="mr-main subscription-current-page">
+	<!-- ========================================================
+	     PLATFORM TOP NAVBAR
+	========================================================= -->
 
-		<section class="subscription-current-hero">
+	<div th:replace="~{layout/platform-topnavbar :: platformTopnavbar}">
+	</div>
 
-			<div class="subscription-current-hero-content">
 
-				<span class="subscription-current-kicker">
-					<i class="bi bi-credit-card-fill"></i>
-					Subscription Management
+	<!-- ========================================================
+	     PLATFORM SIDEBAR
+	========================================================= -->
+
+	<div th:replace="~{layout/platform-sidebar :: platformSidebar}">
+	</div>
+
+
+	<!-- ========================================================
+	     MAIN
+	========================================================= -->
+
+	<main class="
+			mr-main
+			subscription-current-page
+		">
+
+
+		<!-- ====================================================
+		     HERO
+		===================================================== -->
+
+		<section class="
+				subscription-current-hero
+			">
+
+
+			<div class="
+					subscription-current-hero-content
+				">
+
+
+				<span class="
+						subscription-current-kicker
+					">
+
+					<i class="
+							bi
+							bi-credit-card-fill
+						">
+					</i>
+
+					Platform Subscription Management
+
 				</span>
 
+
 				<h1>
+
 					Current
-					<span>subscription</span>
+
+					<span>
+						subscription
+					</span>
+
 				</h1>
 
+
 				<p>
-					View your active subscription, billing cycle and available plan benefits.
+
+					View your active platform subscription,
+					billing cycle, benefits and expiry status.
+
 				</p>
 
-				<div class="subscription-current-meta">
+
+				<div class="
+						subscription-current-meta
+					">
+
 
 					<span>
-						<i class="bi bi-shield-check"></i>
+
+						<i class="
+								bi
+								bi-shield-check
+							">
+						</i>
+
 						Plan status
+
 					</span>
 
+
 					<span>
-						<i class="bi bi-calendar-range-fill"></i>
+
+						<i class="
+								bi
+								bi-calendar-range-fill
+							">
+						</i>
+
 						Billing cycle
+
 					</span>
 
+
 					<span>
-						<i class="bi bi-stars"></i>
+
+						<i class="
+								bi
+								bi-stars
+							">
+						</i>
+
 						Premium benefits
+
 					</span>
 
 				</div>
 
 			</div>
 
-			<div class="subscription-current-hero-action">
 
-				<div class="subscription-current-hero-icon">
+			<div class="
+					subscription-current-hero-action
+				">
+
+
+				<div class="
+						subscription-current-hero-icon
+					">
+
 					<i class="bi bi-gem"></i>
+
 				</div>
 
-				<strong>Explore Subscription Plans</strong>
 
-				<a href="/subscription/plans" class="subscription-current-plans-button">
+				<strong>
 
-					<i class="bi bi-grid-fill"></i>
+					Manage Platform Plan
+
+				</strong>
+
+
+				<a href="/subscription/plans" class="
+						subscription-current-plans-button
+					">
+
+					<i class="
+							bi
+							bi-grid-fill
+						">
+					</i>
+
 					View Plans
+
 				</a>
 
 			</div>
 
 		</section>
 
+
+		<!-- ====================================================
+		     EXPIRY WARNING
+		===================================================== -->
+
+		<div id="subscriptionExpiryWarning" class="subscription-expiry-warning">
+		</div>
+
+
+		<!-- ====================================================
+		     MESSAGE
+		===================================================== -->
+
 		<div id="msg"></div>
 
-		<section class="subscription-current-summary-grid">
 
-			<article class="subscription-current-summary-card">
+		<!-- ====================================================
+		     SUMMARY
+		===================================================== -->
 
-				<div class="subscription-current-summary-icon">
-					<i class="bi bi-award-fill"></i>
+		<section class="
+				subscription-current-summary-grid
+			">
+
+
+			<article class="
+					subscription-current-summary-card
+				">
+
+
+				<div class="
+						subscription-current-summary-icon
+					">
+
+					<i class="
+							bi
+							bi-award-fill
+						">
+					</i>
+
 				</div>
 
-				<small>Current Plan</small>
-				<strong id="currentPlanSummary">-</strong>
+
+				<small>
+					Current Plan
+				</small>
+
+
+				<strong id="currentPlanSummary">
+					-
+				</strong>
 
 			</article>
 
-			<article class="subscription-current-summary-card">
 
-				<div class="subscription-current-summary-icon">
-					<i class="bi bi-check-circle-fill"></i>
+			<article class="
+					subscription-current-summary-card
+				">
+
+
+				<div class="
+						subscription-current-summary-icon
+					">
+
+					<i class="
+							bi
+							bi-check-circle-fill
+						">
+					</i>
+
 				</div>
 
-				<small>Subscription Status</small>
-				<strong id="subscriptionStatusSummary">-</strong>
+
+				<small>
+					Subscription Status
+				</small>
+
+
+				<strong id="subscriptionStatusSummary">
+					-
+				</strong>
 
 			</article>
 
-			<article class="subscription-current-summary-card">
 
-				<div class="subscription-current-summary-icon">
-					<i class="bi bi-arrow-repeat"></i>
+			<article class="
+					subscription-current-summary-card
+				">
+
+
+				<div class="
+						subscription-current-summary-icon
+					">
+
+					<i class="
+							bi
+							bi-arrow-repeat
+						">
+					</i>
+
 				</div>
 
-				<small>Billing Cycle</small>
-				<strong id="billingCycleSummary">-</strong>
+
+				<small>
+					Billing Cycle
+				</small>
+
+
+				<strong id="billingCycleSummary">
+					-
+				</strong>
 
 			</article>
 
-			<article class="subscription-current-summary-card">
 
-				<div class="subscription-current-summary-icon">
-					<i class="bi bi-calendar-check-fill"></i>
+			<article class="
+					subscription-current-summary-card
+				">
+
+
+				<div class="
+						subscription-current-summary-icon
+					">
+
+					<i class="
+							bi
+							bi-calendar-check-fill
+						">
+					</i>
+
 				</div>
 
-				<small>Valid Until</small>
-				<strong id="subscriptionEndDateSummary">-</strong>
+
+				<small>
+					Valid Until
+				</small>
+
+
+				<strong id="subscriptionEndDateSummary">
+					-
+				</strong>
 
 			</article>
 
 		</section>
 
+
+		<!-- ====================================================
+		     SUBSCRIPTION
+		===================================================== -->
+
 		<div id="subscriptionBox">
 
-			<div class="mr-card subscription-current-card">
 
-				<div class="subscription-current-state">
+			<div class="
+					mr-card
+					subscription-current-card
+				">
 
-					<div class="subscription-current-state-icon subscription-current-loading">
-						<i class="bi bi-credit-card-fill"></i>
+
+				<div class="
+						subscription-current-state
+					">
+
+
+					<div class="
+							subscription-current-state-icon
+							subscription-current-loading
+						">
+
+						<i class="
+								bi
+								bi-credit-card-fill
+							">
+						</i>
+
 					</div>
 
-					<h5 class="fw-bold text-primary">
+
+					<h5 class="
+							fw-bold
+							text-primary
+						">
+
 						Loading current subscription
+
 					</h5>
 
-					<p class="text-muted mb-0">
-						Please wait while we prepare your subscription details.
+
+					<p class="
+							text-muted
+							mb-0
+						">
+
+						Please wait while we prepare
+						your subscription details.
+
 					</p>
 
 				</div>
@@ -656,13 +1395,41 @@
 
 		</div>
 
-		<div th:replace="~{layout/footer :: footer}"></div>
+
+		<!-- ====================================================
+		     FOOTER
+		===================================================== -->
+
+		<div th:replace="~{layout/footer :: footer}">
+		</div>
 
 	</main>
 
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-	<script th:src="@{/js/common-dashboard.js}"></script>
-	<script th:src="@{/js/subscription-current.js}"></script>
+
+	<!-- ========================================================
+	     BOOTSTRAP JS
+	========================================================= -->
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+	</script>
+
+
+	<!-- ========================================================
+	     COMMON DASHBOARD
+	========================================================= -->
+
+	<script th:src="@{/js/common-dashboard.js}">
+	</script>
+
+	<script th:src="@{/js/module-switch.js?v=20260716_4}"></script>
+
+	<script th:src="@{/js/saas-auth-guard.js?v=20260716_4}"></script>
+	<!-- ========================================================
+	     PLATFORM CURRENT SUBSCRIPTION
+	========================================================= -->
+
+	<script th:src="@{/js/subscription-current.js}">
+	</script>
 
 </body>
 

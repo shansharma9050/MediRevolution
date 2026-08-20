@@ -11,4 +11,6 @@ public interface SaasIpdChargeRepository extends JpaRepository<SaasIpdCharge, Lo
             Long tenantId,
             Long admissionId
     );
+    
+    void deleteByTenantId(Long tenantId);
 }

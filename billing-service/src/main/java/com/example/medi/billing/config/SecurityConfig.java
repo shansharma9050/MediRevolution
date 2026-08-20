@@ -31,6 +31,7 @@ public class SecurityConfig {
                 		 .requestMatchers("/actuator/**").permitAll()
                          .requestMatchers("/billing/subscriptions/check/**").permitAll()
                          .requestMatchers("/billing/subscriptions/payment/success").permitAll()
+                         .requestMatchers("/billing/internal/**").permitAll()
                          .requestMatchers("/billing/subscriptions/**").authenticated()
                          .requestMatchers("/billing/subscriptions/payments/verify")
                          .hasAnyRole("WHOLESALER", "DOCTOR", "HOSPITAL")

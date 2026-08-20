@@ -76,4 +76,6 @@ public interface SaasExpiryActionRepository extends JpaRepository<SaasExpiryActi
 	Long sumQuantityByActionType(@Param("tenantId") Long tenantId,
 
 			@Param("actionType") SaasExpiryActionType actionType);
+	
+	void deleteByTenantId(Long tenantId);
 }

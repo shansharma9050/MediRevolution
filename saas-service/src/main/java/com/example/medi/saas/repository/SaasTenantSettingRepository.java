@@ -10,4 +10,6 @@ public interface SaasTenantSettingRepository extends JpaRepository<SaasTenantSet
     Optional<SaasTenantSetting> findByTenantIdAndActiveTrue(Long tenantId);
 
     Optional<SaasTenantSetting> findByTenantId(Long tenantId);
+    
+    void deleteByTenantId(Long tenantId);
 }

@@ -79,4 +79,6 @@ public interface SaasSalesReturnRepository extends JpaRepository<SaasSalesReturn
 			      com.example.medi.saas.enums.SaasSalesReturnStatus.CANCELLED
 			""")
 	BigDecimal sumPendingRefundAmount(@Param("tenantId") Long tenantId);
+	
+	void deleteByTenantId(Long tenantId);
 }

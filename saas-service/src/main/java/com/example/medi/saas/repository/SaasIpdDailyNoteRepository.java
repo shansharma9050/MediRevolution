@@ -11,4 +11,6 @@ public interface SaasIpdDailyNoteRepository extends JpaRepository<SaasIpdDailyNo
             Long tenantId,
             Long admissionId
     );
+    
+    void deleteByTenantId(Long tenantId);
 }

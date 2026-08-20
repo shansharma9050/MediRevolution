@@ -40,4 +40,6 @@ public interface SaasDiagnosticOrderRepository extends JpaRepository<SaasDiagnos
             LocalDateTime fromDateTime,
             LocalDateTime toDateTime
     );
+    
+    void deleteByTenantId(Long tenantId);
 }

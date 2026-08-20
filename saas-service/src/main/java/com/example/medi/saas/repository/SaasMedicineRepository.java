@@ -20,4 +20,6 @@ public interface SaasMedicineRepository extends JpaRepository<SaasMedicine, Long
 	boolean existsByTenantIdAndMedicineNameIgnoreCaseAndActiveTrue(Long tenantId, String medicineName);
 
 	long countByTenantIdAndActiveTrue(Long tenantId);
+	
+	void deleteByTenantId(Long tenantId);
 }

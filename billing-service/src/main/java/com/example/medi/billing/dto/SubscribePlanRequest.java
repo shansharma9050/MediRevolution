@@ -2,22 +2,33 @@ package com.example.medi.billing.dto;
 
 public class SubscribePlanRequest {
 
-    private String planCode;
-    private String billingCycle;
+	private Long tenantId;
 
-    public String getPlanCode() {
-        return planCode;
-    }
+	private String planCode;
 
-    public void setPlanCode(String planCode) {
-        this.planCode = planCode;
-    }
+	private String billingCycle;
 
-    public String getBillingCycle() {
-        return billingCycle;
-    }
+	public Long getTenantId() {
+		return tenantId;
+	}
 
-    public void setBillingCycle(String billingCycle) {
-        this.billingCycle = billingCycle;
-    }
+	public void setTenantId(Long tenantId) {
+		this.tenantId = tenantId;
+	}
+
+	public String getPlanCode() {
+		return planCode;
+	}
+
+	public void setPlanCode(String planCode) {
+		this.planCode = planCode;
+	}
+
+	public String getBillingCycle() {
+		return billingCycle;
+	}
+
+	public void setBillingCycle(String billingCycle) {
+		this.billingCycle = billingCycle;
+	}
 }

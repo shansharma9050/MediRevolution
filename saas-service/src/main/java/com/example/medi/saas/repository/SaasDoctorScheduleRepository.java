@@ -18,4 +18,6 @@ public interface SaasDoctorScheduleRepository extends JpaRepository<SaasDoctorSc
             java.time.DayOfWeek dayOfWeek,
             com.example.medi.saas.enums.DoctorAvailabilityStatus status
     );
+    
+    void deleteByTenantId(Long tenantId);
 }

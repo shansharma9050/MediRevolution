@@ -92,4 +92,6 @@ public interface SaasAppointmentRepository
             List<SaasAppointmentStatus> statuses,
             Long appointmentId
     );
+    
+    void deleteByTenantId(Long tenantId);
 }

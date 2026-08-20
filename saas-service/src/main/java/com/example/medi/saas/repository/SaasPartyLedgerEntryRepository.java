@@ -84,4 +84,6 @@ public interface SaasPartyLedgerEntryRepository extends JpaRepository<SaasPartyL
 	        Long tenantId,
 	        Long referenceId
 	);
+	
+	void deleteByTenantId(Long tenantId);
 }

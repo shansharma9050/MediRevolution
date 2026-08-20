@@ -170,4 +170,14 @@ public class SaasBusinessPageController {
 	public String doctorBilling() {
 	    return "doctor/saas-billing";
 	}
+	
+	@GetMapping("/saas/subscription/plans")
+	public String subscriptionPlansPage() {
+		return "saas-subscription-plans";
+	}
+
+	@GetMapping("/saas/subscription/current")
+	public String subscriptionCurrentPage() {
+		return "saas-subscription-current";
+	}
 }

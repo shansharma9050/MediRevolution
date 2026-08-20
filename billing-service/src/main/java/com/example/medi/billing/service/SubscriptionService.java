@@ -2,12 +2,14 @@ package com.example.medi.billing.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.example.medi.billing.dto.ActivateSubscriptionRequest;
 import com.example.medi.billing.dto.SubscribePlanRequest;
 import com.example.medi.billing.dto.SubscribePlanResponse;
 import com.example.medi.billing.dto.SubscriptionCheckResponse;
@@ -24,364 +26,893 @@ import com.example.medi.billing.repository.SubscriptionPaymentRepository;
 import com.example.medi.billing.repository.SubscriptionPlanRepository;
 import com.example.medi.billing.repository.UserSubscriptionRepository;
 import com.example.medi.billing.security.CurrentUserUtil;
+import com.example.medi.billing.security.SaasWorkspaceAuthorizationService;
 
 @Service
 public class SubscriptionService {
 
-    private final SubscriptionPlanRepository planRepository;
-    private final UserSubscriptionRepository subscriptionRepository;
-    private final SubscriptionPaymentRepository paymentRepository;
-    private final PhonePeSubscriptionService phonePeSubscriptionService;
+	private final SubscriptionPlanRepository planRepository;
+	private final UserSubscriptionRepository subscriptionRepository;
+	private final SubscriptionPaymentRepository paymentRepository;
+	private final PhonePeSubscriptionService phonePeSubscriptionService;
+	private final SaasWorkspaceAuthorizationService saasWorkspaceAuthorizationService;
 
-    public SubscriptionService(
-            SubscriptionPlanRepository planRepository,
-            UserSubscriptionRepository subscriptionRepository,
-            SubscriptionPaymentRepository paymentRepository,
-            PhonePeSubscriptionService phonePeSubscriptionService
-    ) {
-        this.planRepository = planRepository;
-        this.subscriptionRepository = subscriptionRepository;
-        this.paymentRepository = paymentRepository;
-        this.phonePeSubscriptionService = phonePeSubscriptionService;
-    }
+	public SubscriptionService(SubscriptionPlanRepository planRepository,
+			UserSubscriptionRepository subscriptionRepository, SubscriptionPaymentRepository paymentRepository,
+			PhonePeSubscriptionService phonePeSubscriptionService,
+			SaasWorkspaceAuthorizationService saasWorkspaceAuthorizationService) {
+		this.planRepository = planRepository;
+		this.subscriptionRepository = subscriptionRepository;
+		this.paymentRepository = paymentRepository;
+		this.phonePeSubscriptionService = phonePeSubscriptionService;
+		this.saasWorkspaceAuthorizationService = saasWorkspaceAuthorizationService;
+	}
 
-    public SubscriptionPlan createPlan(SubscriptionPlan plan) {
+	// ============================================================
+	// PLAN MANAGEMENT
+	// ============================================================
 
-        if (plan.getDurationDays() == null || plan.getDurationDays() <= 0) {
-            throw new RuntimeException("Plan duration days is required");
-        }
+	public SubscriptionPlan createPlan(SubscriptionPlan plan) {
 
-        if (plan.getActive() == null) {
-            plan.setActive(true);
-        }
+		if (plan == null) {
+			throw new RuntimeException("Subscription plan is required");
+		}
 
-        return planRepository.save(plan);
-    }
+		if (plan.getPlanName() == null || plan.getPlanName().isBlank()) {
 
-    public List<SubscriptionPlan> getAllActivePlans() {
-        return planRepository.findByActiveTrue();
-    }
+			throw new RuntimeException("Plan name is required");
+		}
 
-    public List<SubscriptionPlan> getPlansByRole(String role) {
+		if (plan.getPlanCode() == null || plan.getPlanCode().isBlank()) {
 
-        if (role == null || role.isBlank()) {
-            throw new RuntimeException("Role is required");
-        }
+			throw new RuntimeException("Plan code is required");
+		}
 
-        String cleanRole = role.trim().toUpperCase();
+		if (plan.getRole() == null) {
 
-        System.out.println("Loading subscription plans for role = " + cleanRole);
+			throw new RuntimeException("Plan role is required");
+		}
 
-        SubscriptionRole subscriptionRole;
+		if (plan.getMonthlyPrice() == null || plan.getMonthlyPrice().compareTo(BigDecimal.ZERO) <= 0) {
 
-        try {
-            subscriptionRole = SubscriptionRole.valueOf(cleanRole);
-        } catch (Exception e) {
-            throw new RuntimeException("Invalid subscription role: " + cleanRole);
-        }
-
-        return planRepository.findByRoleAndActiveTrue(subscriptionRole);
-    }
-
-    public UserSubscription activateSubscription(ActivateSubscriptionRequest request) {
+			throw new RuntimeException("Monthly price is required");
+		}
 
-        if (request.getAuthUserId() == null) {
-            throw new RuntimeException("authUserId is required");
-        }
+		if (plan.getYearlyPrice() == null || plan.getYearlyPrice().compareTo(BigDecimal.ZERO) <= 0) {
 
-        if (request.getRole() == null || request.getRole().isBlank()) {
-            throw new RuntimeException("role is required");
-        }
+			throw new RuntimeException("Yearly price is required");
+		}
 
-        if (request.getPlanId() == null) {
-            throw new RuntimeException("planId is required");
-        }
-
-        SubscriptionPlan plan = planRepository.findById(request.getPlanId())
-                .orElseThrow(() -> new RuntimeException("Plan not found"));
-
-        SubscriptionRole role = SubscriptionRole.valueOf(request.getRole().toUpperCase());
-
-        if (plan.getRole() != role) {
-            throw new RuntimeException("Selected plan does not belong to user role");
-        }
-
-        LocalDate startDate = LocalDate.now();
-        LocalDate endDate = startDate.plusDays(plan.getDurationDays());
-
-        UserSubscription subscription = new UserSubscription();
-        subscription.setAuthUserId(request.getAuthUserId());
-        subscription.setRole(role);
-        subscription.setPlan(plan);
-        subscription.setStartDate(startDate);
-        subscription.setEndDate(endDate);
-        subscription.setStatus(SubscriptionStatus.ACTIVE);
-
-        return subscriptionRepository.save(subscription);
-    }
-    
-    public SubscribePlanResponse subscribePlan(SubscribePlanRequest request) {
-
-        if (request.getPlanCode() == null || request.getPlanCode().isBlank()) {
-            throw new RuntimeException("Invalid plan selected");
-        }
-
-        if (request.getBillingCycle() == null || request.getBillingCycle().isBlank()) {
-            throw new RuntimeException("Billing cycle is required");
-        }
-
-        Long authUserId = CurrentUserUtil.getUserId();
-        String currentRole = CurrentUserUtil.getRole();
-
-        if (authUserId == null) {
-            throw new RuntimeException("User not found from token");
-        }
-
-        if (!"WHOLESALER".equals(currentRole)
-                && !"DOCTOR".equals(currentRole)
-                && !"HOSPITAL".equals(currentRole)) {
-            throw new RuntimeException("Subscription is available only for Wholesaler, Doctor and Hospital");
-        }
-
-        BillingCycle billingCycle = BillingCycle.valueOf(request.getBillingCycle().toUpperCase());
-
-        SubscriptionPlan plan = planRepository.findByPlanCodeAndActiveTrue(request.getPlanCode())
-                .orElseThrow(() -> new RuntimeException("Invalid plan selected"));
-
-        SubscriptionRole userRole = SubscriptionRole.valueOf(currentRole);
-
-        if (plan.getRole() != userRole) {
-            throw new RuntimeException("Selected plan does not belong to your role");
-        }
-
-        BigDecimal amount = plan.getPrice();
-
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            if (plan.getBillingCycle() == BillingCycle.YEARLY) {
-                amount = plan.getYearlyPrice();
-            } else {
-                amount = plan.getMonthlyPrice();
-            }
-        }
-
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new RuntimeException("Plan amount is not configured");
-        }
-
-        String merchantOrderId = "MR-SUB-" + UUID.randomUUID();
-
-        SubscriptionPayment payment = new SubscriptionPayment();
-        payment.setAuthUserId(authUserId);
-        payment.setUserRole(currentRole);
-        payment.setPlanId(plan.getId());
-        payment.setPlanCode(plan.getPlanCode());
-        payment.setAmount(amount);
-        payment.setBillingCycle(billingCycle);
-        payment.setMerchantOrderId(merchantOrderId);
-        payment.setPaymentStatus(SubscriptionPaymentStatus.INITIATED);
-        payment.setPaymentGateway(PaymentGateway.PHONEPE);
-
-        SubscriptionPayment savedPayment = paymentRepository.save(payment);
-
-        Long amountInPaise = amount.multiply(BigDecimal.valueOf(100)).longValue();
-
-        String redirectUrl = phonePeSubscriptionService.createCheckoutPayment(
-                merchantOrderId,
-                amountInPaise,
-                savedPayment.getId()
-        );
-
-        return new SubscribePlanResponse(
-                true,
-                "Subscription payment initiated",
-                savedPayment.getId(),
-                merchantOrderId,
-                redirectUrl
-        );
-    }
-    public SubscriptionCheckResponse checkSubscription(Long authUserId) {
-
-        return subscriptionRepository
-                .findTopByAuthUserIdAndStatusAndEndDateGreaterThanEqualOrderByEndDateDesc(
-                        authUserId,
-                        SubscriptionStatus.ACTIVE,
-                        LocalDate.now()
-                )
-                .map(subscription -> {
-
-                    SubscriptionPlan plan = subscription.getPlan();
-
-                    return new SubscriptionCheckResponse(
-                            true,
-                            subscription.getAuthUserId(),
-                            subscription.getRole().name(),
-                            plan.getId(),
-                            plan.getPlanName(),
-                            subscription.getStartDate(),
-                            subscription.getEndDate(),
-                            plan.getMaxMedicines(),
-                            plan.getMaxAppointments(),
-                            plan.getMaxStaff(),
-                            plan.getVideoConsultationAllowed()
-                    );
-                })
-                .orElseGet(() -> new SubscriptionCheckResponse(
-                        false,
-                        authUserId,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        null,
-                        false
-                ));
-    }
-
-    public UserSubscription getLatestSubscription(Long authUserId) {
-        return subscriptionRepository.findTopByAuthUserIdOrderByCreatedAtDesc(authUserId)
-                .orElseThrow(() -> new RuntimeException("No subscription found"));
-    }
-    
-    public SubscriptionPaymentVerifyResponse verifySubscriptionPayment(
-            Long paymentId,
-            String merchantOrderId
-    ) {
-        if (paymentId == null) {
-            throw new RuntimeException("paymentId is required");
-        }
-
-        if (merchantOrderId == null || merchantOrderId.isBlank()) {
-            throw new RuntimeException("merchantOrderId is required");
-        }
-
-        SubscriptionPayment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new RuntimeException("Subscription payment not found"));
-
-        if (!merchantOrderId.equals(payment.getMerchantOrderId())) {
-            throw new RuntimeException("Invalid merchant order id");
-        }
-
-        if (SubscriptionPaymentStatus.SUCCESS.equals(payment.getPaymentStatus())
-                && payment.getSubscriptionId() != null) {
-
-            UserSubscription existingSubscription = subscriptionRepository.findById(payment.getSubscriptionId())
-                    .orElseThrow(() -> new RuntimeException("Subscription not found"));
-
-            SubscriptionPlan existingPlan = existingSubscription.getPlan();
-
-            return new SubscriptionPaymentVerifyResponse(
-                    true,
-                    "Subscription already activated",
-                    existingSubscription.getId(),
-                    payment.getId(),
-                    payment.getMerchantOrderId(),
-                    existingPlan.getPlanCode(),
-                    existingPlan.getPlanName(),
-                    existingSubscription.getStartDate(),
-                    existingSubscription.getEndDate()
-            );
-        }
-
-        String phonePeStatus = phonePeSubscriptionService.checkPaymentStatus(merchantOrderId);
-
-        System.out.println("PhonePe subscription payment status = " + phonePeStatus);
-
-        if (!isPhonePePaymentSuccess(phonePeStatus)) {
-            payment.setPaymentStatus(SubscriptionPaymentStatus.FAILED);
-            payment.touch();
-            paymentRepository.save(payment);
-
-            return new SubscriptionPaymentVerifyResponse(
-                    false,
-                    "Payment not successful. Current status: " + phonePeStatus,
-                    null,
-                    payment.getId(),
-                    payment.getMerchantOrderId(),
-                    payment.getPlanCode(),
-                    null,
-                    null,
-                    null
-            );
-        }
-
-        SubscriptionPlan plan = planRepository.findById(payment.getPlanId())
-                .orElseThrow(() -> new RuntimeException("Subscription plan not found"));
-
-        LocalDate startDate = LocalDate.now();
-
-        Integer durationDays = plan.getDurationDays();
-
-        if (durationDays == null || durationDays <= 0) {
-            durationDays = plan.getBillingCycle() == BillingCycle.YEARLY ? 365 : 30;
-        }
-
-        LocalDate endDate = startDate.plusDays(durationDays);
-
-        subscriptionRepository
-                .findTopByAuthUserIdAndStatusAndEndDateGreaterThanEqualOrderByEndDateDesc(
-                        payment.getAuthUserId(),
-                        SubscriptionStatus.ACTIVE,
-                        LocalDate.now()
-                )
-                .ifPresent(oldSubscription -> {
-                    oldSubscription.setStatus(SubscriptionStatus.CANCELLED);
-                    subscriptionRepository.save(oldSubscription);
-                });
-
-        UserSubscription subscription = new UserSubscription();
-        subscription.setAuthUserId(payment.getAuthUserId());
-        subscription.setRole(SubscriptionRole.valueOf(payment.getUserRole()));
-        subscription.setPlan(plan);
-        subscription.setStartDate(startDate);
-        subscription.setEndDate(endDate);
-        subscription.setStatus(SubscriptionStatus.ACTIVE);
-        subscription.setPaymentOrderId(payment.getMerchantOrderId());
-        subscription.setPaymentTransactionId(payment.getTransactionId());
-
-        UserSubscription savedSubscription = subscriptionRepository.save(subscription);
-
-        payment.setSubscriptionId(savedSubscription.getId());
-        payment.setPaymentStatus(SubscriptionPaymentStatus.SUCCESS);
-        payment.touch();
-        paymentRepository.save(payment);
-
-        return new SubscriptionPaymentVerifyResponse(
-                true,
-                "Subscription activated successfully",
-                savedSubscription.getId(),
-                payment.getId(),
-                payment.getMerchantOrderId(),
-                plan.getPlanCode(),
-                plan.getPlanName(),
-                savedSubscription.getStartDate(),
-                savedSubscription.getEndDate()
-        );
-    }
-
-    private boolean isPhonePePaymentSuccess(String status) {
-        if (status == null) {
-            return false;
-        }
-
-        String normalized = status.trim().toUpperCase();
-
-        return normalized.equals("COMPLETED")
-                || normalized.equals("SUCCESS")
-                || normalized.equals("PAYMENT_SUCCESS")
-                || normalized.equals("PAID");
-    }
-    
-    public UserSubscription getCurrentActiveSubscription(Long authUserId) {
-
-        return subscriptionRepository
-                .findTopByAuthUserIdAndStatusAndEndDateGreaterThanEqualOrderByEndDateDesc(
-                        authUserId,
-                        SubscriptionStatus.ACTIVE,
-                        LocalDate.now()
-                )
-                .orElseThrow(() -> new RuntimeException("No active subscription found."));
-    }
+		if (plan.getActive() == null) {
+			plan.setActive(true);
+		}
+
+		return planRepository.save(plan);
+	}
+
+	public List<SubscriptionPlan> getAllActivePlans() {
+
+		return planRepository.findByActiveTrue();
+	}
+
+	public List<SubscriptionPlan> getPlansByRole(String role) {
+
+		if (role == null || role.isBlank()) {
+
+			throw new RuntimeException("Role is required");
+		}
+
+		try {
+
+			SubscriptionRole subscriptionRole = SubscriptionRole.valueOf(role.trim().toUpperCase());
+
+			return planRepository.findByRoleAndActiveTrue(subscriptionRole);
+
+		} catch (IllegalArgumentException e) {
+
+			throw new RuntimeException("Invalid subscription role: " + role);
+		}
+	}
+
+	// ============================================================
+	// START PAYMENT
+	// ============================================================
+
+	public SubscribePlanResponse subscribePlan(SubscribePlanRequest request) {
+
+		if (request == null) {
+
+			throw new RuntimeException("Subscription request is required");
+		}
+
+		if (request.getPlanCode() == null || request.getPlanCode().isBlank()) {
+
+			throw new RuntimeException("Plan code is required");
+		}
+
+		if (request.getBillingCycle() == null || request.getBillingCycle().isBlank()) {
+
+			throw new RuntimeException("Billing cycle is required");
+		}
+
+		Long authUserId = CurrentUserUtil.getUserId();
+
+		String currentRole = CurrentUserUtil.getRole();
+
+		if (authUserId == null) {
+
+			throw new RuntimeException("User not found from token");
+		}
+
+		if (currentRole == null || currentRole.isBlank()) {
+
+			throw new RuntimeException("User role not found from token");
+		}
+
+		currentRole = currentRole.trim().toUpperCase();
+
+		// --------------------------------------------------------
+		// TENANT
+		// --------------------------------------------------------
+
+		Long tenantId = normalizeTenantId(request.getTenantId());
+
+		/*
+		 * tenantId == null → Main Platform subscription
+		 *
+		 * tenantId != null → SaaS workspace subscription
+		 */
+		if (tenantId != null) {
+
+			validateSaasWorkspaceAccess(authUserId, tenantId);
+		}
+
+		// --------------------------------------------------------
+		// ROLE
+		// --------------------------------------------------------
+
+		SubscriptionRole userRole;
+
+		try {
+
+			userRole = SubscriptionRole.valueOf(currentRole);
+
+		} catch (IllegalArgumentException e) {
+
+			throw new RuntimeException("Invalid subscription role: " + currentRole);
+		}
+
+		// --------------------------------------------------------
+		// BILLING CYCLE
+		// --------------------------------------------------------
+
+		BillingCycle billingCycle;
+
+		try {
+
+			billingCycle = BillingCycle.valueOf(request.getBillingCycle().trim().toUpperCase());
+
+		} catch (IllegalArgumentException e) {
+
+			throw new RuntimeException("Invalid billing cycle. " + "Allowed values: MONTHLY, YEARLY");
+		}
+
+		// --------------------------------------------------------
+		// PLAN
+		// --------------------------------------------------------
+
+		SubscriptionPlan plan = planRepository.findByPlanCodeAndActiveTrue(request.getPlanCode().trim())
+				.orElseThrow(() -> new RuntimeException("Invalid or inactive subscription plan"));
+
+		if (plan.getRole() != userRole) {
+
+			throw new RuntimeException("Selected plan does not belong to your role");
+		}
+
+		// --------------------------------------------------------
+		// PRICE
+		// --------------------------------------------------------
+
+		BigDecimal amount;
+
+		if (billingCycle == BillingCycle.MONTHLY) {
+
+			amount = plan.getMonthlyPrice();
+
+		} else {
+
+			amount = plan.getYearlyPrice();
+		}
+
+		if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+
+			throw new RuntimeException("Price is not configured for selected billing cycle");
+		}
+
+		// --------------------------------------------------------
+		// ORDER
+		// --------------------------------------------------------
+
+		String merchantOrderId = "MR-SUB-" + UUID.randomUUID();
+
+		// --------------------------------------------------------
+		// PAYMENT
+		// --------------------------------------------------------
+
+		SubscriptionPayment payment = new SubscriptionPayment();
+
+		payment.setAuthUserId(authUserId);
+
+		payment.setUserRole(currentRole);
+
+		payment.setPlanId(plan.getId());
+
+		payment.setTenantId(tenantId);
+
+		payment.setPlanCode(plan.getPlanCode());
+
+		payment.setAmount(amount);
+
+		payment.setBillingCycle(billingCycle);
+
+		payment.setMerchantOrderId(merchantOrderId);
+
+		payment.setPaymentStatus(SubscriptionPaymentStatus.INITIATED);
+
+		payment.setPaymentGateway(PaymentGateway.PHONEPE);
+
+		SubscriptionPayment savedPayment = paymentRepository.save(payment);
+
+		// --------------------------------------------------------
+		// RUPEES → PAISE
+		// --------------------------------------------------------
+
+		long amountInPaise = amount.movePointRight(2).longValueExact();
+
+		// --------------------------------------------------------
+		// PHONEPE
+		// --------------------------------------------------------
+
+		String redirectUrl = phonePeSubscriptionService.createCheckoutPayment(merchantOrderId, amountInPaise,
+				savedPayment.getId());
+
+		return new SubscribePlanResponse(true, "Subscription payment initiated", savedPayment.getId(), merchantOrderId,
+				redirectUrl);
+	}
+
+	// ============================================================
+	// CURRENT SUBSCRIPTION
+	// ============================================================
+
+	public UserSubscription findCurrentActiveSubscription(Long authUserId) {
+
+		return findCurrentActiveSubscription(authUserId, null);
+	}
+
+	public UserSubscription findCurrentActiveSubscription(Long authUserId, Long tenantId) {
+
+		if (authUserId == null) {
+
+			throw new RuntimeException("User ID is required");
+		}
+
+		tenantId = normalizeTenantId(tenantId);
+
+		return subscriptionRepository
+				.findCurrentActiveSubscription(authUserId, tenantId, SubscriptionStatus.ACTIVE, LocalDate.now())
+				.orElse(null);
+	}
+
+	public UserSubscription getCurrentActiveSubscription(Long authUserId) {
+
+		return getCurrentActiveSubscription(authUserId, null);
+	}
+
+	public UserSubscription getCurrentActiveSubscription(Long authUserId, Long tenantId) {
+
+		tenantId = normalizeTenantId(tenantId);
+
+		if (tenantId != null) {
+
+			validateSaasWorkspaceAccess(authUserId, tenantId);
+		}
+
+		UserSubscription subscription = findCurrentActiveSubscription(authUserId, tenantId);
+
+		if (subscription == null) {
+
+			throw new RuntimeException("No active subscription found.");
+		}
+
+		return subscription;
+	}
+
+	// ============================================================
+	// CHECK SUBSCRIPTION
+	// ============================================================
+
+	public SubscriptionCheckResponse checkSubscription(Long authUserId) {
+
+		return checkSubscription(authUserId, null);
+	}
+
+	public SubscriptionCheckResponse checkSubscription(Long authUserId, Long tenantId) {
+
+		tenantId = normalizeTenantId(tenantId);
+
+		if (tenantId != null) {
+
+			validateSaasWorkspaceAccess(authUserId, tenantId);
+		}
+
+		UserSubscription subscription = findCurrentActiveSubscription(authUserId, tenantId);
+
+		if (subscription == null) {
+
+			return new SubscriptionCheckResponse(false, authUserId, null, null, null, null, null, null, null, null,
+					false);
+		}
+
+		SubscriptionPlan plan = subscription.getPlan();
+
+		return new SubscriptionCheckResponse(
+
+				true,
+
+				subscription.getAuthUserId(),
+
+				subscription.getRole() != null ? subscription.getRole().name() : null,
+
+				plan != null ? plan.getId() : null,
+
+				plan != null ? plan.getPlanName() : null,
+
+				subscription.getStartDate(),
+
+				subscription.getEndDate(),
+
+				plan != null ? plan.getMaxMedicines() : null,
+
+				plan != null ? plan.getMaxAppointments() : null,
+
+				plan != null ? plan.getMaxStaff() : null,
+
+				plan != null && Boolean.TRUE.equals(plan.getVideoConsultationAllowed()));
+	}
+
+	// ============================================================
+	// LATEST SUBSCRIPTION
+	// ============================================================
+
+	public UserSubscription getLatestSubscription(Long authUserId) {
+
+		return getLatestSubscription(authUserId, null);
+	}
+
+	public UserSubscription getLatestSubscription(Long authUserId, Long tenantId) {
+
+		tenantId = normalizeTenantId(tenantId);
+
+		if (tenantId != null) {
+
+			validateSaasWorkspaceAccess(authUserId, tenantId);
+		}
+
+		return subscriptionRepository.findLatestSubscription(authUserId, tenantId)
+				.orElseThrow(() -> new RuntimeException("No subscription found"));
+	}
+
+	// ============================================================
+	// PAYMENT VERIFICATION
+	// ============================================================
+
+	@Transactional
+	public SubscriptionPaymentVerifyResponse verifySubscriptionPayment(Long paymentId, String merchantOrderId) {
+
+		if (paymentId == null) {
+
+			throw new RuntimeException("paymentId is required");
+		}
+
+		if (merchantOrderId == null || merchantOrderId.isBlank()) {
+
+			throw new RuntimeException("merchantOrderId is required");
+		}
+
+		Long authUserId = CurrentUserUtil.getUserId();
+
+		if (authUserId == null) {
+
+			throw new RuntimeException("User not found from token");
+		}
+
+		// --------------------------------------------------------
+		// PAYMENT LOCK
+		// --------------------------------------------------------
+
+		SubscriptionPayment payment = paymentRepository.findByMerchantOrderIdForUpdate(merchantOrderId)
+				.orElseThrow(() -> new RuntimeException("Subscription payment not found"));
+
+		// --------------------------------------------------------
+		// PAYMENT ID
+		// --------------------------------------------------------
+
+		if (!paymentId.equals(payment.getId())) {
+
+			throw new RuntimeException("Invalid payment id");
+		}
+
+		// --------------------------------------------------------
+		// OWNERSHIP
+		// --------------------------------------------------------
+
+		if (!authUserId.equals(payment.getAuthUserId())) {
+
+			throw new RuntimeException("You are not authorized to verify this payment");
+		}
+
+		// --------------------------------------------------------
+		// TENANT
+		// --------------------------------------------------------
+
+		Long tenantId = normalizeTenantId(payment.getTenantId());
+
+		/*
+		 * NEVER take tenantId from the verification request.
+		 *
+		 * Payment record is the source of truth.
+		 */
+		if (tenantId != null) {
+
+			validateSaasWorkspaceAccess(authUserId, tenantId);
+		}
+
+		// --------------------------------------------------------
+		// IDEMPOTENCY
+		// --------------------------------------------------------
+
+		if (SubscriptionPaymentStatus.SUCCESS.equals(payment.getPaymentStatus())) {
+
+			if (payment.getSubscriptionId() == null) {
+
+				throw new RuntimeException("Payment is successful but subscription is missing");
+			}
+
+			UserSubscription existingSubscription = subscriptionRepository.findById(payment.getSubscriptionId())
+					.orElseThrow(() -> new RuntimeException("Subscription not found"));
+
+			SubscriptionPlan existingPlan = existingSubscription.getPlan();
+
+			return new SubscriptionPaymentVerifyResponse(
+
+					true,
+
+					"Subscription already activated",
+
+					existingSubscription.getId(),
+
+					payment.getId(),
+
+					payment.getMerchantOrderId(),
+
+					existingPlan.getPlanCode(),
+
+					existingPlan.getPlanName(),
+
+					existingSubscription.getStartDate(),
+
+					existingSubscription.getEndDate());
+		}
+
+		// --------------------------------------------------------
+		// PHONEPE
+		// --------------------------------------------------------
+
+		PhonePePaymentStatus phonePePaymentStatus = phonePeSubscriptionService.checkPaymentStatus(merchantOrderId);
+
+		String phonePeState = phonePePaymentStatus != null
+				? phonePePaymentStatus.getState()
+				: null;
+
+		String phonePeTransactionId = phonePePaymentStatus != null
+				? phonePePaymentStatus.getTransactionId()
+				: null;
+
+		String normalizedState = phonePeState == null
+				? "UNKNOWN"
+				: phonePeState.trim().toUpperCase();
+
+		// --------------------------------------------------------
+		// PAYMENT NOT SUCCESSFUL
+		// --------------------------------------------------------
+
+		if (!isPhonePePaymentSuccess(normalizedState)) {
+
+			// PENDING
+			if (isPhonePePaymentPending(normalizedState)) {
+
+				payment.setPaymentStatus(SubscriptionPaymentStatus.INITIATED);
+
+				if (phonePeTransactionId != null && !phonePeTransactionId.isBlank()) {
+
+					payment.setTransactionId(phonePeTransactionId);
+				}
+
+				payment.touch();
+
+				paymentRepository.save(payment);
+
+				return new SubscriptionPaymentVerifyResponse(
+
+						false,
+
+						"Payment is still pending. Current status: " + normalizedState,
+
+						null,
+
+						payment.getId(),
+
+						payment.getMerchantOrderId(),
+
+						payment.getPlanCode(),
+
+						null,
+
+						null,
+
+						null);
+			}
+
+			// FAILED
+			payment.setPaymentStatus(SubscriptionPaymentStatus.FAILED);
+
+			if (phonePeTransactionId != null && !phonePeTransactionId.isBlank()) {
+
+				payment.setTransactionId(phonePeTransactionId);
+			}
+
+			payment.touch();
+
+			paymentRepository.save(payment);
+
+			
+
+			return new SubscriptionPaymentVerifyResponse(
+
+					false,
+
+					"Payment not successful. Current status: " + normalizedState,
+
+					null,
+
+					payment.getId(),
+
+					payment.getMerchantOrderId(),
+
+					payment.getPlanCode(),
+
+					null,
+
+					null,
+
+					null);
+		}
+
+		// ========================================================
+		// PAYMENT SUCCESS → SUBSCRIPTION
+		// ========================================================
+
+		SubscriptionPlan plan = planRepository.findById(payment.getPlanId())
+				.orElseThrow(() -> new RuntimeException("Subscription plan not found"));
+
+		// --------------------------------------------------------
+		// ROLE
+		// --------------------------------------------------------
+
+		SubscriptionRole paymentRole;
+
+		try {
+
+			paymentRole = SubscriptionRole.valueOf(payment.getUserRole().trim().toUpperCase());
+
+		} catch (IllegalArgumentException e) {
+
+			throw new RuntimeException("Invalid subscription role in payment");
+		}
+
+		if (plan.getRole() != paymentRole) {
+
+			throw new RuntimeException("Subscription plan does not belong to payment role");
+		}
+
+		// --------------------------------------------------------
+		// DURATION
+		// --------------------------------------------------------
+
+		int durationDays = getSubscriptionDurationDays(payment.getBillingCycle());
+
+		// --------------------------------------------------------
+		// LATEST ACTIVE / SCHEDULED
+		// --------------------------------------------------------
+
+		LocalDate today = LocalDate.now();
+
+		UserSubscription latestSubscription = subscriptionRepository
+				.findLatestActiveOrScheduledForUpdate(authUserId, tenantId, SubscriptionStatus.ACTIVE, today)
+				.orElse(null);
+
+		// --------------------------------------------------------
+		// START DATE
+		// --------------------------------------------------------
+
+		LocalDate startDate;
+
+		if (latestSubscription == null) {
+
+			startDate = today;
+
+		} else {
+
+			startDate = latestSubscription.getEndDate().plusDays(1);
+		}
+
+		/*
+		 * 30 days means:
+		 *
+		 * 01 Aug -> 30 Aug
+		 *
+		 * 365 days means:
+		 *
+		 * 01 Jan -> 31 Dec
+		 */
+		LocalDate endDate = startDate.plusDays(durationDays - 1L);
+
+		// --------------------------------------------------------
+		// CREATE SUBSCRIPTION
+		// --------------------------------------------------------
+
+		UserSubscription subscription = new UserSubscription();
+
+		subscription.setAuthUserId(authUserId);
+
+		subscription.setTenantId(tenantId);
+
+		subscription.setRole(paymentRole);
+
+		subscription.setPlan(plan);
+
+		subscription.setBillingCycle(payment.getBillingCycle());
+
+		subscription.setStartDate(startDate);
+
+		subscription.setEndDate(endDate);
+
+		subscription.setStatus(SubscriptionStatus.ACTIVE);
+
+		subscription.setPaymentOrderId(payment.getMerchantOrderId());
+
+		subscription.setPaymentTransactionId(phonePeTransactionId);
+
+		subscription.setCancellationRequested(false);
+
+		subscription.setCancelledAt(null);
+
+		UserSubscription savedSubscription = subscriptionRepository.save(subscription);
+
+		
+		if (tenantId != null) {
+
+			saasWorkspaceAuthorizationService.activateWorkspace(tenantId, authUserId);
+		}
+
+		// --------------------------------------------------------
+		// PAYMENT SUCCESS
+		// --------------------------------------------------------
+
+		payment.setSubscriptionId(savedSubscription.getId());
+
+		payment.setPaymentStatus(SubscriptionPaymentStatus.SUCCESS);
+
+		if (phonePeTransactionId != null && !phonePeTransactionId.isBlank()) {
+
+			payment.setTransactionId(phonePeTransactionId);
+		}
+
+		payment.touch();
+
+		paymentRepository.save(payment);
+
+		// --------------------------------------------------------
+		// RESPONSE
+		// --------------------------------------------------------
+
+		String message = latestSubscription == null ? "Subscription activated successfully"
+				: "Subscription renewal scheduled successfully";
+
+		return new SubscriptionPaymentVerifyResponse(
+
+				true,
+
+				message,
+
+				savedSubscription.getId(),
+
+				payment.getId(),
+
+				payment.getMerchantOrderId(),
+
+				plan.getPlanCode(),
+
+				plan.getPlanName(),
+
+				savedSubscription.getStartDate(),
+
+				savedSubscription.getEndDate());
+	}
+
+	// ============================================================
+	// CANCEL
+	// ============================================================
+
+	@Transactional
+	public UserSubscription cancelCurrentSubscription(Long authUserId) {
+
+		return cancelCurrentSubscription(authUserId, null);
+	}
+
+	@Transactional
+	public UserSubscription cancelCurrentSubscription(Long authUserId, Long tenantId) {
+
+		if (authUserId == null) {
+
+			throw new RuntimeException("User not found");
+		}
+
+		tenantId = normalizeTenantId(tenantId);
+
+		if (tenantId != null) {
+
+			validateSaasWorkspaceAccess(authUserId, tenantId);
+		}
+
+		LocalDate today = LocalDate.now();
+
+		UserSubscription subscription = subscriptionRepository
+				.findCurrentActiveSubscriptionForUpdate(authUserId, tenantId, SubscriptionStatus.ACTIVE, today)
+				.orElseThrow(() -> new RuntimeException("No active subscription found."));
+
+		if (Boolean.TRUE.equals(subscription.getCancellationRequested())) {
+
+			return subscription;
+		}
+
+		/*
+		 * Cancellation means:
+		 *
+		 * Current paid period remains active. We only mark cancellationRequested.
+		 */
+		subscription.setCancellationRequested(true);
+
+		subscription.setCancelledAt(LocalDateTime.now());
+
+		subscription.setStatus(SubscriptionStatus.ACTIVE);
+
+		return subscriptionRepository.save(subscription);
+	}
+
+	// ============================================================
+	// EXPIRY
+	// ============================================================
+
+	@Scheduled(cron = "0 5 0 * * *", zone = "Asia/Kolkata")
+	@Transactional
+	public void scheduledSubscriptionExpiry() {
+
+		expireOldSubscriptions();
+	}
+
+	@Transactional
+	public int expireOldSubscriptions() {
+
+		LocalDate today = LocalDate.now();
+
+		List<UserSubscription> expiredSubscriptions = subscriptionRepository
+				.findExpiredActiveSubscriptions(SubscriptionStatus.ACTIVE, today);
+
+		int updated = 0;
+
+		for (UserSubscription subscription : expiredSubscriptions) {
+
+			subscription.setStatus(SubscriptionStatus.EXPIRED);
+
+			updated++;
+
+			/*
+			 * SaaS workspace suspension.
+			 */
+			if (subscription.getTenantId() != null) {
+
+				saasWorkspaceAuthorizationService.suspendWorkspace(subscription.getTenantId());
+			}
+		}
+
+		if (updated > 0) {
+
+			subscriptionRepository.saveAll(expiredSubscriptions);
+
+			System.out.println("Expired subscriptions updated: " + updated);
+		}
+
+		return updated;
+	}
+
+	// ============================================================
+	// SAAS AUTHORIZATION
+	// ============================================================
+
+	private void validateSaasWorkspaceAccess(Long authUserId, Long tenantId) {
+
+		if (tenantId == null) {
+			return;
+		}
+
+		saasWorkspaceAuthorizationService.validateWorkspaceAccess(tenantId, authUserId);
+
+	}
+
+	// ============================================================
+	// HELPERS
+	// ============================================================
+
+	private Long normalizeTenantId(Long tenantId) {
+
+		if (tenantId == null || tenantId <= 0) {
+
+			return null;
+		}
+
+		return tenantId;
+	}
+
+	private int getSubscriptionDurationDays(BillingCycle billingCycle) {
+
+		if (billingCycle == BillingCycle.MONTHLY) {
+
+			return 30;
+		}
+
+		if (billingCycle == BillingCycle.YEARLY) {
+
+			return 365;
+		}
+
+		throw new RuntimeException("Unsupported billing cycle");
+	}
+
+	private boolean isPhonePePaymentSuccess(String status) {
+
+		if (status == null) {
+			return false;
+		}
+
+		String normalized = status.trim().toUpperCase();
+
+		return normalized.equals("COMPLETED")
+				|| normalized.equals("SUCCESS")
+				|| normalized.equals("PAYMENT_SUCCESS")
+				|| normalized.equals("PAID")
+				|| normalized.equals("SUCCESSFUL");
+	}
+
+	private boolean isPhonePePaymentPending(String status) {
+
+		if (status == null) {
+			return true;
+		}
+
+		String normalized = status.trim().toUpperCase();
+
+		return normalized.equals("PENDING") || normalized.equals("INITIATED") || normalized.equals("PROCESSING")
+				|| normalized.equals("IN_PROGRESS") || normalized.equals("PENDING_PAYMENT");
+	}
 }

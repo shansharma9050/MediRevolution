@@ -41,4 +41,11 @@ public interface SaasTenantMemberPermissionRepository extends JpaRepository<Saas
             Long tenantId,
             Long authUserId
     );
+    
+    @Modifying
+    @Query("""
+            delete from SaasTenantMemberPermission p
+            where p.tenantId = :tenantId
+            """)
+    void deleteByTenantId(Long tenantId);
 }

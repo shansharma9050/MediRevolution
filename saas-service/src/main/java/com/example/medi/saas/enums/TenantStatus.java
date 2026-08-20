@@ -1,7 +1,9 @@
 package com.example.medi.saas.enums;
 
 public enum TenantStatus {
+
+    PENDING,
     ACTIVE,
-    INACTIVE,
-    SUSPENDED
+    SUSPENDED,
+    INACTIVE
 }

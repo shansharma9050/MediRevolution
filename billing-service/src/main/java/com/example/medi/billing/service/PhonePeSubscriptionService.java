@@ -1,11 +1,14 @@
 package com.example.medi.billing.service;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -16,201 +19,425 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Service
 public class PhonePeSubscriptionService {
 
-    private final RestTemplate restTemplate;
+	private final RestTemplate restTemplate;
 
-    @Value("${phonepe.base-url}")
-    private String baseUrl;
+	@Value("${phonepe.base-url}")
+	private String baseUrl;
 
-    @Value("${phonepe.client-id}")
-    private String clientId;
+	@Value("${phonepe.client-id}")
+	private String clientId;
 
-    @Value("${phonepe.client-secret}")
-    private String clientSecret;
+	@Value("${phonepe.client-secret}")
+	private String clientSecret;
 
-    @Value("${phonepe.client-version}")
-    private String clientVersion;
+	@Value("${phonepe.client-version}")
+	private String clientVersion;
 
-    /*
-     * Subscription payment success page.
-     * Keep this separate from doctor appointment payment success page.
-     */
-    @Value("${app.payment.redirect-url}")
-    private String redirectUrl;
+	@Value("${app.payment.redirect-url}")
+	private String redirectUrl;
 
-    public PhonePeSubscriptionService(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
-    }
+	public PhonePeSubscriptionService(RestTemplate restTemplate) {
+		this.restTemplate = restTemplate;
+	}
 
-    public String getAccessToken() {
+	/*
+	 * ============================================================ 1. GET PHONEPE
+	 * ACCESS TOKEN ============================================================
+	 */
 
-        String url = baseUrl + "/v1/oauth/token";
+	public String getAccessToken() {
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+		String url = baseUrl + "/v1/oauth/token";
 
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("client_id", clientId);
-        body.add("client_version", clientVersion);
-        body.add("client_secret", clientSecret);
-        body.add("grant_type", "client_credentials");
+		HttpHeaders headers = new HttpHeaders();
 
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        try {
-            ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+		headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 
-            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                throw new RuntimeException("Unable to get PhonePe access token");
-            }
+		MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
 
-            Object accessToken = response.getBody().get("access_token");
+		body.add("client_id", clientId);
+		body.add("client_version", clientVersion);
+		body.add("client_secret", clientSecret);
+		body.add("grant_type", "client_credentials");
 
-            if (accessToken == null) {
-                throw new RuntimeException("PhonePe access_token not found");
-            }
+		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 
-            return accessToken.toString();
+		try {
 
-        } catch (HttpClientErrorException e) {
-            System.out.println("PhonePe OAuth Status: " + e.getStatusCode());
-            System.out.println("PhonePe OAuth Response: " + e.getResponseBodyAsString());
+			ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
 
-            throw new RuntimeException(
-                    "PhonePe OAuth failed. Please check client_id, client_secret, client_version and sandbox URL."
-            );
-        }
-    }
+			if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
 
-    public String createCheckoutPayment(
-            String merchantOrderId,
-            Long amountInPaise,
-            Long paymentId
-    ) {
+				throw new RuntimeException("Unable to get PhonePe access token");
+			}
 
-        String token = getAccessToken();
+			Object accessToken = response.getBody().get("access_token");
 
-        String url = baseUrl + "/checkout/v2/pay";
+			if (accessToken == null || accessToken.toString().isBlank()) {
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+				throw new RuntimeException("PhonePe access_token not found");
+			}
 
-        /*
-         * Important:
-         * PhonePe checkout v2 needs O-Bearer, not normal Bearer.
-         */
-        headers.set("Authorization", "O-Bearer " + token);
+			return accessToken.toString();
 
-        String finalRedirectUrl = UriComponentsBuilder.fromUriString(redirectUrl)
-                .queryParam("paymentFor", "SUBSCRIPTION")
-                .queryParam("paymentId", paymentId)
-                .queryParam("merchantOrderId", merchantOrderId)
-                .toUriString();
+		} catch (HttpClientErrorException e) {
 
-        Map<String, Object> paymentFlow = new HashMap<>();
-        paymentFlow.put("type", "PG_CHECKOUT");
-        paymentFlow.put("merchantUrls", Map.of(
-                "redirectUrl", finalRedirectUrl
-        ));
+			System.out.println("PhonePe OAuth Status: " + e.getStatusCode());
 
-        Map<String, Object> body = new HashMap<>();
-        body.put("merchantOrderId", merchantOrderId);
-        body.put("amount", amountInPaise);
-        body.put("expireAfter", 1200);
-        body.put("paymentFlow", paymentFlow);
+			System.out.println("PhonePe OAuth Response: " + e.getResponseBodyAsString());
 
-        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+			throw new RuntimeException("PhonePe OAuth failed");
+		}
+	}
 
-        try {
-            ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+	/*
+	 * ============================================================ 2. CREATE
+	 * PHONEPE CHECKOUT PAYMENT
+	 * ============================================================
+	 */
 
-            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                throw new RuntimeException("Unable to create PhonePe subscription payment");
-            }
+	public String createCheckoutPayment(String merchantOrderId, long amountInPaise, Long paymentId) {
 
-            Map responseBody = response.getBody();
+		if (merchantOrderId == null || merchantOrderId.isBlank()) {
 
-            Object redirectUrlObj = responseBody.get("redirectUrl");
+			throw new RuntimeException("Merchant order id is required");
+		}
 
-            if (redirectUrlObj == null && responseBody.get("data") instanceof Map data) {
-                redirectUrlObj = data.get("redirectUrl");
-            }
+		if (amountInPaise <= 0) {
 
-            if (redirectUrlObj == null && responseBody.get("redirectInfo") instanceof Map redirectInfo) {
-                redirectUrlObj = redirectInfo.get("url");
-            }
+			throw new RuntimeException("Payment amount must be greater than zero");
+		}
 
-            if (redirectUrlObj == null) {
-                System.out.println("PhonePe Pay Response: " + responseBody);
-                throw new RuntimeException("PhonePe redirect URL not found in response");
-            }
+		if (paymentId == null) {
 
-            return redirectUrlObj.toString();
+			throw new RuntimeException("Payment id is required");
+		}
 
-        } catch (HttpClientErrorException e) {
-            System.out.println("PhonePe Pay Status: " + e.getStatusCode());
-            System.out.println("PhonePe Pay Response: " + e.getResponseBodyAsString());
+		/*
+		 * -------------------------------------------------------- GET ACCESS TOKEN
+		 * --------------------------------------------------------
+		 */
 
-            throw new RuntimeException(
-                    "PhonePe subscription payment failed. Please check request body, amount, redirect URL and token."
-            );
-        }
-    }
+		String token = getAccessToken();
 
-    public String checkPaymentStatus(String merchantOrderId) {
+		/*
+		 * -------------------------------------------------------- PHONEPE CHECKOUT URL
+		 * --------------------------------------------------------
+		 */
 
-        String token = getAccessToken();
+		String url = baseUrl + "/checkout/v2/pay";
 
-        String url = baseUrl + "/checkout/v2/order/" + merchantOrderId + "/status";
+		/*
+		 * -------------------------------------------------------- HEADERS
+		 * --------------------------------------------------------
+		 */
 
-        HttpHeaders headers = new HttpHeaders();
+		HttpHeaders headers = new HttpHeaders();
 
-        /*
-         * Important:
-         * Same here also use O-Bearer.
-         */
-        headers.set("Authorization", "O-Bearer " + token);
-        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+		headers.setContentType(MediaType.APPLICATION_JSON);
 
-        HttpEntity<Void> request = new HttpEntity<>(headers);
+		headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 
-        try {
-            ResponseEntity<Map> response = restTemplate.exchange(
-                    url,
-                    HttpMethod.GET,
-                    request,
-                    Map.class
-            );
+		/*
+		 * PhonePe Checkout API requires O-Bearer.
+		 */
+		headers.set("Authorization", "O-Bearer " + token);
 
-            if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-                throw new RuntimeException("Unable to check PhonePe subscription payment status");
-            }
+		/*
+		 * -------------------------------------------------------- SUCCESS REDIRECT URL
+		 * --------------------------------------------------------
+		 *
+		 * We send paymentId + merchantOrderId so that our frontend can call backend
+		 * verification.
+		 *
+		 */
 
-            Map responseBody = response.getBody();
+		String finalRedirectUrl = UriComponentsBuilder.fromUriString(redirectUrl)
+				.queryParam("paymentFor", "SUBSCRIPTION").queryParam("paymentId", paymentId)
+				.queryParam("merchantOrderId", merchantOrderId).toUriString();
 
-            Object state = responseBody.get("state");
+		/*
+		 * -------------------------------------------------------- PAYMENT FLOW
+		 * --------------------------------------------------------
+		 */
 
-            if (state == null && responseBody.get("data") instanceof Map data) {
-                state = data.get("state");
-            }
+		Map<String, Object> paymentFlow = Map.of("type", "PG_CHECKOUT",
 
-            if (state == null) {
-                Object status = responseBody.get("status");
+				"merchantUrls", Map.of("redirectUrl", finalRedirectUrl));
 
-                if (status == null && responseBody.get("data") instanceof Map data) {
-                    status = data.get("status");
-                }
+		/*
+		 * -------------------------------------------------------- REQUEST BODY
+		 * --------------------------------------------------------
+		 */
 
-                return status == null ? "UNKNOWN" : status.toString();
-            }
+		Map<String, Object> body = Map.of("merchantOrderId", merchantOrderId,
 
-            return state.toString();
+				"amount", amountInPaise,
 
-        } catch (HttpClientErrorException e) {
-            System.out.println("PhonePe Status API Status: " + e.getStatusCode());
-            System.out.println("PhonePe Status API Response: " + e.getResponseBodyAsString());
+				"expireAfter", 1200,
 
-            throw new RuntimeException("PhonePe subscription payment status check failed.");
-        }
-    }
+				"paymentFlow", paymentFlow);
+
+		HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+		/*
+		 * -------------------------------------------------------- CALL PHONEPE
+		 * --------------------------------------------------------
+		 */
+
+		try {
+
+			ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+
+			if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+
+				throw new RuntimeException("Unable to create PhonePe subscription payment");
+			}
+
+			Map responseBody = response.getBody();
+
+			/*
+			 * ---------------------------------------------------- EXTRACT REDIRECT URL
+			 * ----------------------------------------------------
+			 *
+			 * Different PhonePe responses can expose the URL differently, so we support the
+			 * common structures.
+			 *
+			 */
+
+			Object redirectUrlObject = responseBody.get("redirectUrl");
+
+			if (redirectUrlObject == null && responseBody.get("data") instanceof Map<?, ?> data) {
+
+				redirectUrlObject = data.get("redirectUrl");
+			}
+
+			if (redirectUrlObject == null && responseBody.get("redirectInfo") instanceof Map<?, ?> redirectInfo) {
+
+				redirectUrlObject = redirectInfo.get("url");
+			}
+
+			if (redirectUrlObject == null || redirectUrlObject.toString().isBlank()) {
+
+				System.out.println("PhonePe Pay Response: " + responseBody);
+
+				throw new RuntimeException("PhonePe redirect URL not found");
+			}
+
+			return redirectUrlObject.toString();
+
+		} catch (HttpClientErrorException e) {
+
+			System.out.println("PhonePe Pay Status: " + e.getStatusCode());
+
+			System.out.println("PhonePe Pay Response: " + e.getResponseBodyAsString());
+
+			throw new RuntimeException("PhonePe subscription payment initiation failed");
+		}
+	}
+
+	/*
+	 * ============================================================ 3. CHECK PHONEPE
+	 * PAYMENT STATUS ============================================================
+	 */
+
+	public PhonePePaymentStatus checkPaymentStatus(String merchantOrderId) {
+
+		if (merchantOrderId == null || merchantOrderId.isBlank()) {
+
+			throw new RuntimeException("Merchant order id is required");
+		}
+
+		/*
+		 * -------------------------------------------------------- GET TOKEN
+		 * --------------------------------------------------------
+		 */
+
+		String token = getAccessToken();
+
+		/*
+		 * -------------------------------------------------------- PHONEPE STATUS URL
+		 * --------------------------------------------------------
+		 */
+
+		String url = baseUrl + "/checkout/v2/order/" + merchantOrderId + "/status";
+
+		/*
+		 * -------------------------------------------------------- HEADERS
+		 * --------------------------------------------------------
+		 */
+
+		HttpHeaders headers = new HttpHeaders();
+
+		headers.set("Authorization", "O-Bearer " + token);
+
+		headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+
+		HttpEntity<Void> request = new HttpEntity<>(headers);
+
+		try {
+
+			ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.GET, request, Map.class);
+
+			if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+
+				throw new RuntimeException("Unable to check PhonePe payment status");
+			}
+
+			Map responseBody = response.getBody();
+
+			System.out.println("PhonePe Status Response: " + responseBody);
+
+			/*
+			 * ---------------------------------------------------- EXTRACT STATE
+			 * ----------------------------------------------------
+			 */
+
+			String state = extractString(responseBody, "state");
+
+			if (state == null) {
+
+				state = extractString(responseBody, "status");
+			}
+
+			if (state == null) {
+
+				state = "UNKNOWN";
+			}
+
+			/*
+			 * ---------------------------------------------------- EXTRACT TRANSACTION ID
+			 * ----------------------------------------------------
+			 */
+
+			String transactionId = extractTransactionId(responseBody);
+
+			return new PhonePePaymentStatus(state, transactionId, responseBody);
+
+		} catch (HttpClientErrorException e) {
+
+			System.out.println("PhonePe Status API Status: " + e.getStatusCode());
+
+			System.out.println("PhonePe Status API Response: " + e.getResponseBodyAsString());
+
+			throw new RuntimeException("PhonePe subscription payment status check failed");
+		}
+	}
+
+	/*
+	 * ============================================================ 4. EXTRACT
+	 * SIMPLE STRING ============================================================
+	 */
+
+	private String extractString(Map<?, ?> response, String key) {
+
+		Object value = response.get(key);
+
+		if (value != null) {
+			return value.toString();
+		}
+
+		Object data = response.get("data");
+
+		if (data instanceof Map<?, ?> dataMap) {
+
+			value = dataMap.get(key);
+
+			if (value != null) {
+				return value.toString();
+			}
+		}
+
+		return null;
+	}
+
+	/*
+	 * ============================================================ 5. EXTRACT
+	 * TRANSACTION ID ============================================================
+	 */
+
+	private String extractTransactionId(Map<?, ?> response) {
+
+		/*
+		 * First try common top-level fields.
+		 */
+
+		String transactionId = firstNonBlank(extractString(response, "transactionId"),
+
+				extractString(response, "transactionReferenceId"),
+
+				extractString(response, "providerReferenceId"));
+
+		if (transactionId != null) {
+			return transactionId;
+		}
+
+		/*
+		 * Then inspect data.
+		 */
+
+		Object data = response.get("data");
+
+		if (data instanceof Map<?, ?> dataMap) {
+
+			transactionId = firstNonBlank(valueAsString(dataMap, "transactionId"),
+
+					valueAsString(dataMap, "transactionReferenceId"),
+
+					valueAsString(dataMap, "providerReferenceId"));
+
+			if (transactionId != null) {
+				return transactionId;
+			}
+
+			/*
+			 * Some responses contain payment details.
+			 */
+
+			Object paymentDetails = dataMap.get("paymentDetails");
+
+			if (paymentDetails instanceof List<?> list) {
+
+				for (Object item : list) {
+
+					if (item instanceof Map<?, ?> paymentMap) {
+
+						transactionId = firstNonBlank(valueAsString(paymentMap, "transactionId"),
+
+								valueAsString(paymentMap, "transactionReferenceId"),
+
+								valueAsString(paymentMap, "providerReferenceId"));
+
+						if (transactionId != null) {
+							return transactionId;
+						}
+					}
+				}
+			}
+		}
+
+		return null;
+	}
+
+	private String valueAsString(Map<?, ?> map, String key) {
+
+		Object value = map.get(key);
+
+		return value == null ? null : value.toString();
+	}
+
+	private String firstNonBlank(String... values) {
+
+		for (String value : values) {
+
+			if (value != null && !value.isBlank()) {
+
+				return value;
+			}
+		}
+
+		return null;
+	}
 }

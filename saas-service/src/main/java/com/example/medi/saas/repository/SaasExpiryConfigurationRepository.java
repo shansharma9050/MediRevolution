@@ -10,4 +10,6 @@ public interface SaasExpiryConfigurationRepository extends JpaRepository<SaasExp
 	Optional<SaasExpiryConfiguration> findByTenantId(Long tenantId);
 
 	boolean existsByTenantId(Long tenantId);
+	
+	void deleteByTenantId(Long tenantId);
 }

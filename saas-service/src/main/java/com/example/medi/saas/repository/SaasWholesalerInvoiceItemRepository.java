@@ -12,5 +12,7 @@ public interface SaasWholesalerInvoiceItemRepository extends JpaRepository<SaasW
 	List<SaasWholesalerInvoiceItem> findByTenantIdAndMedicineId(Long tenantId, Long medicineId);
 
 	void deleteByInvoiceId(Long invoiceId);
+	
+	void deleteByTenantId(Long tenantId);
 
 }
