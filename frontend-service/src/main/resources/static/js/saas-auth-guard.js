@@ -289,69 +289,6 @@ function clearSaasEnabledModuleCache() {
 	localStorage.removeItem("saasEnabledModules");
 }
 
-function isSaasModuleEnabled(module) {
-
-	if (!module) {
-		return false;
-	}
-
-	const requiredModule =
-		String(module)
-			.trim()
-			.toUpperCase();
-
-	/*
-	 * Dashboard is always available.
-	 */
-	if (requiredModule === "DASHBOARD") {
-		return true;
-	}
-
-	/*
-	 * First enforce tenant-type restriction.
-	 *
-	 * Example:
-	 * HOSPITAL cannot access:
-	 * MEDICINE_MASTER
-	 * SUPPLIERS
-	 * CUSTOMERS
-	 * PURCHASES
-	 * SALES
-	 * SALES_ORDERS
-	 * etc.
-	 */
-	if (
-		!isModuleAllowedForCurrentTenantType(
-			requiredModule
-		)
-	) {
-		return false;
-	}
-
-	/*
-	 * SETTINGS and PERMISSIONS
-	 * are owner/admin-only modules.
-	 */
-	if (
-		requiredModule === "SETTINGS" ||
-		requiredModule === "PERMISSIONS"
-	) {
-		return window.SAAS_OWNER_OR_ADMIN === true;
-	}
-
-	/*
-	 * Backend enabled-module check.
-	 */
-	return (window.SAAS_ENABLED_MODULES || [])
-		.some(function(enabledModule) {
-
-			return String(enabledModule)
-				.trim()
-				.toUpperCase() === requiredModule;
-
-		});
-}
-
 async function loadCurrentSaasPermissions() {
 
 	if (isSaasSubscriptionPage()) {
@@ -1575,8 +1512,9 @@ function hideModalFormAlert(
  * Error shortcut.
  */
 function showModalFormError(modalElement, message) {
+
 	if (!modalElement) {
-		alert(message);
+		alert(message || "Something went wrong.");
 		return;
 	}
 
@@ -1586,6 +1524,7 @@ function showModalFormError(modalElement, message) {
 		);
 
 	if (!errorBox) {
+
 		errorBox =
 			document.createElement("div");
 
@@ -1593,7 +1532,9 @@ function showModalFormError(modalElement, message) {
 			"alert alert-danger modal-form-error mb-3";
 
 		const modalBody =
-			modalElement.querySelector(".modal-body");
+			modalElement.querySelector(
+				".modal-body"
+			);
 
 		if (modalBody) {
 			modalBody.prepend(errorBox);
@@ -1602,14 +1543,15 @@ function showModalFormError(modalElement, message) {
 		}
 	}
 
-	errorBox.innerHTML =
-		escapeHtml(message);
-
-	errorBox.style.display = "block";
-
 	window.clearTimeout(
 		errorBox._hideTimer
 	);
+
+	errorBox.textContent =
+		message ||
+		"Something went wrong.";
+
+	errorBox.style.display = "block";
 
 	errorBox._hideTimer =
 		window.setTimeout(
@@ -1619,7 +1561,6 @@ function showModalFormError(modalElement, message) {
 			5000
 		);
 }
-
 
 /**
  * Success shortcut.
@@ -1701,4 +1642,28 @@ function getModalFormAlertIcon(
 
 			return "common-modal-form-alert-icon bi bi-exclamation-triangle-fill";
 	}
+}
+
+function clearModalFormError(modalElement) {
+
+	if (!modalElement) {
+		return;
+	}
+
+	const errorBox =
+		modalElement.querySelector(
+			".modal-form-error"
+		);
+
+	if (!errorBox) {
+		return;
+	}
+
+	window.clearTimeout(
+		errorBox._hideTimer
+	);
+
+	errorBox._hideTimer = null;
+
+	errorBox.remove();
 }

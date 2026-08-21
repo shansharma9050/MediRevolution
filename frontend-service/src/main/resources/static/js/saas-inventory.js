@@ -1844,7 +1844,6 @@ function openStockAdjustment(
 	}
 }
 
-
 async function saveStockAdjustment() {
 
 	if (isSavingAdjustment) {
