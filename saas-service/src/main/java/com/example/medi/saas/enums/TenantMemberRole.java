@@ -16,5 +16,6 @@ public enum TenantMemberRole {
     PURCHASE_MANAGER,
     WAREHOUSE_MANAGER,
     CASHIER,
+    CUSTOMER,
     SALESPERSON
 }

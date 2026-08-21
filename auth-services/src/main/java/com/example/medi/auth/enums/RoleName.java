@@ -9,4 +9,5 @@ public enum RoleName {
     HOSPITAL,
     PATIENT,
     SAAS_STAFF,
+    SAAS_CUSTOMER
 }

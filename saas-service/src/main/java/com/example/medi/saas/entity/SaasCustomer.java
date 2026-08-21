@@ -94,6 +94,9 @@ public class SaasCustomer {
             length = 20
     )
     private String alternateMobile;
+    
+    @Column(name = "auth_user_id")
+    private Long authUserId;
 
     @Column(length = 180)
     private String email;

@@ -24,6 +24,8 @@ public class SaasCustomerRequest {
     private String alternateMobile;
 
     private String email;
+    
+    private String password;
 
     private String gstin;
 

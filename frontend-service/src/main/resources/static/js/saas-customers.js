@@ -1,3 +1,10 @@
+'use strict';
+
+/* ============================================================
+   SAAS CUSTOMERS
+   MediRevolution
+============================================================ */
+
 let customerList = [];
 
 let isLoadingCustomers = false;
@@ -10,6 +17,10 @@ let customerPermissions = {
 	delete: false
 };
 
+
+/* ============================================================
+   INITIALIZATION
+============================================================ */
 
 document.addEventListener(
 	"DOMContentLoaded",
@@ -44,11 +55,11 @@ document.addEventListener(
 
 		initializeCustomerPage();
 
-		
 		if (
 			typeof applySaasPermissionMenu ===
 			"function"
 		) {
+
 			await applySaasPermissionMenu();
 		}
 
@@ -76,8 +87,28 @@ document.addEventListener(
 				}
 			);
 		}
+
+		const customerType =
+			document.getElementById(
+				"customerType"
+			);
+
+		if (customerType) {
+
+			customerType.addEventListener(
+				"change",
+				handleCustomerTypeChange
+			);
+		}
+
+		handleCustomerTypeChange();
 	}
 );
+
+
+/* ============================================================
+   PAGE INITIALIZATION
+============================================================ */
 
 function initializeCustomerPage() {
 
@@ -115,6 +146,152 @@ function initializeCustomerPage() {
 }
 
 
+/* ============================================================
+   CUSTOMER TYPE / CUSTOMER LOGIN UI
+============================================================ */
+
+/*
+ * Every customer type gets a customer login.
+ *
+ * Customer Type:
+ *
+ * RETAILER
+ * PHARMACY
+ * HOSPITAL
+ * CLINIC
+ * WHOLESALER
+ * DISTRIBUTOR
+ * OTHER
+ *
+ * All of them:
+ *
+ * Auth role       = SAAS_CUSTOMER
+ * Tenant member   = CUSTOMER
+ *
+ * Password is required only while creating
+ * a new customer login.
+ */
+
+function handleCustomerTypeChange() {
+
+	const customerType =
+		getValue(
+			"customerType"
+		).toUpperCase();
+
+	const customerId =
+		getValue(
+			"customerId"
+		);
+
+	const isUpdate =
+		customerId !== "";
+
+	const loginSection =
+		document.getElementById(
+			"customerLoginSection"
+		);
+
+	const passwordGroup =
+		document.getElementById(
+			"customerPasswordGroup"
+		);
+
+	const emailLabel =
+		document.getElementById(
+			"customerEmailLabel"
+		);
+
+	const mobileLabel =
+		document.getElementById(
+			"customerMobileLabel"
+		);
+
+	const passwordInput =
+		document.getElementById(
+			"customerPassword"
+		);
+
+	const passwordHelp =
+		document.getElementById(
+			"customerPasswordHelp"
+		);
+
+	/*
+	 * Customer login section should be visible
+	 * for every customer type when customer type
+	 * is selected.
+	 */
+	if (loginSection) {
+
+		loginSection.style.display =
+			customerType
+				? ""
+				: "none";
+	}
+
+	/*
+	 * Password is required only for NEW
+	 * customer creation.
+	 */
+	if (passwordGroup) {
+
+		passwordGroup.style.display =
+			!isUpdate && customerType
+				? ""
+				: "none";
+	}
+
+	/*
+	 * All customers require email because
+	 * email is the login identity.
+	 */
+	if (emailLabel) {
+
+		emailLabel.innerHTML =
+			"Email *";
+	}
+
+	/*
+	 * All customers require mobile.
+	 */
+	if (mobileLabel) {
+
+		mobileLabel.innerHTML =
+			"Mobile *";
+	}
+
+	if (passwordInput) {
+
+		if (!isUpdate && customerType) {
+
+			passwordInput.required =
+				true;
+
+		} else {
+
+			passwordInput.required =
+				false;
+
+			passwordInput.value =
+				"";
+		}
+	}
+
+	if (passwordHelp) {
+
+		passwordHelp.textContent =
+			isUpdate
+				? "Customer login password is not changed from customer editing."
+				: "Give this password to the customer for first login.";
+	}
+}
+
+
+/* ============================================================
+   PERMISSIONS
+============================================================ */
+
 async function loadCustomerPermissions() {
 
 	const [
@@ -140,14 +317,21 @@ async function loadCustomerPermissions() {
 	]);
 
 	customerPermissions = {
+
 		create:
-			Boolean(canCreate),
+			Boolean(
+				canCreate
+			),
 
 		update:
-			Boolean(canUpdate),
+			Boolean(
+				canUpdate
+			),
 
 		delete:
-			Boolean(canDelete)
+			Boolean(
+				canDelete
+			)
 	};
 
 	showOrHideById(
@@ -158,6 +342,10 @@ async function loadCustomerPermissions() {
 	applyCustomerActionVisibility();
 }
 
+
+/* ============================================================
+   LOAD CUSTOMERS
+============================================================ */
 
 async function loadCustomers() {
 
@@ -187,23 +375,25 @@ async function loadCustomers() {
 
 	try {
 
-		const response = await fetch(
-			`${API_BASE}/saas/customers?tenantId=${encodeURIComponent(tenantId)}`,
-			{
-				method: "GET",
+		const response =
+			await fetch(
+				`${API_BASE}/saas/customers?tenantId=${encodeURIComponent(tenantId)}`,
+				{
+					method: "GET",
+					headers: {
+						"Authorization":
+							"Bearer " + token,
 
-				headers: {
-					"Authorization":
-						"Bearer " + token,
-
-					"Accept":
-						"application/json"
+						"Accept":
+							"application/json"
+					}
 				}
-			}
-		);
+			);
 
 		const result =
-			await safeJson(response);
+			await safeJson(
+				response
+			);
 
 		if (!response.ok) {
 
@@ -215,7 +405,9 @@ async function loadCustomers() {
 					"Unable to load customers."
 				);
 
-			showMsg(message);
+			showMsg(
+				message
+			);
 
 			showCustomerErrorState(
 				message
@@ -269,6 +461,10 @@ async function loadCustomers() {
 }
 
 
+/* ============================================================
+   SEARCH
+============================================================ */
+
 async function searchCustomers() {
 
 	if (isSearchingCustomers) {
@@ -309,25 +505,27 @@ async function searchCustomers() {
 
 	try {
 
-		const response = await fetch(
-			`${API_BASE}/saas/customers/search` +
-			`?tenantId=${encodeURIComponent(tenantId)}` +
-			`&keyword=${encodeURIComponent(keyword)}`,
-			{
-				method: "GET",
+		const response =
+			await fetch(
+				`${API_BASE}/saas/customers/search` +
+				`?tenantId=${encodeURIComponent(tenantId)}` +
+				`&keyword=${encodeURIComponent(keyword)}`,
+				{
+					method: "GET",
+					headers: {
+						"Authorization":
+							"Bearer " + token,
 
-				headers: {
-					"Authorization":
-						"Bearer " + token,
-
-					"Accept":
-						"application/json"
+						"Accept":
+							"application/json"
+					}
 				}
-			}
-		);
+			);
 
 		const result =
-			await safeJson(response);
+			await safeJson(
+				response
+			);
 
 		if (!response.ok) {
 
@@ -337,7 +535,9 @@ async function searchCustomers() {
 					"Unable to search customers."
 				);
 
-			showMsg(message);
+			showMsg(
+				message
+			);
 
 			showCustomerErrorState(
 				message
@@ -380,6 +580,10 @@ async function searchCustomers() {
 }
 
 
+/* ============================================================
+   CREATE
+============================================================ */
+
 function openCreateCustomerPanel() {
 
 	if (!customerPermissions.create) {
@@ -404,8 +608,14 @@ function openCreateCustomerPanel() {
 	);
 
 	openCustomerPanel();
+
+	handleCustomerTypeChange();
 }
 
+
+/* ============================================================
+   EDIT
+============================================================ */
 
 function editCustomer(
 	customerId
@@ -535,6 +745,14 @@ function editCustomer(
 		customer.pincode
 	);
 
+	/*
+	 * Never populate password.
+	 */
+	setValue(
+		"customerPassword",
+		""
+	);
+
 	setText(
 		"customerFormEyebrow",
 		"Update Customer Record"
@@ -546,8 +764,14 @@ function editCustomer(
 	);
 
 	openCustomerPanel();
+
+	handleCustomerTypeChange();
 }
 
+
+/* ============================================================
+   PANEL
+============================================================ */
 
 function openCustomerPanel() {
 
@@ -567,12 +791,10 @@ function openCustomerPanel() {
 		function() {
 
 			panel.scrollIntoView({
-				behavior:
-					"smooth",
-
-				block:
-					"start"
+				behavior: "smooth",
+				block: "start"
 			});
+
 		},
 		80
 	);
@@ -595,6 +817,10 @@ function closeCustomerPanel() {
 	clearCustomerForm();
 }
 
+
+/* ============================================================
+   SAVE CUSTOMER
+============================================================ */
 
 async function saveCustomer() {
 
@@ -639,6 +865,16 @@ async function saveCustomer() {
 			"tenantId"
 		);
 
+	const customerType =
+		getValue(
+			"customerType"
+		).toUpperCase();
+
+	const password =
+		getValue(
+			"customerPassword"
+		);
+
 	const payload = {
 
 		tenantId:
@@ -655,9 +891,7 @@ async function saveCustomer() {
 			),
 
 		customerType:
-			getValue(
-				"customerType"
-			),
+			customerType,
 
 		contactPersonName:
 			getValue(
@@ -732,12 +966,22 @@ async function saveCustomer() {
 		discountPercentage:
 			getNumberValue(
 				"discountPercentage"
-			)
+			),
+
+		/*
+		 * Password is sent only for creating
+		 * a new customer login.
+		 */
+		password:
+			!isUpdate
+				? password
+				: null
 	};
 
 	const validationMessage =
 		validateCustomerPayload(
-			payload
+			payload,
+			isUpdate
 		);
 
 	if (validationMessage) {
@@ -756,8 +1000,10 @@ async function saveCustomer() {
 
 	const url =
 		isUpdate
+
 			? `${API_BASE}/saas/customers/${encodeURIComponent(customerId)}` +
 			`?tenantId=${encodeURIComponent(tenantId)}`
+
 			: `${API_BASE}/saas/customers`;
 
 	const method =
@@ -775,31 +1021,35 @@ async function saveCustomer() {
 
 	try {
 
-		const response = await fetch(
-			url,
-			{
-				method: method,
+		const response =
+			await fetch(
+				url,
+				{
+					method: method,
 
-				headers: {
-					"Authorization":
-						"Bearer " + token,
+					headers: {
 
-					"Content-Type":
-						"application/json",
+						"Authorization":
+							"Bearer " + token,
 
-					"Accept":
-						"application/json"
-				},
+						"Content-Type":
+							"application/json",
 
-				body:
-					JSON.stringify(
-						payload
-					)
-			}
-		);
+						"Accept":
+							"application/json"
+					},
+
+					body:
+						JSON.stringify(
+							payload
+						)
+				}
+			);
 
 		const result =
-			await safeJson(response);
+			await safeJson(
+				response
+			);
 
 		if (!response.ok) {
 
@@ -816,7 +1066,7 @@ async function saveCustomer() {
 		showMsg(
 			isUpdate
 				? "Customer updated successfully."
-				: "Customer added successfully.",
+				: "Customer and login account created successfully.",
 			"success"
 		);
 
@@ -848,6 +1098,10 @@ async function saveCustomer() {
 }
 
 
+/* ============================================================
+   STATUS
+============================================================ */
+
 async function deactivateCustomer(
 	customerId
 ) {
@@ -863,7 +1117,7 @@ async function deactivateCustomer(
 
 	if (
 		!confirm(
-			"Deactivate this customer?"
+			"Deactivate this customer? Customer login access to this workspace will also be disabled."
 		)
 	) {
 		return;
@@ -891,7 +1145,7 @@ async function activateCustomer(
 
 	if (
 		!confirm(
-			"Activate this customer?"
+			"Activate this customer? Customer login access to this workspace will also be restored."
 		)
 	) {
 		return;
@@ -921,8 +1175,10 @@ async function changeCustomerStatus(
 
 	const url =
 		active
+
 			? `${API_BASE}/saas/customers/${customerId}/activate` +
 			`?tenantId=${encodeURIComponent(tenantId)}`
+
 			: `${API_BASE}/saas/customers/${customerId}` +
 			`?tenantId=${encodeURIComponent(tenantId)}`;
 
@@ -933,23 +1189,27 @@ async function changeCustomerStatus(
 
 	try {
 
-		const response = await fetch(
-			url,
-			{
-				method: method,
+		const response =
+			await fetch(
+				url,
+				{
+					method: method,
 
-				headers: {
-					"Authorization":
-						"Bearer " + token,
+					headers: {
 
-					"Accept":
-						"application/json"
+						"Authorization":
+							"Bearer " + token,
+
+						"Accept":
+							"application/json"
+					}
 				}
-			}
-		);
+			);
 
 		const result =
-			await safeJson(response);
+			await safeJson(
+				response
+			);
 
 		if (!response.ok) {
 
@@ -986,6 +1246,10 @@ async function changeCustomerStatus(
 }
 
 
+/* ============================================================
+   RENDER
+============================================================ */
+
 function renderCustomers(
 	customers
 ) {
@@ -1007,27 +1271,37 @@ function renderCustomers(
 	if (!list.length) {
 
 		tableBody.innerHTML = `
+
 			<tr>
+
 				<td colspan="10">
 
 					<div class="customer-state">
 
 						<div class="customer-state-icon">
+
 							<i class="bi bi-people-fill"></i>
+
 						</div>
 
 						<h5 class="fw-bold text-primary">
+
 							No customers found
+
 						</h5>
 
 						<p class="text-muted mb-0">
+
 							Add a customer or use a different search keyword.
+
 						</p>
 
 					</div>
 
 				</td>
+
 			</tr>
+
 		`;
 
 		return;
@@ -1035,20 +1309,41 @@ function renderCustomers(
 
 	tableBody.innerHTML =
 		list.map(
-			function(customer, index) {
+			function(
+				customer,
+				index
+			) {
 
 				const customerId =
 					Number(
 						customer.id
 					);
 
+				const customerLoginBadge =
+					`
+
+						<div class="small mt-1 text-success fw-semibold">
+
+							<i class="bi bi-person-check-fill me-1"></i>
+
+							Customer Login
+
+						</div>
+
+					`;
+
 				return `
+
 					<tr>
 
 						<td>
+
 							<strong>
+
 								${index + 1}
+
 							</strong>
+
 						</td>
 
 						<td>
@@ -1056,18 +1351,30 @@ function renderCustomers(
 							<div class="customer-profile">
 
 								<div class="customer-profile-icon">
+
 									<i class="bi bi-person-fill"></i>
+
 								</div>
 
 								<div>
 
 									<strong class="text-primary">
-										${safe(customer.customerName)}
+
+										${safe(
+					customer.customerName
+				)}
+
 									</strong>
 
 									<div class="small text-muted">
-										${safe(customer.customerCode)}
+
+										${safe(
+					customer.customerCode
+				)}
+
 									</div>
+
+									${customerLoginBadge}
 
 								</div>
 
@@ -1094,17 +1401,31 @@ function renderCustomers(
 						<td>
 
 							<div>
+
 								<strong>
-									${safe(customer.contactPersonName)}
+
+									${safe(
+					customer.contactPersonName
+				)}
+
 								</strong>
+
 							</div>
 
 							<div class="small text-muted">
-								${safe(customer.mobile)}
+
+								${safe(
+					customer.mobile
+				)}
+
 							</div>
 
 							<div class="small text-muted">
-								${safe(customer.email)}
+
+								${safe(
+					customer.email
+				)}
+
 							</div>
 
 						</td>
@@ -1114,37 +1435,51 @@ function renderCustomers(
 							<div>
 
 								<span class="customer-chip">
-									${safe(customer.gstin)}
+
+									${safe(
+					customer.gstin
+				)}
+
 								</span>
 
 							</div>
 
 							<div class="small text-muted mt-1">
-								${safe(customer.drugLicenseNumber)}
+
+								${safe(
+					customer.drugLicenseNumber
+				)}
+
 							</div>
 
 						</td>
 
 						<td>
+
 							${safe(
 					buildCustomerLocation(
 						customer
 					)
 				)}
+
 						</td>
 
 						<td>
 
 							<strong>
+
 								${formatCurrency(
 					customer.creditLimit
 				)}
+
 							</strong>
 
 							<div class="small text-muted">
+
 								${Number(
 					customer.paymentTermsDays || 0
 				)} days
+
 							</div>
 
 						</td>
@@ -1164,44 +1499,58 @@ function renderCustomers(
 						</td>
 
 						<td>
+
 							${customerStatusBadge(
 					customer.active
 				)}
+
 						</td>
 
 						<td>
 
 							<div class="customer-actions">
 
-								<button type="button"
-										class="btn btn-sm btn-outline-primary edit-customer-btn"
-										onclick="editCustomer(${customerId})">
+								<button
+									type="button"
+									class="btn btn-sm btn-outline-primary edit-customer-btn"
+									onclick="editCustomer(${customerId})">
 
 									<i class="bi bi-pencil-square"></i>
+
 									Edit
 
 								</button>
 
 								${customer.active
+
 						? `
-										<button type="button"
-												class="btn btn-sm btn-outline-danger deactivate-customer-btn"
-												onclick="deactivateCustomer(${customerId})">
+
+										<button
+											type="button"
+											class="btn btn-sm btn-outline-danger deactivate-customer-btn"
+											onclick="deactivateCustomer(${customerId})">
 
 											<i class="bi bi-x-circle"></i>
+
 											Deactivate
 
 										</button>
+
 									`
+
 						: `
-										<button type="button"
-												class="btn btn-sm btn-outline-success activate-customer-btn"
-												onclick="activateCustomer(${customerId})">
+
+										<button
+											type="button"
+											class="btn btn-sm btn-outline-success activate-customer-btn"
+											onclick="activateCustomer(${customerId})">
 
 											<i class="bi bi-check-circle"></i>
+
 											Activate
 
 										</button>
+
 									`
 					}
 
@@ -1210,14 +1559,18 @@ function renderCustomers(
 						</td>
 
 					</tr>
+
 				`;
 			}
-		)
-			.join("");
+		).join("");
 
 	applyCustomerActionVisibility();
 }
 
+
+/* ============================================================
+   ACTION PERMISSIONS
+============================================================ */
 
 function applyCustomerActionVisibility() {
 
@@ -1265,6 +1618,10 @@ function applyCustomerActionVisibility() {
 }
 
 
+/* ============================================================
+   SUMMARY
+============================================================ */
+
 function updateCustomerSummary() {
 
 	setAnimatedNumber(
@@ -1300,7 +1657,10 @@ function updateCustomerSummary() {
 
 	const totalCredit =
 		customerList.reduce(
-			function(total, customer) {
+			function(
+				total,
+				customer
+			) {
 
 				return (
 					total +
@@ -1327,39 +1687,115 @@ function updateCustomerSummary() {
 }
 
 
+/* ============================================================
+   VALIDATION
+============================================================ */
+
 function validateCustomerPayload(
-	payload
+	payload,
+	isUpdate
 ) {
 
 	if (!payload.customerCode) {
+
 		return "Customer code is required.";
 	}
 
 	if (!payload.customerName) {
+
 		return "Customer name is required.";
 	}
 
 	if (!payload.customerType) {
+
 		return "Customer type is required.";
 	}
 
+	const allowedTypes = [
+
+		"RETAILER",
+		"PHARMACY",
+		"HOSPITAL",
+		"CLINIC",
+		"WHOLESALER",
+		"DISTRIBUTOR",
+		"OTHER"
+	];
+
 	if (
-		payload.email &&
-		!/^[^\s@]+@[^\s@]+\.[^\s@]+$/
-			.test(payload.email)
+		!allowedTypes.includes(
+			String(
+				payload.customerType || ""
+			).toUpperCase()
+		)
 	) {
+
+		return "Invalid customer type.";
+	}
+
+	if (!payload.email) {
+
+		return "Email is required for customer login.";
+	}
+
+	if (
+		!isValidEmail(
+			payload.email
+		)
+	) {
+
 		return "Please enter a valid email address.";
 	}
 
-	if (payload.openingBalance < 0) {
+	if (!payload.mobile) {
+
+		return "Mobile is required for customer login.";
+	}
+
+	if (
+		!isValidMobile(
+			payload.mobile
+		)
+	) {
+
+		return "Please enter a valid 10-digit mobile number.";
+	}
+
+	if (
+		!isUpdate &&
+		!payload.password
+	) {
+
+		return "Customer login password is required.";
+	}
+
+	if (
+		!isUpdate &&
+		payload.password &&
+		payload.password.length < 6
+	) {
+
+		return "Customer login password must be at least 6 characters.";
+	}
+
+	if (
+		payload.openingBalance < 0
+	) {
+
 		return "Opening balance cannot be negative.";
 	}
 
-	if (payload.creditLimit < 0) {
+	if (
+		payload.creditLimit < 0
+	) {
+
 		return "Credit limit cannot be negative.";
 	}
 
-	if (payload.paymentTermsDays < 0) {
+	if (
+		payload.paymentTermsDays < 0
+	) {
+
 		return "Payment terms cannot be negative.";
 	}
 
@@ -1367,6 +1803,7 @@ function validateCustomerPayload(
 		payload.discountPercentage < 0 ||
 		payload.discountPercentage > 100
 	) {
+
 		return "Discount percentage must be between 0 and 100.";
 	}
 
@@ -1374,16 +1811,9 @@ function validateCustomerPayload(
 }
 
 
-async function refreshCustomers() {
-
-	setValue(
-		"customerSearchKeyword",
-		""
-	);
-
-	await loadCustomers();
-}
-
+/* ============================================================
+   CLEAR
+============================================================ */
 
 function clearCustomerForm() {
 
@@ -1402,7 +1832,8 @@ function clearCustomerForm() {
 		"city",
 		"district",
 		"state",
-		"pincode"
+		"pincode",
+		"customerPassword"
 	].forEach(
 		function(id) {
 
@@ -1432,8 +1863,29 @@ function clearCustomerForm() {
 		"discountPercentage",
 		"0"
 	);
+
+	handleCustomerTypeChange();
 }
 
+
+/* ============================================================
+   REFRESH
+============================================================ */
+
+async function refreshCustomers() {
+
+	setValue(
+		"customerSearchKeyword",
+		""
+	);
+
+	await loadCustomers();
+}
+
+
+/* ============================================================
+   UI HELPERS
+============================================================ */
 
 function customerStatusBadge(
 	active
@@ -1442,22 +1894,28 @@ function customerStatusBadge(
 	if (active === true) {
 
 		return `
+
 			<span class="customer-status active">
 
 				<i class="bi bi-check-circle-fill"></i>
+
 				Active
 
 			</span>
+
 		`;
 	}
 
 	return `
+
 		<span class="customer-status inactive">
 
 			<i class="bi bi-x-circle-fill"></i>
+
 			Inactive
 
 		</span>
+
 	`;
 }
 
@@ -1466,7 +1924,9 @@ function formatCustomerType(
 	value
 ) {
 
-	return String(value || "")
+	return String(
+		value || ""
+	)
 		.trim()
 		.toLowerCase()
 		.replace(
@@ -1484,10 +1944,12 @@ function buildCustomerLocation(
 ) {
 
 	return [
+
 		customer.city,
 		customer.district,
 		customer.state,
 		customer.pincode
+
 	]
 		.filter(
 			function(value) {
@@ -1515,27 +1977,37 @@ function showCustomerLoadingState() {
 	}
 
 	tableBody.innerHTML = `
+
 		<tr>
+
 			<td colspan="10">
 
 				<div class="customer-state">
 
 					<div class="customer-state-icon">
+
 						<i class="bi bi-people-fill"></i>
+
 					</div>
 
 					<h5 class="fw-bold text-primary">
+
 						Loading customers
+
 					</h5>
 
 					<p class="text-muted mb-0">
+
 						Please wait while customer records are prepared.
+
 					</p>
 
 				</div>
 
 			</td>
+
 		</tr>
+
 	`;
 }
 
@@ -1554,27 +2026,37 @@ function showCustomerErrorState(
 	}
 
 	tableBody.innerHTML = `
+
 		<tr>
+
 			<td colspan="10">
 
 				<div class="customer-state">
 
 					<div class="customer-state-icon bg-danger">
+
 						<i class="bi bi-exclamation-triangle-fill"></i>
+
 					</div>
 
 					<h5 class="fw-bold text-danger">
+
 						Unable to load customers
+
 					</h5>
 
 					<p class="text-muted mb-0">
+
 						${escapeHtml(message)}
+
 					</p>
 
 				</div>
 
 			</td>
+
 		</tr>
+
 	`;
 }
 
@@ -1584,7 +2066,9 @@ function formatTenantType(
 ) {
 
 	switch (
-	String(value || "")
+	String(
+		value || ""
+	)
 		.trim()
 		.toUpperCase()
 	) {
@@ -1606,7 +2090,9 @@ function formatCurrency(
 ) {
 
 	const amount =
-		Number(value || 0);
+		Number(
+			value || 0
+		);
 
 	return new Intl.NumberFormat(
 		"en-IN",
@@ -1629,11 +2115,17 @@ function formatPercentage(
 ) {
 
 	const percentage =
-		Number(value || 0);
+		Number(
+			value || 0
+		);
 
 	return `${percentage.toFixed(2)}%`;
 }
 
+
+/* ============================================================
+   BUTTON / MESSAGE HELPERS
+============================================================ */
 
 function showOrHideById(
 	id,
@@ -1641,7 +2133,9 @@ function showOrHideById(
 ) {
 
 	const element =
-		document.getElementById(id);
+		document.getElementById(
+			id
+		);
 
 	if (element) {
 
@@ -1670,21 +2164,28 @@ function setButtonLoading(
 
 	if (isLoading) {
 
-		if (!button.dataset.originalHtml) {
+		if (
+			!button.dataset.originalHtml
+		) {
 
 			button.dataset.originalHtml =
 				button.innerHTML;
 		}
 
 		button.innerHTML = `
-			<span class="spinner-border spinner-border-sm me-2"
-				  aria-hidden="true"></span>
 
-			${escapeHtml(loadingText)}
+			<span
+				class="spinner-border spinner-border-sm me-2"
+				aria-hidden="true">
+			</span>
+
+			${escapeHtml(
+			loadingText
+		)}
+
 		`;
 
-		button.disabled =
-			true;
+		button.disabled = true;
 
 		return;
 	}
@@ -1693,8 +2194,7 @@ function setButtonLoading(
 		button.dataset.originalHtml ||
 		button.innerHTML;
 
-	button.disabled =
-		false;
+	button.disabled = false;
 }
 
 
@@ -1708,17 +2208,21 @@ async function safeJson(
 			await response.text();
 
 		if (!text.trim()) {
+
 			return {};
 		}
 
 		try {
 
-			return JSON.parse(text);
+			return JSON.parse(
+				text
+			);
 
 		} catch (error) {
 
 			return {
-				message: text
+				message:
+					text
 			};
 		}
 
@@ -1735,20 +2239,25 @@ function getApiErrorMessage(
 ) {
 
 	if (!data) {
+
 		return fallback;
 	}
 
 	if (
-		typeof data === "string"
+		typeof data ===
+		"string"
 	) {
+
 		return data;
 	}
 
 	if (data.message) {
+
 		return data.message;
 	}
 
 	if (data.error) {
+
 		return data.error;
 	}
 
@@ -1774,22 +2283,31 @@ function showMsg(
 	}
 
 	msg.innerHTML = `
-		<div class="alert alert-${type} alert-dismissible fade show"
-			 role="alert">
 
-			${escapeHtml(message)}
+		<div
+			class="alert alert-${type} alert-dismissible fade show"
+			role="alert">
 
-			<button type="button"
-					class="btn-close"
-					data-bs-dismiss="alert">
+			${escapeHtml(
+		message
+	)}
+
+			<button
+				type="button"
+				class="btn-close"
+				data-bs-dismiss="alert">
 			</button>
 
 		</div>
+
 	`;
 
 	window.scrollTo({
+
 		top: 0,
-		behavior: "smooth"
+
+		behavior:
+			"smooth"
 	});
 }
 
@@ -1800,7 +2318,9 @@ function setAnimatedNumber(
 ) {
 
 	const element =
-		document.getElementById(id);
+		document.getElementById(
+			id
+		);
 
 	if (!element) {
 		return;
@@ -1848,7 +2368,8 @@ function setAnimatedNumber(
 			);
 
 		const eased =
-			1 - Math.pow(
+			1 -
+			Math.pow(
 				1 - progress,
 				3
 			);
@@ -1856,10 +2377,13 @@ function setAnimatedNumber(
 		element.textContent =
 			Math.round(
 				start +
-				difference * eased
+				difference *
+				eased
 			);
 
-		if (progress < 1) {
+		if (
+			progress < 1
+		) {
 
 			requestAnimationFrame(
 				update
@@ -1873,12 +2397,18 @@ function setAnimatedNumber(
 }
 
 
+/* ============================================================
+   BASIC VALUE HELPERS
+============================================================ */
+
 function getValue(
 	id
 ) {
 
 	const element =
-		document.getElementById(id);
+		document.getElementById(
+			id
+		);
 
 	return element
 		? String(
@@ -1897,7 +2427,9 @@ function getNumberValue(
 			getValue(id)
 		);
 
-	return Number.isFinite(value)
+	return Number.isFinite(
+		value
+	)
 		? value
 		: 0;
 }
@@ -1913,7 +2445,9 @@ function getIntegerValue(
 			10
 		);
 
-	return Number.isFinite(value)
+	return Number.isFinite(
+		value
+	)
 		? value
 		: 0;
 }
@@ -1925,7 +2459,9 @@ function setValue(
 ) {
 
 	const element =
-		document.getElementById(id);
+		document.getElementById(
+			id
+		);
 
 	if (element) {
 
@@ -1944,7 +2480,9 @@ function setText(
 ) {
 
 	const element =
-		document.getElementById(id);
+		document.getElementById(
+			id
+		);
 
 	if (element) {
 
@@ -1954,17 +2492,53 @@ function setText(
 }
 
 
+/* ============================================================
+   VALIDATORS
+============================================================ */
+
+function isValidEmail(
+	email
+) {
+
+	return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+		String(
+			email || ""
+		).trim()
+	);
+}
+
+
+function isValidMobile(
+	mobile
+) {
+
+	return /^[6-9][0-9]{9}$/.test(
+		String(
+			mobile || ""
+		).trim()
+	);
+}
+
+
+/* ============================================================
+   SECURITY
+============================================================ */
+
 function safe(
 	value
 ) {
 
 	return (
+
 		value === null ||
 		value === undefined ||
 		value === ""
+
 	)
 		? "-"
-		: escapeHtml(value);
+		: escapeHtml(
+			value
+		);
 }
 
 
@@ -1972,10 +2546,32 @@ function escapeHtml(
 	value
 ) {
 
-	return String(value ?? "")
-		.replace(/&/g, "&amp;")
-		.replace(/</g, "&lt;")
-		.replace(/>/g, "&gt;")
-		.replace(/"/g, "&quot;")
-		.replace(/'/g, "&#039;");
+	return String(
+		value ?? ""
+	)
+
+		.replace(
+			/&/g,
+			"&amp;"
+		)
+
+		.replace(
+			/</g,
+			"&lt;"
+		)
+
+		.replace(
+			/>/g,
+			"&gt;"
+		)
+
+		.replace(
+			/"/g,
+			"&quot;"
+		)
+
+		.replace(
+			/'/g,
+			"&#039;"
+		);
 }

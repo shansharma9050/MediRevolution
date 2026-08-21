@@ -1,7 +1,9 @@
 <!DOCTYPE html>
+
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
+
 	<meta charset="UTF-8">
 
 	<title>MediRevolution | SaaS Customers</title>
@@ -563,6 +565,7 @@
 		}
 
 		@media (max-width: 1150px) {
+
 			.customer-summary-grid {
 				grid-template-columns:
 					repeat(2, minmax(0, 1fr));
@@ -570,6 +573,7 @@
 		}
 
 		@media (max-width: 992px) {
+
 			.saas-customer-hero {
 				align-items: flex-start;
 				flex-direction: column;
@@ -581,6 +585,7 @@
 		}
 
 		@media (max-width: 768px) {
+
 			.customer-panel-header {
 				align-items: stretch;
 				flex-direction: column;
@@ -597,6 +602,7 @@
 		}
 
 		@media (max-width: 576px) {
+
 			.customer-summary-grid {
 				grid-template-columns: 1fr;
 			}
@@ -611,6 +617,7 @@
 			}
 		}
 	</style>
+
 </head>
 
 <body class="dashboard-body saas-dashboard-body">
@@ -628,36 +635,52 @@
 				<span class="customer-kicker">
 
 					<i class="bi bi-person-lines-fill"></i>
+
 					Sales Customer Management
 
 				</span>
 
 				<h1>
+
 					Manage
+
 					<span>Customers</span>
+
 				</h1>
 
 				<p>
+
 					Create and manage customers, pharmacies, hospitals,
 					clinics and business buyers for
+
 					<strong id="tenantNameText">your workspace</strong>.
+
 				</p>
 
 				<div class="customer-meta">
 
 					<span>
+
 						<i class="bi bi-building-check"></i>
+
 						Tenant-isolated records
+
 					</span>
 
 					<span>
+
 						<i class="bi bi-wallet2"></i>
+
 						Credit and discount control
+
 					</span>
 
 					<span>
+
 						<i class="bi bi-shield-check"></i>
+
 						Permission controlled
+
 					</span>
 
 				</div>
@@ -667,7 +690,9 @@
 			<div class="customer-hero-panel">
 
 				<div class="customer-hero-icon">
+
 					<i class="bi bi-people-fill"></i>
+
 				</div>
 
 				<strong>
@@ -688,6 +713,7 @@
 					onclick="openCreateCustomerPanel()">
 
 					<i class="bi bi-plus-circle-fill"></i>
+
 					Add Customer
 
 				</button>
@@ -767,7 +793,9 @@
 				<div class="customer-title-wrap">
 
 					<div class="customer-title-icon">
+
 						<i class="bi bi-person-plus-fill"></i>
+
 					</div>
 
 					<div>
@@ -823,7 +851,9 @@
 				<div class="col-lg-4 customer-control">
 
 					<label for="customerType" class="form-label">
+
 						Customer Type *
+
 					</label>
 
 					<i class="bi bi-ui-checks-grid"></i>
@@ -834,7 +864,7 @@
 							Select Customer Type
 						</option>
 
-						<option value="RETAIL">
+						<option value="RETAILER">
 							Retail Customer
 						</option>
 
@@ -869,7 +899,9 @@
 				<div class="col-lg-4 customer-control">
 
 					<label for="contactPersonName" class="form-label">
+
 						Contact Person
+
 					</label>
 
 					<i class="bi bi-person-badge-fill"></i>
@@ -881,38 +913,150 @@
 
 				<div class="col-lg-4 customer-control">
 
-					<label for="mobile" class="form-label">
-						Mobile
+					<label for="mobile" id="customerMobileLabel" class="form-label">
+
+						Mobile *
+
 					</label>
 
 					<i class="bi bi-telephone-fill"></i>
 
-					<input type="text" id="mobile" class="form-control" maxlength="20" placeholder="Primary mobile">
+					<input type="text" id="mobile" class="form-control" maxlength="10" inputmode="numeric"
+						placeholder="Primary mobile">
+
+				</div>
+
+				<div class="col-12" id="customerLoginSection" style="display:none;">
+
+					<div class="p-3 rounded-4 border" style="
+							background: linear-gradient(
+								135deg,
+								#f2fbff,
+								#f8fff3
+							);
+							border-color: rgba(8, 199, 212, .20) !important;
+						">
+
+						<div class="d-flex align-items-start gap-3">
+
+							<div style="
+									width:46px;
+									height:46px;
+									border-radius:15px;
+									display:flex;
+									align-items:center;
+									justify-content:center;
+									color:#ffffff;
+									background:
+										linear-gradient(
+											135deg,
+											#05285f,
+											#08c7d4
+										);
+									flex:0 0 auto;
+								">
+
+								<i class="bi bi-person-lock"></i>
+
+							</div>
+
+							<div class="flex-grow-1">
+
+								<div class="fw-bold" style="color:#05285f;">
+
+									Customer Login Account
+
+								</div>
+
+								<div class="small text-muted mt-1">
+
+									Every customer will receive a login account
+									for this workspace. The customer can use
+									these credentials to access the customer
+									portal and available customer services.
+
+								</div>
+
+							</div>
+
+						</div>
+
+						<div class="row g-3 mt-1">
+
+							<div class="col-md-6" id="customerPasswordGroup">
+
+								<label for="customerPassword" class="form-label">
+
+									Login Password *
+
+								</label>
+
+								<div class="customer-control">
+
+									<i class="bi bi-key-fill"></i>
+
+									<input type="password" id="customerPassword" class="form-control" maxlength="100"
+										autocomplete="new-password" placeholder="Set customer login password">
+
+								</div>
+
+								<div id="customerPasswordHelp" class="form-text">
+
+									Give this password to the customer for first login.
+
+								</div>
+
+							</div>
+
+							<div class="col-md-6">
+
+								<div class="small p-3 rounded-3" style="
+										background:#ffffff;
+										border:1px solid #e5eef3;
+										color:#456176;
+									">
+
+									<i class="bi bi-shield-check text-success me-1"></i>
+
+									Password is stored securely in the Auth Service.
+									It is never stored in the Customer table.
+
+								</div>
+
+							</div>
+
+						</div>
+
+					</div>
 
 				</div>
 
 				<div class="col-lg-4 customer-control">
 
 					<label for="alternateMobile" class="form-label">
+
 						Alternate Mobile
+
 					</label>
 
 					<i class="bi bi-phone-fill"></i>
 
-					<input type="text" id="alternateMobile" class="form-control" maxlength="20"
+					<input type="text" id="alternateMobile" class="form-control" maxlength="10" inputmode="numeric"
 						placeholder="Alternate mobile">
 
 				</div>
 
 				<div class="col-lg-4 customer-control">
 
-					<label for="email" class="form-label">
-						Email
+					<label for="email" id="customerEmailLabel" class="form-label">
+
+						Email *
+
 					</label>
 
 					<i class="bi bi-envelope-fill"></i>
 
-					<input type="email" id="email" class="form-control" maxlength="180"
+					<input type="email" id="email" class="form-control" maxlength="180" autocomplete="off"
 						placeholder="customer@example.com">
 
 				</div>
@@ -933,7 +1077,9 @@
 				<div class="col-lg-4 customer-control">
 
 					<label for="drugLicenseNumber" class="form-label">
+
 						Drug Licence Number
+
 					</label>
 
 					<i class="bi bi-file-earmark-medical-fill"></i>
@@ -946,7 +1092,9 @@
 				<div class="col-lg-3 customer-control">
 
 					<label for="openingBalance" class="form-label">
+
 						Opening Balance
+
 					</label>
 
 					<i class="bi bi-currency-rupee"></i>
@@ -958,7 +1106,9 @@
 				<div class="col-lg-3 customer-control">
 
 					<label for="creditLimit" class="form-label">
+
 						Credit Limit
+
 					</label>
 
 					<i class="bi bi-credit-card-fill"></i>
@@ -970,7 +1120,9 @@
 				<div class="col-lg-3 customer-control">
 
 					<label for="paymentTermsDays" class="form-label">
+
 						Payment Terms
+
 					</label>
 
 					<i class="bi bi-calendar-check-fill"></i>
@@ -983,7 +1135,9 @@
 				<div class="col-lg-3 customer-control">
 
 					<label for="discountPercentage" class="form-label">
+
 						Default Discount %
+
 					</label>
 
 					<i class="bi bi-percent"></i>
@@ -1037,7 +1191,8 @@
 
 					<i class="bi bi-mailbox2"></i>
 
-					<input type="text" id="pincode" class="form-control" maxlength="12" placeholder="Pincode">
+					<input type="text" id="pincode" class="form-control" maxlength="12" inputmode="numeric"
+						placeholder="Pincode">
 
 				</div>
 
@@ -1059,6 +1214,7 @@
 				<button type="button" class="btn btn-outline-secondary" onclick="clearCustomerForm()">
 
 					<i class="bi bi-eraser-fill me-1"></i>
+
 					Clear
 
 				</button>
@@ -1066,6 +1222,7 @@
 				<button type="button" id="saveCustomerBtn" class="btn btn-medi" onclick="saveCustomer()">
 
 					<i class="bi bi-check2-circle me-1"></i>
+
 					Save Customer
 
 				</button>
@@ -1081,7 +1238,9 @@
 				<div class="customer-title-wrap">
 
 					<div class="customer-title-icon">
+
 						<i class="bi bi-list-ul"></i>
+
 					</div>
 
 					<div>
@@ -1110,6 +1269,7 @@
 					<button type="button" id="searchCustomerBtn" class="btn btn-medi" onclick="searchCustomers()">
 
 						<i class="bi bi-search me-1"></i>
+
 						Search
 
 					</button>
@@ -1118,6 +1278,7 @@
 						onclick="refreshCustomers()">
 
 						<i class="bi bi-arrow-clockwise me-1"></i>
+
 						Refresh
 
 					</button>
@@ -1133,16 +1294,27 @@
 					<thead>
 
 						<tr>
+
 							<th>#</th>
+
 							<th>Customer</th>
+
 							<th>Type</th>
+
 							<th>Contact</th>
+
 							<th>GST / Licence</th>
+
 							<th>Location</th>
+
 							<th>Credit Limit</th>
+
 							<th>Discount</th>
+
 							<th>Status</th>
+
 							<th style="width:180px;">Action</th>
+
 						</tr>
 
 					</thead>
@@ -1150,25 +1322,33 @@
 					<tbody id="customerTableBody">
 
 						<tr>
+
 							<td colspan="10">
 
 								<div class="customer-state">
 
 									<div class="customer-state-icon">
+
 										<i class="bi bi-people-fill"></i>
+
 									</div>
 
 									<h5 class="fw-bold text-primary">
+
 										Loading customers
+
 									</h5>
 
 									<p class="text-muted mb-0">
+
 										Please wait while customer records are prepared.
+
 									</p>
 
 								</div>
 
 							</td>
+
 						</tr>
 
 					</tbody>
@@ -1183,15 +1363,16 @@
 
 	</main>
 
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-	
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+	</script>
+
 	<script src="/js/common-dashboard.js?v=20260720_3"></script>
 
 	<script src="/js/module-switch.js?v=20260720_3"></script>
 
 	<script src="/js/saas-auth-guard.js?v=20260720_3"></script>
 
-	<script src="/js/saas-customers.js?v=20260720_3"></script>
+	<script src="/js/saas-customers.js?v=20260821_1"></script>
 
 	<script th:src="@{/js/pwa.js?v=20260716_1}"></script>
 

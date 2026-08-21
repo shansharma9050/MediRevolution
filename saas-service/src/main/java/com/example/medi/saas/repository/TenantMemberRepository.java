@@ -8,13 +8,15 @@ import java.util.Optional;
 
 public interface TenantMemberRepository extends JpaRepository<TenantMember, Long> {
 
-    List<TenantMember> findByAuthUserIdAndActiveTrue(Long authUserId);
+	List<TenantMember> findByAuthUserIdAndActiveTrue(Long authUserId);
 
-    List<TenantMember> findByTenantIdAndActiveTrue(Long tenantId);
+	List<TenantMember> findByTenantIdAndActiveTrue(Long tenantId);
 
-    Optional<TenantMember> findByTenantIdAndAuthUserIdAndActiveTrue(Long tenantId, Long authUserId);
+	Optional<TenantMember> findByTenantIdAndAuthUserIdAndActiveTrue(Long tenantId, Long authUserId);
 
-    boolean existsByTenantIdAndAuthUserId(Long tenantId, Long authUserId);
-    
-    void deleteByTenantId(Long tenantId);
+	boolean existsByTenantIdAndAuthUserId(Long tenantId, Long authUserId);
+
+	void deleteByTenantId(Long tenantId);
+
+	Optional<TenantMember> findByTenantIdAndAuthUserId(Long tenantId, Long authUserId);
 }
