@@ -4,6 +4,7 @@ import com.example.medi.saas.dto.AddTenantMemberRequest;
 import com.example.medi.saas.dto.ApiResponse;
 import com.example.medi.saas.dto.CreateTenantRequest;
 import com.example.medi.saas.dto.TenantResponse;
+import com.example.medi.saas.entity.SaasPatient;
 import com.example.medi.saas.entity.Tenant;
 import com.example.medi.saas.entity.TenantMember;
 import com.example.medi.saas.entity.TenantModuleSetting;
@@ -11,6 +12,7 @@ import com.example.medi.saas.enums.TenantMemberRole;
 import com.example.medi.saas.enums.TenantModule;
 import com.example.medi.saas.enums.TenantStatus;
 import com.example.medi.saas.enums.TenantType;
+import com.example.medi.saas.repository.SaasPatientRepository;
 import com.example.medi.saas.repository.TenantMemberRepository;
 import com.example.medi.saas.repository.TenantModuleSettingRepository;
 import com.example.medi.saas.repository.TenantRepository;
@@ -34,17 +36,20 @@ public class SaasTenantService {
 	private final SaasDefaultModuleService defaultModuleService;
 	private final SaasWorkspaceDeletionService saasWorkspaceDeletionService;
 	private final BillingWorkspaceCleanupClient billingWorkspaceCleanupClient;
+	private final SaasPatientRepository patientRepository;
 
 	public SaasTenantService(TenantRepository tenantRepository, TenantMemberRepository memberRepository,
 			TenantModuleSettingRepository moduleRepository, SaasPermissionService permissionService,
-			SaasDefaultModuleService defaultModuleService,SaasWorkspaceDeletionService saasWorkspaceDeletionService,BillingWorkspaceCleanupClient billingWorkspaceCleanupClient) {
+			SaasDefaultModuleService defaultModuleService, SaasWorkspaceDeletionService saasWorkspaceDeletionService,
+			BillingWorkspaceCleanupClient billingWorkspaceCleanupClient, SaasPatientRepository patientRepository) {
 		this.tenantRepository = tenantRepository;
 		this.memberRepository = memberRepository;
 		this.moduleRepository = moduleRepository;
 		this.permissionService = permissionService;
 		this.defaultModuleService = defaultModuleService;
-		this.saasWorkspaceDeletionService=saasWorkspaceDeletionService;
-		this.billingWorkspaceCleanupClient=billingWorkspaceCleanupClient;
+		this.saasWorkspaceDeletionService = saasWorkspaceDeletionService;
+		this.billingWorkspaceCleanupClient = billingWorkspaceCleanupClient;
+		this.patientRepository = patientRepository;
 	}
 
 	@Transactional
@@ -106,44 +111,33 @@ public class SaasTenantService {
 		return toResponse(savedTenant);
 	}
 
-	
 	@Transactional
 	public void deleteWorkspace(Long tenantId, Long authUserId) {
 
-	    if (tenantId == null || tenantId <= 0) {
-	        throw new RuntimeException("Valid SaaS workspace is required");
-	    }
+		if (tenantId == null || tenantId <= 0) {
+			throw new RuntimeException("Valid SaaS workspace is required");
+		}
 
-	    if (authUserId == null) {
-	        throw new RuntimeException("User not authenticated");
-	    }
+		if (authUserId == null) {
+			throw new RuntimeException("User not authenticated");
+		}
 
+		Tenant tenant = tenantRepository.findById(tenantId)
+				.orElseThrow(() -> new RuntimeException("SaaS workspace not found"));
 
-	    Tenant tenant = tenantRepository.findById(tenantId)
-	            .orElseThrow(() ->
-	                    new RuntimeException(
-	                            "SaaS workspace not found"));
+		if (!authUserId.equals(tenant.getOwnerAuthUserId())) {
 
-	    if (!authUserId.equals(
-	            tenant.getOwnerAuthUserId())) {
+			throw new RuntimeException("Only the SaaS workspace owner can permanently delete the workspace");
+		}
 
-	        throw new RuntimeException(
-	                "Only the SaaS workspace owner can permanently delete the workspace");
-	    }
+		/*
+		 * First clean Billing service.
+		 */
+		billingWorkspaceCleanupClient.deleteWorkspaceBillingData(tenantId);
 
-	    /*
-	     * First clean Billing service.
-	     */
-	    billingWorkspaceCleanupClient
-	            .deleteWorkspaceBillingData(tenantId);
-	    
-	    
-	    saasWorkspaceDeletionService.deleteWorkspace(
-	            tenantId,
-	            authUserId
-	    );
+		saasWorkspaceDeletionService.deleteWorkspace(tenantId, authUserId);
 	}
-	
+
 	public List<TenantResponse> myTenants() {
 
 		Long userId = CurrentUserUtil.getUserId();
@@ -152,6 +146,41 @@ public class SaasTenantService {
 			throw new RuntimeException("User not found from token");
 		}
 
+		String role = normalizeRole(CurrentUserUtil.getRole());
+
+		/*
+		 * ============================================================ PATIENT
+		 * ============================================================
+		 *
+		 * Patient workspace membership saas_tenant_members mein nahi hai.
+		 *
+		 * Patient -> saas_patients.auth_user_id -> saas_patients.tenant_id ->
+		 * saas_tenants
+		 */
+		if ("PATIENT".equals(role)) {
+
+			SaasPatient patient = patientRepository.findByAuthUserIdAndActiveTrue(userId)
+					.orElseThrow(() -> new RuntimeException("No active patient profile is assigned to this account"));
+
+			if (patient.getTenantId() == null) {
+				throw new RuntimeException("Patient is not assigned to any workspace");
+			}
+
+			Tenant tenant = tenantRepository.findById(patient.getTenantId())
+					.orElseThrow(() -> new RuntimeException("Patient workspace not found"));
+
+			if (tenant.getStatus() == TenantStatus.INACTIVE) {
+				return List.of();
+			}
+
+			return List.of(toResponse(tenant));
+		}
+
+		/*
+		 * ============================================================ SAAS_CUSTOMER /
+		 * STAFF / OWNER / NORMAL MEMBERS
+		 * ============================================================
+		 */
 		List<TenantMember> memberships = memberRepository.findByAuthUserIdAndActiveTrue(userId);
 
 		return memberships.stream().map(member -> tenantRepository.findById(member.getTenantId()).orElse(null))
@@ -353,18 +382,47 @@ public class SaasTenantService {
 
 	public List<TenantModuleSetting> getModules(Long tenantId) {
 
-		requireActiveTenant(tenantId);
-
-		Long userId = CurrentUserUtil.getUserId();
-
-		if (tenantId == null) {
+		if (tenantId == null || tenantId <= 0) {
 			throw new RuntimeException("Workspace id is required");
 		}
+
+		Long userId = CurrentUserUtil.getUserId();
 
 		if (userId == null) {
 			throw new RuntimeException("User not found from token");
 		}
 
+		Tenant tenant = requireActiveTenant(tenantId);
+
+		String role = normalizeRole(CurrentUserUtil.getRole());
+
+		/*
+		 * ============================================================ PATIENT ACCESS
+		 * ============================================================
+		 *
+		 * Patient TenantMember nahi hai. Patient ka workspace relation saas_patients
+		 * table se verify hoga.
+		 */
+		if ("PATIENT".equals(role)) {
+
+			SaasPatient patient = patientRepository.findByAuthUserId(userId)
+					.orElseThrow(() -> new RuntimeException("Patient profile not found"));
+
+			if (!Boolean.TRUE.equals(patient.getActive())) {
+				throw new RuntimeException("Patient account is inactive");
+			}
+
+			if (!tenantId.equals(patient.getTenantId())) {
+				throw new RuntimeException("Patient is not assigned to this workspace");
+			}
+
+			return moduleRepository.findByTenantId(tenantId);
+		}
+
+		/*
+		 * ============================================================ NORMAL SAAS
+		 * MEMBER ACCESS ============================================================
+		 */
 		memberRepository.findByTenantIdAndAuthUserIdAndActiveTrue(tenantId, userId)
 				.orElseThrow(() -> new RuntimeException("You are not a member of this workspace"));
 

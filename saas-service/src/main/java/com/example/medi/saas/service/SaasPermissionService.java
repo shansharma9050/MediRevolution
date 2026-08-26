@@ -8,6 +8,7 @@ import com.example.medi.saas.enums.SaasPermissionAction;
 import com.example.medi.saas.enums.TenantMemberRole;
 import com.example.medi.saas.enums.TenantModule;
 import com.example.medi.saas.enums.TenantStatus;
+import com.example.medi.saas.repository.SaasCustomerRepository;
 import com.example.medi.saas.repository.SaasTenantMemberPermissionRepository;
 import com.example.medi.saas.repository.TenantMemberRepository;
 import com.example.medi.saas.security.CurrentUserUtil;
@@ -24,12 +25,15 @@ public class SaasPermissionService {
 	private final SaasTenantMemberPermissionRepository permissionRepository;
 	private final TenantMemberRepository tenantMemberRepository;
 	private final TenantAccessService tenantAccessService;
+	private final SaasCustomerRepository customerRepository;
 
 	public SaasPermissionService(SaasTenantMemberPermissionRepository permissionRepository,
-			TenantMemberRepository tenantMemberRepository, TenantAccessService tenantAccessService) {
+			TenantMemberRepository tenantMemberRepository, TenantAccessService tenantAccessService,
+			SaasCustomerRepository customerRepository) {
 		this.permissionRepository = permissionRepository;
 		this.tenantMemberRepository = tenantMemberRepository;
 		this.tenantAccessService = tenantAccessService;
+		this.customerRepository = customerRepository;
 	}
 
 	public List<SaasTenantMemberWithPermissionResponse> getTenantMembers(Long tenantId) {
@@ -109,7 +113,56 @@ public class SaasPermissionService {
 
 	public SaasCurrentPermissionResponse getCurrentUserPermissions(Long tenantId) {
 
+		if (tenantId == null || tenantId <= 0) {
+			throw new RuntimeException("Workspace id is required");
+		}
+
 		TenantMember member = tenantAccessService.getCurrentTenantMember(tenantId);
+
+		/*
+		 * ====================================================== CUSTOMER DETECTION
+		 * ======================================================
+		 */
+
+		boolean isCustomer = customerRepository.findByAuthUserId(member.getAuthUserId())
+				.map(customer -> Boolean.TRUE.equals(customer.getActive())).orElse(false);
+
+		/*
+		 * ====================================================== SAAS CUSTOMER
+		 * ======================================================
+		 *
+		 * Customer ko wholesaler ke permission rows expose nahi karne.
+		 *
+		 * Customer ke liye fixed portal permissions.
+		 */
+
+		if (isCustomer) {
+
+			List<SaasMemberPermissionResponse> permissions = List.of(
+
+					new SaasMemberPermissionResponse(null, tenantId, member.getAuthUserId(),
+							TenantModule.DASHBOARD.name(), SaasPermissionAction.VIEW.name(), true),
+
+					new SaasMemberPermissionResponse(null, tenantId, member.getAuthUserId(),
+							TenantModule.SALES_ORDERS.name(), SaasPermissionAction.VIEW.name(), true),
+
+					new SaasMemberPermissionResponse(null, tenantId, member.getAuthUserId(),
+							TenantModule.SALES_ORDERS.name(), SaasPermissionAction.CREATE.name(), true),
+
+					new SaasMemberPermissionResponse(null, tenantId, member.getAuthUserId(),
+							TenantModule.NOTIFICATIONS.name(), SaasPermissionAction.VIEW.name(), true),
+
+					new SaasMemberPermissionResponse(null, tenantId, member.getAuthUserId(),
+							TenantModule.NOTIFICATIONS.name(), SaasPermissionAction.UPDATE.name(), true));
+
+			return new SaasCurrentPermissionResponse(tenantId, member.getAuthUserId(), "SAAS_CUSTOMER", false,
+					permissions);
+		}
+
+		/*
+		 * ====================================================== NORMAL SaaS USER
+		 * ======================================================
+		 */
 
 		boolean ownerOrAdmin = member.getMemberRole() == TenantMemberRole.OWNER
 				|| member.getMemberRole() == TenantMemberRole.ADMIN;
@@ -136,10 +189,14 @@ public class SaasPermissionService {
 			throw new RuntimeException("Workspace id is required");
 		}
 
-
 		TenantMember member = tenantAccessService.getCurrentTenantMember(tenantId);
 
 		Tenant tenant = tenantAccessService.getTenant(tenantId);
+
+		/*
+		 * ====================================================== WORKSPACE STATUS
+		 * ======================================================
+		 */
 
 		if (tenant.getStatus() != TenantStatus.ACTIVE) {
 
@@ -156,11 +213,69 @@ public class SaasPermissionService {
 			throw new RuntimeException("Workspace is not active.");
 		}
 
+		/*
+		 * ====================================================== CUSTOMER DETECTION
+		 * ======================================================
+		 */
+
+		boolean isCustomer = customerRepository.findByAuthUserId(member.getAuthUserId())
+				.map(customer -> Boolean.TRUE.equals(customer.getActive())).orElse(false);
+
+		/*
+		 * ====================================================== CUSTOMER RESTRICTED
+		 * PERMISSIONS ======================================================
+		 */
+
+		if (isCustomer) {
+
+			/*
+			 * Dashboard
+			 */
+			if (module == TenantModule.DASHBOARD && action == SaasPermissionAction.VIEW) {
+
+				return true;
+			}
+
+			/*
+			 * Sales Orders:
+			 *
+			 * VIEW -> customer can see own orders CREATE -> customer can place order
+			 */
+			if (module == TenantModule.SALES_ORDERS
+					&& (action == SaasPermissionAction.VIEW || action == SaasPermissionAction.CREATE)) {
+
+				return true;
+			}
+
+			/*
+			 * Notifications
+			 */
+			if (module == TenantModule.NOTIFICATIONS
+					&& (action == SaasPermissionAction.VIEW || action == SaasPermissionAction.UPDATE)) {
+
+				return true;
+			}
+
+			/*
+			 * Customer ko baaki koi module nahi.
+			 */
+			return false;
+		}
+
+		/*
+		 * ====================================================== OWNER / ADMIN
+		 * ======================================================
+		 */
 
 		if (member.getMemberRole() == TenantMemberRole.OWNER || member.getMemberRole() == TenantMemberRole.ADMIN) {
 
 			return true;
 		}
+
+		/*
+		 * ====================================================== NORMAL STAFF / MEMBERS
+		 * ======================================================
+		 */
 
 		return permissionRepository.existsByTenantIdAndAuthUserIdAndModuleAndPermissionActionAndAllowedTrue(tenantId,
 				member.getAuthUserId(), module, action);

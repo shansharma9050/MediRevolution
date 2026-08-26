@@ -654,9 +654,42 @@ async function loadSaasDashboard() {
 }
 
 
-function updateEnabledWorkspaceModules(
-	modules
-) {
+function updateEnabledWorkspaceModules(modules) {
+
+	const role =
+		typeof getCurrentLoginRole === "function"
+			? getCurrentLoginRole()
+			: String(
+				localStorage.getItem("role") || ""
+			)
+				.trim()
+				.toUpperCase()
+				.replace(/^ROLE_/, "");
+
+
+	/*
+	 * =========================================================
+	 * PATIENT
+	 * =========================================================
+	 *
+	 * Patient tenant ke enabled modules inherit nahi karega.
+	 * =========================================================
+	 */
+
+	if (role === "PATIENT") {
+
+		enabledWorkspaceModules =
+			new Set();
+
+		return;
+	}
+
+
+	/*
+	 * =========================================================
+	 * NORMAL SaaS USER
+	 * =========================================================
+	 */
 
 	const tenantType =
 		normalizeTenantType(
@@ -664,57 +697,63 @@ function updateEnabledWorkspaceModules(
 			localStorage.getItem("tenantType")
 		);
 
+
 	const allowedModules =
-		typeof getAllowedModulesForTenantType === "function"
-			? getAllowedModulesForTenantType(tenantType)
+		typeof getAllowedModulesForTenantType ===
+			"function"
+			? getAllowedModulesForTenantType(
+				tenantType
+			)
 			: new Set();
+
 
 	enabledWorkspaceModules =
 		new Set(
+
 			modules
-				.filter(
-					function(item) {
 
-						if (
-							!item ||
-							item.enabled !== true
-						) {
-							return false;
-						}
+				.filter(function(item) {
 
-						const moduleName =
-							normalizeModuleName(
-								getModuleName(item)
-							);
-
-						if (!moduleName) {
-							return false;
-						}
-
-						/*
-						 * IMPORTANT:
-						 * Backend enabled module alone is not enough.
-						 *
-						 * Tenant type must also allow the module.
-						 */
-						if (
-							allowedModules.size > 0 &&
-							!allowedModules.has(moduleName)
-						) {
-							return false;
-						}
-
-						return true;
+					if (
+						!item ||
+						item.enabled !== true
+					) {
+						return false;
 					}
-				)
-				.map(
-					function(item) {
 
-						return normalizeModuleName(
+
+					const moduleName =
+						normalizeModuleName(
 							getModuleName(item)
 						);
+
+
+					if (!moduleName) {
+						return false;
 					}
-				)
+
+
+					if (
+						allowedModules.size > 0 &&
+						!allowedModules.has(
+							moduleName
+						)
+					) {
+
+						return false;
+					}
+
+
+					return true;
+				})
+
+				.map(function(item) {
+
+					return normalizeModuleName(
+						getModuleName(item)
+					);
+				})
+
 				.filter(Boolean)
 		);
 }
@@ -728,6 +767,50 @@ function renderModules(modules) {
 		);
 
 	if (!container) {
+		return;
+	}
+
+
+	const role =
+		typeof getCurrentLoginRole === "function"
+			? getCurrentLoginRole()
+			: String(
+				localStorage.getItem("role") || ""
+			)
+				.trim()
+				.toUpperCase()
+				.replace(/^ROLE_/, "");
+
+	if (role === "PATIENT") {
+
+		visibleDashboardModules = [];
+
+		setAnimatedNumber(
+			"availableModuleCount",
+			0
+		);
+
+		container.innerHTML = `
+        <div class="col-12">
+            <div class="empty-saas-modules-card">
+
+                <div class="empty-module-icon">
+                    <i class="bi bi-heart-pulse-fill"></i>
+                </div>
+
+                <h4 class="text-primary fw-bold">
+                    Patient Portal
+                </h4>
+
+                <p class="text-muted mb-0">
+                    Use the Patient Portal to book appointments
+                    and view your appointments.
+                </p>
+
+            </div>
+        </div>
+    `;
+
 		return;
 	}
 
@@ -955,145 +1038,322 @@ function renderModules(modules) {
 
 function applySaasSidebarVisibility() {
 
+	const sidebar =
+		document.getElementById("saasSidebar");
+
+	if (!sidebar) {
+		return;
+	}
+
+	const role =
+		typeof getCurrentLoginRole === "function"
+			? getCurrentLoginRole()
+			: String(
+				localStorage.getItem("role") || ""
+			)
+				.trim()
+				.toUpperCase()
+				.replace(/^ROLE_/, "");
+
+
+	/*
+	 * =========================================================
+	 * PATIENT
+	 * =========================================================
+	 *
+	 * IMPORTANT:
+	 *
+	 * Patient hospital/clinic tenant ke andar ho sakta hai,
+	 * lekin Patient ko tenant ke internal SaaS modules
+	 * nahi milne chahiye.
+	 *
+	 * Isliye tenantType based filtering yahan bilkul
+	 * use nahi karenge.
+	 * =========================================================
+	 */
+
+	if (role === "PATIENT") {
+
+		/*
+		 * Hide every normal SaaS module.
+		 */
+
+		sidebar
+			.querySelectorAll(
+				"[data-saas-module], [data-saas]"
+			)
+			.forEach(function(item) {
+
+				item.style.setProperty(
+					"display",
+					"none",
+					"important"
+				);
+			});
+
+
+		/*
+		 * Show Patient-only links.
+		 */
+
+		sidebar
+			.querySelectorAll(
+				"[data-patient-only='true']"
+			)
+			.forEach(function(item) {
+
+				if (
+					item.classList.contains(
+						"sidebar-section-title"
+					)
+				) {
+
+					item.style.setProperty(
+						"display",
+						"block",
+						"important"
+					);
+
+				} else {
+
+					item.style.setProperty(
+						"display",
+						"flex",
+						"important"
+					);
+				}
+			});
+
+
+		/*
+		 * Optional Patient Dashboard link.
+		 *
+		 * Only if your dashboard link has:
+		 *
+		 * data-patient-visible="true"
+		 */
+
+		sidebar
+			.querySelectorAll(
+				"[data-patient-visible='true']"
+			)
+			.forEach(function(item) {
+
+				item.style.setProperty(
+					"display",
+					"flex",
+					"important"
+				);
+			});
+
+
+		/*
+		 * Hide owner/admin links.
+		 */
+
+		sidebar
+			.querySelectorAll(
+				"[data-owner-admin='true']"
+			)
+			.forEach(function(item) {
+
+				item.style.setProperty(
+					"display",
+					"none",
+					"important"
+				);
+			});
+
+
+		/*
+		 * Hide subscription / plans.
+		 */
+
+		sidebar
+			.querySelectorAll(
+				"[data-role]"
+			)
+			.forEach(function(item) {
+
+				item.style.setProperty(
+					"display",
+					"none",
+					"important"
+				);
+			});
+
+
+		/*
+		 * Hide Switch Workspace.
+		 */
+
+		const switchWorkspaceButton =
+			document.getElementById(
+				"saasSwitchWorkspaceButton"
+			);
+
+		if (switchWorkspaceButton) {
+
+			switchWorkspaceButton.style.setProperty(
+				"display",
+				"none",
+				"important"
+			);
+		}
+
+
+		/*
+		 * Hide Switch Module.
+		 */
+
+		const switchModuleButton =
+			document.getElementById(
+				"saasSwitchModuleButton"
+			);
+
+		if (switchModuleButton) {
+
+			switchModuleButton.style.setProperty(
+				"display",
+				"none",
+				"important"
+			);
+		}
+
+
+		hideEmptySidebarSections();
+
+		return;
+	}
+
+
+	/*
+	 * =========================================================
+	 * NON-PATIENT SaaS USER
+	 * =========================================================
+	 */
+
 	const tenantType =
 		normalizeTenantType(
 			selectedDashboardTenantType ||
 			localStorage.getItem("tenantType")
 		);
 
+
 	const allowedModules =
 		typeof getAllowedModulesForTenantType === "function"
 			? getAllowedModulesForTenantType(tenantType)
 			: new Set();
 
+
 	document
 		.querySelectorAll(
 			"#saasSidebar [data-saas-module]"
 		)
-		.forEach(
-			function(item) {
+		.forEach(function(item) {
 
-				const moduleName =
-					normalizeModuleName(
-						item.dataset.saasModule
-					);
+			const moduleName =
+				normalizeModuleName(
+					item.dataset.saasModule
+				);
 
-				const action =
-					normalizeModuleName(
-						item.dataset.saasAction ||
-						"VIEW"
-					);
+			const action =
+				normalizeModuleName(
+					item.dataset.saasAction ||
+					"VIEW"
+				);
 
-				let visible = true;
+			let visible = true;
 
-				/*
-				 * =================================================
-				 * 1. VALID MODULE NAME
-				 * =================================================
-				 */
-				if (!moduleName) {
-					visible = false;
-				}
 
-				/*
-				 * =================================================
-				 * 2. TENANT TYPE CHECK
-				 *
-				 * HOSPITAL:
-				 *   PATIENTS
-				 *   DOCTORS
-				 *   OPD
-				 *   IPD
-				 *   PHARMACY
-				 *   LAB
-				 *   RADIOLOGY
-				 *   etc.
-				 *
-				 * NOT:
-				 *   MEDICINE_MASTER
-				 *   SUPPLIERS
-				 *   CUSTOMERS
-				 *   SALES
-				 *   SALES_ORDERS
-				 *   PURCHASES
-				 *   etc.
-				 * =================================================
-				 */
-				if (
-					visible &&
-					allowedModules.size > 0 &&
-					!allowedModules.has(moduleName)
-				) {
+			/*
+			 * Invalid module
+			 */
 
-					visible = false;
-				}
+			if (!moduleName) {
 
-				/*
-				 * =================================================
-				 * 3. BACKEND ENABLED MODULE CHECK
-				 * =================================================
-				 */
-				if (
-					visible &&
-					!enabledWorkspaceModules.has(
-						moduleName
-					)
-				) {
-
-					visible = false;
-				}
-
-				/*
-				 * =================================================
-				 * 4. SETTINGS / PERMISSIONS
-				 * OWNER / ADMIN ONLY
-				 * =================================================
-				 */
-				if (
-					visible &&
-					(
-						moduleName === "SETTINGS" ||
-						moduleName === "PERMISSIONS"
-					) &&
-					window.SAAS_OWNER_OR_ADMIN !== true
-				) {
-
-					visible = false;
-				}
-
-				/*
-				 * =================================================
-				 * 5. PERMISSION CHECK
-				 * =================================================
-				 */
-				if (
-					visible &&
-					typeof hasCachedSaasPermission ===
-					"function"
-				) {
-
-					visible =
-						hasCachedSaasPermission(
-							moduleName,
-							action
-						);
-				}
-
-				/*
-				 * =================================================
-				 * FINAL VISIBILITY
-				 * =================================================
-				 */
-				item.style.display =
-					visible
-						? ""
-						: "none";
+				visible = false;
 			}
-		);
+
+
+			/*
+			 * Tenant type restriction
+			 */
+
+			if (
+				visible &&
+				allowedModules.size > 0 &&
+				!allowedModules.has(moduleName)
+			) {
+
+				visible = false;
+			}
+
+
+			/*
+			 * Backend enabled module
+			 */
+
+			if (
+				visible &&
+				!enabledWorkspaceModules.has(
+					moduleName
+				)
+			) {
+
+				visible = false;
+			}
+
+
+			/*
+			 * SETTINGS / PERMISSIONS
+			 * Owner/Admin only
+			 */
+
+			if (
+				visible &&
+				(
+					moduleName === "SETTINGS" ||
+					moduleName === "PERMISSIONS"
+				) &&
+				window.SAAS_OWNER_OR_ADMIN !== true
+			) {
+
+				visible = false;
+			}
+
+
+			/*
+			 * Permission
+			 */
+
+			if (
+				visible &&
+				typeof hasCachedSaasPermission ===
+				"function"
+			) {
+
+				visible =
+					hasCachedSaasPermission(
+						moduleName,
+						action
+					);
+			}
+
+
+			/*
+			 * Final visibility
+			 */
+
+			item.style.display =
+				visible
+					? ""
+					: "none";
+		});
+
 
 	hideEmptySidebarSections();
 }
-
 
 function hideEmptySidebarSections() {
 
@@ -1131,7 +1391,8 @@ function hideEmptySidebarSections() {
 
 				const isNavigationItem =
 					currentElement.matches(
-						"a[data-saas-module]"
+						"a[data-saas-module], " +
+						"a[data-patient-only='true']"
 					);
 
 				const isVisible =

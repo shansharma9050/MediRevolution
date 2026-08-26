@@ -87,26 +87,108 @@ function switchMediRevolutionModule() {
 
 function switchSaasWorkspace() {
 
+	/*
+	 * =====================================================
+	 * CURRENT LOGIN ROLE
+	 * =====================================================
+	 */
+	const role =
+		String(
+			localStorage.getItem("role") || ""
+		)
+			.trim()
+			.toUpperCase()
+			.replace(/^ROLE_/, "");
+
+	/*
+	 * =====================================================
+	 * PATIENT SAFETY GUARD
+	 * =====================================================
+	 *
+	 * Patient ka workspace assigned hota hai.
+	 * Patient ko workspace switch nahi karna chahiye.
+	 */
+	if (role === "PATIENT") {
+		return;
+	}
+
+	/*
+	 * =====================================================
+	 * SAAS CUSTOMER SAFETY GUARD
+	 * =====================================================
+	 *
+	 * Customer ka workspace bhi assigned hota hai.
+	 */
+	if (role === "SAAS_CUSTOMER") {
+		return;
+	}
+
+	/*
+	 * =====================================================
+	 * PREVENT DOUBLE CLICK
+	 * =====================================================
+	 */
 	if (moduleSwitchInProgress) {
 		return;
 	}
 
 	moduleSwitchInProgress = true;
 
-	localStorage.removeItem("tenantId");
-	localStorage.removeItem("tenantName");
-	localStorage.removeItem("saasMemberRole");
-	localStorage.removeItem("saasOwnerOrAdmin");
-	localStorage.removeItem("saasPermissions");
-	localStorage.removeItem("saasEnabledModules");
+	/*
+	 * =====================================================
+	 * CLEAR CURRENT WORKSPACE CONTEXT
+	 * =====================================================
+	 */
+	localStorage.removeItem(
+		"tenantId"
+	);
 
+	localStorage.removeItem(
+		"tenantName"
+	);
+
+	localStorage.removeItem(
+		"tenantType"
+	);
+
+	localStorage.removeItem(
+		"saasMemberRole"
+	);
+
+	localStorage.removeItem(
+		"saasOwnerOrAdmin"
+	);
+
+	localStorage.removeItem(
+		"saasPermissions"
+	);
+
+	localStorage.removeItem(
+		"saasEnabledModules"
+	);
+
+	/*
+	 * =====================================================
+	 * CLEAR IN-MEMORY SAAS CACHE
+	 * =====================================================
+	 */
 	window.SAAS_PERMISSIONS = [];
+
 	window.SAAS_MEMBER_ROLE = null;
+
 	window.SAAS_OWNER_OR_ADMIN = false;
+
 	window.SAAS_ENABLED_MODULES = [];
 
+	/*
+	 * =====================================================
+	 * SHOW SWITCHING OVERLAY
+	 * =====================================================
+	 */
 	const overlay =
-		document.getElementById("moduleExitOverlay");
+		document.getElementById(
+			"moduleExitOverlay"
+		);
 
 	if (overlay) {
 
@@ -117,34 +199,55 @@ function switchSaasWorkspace() {
 			overlay.querySelector("p");
 
 		const icon =
-			overlay.querySelector(".module-exit-icon");
+			overlay.querySelector(
+				".module-exit-icon"
+			);
 
 		if (title) {
-			title.textContent = "Switching Workspace";
+
+			title.textContent =
+				"Switching Workspace";
+
 		}
 
 		if (message) {
+
 			message.textContent =
 				"Preparing your workspace selection...";
+
 		}
 
 		if (icon) {
+
 			icon.innerHTML =
 				'<i class="bi bi-building"></i>';
+
 		}
 
-		overlay.classList.add("active");
+		overlay.classList.add(
+			"active"
+		);
 
-		window.setTimeout(function() {
+		window.setTimeout(
+			function() {
 
-			window.location.href = "/saas/workspaces";
+				window.location.href =
+					"/saas/workspaces";
 
-		}, 1200);
+			},
+			1200
+		);
 
 		return;
 	}
 
-	window.location.href = "/saas/workspaces";
+	/*
+	 * =====================================================
+	 * FALLBACK REDIRECT
+	 * =====================================================
+	 */
+	window.location.href =
+		"/saas/workspaces";
 }
 
 

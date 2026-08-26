@@ -19,9 +19,7 @@ let customers = [];
 let medicines = [];
 let medicineRows = [];
 let sales = [];
-
 let medicineOptionsHtml = "";
-
 let searchTimer = null;
 
 /* ===========================================================
@@ -38,12 +36,10 @@ let isPrintingSale = false;
 =========================================================== */
 
 let salesPermissions = {
-
 	create: false,
 	update: false,
 	delete: false,
 	print: false
-
 };
 
 /* ===========================================================
@@ -51,10 +47,8 @@ let salesPermissions = {
 =========================================================== */
 
 const currencyFormatter = new Intl.NumberFormat("en-IN", {
-
 	minimumFractionDigits: 2,
 	maximumFractionDigits: 2
-
 });
 
 /* ===========================================================
@@ -72,61 +66,48 @@ document.addEventListener("DOMContentLoaded", async function() {
 	tenantId = Number(localStorage.getItem("tenantId"));
 
 	if (!tenantId) {
-
 		showError("Please select SaaS workspace first.");
-
 		return;
-
 	}
-
 
 	const tenantInput = document.getElementById("tenantId");
 
 	if (tenantInput) {
-
 		tenantInput.value = tenantId;
-
 	}
 
-
-	saleFormPanel = document.getElementById("saleFormPanel");
-
+	saleFormPanel =
+		document.getElementById("saleFormPanel");
 
 	const previewElement =
 		document.getElementById("salePreviewModal");
 
-
 	if (previewElement) {
-
 		previewModal =
-			bootstrap.Modal.getOrCreateInstance(previewElement);
-
+			bootstrap.Modal.getOrCreateInstance(
+				previewElement
+			);
 	}
-
 
 	bindEvents();
 
-
 	await loadSalesPermissions();
 
-
 	await Promise.all([
-
 		loadSummary(),
 		loadCustomers(),
 		loadMedicines()
-
 	]);
-
 
 	bindCustomerSelection();
 
-
 	await loadSales();
-
-
 });
 
+
+/* ===========================================================
+   OPEN / CLOSE FORM
+=========================================================== */
 
 function openSaleForm() {
 
@@ -140,8 +121,8 @@ function openSaleForm() {
 		behavior: "smooth",
 		block: "start"
 	});
-
 }
+
 
 function closeSaleForm() {
 
@@ -152,8 +133,9 @@ function closeSaleForm() {
 	saleFormPanel.style.display = "none";
 
 	resetSaleForm();
-
 }
+
+
 /* ===========================================================
    LOAD PERMISSIONS
 =========================================================== */
@@ -161,17 +143,18 @@ function closeSaleForm() {
 async function loadSalesPermissions() {
 
 	const [
-
 		canCreate,
 		canUpdate,
 		canDelete,
 		canPrint
-
 	] = await Promise.all([
 
 		hasSaasPermission("SALES", "CREATE"),
+
 		hasSaasPermission("SALES", "UPDATE"),
+
 		hasSaasPermission("SALES", "DELETE"),
+
 		hasSaasPermission("SALES", "PRINT")
 
 	]);
@@ -179,15 +162,18 @@ async function loadSalesPermissions() {
 	salesPermissions = {
 
 		create: Boolean(canCreate),
+
 		update: Boolean(canUpdate),
+
 		delete: Boolean(canDelete),
+
 		print: Boolean(canPrint)
 
 	};
 
 	applySalesPermissions();
-
 }
+
 
 /* ===========================================================
    APPLY PERMISSIONS
@@ -219,8 +205,8 @@ function applySalesPermissions() {
 		"print-sale-btn",
 		salesPermissions.print
 	);
-
 }
+
 
 /* ===========================================================
    EVENT BINDINGS
@@ -228,29 +214,62 @@ function applySalesPermissions() {
 
 function bindEvents() {
 
-	bindClick("btnCreateSale", openCreateModal);
+	bindClick(
+		"btnCreateSale",
+		openCreateModal
+	);
 
-	bindClick("heroCreateSaleBtn", openCreateModal);
+	bindClick(
+		"heroCreateSaleBtn",
+		openCreateModal
+	);
 
-	bindClick("btnSaveSale", saveSale);
+	bindClick(
+		"btnSaveSale",
+		saveSale
+	);
 
-	bindClick("btnRefresh", refreshBillingPage);
+	bindClick(
+		"btnRefresh",
+		refreshBillingPage
+	);
 
-	bindClick("btnSearch", searchSales);
+	bindClick(
+		"btnSearch",
+		searchSales
+	);
 
-	bindClick("btnAddMedicine", addMedicineRow);
+	bindClick(
+		"btnAddMedicine",
+		addMedicineRow
+	);
 
-	bindInput("otherCharges", calculateTotals);
+	bindInput(
+		"otherCharges",
+		calculateTotals
+	);
 
-	bindInput("roundOffAmount", calculateTotals);
+	bindInput(
+		"roundOffAmount",
+		calculateTotals
+	);
 
-	bindInput("paidAmount", calculateTotals);
+	bindInput(
+		"paidAmount",
+		calculateTotals
+	);
 
-	bindClick("btnPreviewPrint", printCurrentSale);
+	bindClick(
+		"btnPreviewPrint",
+		printCurrentSale
+	);
 
-	bindInput("searchKeyword", debounceSearch);
-
+	bindInput(
+		"searchKeyword",
+		debounceSearch
+	);
 }
+
 
 /* ===========================================================
    SMALL EVENT HELPERS
@@ -258,49 +277,67 @@ function bindEvents() {
 
 function bindClick(id, callback) {
 
-	const element = document.getElementById(id);
+	const element =
+		document.getElementById(id);
 
-	if (!element) return;
+	if (!element) {
+		return;
+	}
 
-	element.addEventListener("click", callback);
-
+	element.addEventListener(
+		"click",
+		callback
+	);
 }
+
 
 function bindInput(id, callback) {
 
-	const element = document.getElementById(id);
+	const element =
+		document.getElementById(id);
 
-	if (!element) return;
+	if (!element) {
+		return;
+	}
 
-	element.addEventListener("input", callback);
-
+	element.addEventListener(
+		"input",
+		callback
+	);
 }
+
 
 function debounceSearch() {
 
 	clearTimeout(searchTimer);
 
-	searchTimer = setTimeout(function() {
-
-		filterSales();
-
-	}, 300);
-
+	searchTimer = setTimeout(
+		function() {
+			filterSales();
+		},
+		300
+	);
 }
+
+
+/* ===========================================================
+   PRINT CURRENT SALE
+=========================================================== */
 
 async function printCurrentSale() {
 
 	if (!editingSaleId) {
 
-		showError("No invoice selected.");
+		showError(
+			"No invoice selected."
+		);
 
 		return;
-
 	}
 
 	await printInvoice(editingSaleId);
-
 }
+
 
 /* ===========================================================
    LOAD SUMMARY
@@ -328,17 +365,16 @@ async function loadSummary() {
 			);
 
 			return;
-
 		}
 
-		const result = await safeJson(response);
+		const result =
+			await safeJson(response);
 
 		if (!response.ok) {
 
 			console.error(result);
 
 			return;
-
 		}
 
 		setText(
@@ -348,17 +384,23 @@ async function loadSummary() {
 
 		setText(
 			"summaryTotalAmount",
-			"₹" + formatMoney(result.totalAmount)
+			"₹" + formatMoney(
+				result.totalAmount
+			)
 		);
 
 		setText(
 			"summaryPaidAmount",
-			"₹" + formatMoney(result.paidAmount)
+			"₹" + formatMoney(
+				result.paidAmount
+			)
 		);
 
 		setText(
 			"summaryDueAmount",
-			"₹" + formatMoney(result.dueAmount)
+			"₹" + formatMoney(
+				result.dueAmount
+			)
 		);
 
 	}
@@ -372,6 +414,7 @@ async function loadSummary() {
 	}
 
 }
+
 
 /* ===========================================================
    LOAD SALES
@@ -413,10 +456,10 @@ async function loadSales() {
 			);
 
 			return;
-
 		}
 
-		const result = await safeJson(response);
+		const result =
+			await safeJson(response);
 
 		if (!response.ok) {
 
@@ -433,12 +476,12 @@ async function loadSales() {
 			showSalesErrorState(message);
 
 			return;
-
 		}
 
-		sales = Array.isArray(result)
-			? result
-			: [];
+		sales =
+			Array.isArray(result)
+				? result
+				: [];
 
 		sales.sort((a, b) => {
 
@@ -497,8 +540,8 @@ async function loadSales() {
 		);
 
 	}
-
 }
+
 
 /* ===========================================================
    RENDER SALES TABLE
@@ -515,26 +558,28 @@ function renderSalesTable(list) {
 		return;
 	}
 
-	if (!Array.isArray(list) || !list.length) {
+	if (
+		!Array.isArray(list) ||
+		!list.length
+	) {
 
 		renderEmptyState();
 
 		return;
-
 	}
 
-	tbody.innerHTML = list.map((sale) => {
+	tbody.innerHTML =
+		list.map(sale => {
 
-		const dueAmount =
-			toMoneyNumber(
-				sale.grandTotal
-			) -
-			toMoneyNumber(
-				sale.paidAmount
-			);
+			const dueAmount =
+				toMoneyNumber(
+					sale.grandTotal
+				) -
+				toMoneyNumber(
+					sale.paidAmount
+				);
 
-		return `
-
+			return `
 <tr>
 
     <td>
@@ -562,32 +607,32 @@ function renderSalesTable(list) {
     <td>
 
         ₹${formatMoney(
-			sale.grandTotal
-		)}
+				sale.grandTotal
+			)}
 
     </td>
 
     <td class="text-success fw-semibold">
 
         ₹${formatMoney(
-			sale.paidAmount
-		)}
+				sale.paidAmount
+			)}
 
     </td>
 
     <td class="text-danger fw-semibold">
 
         ₹${formatMoney(
-			dueAmount
-		)}
+				dueAmount
+			)}
 
     </td>
 
     <td>
 
         ${paymentStatusBadge(
-			sale.paymentStatus
-		)}
+				sale.paymentStatus
+			)}
 
     </td>
 
@@ -636,17 +681,16 @@ function renderSalesTable(list) {
     </td>
 
 </tr>
-
 `;
 
-	}).join("");
+		}).join("");
 
 	applySalesPermissions();
-
 }
 
+
 /* ===========================================================
-   SEARCH SALES (API SEARCH)
+   SEARCH SALES
 =========================================================== */
 
 async function searchSales() {
@@ -659,7 +703,6 @@ async function searchSales() {
 		await loadSales();
 
 		return;
-
 	}
 
 	if (isLoadingSales) {
@@ -696,7 +739,6 @@ async function searchSales() {
 			);
 
 			return;
-
 		}
 
 		const result =
@@ -712,19 +754,18 @@ async function searchSales() {
 			);
 
 			return;
-
 		}
 
-		sales = Array.isArray(result)
-			? result
-			: [];
+		sales =
+			Array.isArray(result)
+				? result
+				: [];
 
 		if (!sales.length) {
 
 			renderEmptyState();
 
 			return;
-
 		}
 
 		renderSalesTable(sales);
@@ -752,8 +793,8 @@ async function searchSales() {
 		);
 
 	}
-
 }
+
 
 /* ===========================================================
    LOCAL FILTER
@@ -770,35 +811,34 @@ function filterSales() {
 		renderSalesTable(sales);
 
 		return;
-
 	}
 
 	const filteredSales =
-		sales.filter(sale =>
+		sales.filter(
+			sale =>
 
-			(sale.saleNumber || "")
-				.toLowerCase()
-				.includes(keyword)
+				(sale.saleNumber || "")
+					.toLowerCase()
+					.includes(keyword)
 
-			||
+				||
 
-			(sale.customerName || "")
-				.toLowerCase()
-				.includes(keyword)
+				(sale.customerName || "")
+					.toLowerCase()
+					.includes(keyword)
 
-			||
+				||
 
-			(sale.paymentStatus || "")
-				.toLowerCase()
-				.includes(keyword)
-
+				(sale.paymentStatus || "")
+					.toLowerCase()
+					.includes(keyword)
 		);
 
 	renderSalesTable(filteredSales);
 
 	updateSalesSummary(filteredSales);
-
 }
+
 
 /* ===========================================================
    REFRESH PAGE
@@ -809,11 +849,12 @@ async function refreshBillingPage() {
 	await Promise.all([
 
 		loadSummary(),
+
 		loadSales()
 
 	]);
-
 }
+
 
 /* ===========================================================
    REFRESH SUMMARY ONLY
@@ -825,41 +866,75 @@ async function refreshSummary() {
 
 }
 
+
 /* ===========================================================
    MEDICINE ROW MANAGEMENT
+   IMPORTANT:
+   originalQuantity is used during EDIT mode.
 =========================================================== */
 
 function addMedicineRow(data = {}) {
 
 	medicineRows.push({
 
-		medicineId: data.medicineId || "",
+		medicineId:
+			data.medicineId || "",
 
-		medicineName: data.medicineName || "",
+		stockId:
+			data.stockId || "",
 
-		quantity: Number(data.quantity || 1),
+		medicineName:
+			data.medicineName || "",
 
-		saleRate: Number(data.saleRate || 0),
+		quantity:
+			Number(data.quantity || 1),
 
-		discountPercentage: Number(data.discountPercentage || 0),
+		/*
+		 * Quantity that was already deducted
+		 * when the original sale was created.
+		 *
+		 * For a newly added medicine this is 0.
+		 */
+		originalQuantity:
+			Number(data.originalQuantity || 0),
 
-		gstPercentage: Number(data.gstPercentage || 0),
+		saleRate:
+			Number(data.saleRate || 0),
 
-		availableStock: Number(data.availableStock || 0),
+		discountPercentage:
+			Number(
+				data.discountPercentage || 0
+			),
 
-		lineTotal: Number(data.lineTotal || 0)
+		gstPercentage:
+			Number(
+				data.gstPercentage || 0
+			),
+
+		availableStock:
+			Number(
+				data.availableStock || 0
+			),
+
+		lineTotal:
+			Number(
+				data.lineTotal || 0
+			)
 
 	});
 
 	renderMedicineRows();
 
 	calculateTotals();
-
 }
+
 
 function removeMedicineRow(index) {
 
-	if (index < 0 || index >= medicineRows.length) {
+	if (
+		index < 0 ||
+		index >= medicineRows.length
+	) {
 		return;
 	}
 
@@ -868,12 +943,19 @@ function removeMedicineRow(index) {
 	renderMedicineRows();
 
 	calculateTotals();
-
 }
+
+
+/* ===========================================================
+   RENDER MEDICINE ROWS
+=========================================================== */
 
 function renderMedicineRows() {
 
-	const tbody = document.getElementById("medicineTableBody");
+	const tbody =
+		document.getElementById(
+			"medicineTableBody"
+		);
 
 	if (!tbody) {
 		return;
@@ -882,120 +964,177 @@ function renderMedicineRows() {
 	if (medicineRows.length === 0) {
 
 		tbody.innerHTML = `
-			<tr>
-				<td colspan="8" class="text-center text-muted py-4">
-					No medicines added.
-				</td>
-			</tr>
-		`;
+
+<tr>
+
+    <td colspan="8"
+        class="text-center text-muted py-4">
+
+        No medicines added.
+
+    </td>
+
+</tr>
+`;
 
 		return;
 	}
 
-	tbody.innerHTML = medicineRows.map((row, index) => {
+	tbody.innerHTML =
+		medicineRows.map(
+			(row, index) => {
 
-		return `
-			<tr>
+				return `
 
-				<td>
-					<select
-						class="form-select medicine-select"
-						data-index="${index}">
+<tr>
 
-						<option value="">Select Medicine</option>
+    <td>
 
-						${medicineOptions(row.medicineId)}
+        <select
+            class="form-select medicine-select"
+            data-index="${index}">
 
-					</select>
-				</td>
+            <option value="">
+                Select Medicine
+            </option>
 
-				<td>
-					<input
-						type="number"
-						class="form-control quantity-input"
-						data-index="${index}"
-						min="1"
-						value="${row.quantity}">
-				</td>
+            ${medicineOptions(
+					row.medicineId
+				)}
 
-				<td>
-					<input
-						type="number"
-						step="0.01"
-						class="form-control rate-input"
-						data-index="${index}"
-						value="${row.saleRate}">
-				</td>
+        </select>
 
-				<td>
-					<input
-						type="number"
-						step="0.01"
-						class="form-control discount-input"
-						data-index="${index}"
-						value="${row.discountPercentage}">
-				</td>
+    </td>
 
-				<td>
-					<input
-						type="number"
-						step="0.01"
-						class="form-control gst-input"
-						data-index="${index}"
-						value="${row.gstPercentage}">
-				</td>
+    <td>
 
-				<td>
-					<span class="badge bg-info stock-badge-${index}">
-						Stock : ${row.availableStock}
-					</span>
-				</td>
+        <input
+            type="number"
+            class="form-control quantity-input"
+            data-index="${index}"
+            min="1"
+            value="${row.quantity}">
 
-				<td class="fw-bold text-end line-total">
-					₹${formatMoney(row.lineTotal)}
-				</td>
+    </td>
 
-				<td>
-					<button
-						type="button"
-						class="btn btn-sm btn-outline-danger"
-						onclick="removeMedicineRow(${index})">
-						<i class="bi bi-trash"></i>
-					</button>
-				</td>
+    <td>
 
-			</tr>
-		`;
+        <input
+            type="number"
+            step="0.01"
+            class="form-control rate-input"
+            data-index="${index}"
+            value="${row.saleRate}">
 
-	}).join("");
+    </td>
 
-	// Ensure correct selected medicine is shown
-	document.querySelectorAll(".medicine-select").forEach(select => {
+    <td>
 
-		const index = Number(select.dataset.index);
-		const row = medicineRows[index];
+        <input
+            type="number"
+            step="0.01"
+            class="form-control discount-input"
+            data-index="${index}"
+            value="${row.discountPercentage}">
 
-		if (row && row.medicineId != null) {
-			select.value = String(row.medicineId);
-		}
+    </td>
 
-	});
+    <td>
+
+        <input
+            type="number"
+            step="0.01"
+            class="form-control gst-input"
+            data-index="${index}"
+            value="${row.gstPercentage}">
+
+    </td>
+
+    <td>
+
+        <span class="badge bg-info stock-badge-${index}">
+
+            Stock : ${row.availableStock}
+
+        </span>
+
+    </td>
+
+    <td class="fw-bold text-end line-total">
+
+        ₹${formatMoney(
+					row.lineTotal
+				)}
+
+    </td>
+
+    <td>
+
+        <button
+            type="button"
+            class="btn btn-sm btn-outline-danger"
+            onclick="removeMedicineRow(${index})">
+
+            <i class="bi bi-trash"></i>
+
+        </button>
+
+    </td>
+
+</tr>
+
+`;
+
+			}
+		).join("");
+
+
+	/*
+	 * Ensure selected medicine is correctly restored.
+	 */
+	document
+		.querySelectorAll(".medicine-select")
+		.forEach(select => {
+
+			const index =
+				Number(
+					select.dataset.index
+				);
+
+			const row =
+				medicineRows[index];
+
+			if (
+				row &&
+				row.medicineId != null
+			) {
+
+				select.value =
+					String(
+						row.medicineId
+					);
+
+			}
+
+		});
 
 	bindMedicineEvents();
 
 	calculateTotals();
 }
 
+
 /* ===========================================================
    MEDICINE OPTIONS
 =========================================================== */
 
-function medicineOptions(selectedId = "") {
+function medicineOptions(
+	selectedId = ""
+) {
 
 	if (!selectedId) {
 
 		return medicineOptionsHtml;
-
 	}
 
 	return medicineOptionsHtml.replace(
@@ -1005,154 +1144,277 @@ function medicineOptions(selectedId = "") {
 		`value="${selectedId}" selected`
 
 	);
-
 }
+
+
 /* ===========================================================
-   BIND ROW EVENTS
+   BIND MEDICINE EVENTS
 =========================================================== */
 
 function bindMedicineEvents() {
 
-	document.querySelectorAll(".medicine-select")
+	/*
+	 * MEDICINE SELECT
+	 */
+	document
+		.querySelectorAll(".medicine-select")
 		.forEach(select => {
 
-			select.onchange = async function() {
+			select.onchange =
+				async function() {
 
-				const index = Number(this.dataset.index);
+					const index =
+						Number(
+							this.dataset.index
+						);
 
-				/* ==========================================
-				   DUPLICATE MEDICINE CHECK
-				========================================== */
+					const selectedMedicineId =
+						String(
+							this.value || ""
+						);
 
-				const selectedMedicineId = String(this.value);
 
-				if (
-					selectedMedicineId &&
-					medicineRows.some((row, i) =>
-						i !== index &&
-						String(row.medicineId || "") === selectedMedicineId
-					)
-				) {
+					/* ==========================================
+					   DUPLICATE MEDICINE CHECK
+					========================================== */
 
-					showError("Medicine already added.");
+					if (
 
-					this.value = "";
+						selectedMedicineId &&
 
-					medicineRows[index].medicineId = "";
-					medicineRows[index].medicineName = "";
-					medicineRows[index].saleRate = 0;
-					medicineRows[index].availableStock = 0;
+						medicineRows.some(
+							(row, i) =>
+
+								i !== index &&
+
+								String(
+									row.medicineId || ""
+								) ===
+								selectedMedicineId
+						)
+
+					) {
+
+						showError(
+							"Medicine already added."
+						);
+
+						this.value = "";
+
+						medicineRows[index]
+							.medicineId = "";
+
+						medicineRows[index]
+							.medicineName = "";
+
+						medicineRows[index]
+							.stockId = "";
+
+						medicineRows[index]
+							.saleRate = 0;
+
+						medicineRows[index]
+							.availableStock = 0;
+
+						medicineRows[index]
+							.originalQuantity = 0;
+
+						calculateTotals();
+
+						return;
+					}
+
+
+					/* ==========================================
+					   LOAD MEDICINE DETAILS
+					========================================== */
+
+					const stock =
+						medicines.find(
+							s =>
+								String(
+									s.medicineId
+								) ===
+								selectedMedicineId
+						);
+
+
+					if (stock) {
+
+						medicineRows[index]
+							.medicineId =
+							stock.medicineId;
+
+						medicineRows[index]
+							.stockId =
+							stock.id;
+
+						medicineRows[index]
+							.medicineName =
+							stock.medicineName;
+
+						medicineRows[index]
+							.saleRate =
+							Number(
+								stock.salePrice || 0
+							);
+
+						medicineRows[index]
+							.gstPercentage =
+							Number(
+								stock.gstPercentage || 0
+							);
+
+						medicineRows[index]
+							.availableStock =
+							Number(
+								stock.currentQuantity || 0
+							);
+
+						/*
+						 * IMPORTANT
+						 *
+						 * If user changes an existing
+						 * sale row to another medicine,
+						 * the old medicine quantity no
+						 * longer belongs to this row.
+						 */
+						medicineRows[index]
+							.originalQuantity = 0;
+
+					}
+
+
+					await loadMedicineStock(
+						index
+					);
+
+					renderMedicineRows();
 
 					calculateTotals();
 
-					return;
-				}
-
-				/* ==========================================
-				   LOAD MEDICINE DETAILS
-				========================================== */
-
-				const stock = medicines.find(s =>
-					String(s.medicineId) === String(this.value)
-				);
-
-				if (stock) {
-
-					medicineRows[index].medicineId = stock.medicineId;
-
-					medicineRows[index].stockId = stock.id;
-
-					medicineRows[index].medicineName =
-						stock.medicineName;
-
-					medicineRows[index].saleRate =
-						Number(stock.salePrice || 0);
-
-					medicineRows[index].gstPercentage =
-						Number(stock.gstPercentage || 0);
-
-					medicineRows[index].availableStock =
-						Number(stock.currentQuantity || 0);
-
-				}
-
-				await loadMedicineStock(index);
-
-				renderMedicineRows();
-
-				calculateTotals();
-
-			};
+				};
 
 		});
 
-	document.querySelectorAll(".quantity-input")
+
+	/*
+	 * QUANTITY
+	 */
+	document
+		.querySelectorAll(".quantity-input")
 		.forEach(input => {
 
-			input.oninput = function() {
+			input.oninput =
+				function() {
 
-				const index = Number(this.dataset.index);
+					const index =
+						Number(
+							this.dataset.index
+						);
 
-				medicineRows[index].quantity =
-					Number(this.value || 0);
+					medicineRows[index]
+						.quantity =
+						Number(
+							this.value || 0
+						);
 
-				calculateTotals();
+					calculateTotals();
 
-				validateMedicineStock(index);
+					validateMedicineStock(
+						index
+					);
 
-			};
+				};
 
 		});
 
-	document.querySelectorAll(".rate-input")
+
+	/*
+	 * RATE
+	 */
+	document
+		.querySelectorAll(".rate-input")
 		.forEach(input => {
 
-			input.oninput = function() {
+			input.oninput =
+				function() {
 
-				const index = Number(this.dataset.index);
+					const index =
+						Number(
+							this.dataset.index
+						);
 
-				medicineRows[index].saleRate =
-					Number(this.value || 0);
+					medicineRows[index]
+						.saleRate =
+						Number(
+							this.value || 0
+						);
 
-				calculateTotals();
+					calculateTotals();
 
-			};
+				};
 
 		});
 
-	document.querySelectorAll(".discount-input")
+
+	/*
+	 * DISCOUNT
+	 */
+	document
+		.querySelectorAll(".discount-input")
 		.forEach(input => {
 
-			input.oninput = function() {
+			input.oninput =
+				function() {
 
-				const index = Number(this.dataset.index);
+					const index =
+						Number(
+							this.dataset.index
+						);
 
-				medicineRows[index].discountPercentage =
-					Number(this.value || 0);
+					medicineRows[index]
+						.discountPercentage =
+						Number(
+							this.value || 0
+						);
 
-				calculateTotals();
+					calculateTotals();
 
-			};
+				};
 
 		});
 
-	document.querySelectorAll(".gst-input")
+
+	/*
+	 * GST
+	 */
+	document
+		.querySelectorAll(".gst-input")
 		.forEach(input => {
 
-			input.oninput = function() {
+			input.oninput =
+				function() {
 
-				const index = Number(this.dataset.index);
+					const index =
+						Number(
+							this.dataset.index
+						);
 
-				medicineRows[index].gstPercentage =
-					Number(this.value || 0);
+					medicineRows[index]
+						.gstPercentage =
+						Number(
+							this.value || 0
+						);
 
-				calculateTotals();
+					calculateTotals();
 
-			};
+				};
 
 		});
 
 }
+
 
 /* ===========================================================
    TOTAL CALCULATION
@@ -1161,21 +1423,34 @@ function bindMedicineEvents() {
 function calculateTotals() {
 
 	let gross = 0;
+
 	let discount = 0;
+
 	let taxable = 0;
+
 	let gst = 0;
+
 
 	medicineRows.forEach(row => {
 
-		const qty = toMoneyNumber(row.quantity);
+		const qty =
+			toMoneyNumber(
+				row.quantity
+			);
 
-		const rate = toMoneyNumber(row.saleRate);
+		const rate =
+			toMoneyNumber(
+				row.saleRate
+			);
 
-		const grossLine = qty * rate;
+		const grossLine =
+			qty * rate;
 
 		const discountLine =
 			grossLine *
-			toMoneyNumber(row.discountPercentage) / 100;
+			toMoneyNumber(
+				row.discountPercentage
+			) / 100;
 
 		const taxableLine =
 			grossLine -
@@ -1183,15 +1458,17 @@ function calculateTotals() {
 
 		const gstLine =
 			taxableLine *
-			toMoneyNumber(row.gstPercentage) / 100;
+			toMoneyNumber(
+				row.gstPercentage
+			) / 100;
 
-		row.lineTotal = Number(
-
-			(taxableLine + gstLine)
-
-				.toFixed(2)
-
-		);
+		row.lineTotal =
+			Number(
+				(
+					taxableLine +
+					gstLine
+				).toFixed(2)
+			);
 
 		gross += grossLine;
 
@@ -1203,11 +1480,20 @@ function calculateTotals() {
 
 	});
 
+
 	const other =
-		toMoneyNumber(getValue("otherCharges"));
+		toMoneyNumber(
+			getValue(
+				"otherCharges"
+			)
+		);
 
 	const round =
-		toMoneyNumber(getValue("roundOffAmount"));
+		toMoneyNumber(
+			getValue(
+				"roundOffAmount"
+			)
+		);
 
 	const grand =
 		taxable +
@@ -1216,65 +1502,212 @@ function calculateTotals() {
 		round;
 
 	const paid =
-		toMoneyNumber(getValue("paidAmount"));
+		toMoneyNumber(
+			getValue(
+				"paidAmount"
+			)
+		);
 
 	const due =
-		Math.max(0, grand - paid);
+		Math.max(
+			0,
+			grand - paid
+		);
 
-	const grossElement = document.getElementById("grossAmount");
+
+	const grossElement =
+		document.getElementById(
+			"grossAmount"
+		);
+
 	if (grossElement) {
-		grossElement.textContent = "₹" + formatMoney(gross);
-		grossElement.dataset.value = gross;
+
+		grossElement.textContent =
+			"₹" +
+			formatMoney(gross);
+
+		grossElement.dataset.value =
+			gross;
+
 	}
 
-	const discountElement = document.getElementById("discountAmount");
+
+	const discountElement =
+		document.getElementById(
+			"discountAmount"
+		);
+
 	if (discountElement) {
-		discountElement.textContent = "₹" + formatMoney(discount);
-		discountElement.dataset.value = discount;
+
+		discountElement.textContent =
+			"₹" +
+			formatMoney(discount);
+
+		discountElement.dataset.value =
+			discount;
+
 	}
 
-	const taxableElement = document.getElementById("taxableAmount");
+
+	const taxableElement =
+		document.getElementById(
+			"taxableAmount"
+		);
+
 	if (taxableElement) {
-		taxableElement.textContent = "₹" + formatMoney(taxable);
-		taxableElement.dataset.value = taxable;
+
+		taxableElement.textContent =
+			"₹" +
+			formatMoney(taxable);
+
+		taxableElement.dataset.value =
+			taxable;
+
 	}
 
-	const gstElement = document.getElementById("gstAmount");
+
+	const gstElement =
+		document.getElementById(
+			"gstAmount"
+		);
+
 	if (gstElement) {
-		gstElement.textContent = "₹" + formatMoney(gst);
-		gstElement.dataset.value = gst;
+
+		gstElement.textContent =
+			"₹" +
+			formatMoney(gst);
+
+		gstElement.dataset.value =
+			gst;
+
 	}
 
-	const grandElement = document.getElementById("grandTotal");
+
+	const grandElement =
+		document.getElementById(
+			"grandTotal"
+		);
+
 	if (grandElement) {
-		grandElement.textContent = "₹" + formatMoney(grand);
-		grandElement.dataset.value = grand;
+
+		grandElement.textContent =
+			"₹" +
+			formatMoney(grand);
+
+		grandElement.dataset.value =
+			grand;
+
 	}
 
-	const dueElement = document.getElementById("dueAmount");
+
+	const dueElement =
+		document.getElementById(
+			"dueAmount"
+		);
+
 	if (dueElement) {
-		dueElement.textContent = "₹" + formatMoney(due);
-		dueElement.dataset.value = due;
+
+		dueElement.textContent =
+			"₹" +
+			formatMoney(due);
+
+		dueElement.dataset.value =
+			due;
+
 	}
+
 
 	updatePaymentStatus();
 
-	document.querySelectorAll(".line-total")
-		.forEach((cell, index) => {
 
-			if (medicineRows[index]) {
+	document
+		.querySelectorAll(".line-total")
+		.forEach(
+			(cell, index) => {
 
-				cell.innerHTML =
-					"₹" +
-					formatMoney(
-						medicineRows[index].lineTotal
-					);
+				if (medicineRows[index]) {
+
+					cell.innerHTML =
+						"₹" +
+						formatMoney(
+							medicineRows[index]
+								.lineTotal
+						);
+
+				}
 
 			}
-
-		});
-
+		);
 }
+
+
+/* ===========================================================
+   STOCK VALIDATION
+=========================================================== */
+
+/*
+ * IMPORTANT
+ *
+ * Existing sale quantity was already deducted from stock.
+ *
+ * Therefore during EDIT:
+ *
+ * effective stock =
+ * current stock + original sale quantity
+ *
+ * Example:
+ *
+ * Original quantity = 10
+ * Current stock     = 5
+ *
+ * Effective available = 15
+ *
+ */
+
+function validateMedicineStock(index) {
+
+	const row =
+		medicineRows[index];
+
+	if (!row) {
+		return true;
+	}
+
+	const currentStock =
+		Number(
+			row.availableStock || 0
+		);
+
+	const originalQuantity =
+		Number(
+			row.originalQuantity || 0
+		);
+
+	const requestedQuantity =
+		Number(
+			row.quantity || 0
+		);
+
+	const effectiveAvailableStock =
+		currentStock +
+		originalQuantity;
+
+
+	if (
+		requestedQuantity >
+		effectiveAvailableStock
+	) {
+
+		showError(
+			`${row.medicineName || "Selected medicine"} stock is only ${effectiveAvailableStock}.`
+		);
+
+		return false;
+	}
+
+	return true;
+}
+
 
 /* ===========================================================
    VALIDATION
@@ -1282,131 +1715,223 @@ function calculateTotals() {
 
 function validateSaleForm() {
 
-	const grand = Number(
-		document.getElementById("grandTotal").dataset.value || 0
-	);
+	const grand =
+		Number(
+			document
+				.getElementById(
+					"grandTotal"
+				)
+				?.dataset.value || 0
+		);
 
-	const paid = toMoneyNumber(getValue("paidAmount"));
+	const paid =
+		toMoneyNumber(
+			getValue(
+				"paidAmount"
+			)
+		);
+
 
 	if (paid > grand) {
 
-		showError("Paid amount cannot exceed Grand Total.");
+		showError(
+			"Paid amount cannot exceed Grand Total."
+		);
 
 		return false;
-
 	}
+
 
 	if (
 		paid > 0 &&
-		!getValue("paymentMode").trim()
+		!getValue(
+			"paymentMode"
+		).trim()
 	) {
 
-		showError("Please select payment mode.");
+		showError(
+			"Please select payment mode."
+		);
 
 		return false;
-
 	}
 
-	if (!getValue("customerId")) {
 
-		showError("Please select customer.");
+	if (
+		!getValue(
+			"customerId"
+		)
+	) {
+
+		showError(
+			"Please select customer."
+		);
 
 		return false;
-
 	}
+
 
 	if (!medicineRows.length) {
 
-		showError("Please add at least one medicine.");
+		showError(
+			"Please add at least one medicine."
+		);
 
 		return false;
-
 	}
 
-	if (toMoneyNumber(getValue("paidAmount")) < 0) {
 
-		showError("Paid amount cannot be negative.");
+	if (
+		toMoneyNumber(
+			getValue(
+				"paidAmount"
+			)
+		) < 0
+	) {
+
+		showError(
+			"Paid amount cannot be negative."
+		);
 
 		return false;
-
 	}
 
-	if (toMoneyNumber(getValue("otherCharges")) < 0) {
 
-		showError("Other charges cannot be negative.");
+	if (
+		toMoneyNumber(
+			getValue(
+				"otherCharges"
+			)
+		) < 0
+	) {
+
+		showError(
+			"Other charges cannot be negative."
+		);
 
 		return false;
-
 	}
 
-	if (toMoneyNumber(getValue("roundOffAmount")) < 0) {
 
-		showError("Round off cannot be negative.");
+	if (
+		toMoneyNumber(
+			getValue(
+				"roundOffAmount"
+			)
+		) < 0
+	) {
+
+		showError(
+			"Round off cannot be negative."
+		);
 
 		return false;
-
 	}
+
 
 	for (const row of medicineRows) {
 
 		if (!row.medicineId) {
 
-			showError("Please select medicine.");
-
-			return false;
-
-		}
-
-		if (Number(row.quantity) <= 0) {
-
-			showError("Quantity must be greater than zero.");
-
-			return false;
-
-		}
-
-		if (Number(row.saleRate) <= 0) {
-
-			showError("Sale rate must be greater than zero.");
-
-			return false;
-
-		}
-
-		if (Number(row.discountPercentage) < 0) {
-
-			showError("Discount cannot be negative.");
-
-			return false;
-
-		}
-
-		if (Number(row.gstPercentage) < 0) {
-
-			showError("GST cannot be negative.");
-
-			return false;
-
-		}
-
-		if (
-			row.availableStock >= 0 &&
-			Number(row.quantity) > Number(row.availableStock)
-		) {
-
 			showError(
-				`${row.medicineName || "Selected medicine"} stock is only ${row.availableStock}.`
+				"Please select medicine."
 			);
 
 			return false;
+		}
 
+
+		if (
+			Number(
+				row.quantity
+			) <= 0
+		) {
+
+			showError(
+				"Quantity must be greater than zero."
+			);
+
+			return false;
+		}
+
+
+		if (
+			Number(
+				row.saleRate
+			) <= 0
+		) {
+
+			showError(
+				"Sale rate must be greater than zero."
+			);
+
+			return false;
+		}
+
+
+		if (
+			Number(
+				row.discountPercentage
+			) < 0
+		) {
+
+			showError(
+				"Discount cannot be negative."
+			);
+
+			return false;
+		}
+
+
+		if (
+			Number(
+				row.gstPercentage
+			) < 0
+		) {
+
+			showError(
+				"GST cannot be negative."
+			);
+
+			return false;
+		}
+
+
+		/*
+		 * EDIT-SAFE STOCK VALIDATION
+		 */
+		const currentStock =
+			Number(
+				row.availableStock || 0
+			);
+
+		const originalQuantity =
+			Number(
+				row.originalQuantity || 0
+			);
+
+		const effectiveAvailableStock =
+			currentStock +
+			originalQuantity;
+
+
+		if (
+			Number(row.quantity) >
+			effectiveAvailableStock
+		) {
+
+			showError(
+				`${row.medicineName || "Selected medicine"} stock is only ${effectiveAvailableStock}.`
+			);
+
+			return false;
 		}
 
 	}
 
 	return true;
-
 }
+
 
 /* ===========================================================
    REQUEST BODY
@@ -1418,46 +1943,85 @@ function collectSaleRequest() {
 
 		tenantId,
 
-		customerId: Number(getValue("customerId")),
+		customerId:
+			Number(
+				getValue(
+					"customerId"
+				)
+			),
 
-		saleDate: getValue("saleDate"),
+		saleDate:
+			getValue(
+				"saleDate"
+			),
 
-		paymentMode: getValue("paymentMode"),
+		paymentMode:
+			getValue(
+				"paymentMode"
+			),
 
-		remarks: getValue("remarks"),
+		remarks:
+			getValue(
+				"remarks"
+			),
 
 		paidAmount:
-			toMoneyNumber(getValue("paidAmount")),
+			toMoneyNumber(
+				getValue(
+					"paidAmount"
+				)
+			),
 
 		otherCharges:
-			toMoneyNumber(getValue("otherCharges")),
+			toMoneyNumber(
+				getValue(
+					"otherCharges"
+				)
+			),
 
 		roundOffAmount:
-			toMoneyNumber(getValue("roundOffAmount")),
+			toMoneyNumber(
+				getValue(
+					"roundOffAmount"
+				)
+			),
 
-		items: medicineRows.map(row => ({
+		items:
+			medicineRows.map(
+				row => ({
 
-			medicineId: Number(row.medicineId),
+					medicineId:
+						Number(
+							row.medicineId
+						),
 
-			quantity: Number(row.quantity),
+					quantity:
+						Number(
+							row.quantity
+						),
 
-			saleRate: Number(row.saleRate),
+					saleRate:
+						Number(
+							row.saleRate
+						),
 
-			discountPercentage:
-				Number(row.discountPercentage),
+					discountPercentage:
+						Number(
+							row.discountPercentage
+						),
 
-			gstPercentage:
-				Number(row.gstPercentage)
+					gstPercentage:
+						Number(
+							row.gstPercentage
+						)
 
-		}))
+				})
+			)
 
 	};
 
 }
 
-/* ===========================================================
-   SALES CRUD
-=========================================================== */
 
 /* ===========================================================
    OPEN CREATE SALE
@@ -1465,51 +2029,75 @@ function collectSaleRequest() {
 
 function openCreateModal() {
 
-	if (!salesPermissions.create) {
+	if (
+		!salesPermissions.create
+	) {
 
-		showError("You do not have permission to create sales.");
+		showError(
+			"You do not have permission to create sales."
+		);
 
 		return;
-
 	}
+
 
 	editingSaleId = null;
 
 	resetSaleForm();
 
-	addMedicineRow();
 
-	document.getElementById("saleModalTitle").textContent =
+	/*
+	 * New sale:
+	 * no previously deducted quantity.
+	 */
+	addMedicineRow({
+		originalQuantity: 0
+	});
+
+
+	document.getElementById(
+		"saleModalTitle"
+	).textContent =
 		"Create Sale";
 
 	openSaleForm();
-
 }
+
+
 /* ===========================================================
    OPEN EDIT SALE
 =========================================================== */
 
 async function openEditModal(id) {
 
-	if (!salesPermissions.update) {
+	if (
+		!salesPermissions.update
+	) {
 
-		showError("You do not have permission.");
+		showError(
+			"You do not have permission."
+		);
+
 		return;
-
 	}
+
 
 	resetSaleForm();
 
 	editingSaleId = id;
 
-	document.getElementById("saleModalTitle").textContent =
+
+	document.getElementById(
+		"saleModalTitle"
+	).textContent =
 		"Update Sales Invoice";
+
 
 	await loadSale(id);
 
 	openSaleForm();
-
 }
+
 
 /* ===========================================================
    RESET SALE FORM
@@ -1519,128 +2107,252 @@ function resetSaleForm() {
 
 	editingSaleId = null;
 
-	setValue("saleId", "");
-	setValue("customerId", "");
-	setValue("customerCode", "");
-	setValue("customerType", "");
-	setValue("customerGstin", "");
+	setValue(
+		"saleId",
+		""
+	);
+
+	setValue(
+		"customerId",
+		""
+	);
+
+	setValue(
+		"customerCode",
+		""
+	);
+
+	setValue(
+		"customerType",
+		""
+	);
+
+	setValue(
+		"customerGstin",
+		""
+	);
 
 	setValue(
 		"saleDate",
-		new Date().toISOString().split("T")[0]
+		new Date()
+			.toISOString()
+			.split("T")[0]
 	);
 
-	setValue("paymentMode", "CASH");
+	setValue(
+		"paymentMode",
+		"CASH"
+	);
 
-	setValue("remarks", "");
+	setValue(
+		"remarks",
+		""
+	);
 
-	setValue("paidAmount", 0);
+	setValue(
+		"paidAmount",
+		0
+	);
 
-	setValue("otherCharges", 0);
+	setValue(
+		"otherCharges",
+		0
+	);
 
-	setValue("roundOffAmount", 0);
+	setValue(
+		"roundOffAmount",
+		0
+	);
 
 	medicineRows = [];
 
-	document.getElementById("medicineTableBody").innerHTML = "";
 
-	setText("grossAmount", "₹0.00");
-	setText("discountAmount", "₹0.00");
-	setText("taxableAmount", "₹0.00");
-	setText("gstAmount", "₹0.00");
-	setText("grandTotal", "₹0.00");
-	setText("dueAmount", "₹0.00");
+	const medicineTableBody =
+		document.getElementById(
+			"medicineTableBody"
+		);
 
-	document.getElementById("grandTotal")?.setAttribute("data-value", "0");
-	document.getElementById("dueAmount")?.setAttribute("data-value", "0");
+	if (medicineTableBody) {
+		medicineTableBody.innerHTML =
+			"";
+	}
+
+
+	setText(
+		"grossAmount",
+		"₹0.00"
+	);
+
+	setText(
+		"discountAmount",
+		"₹0.00"
+	);
+
+	setText(
+		"taxableAmount",
+		"₹0.00"
+	);
+
+	setText(
+		"gstAmount",
+		"₹0.00"
+	);
+
+	setText(
+		"grandTotal",
+		"₹0.00"
+	);
+
+	setText(
+		"dueAmount",
+		"₹0.00"
+	);
+
+
+	document
+		.getElementById(
+			"grandTotal"
+		)
+		?.setAttribute(
+			"data-value",
+			"0"
+		);
+
+	document
+		.getElementById(
+			"dueAmount"
+		)
+		?.setAttribute(
+			"data-value",
+			"0"
+		);
+
 
 	updatePaymentStatus();
+
 	renderMedicineRows();
 }
+
+
 /* ===========================================================
    SAVE SALE
 =========================================================== */
 
 async function saveSale() {
 
-	if (isSavingSale) return;
+	if (isSavingSale) {
+		return;
+	}
 
-	if (!validateSaleForm()) return;
+
+	if (!validateSaleForm()) {
+		return;
+	}
+
 
 	isSavingSale = true;
 
+
 	setButtonLoading(
 		"btnSaveSale",
-		editingSaleId ? "Updating..." : "Saving...",
+		editingSaleId
+			? "Updating..."
+			: "Saving...",
 		true
 	);
 
+
 	try {
 
-		const payload = collectSaleRequest();
+		const payload =
+			collectSaleRequest();
+
 
 		let url =
 			`${API_BASE}/saas/sales?tenantId=${tenantId}`;
 
-		let method = "POST";
+		let method =
+			"POST";
+
 
 		if (editingSaleId) {
 
 			url =
-				`${API_BASE}/saas/sales/${editingSaleId}?tenantId=${tenantId}`
+				`${API_BASE}/saas/sales/${editingSaleId}?tenantId=${tenantId}`;
 
-			method = "PUT";
+			method =
+				"PUT";
 		}
 
 
-		const response = await fetch(
+		const response =
+			await fetch(
+				url,
+				{
 
-			url,
+					method,
 
-			{
-				method,
-				headers: authHeaders(),
-				body: JSON.stringify(payload)
-			}
+					headers:
+						authHeaders(),
 
-		);
+					body:
+						JSON.stringify(
+							payload
+						)
 
-		if (handleUnauthorized(response)) {
+				}
+			);
 
-			clearSelect("customerId");
+
+		if (
+			handleUnauthorized(
+				response
+			)
+		) {
+
+			clearSelect(
+				"customerId"
+			);
 
 			appendOption(
-				document.getElementById("customerId"),
+				document.getElementById(
+					"customerId"
+				),
 				"",
 				"Unable to load"
 			);
 
 			return;
-
 		}
 
-		const result = await safeJson(response);
+
+		const result =
+			await safeJson(
+				response
+			);
+
 
 		if (!response.ok) {
 
 			showError(
-
 				getApiErrorMessage(
-
 					result,
 
 					editingSaleId
 						? "Unable to update sale."
 						: "Unable to save sale."
-
 				)
-
 			);
 
 			return;
 		}
 
+
+		/*
+		 * Keep the existing success flow.
+		 */
 		closeSaleForm();
+
 
 		showSuccess(
 
@@ -1650,17 +2362,21 @@ async function saveSale() {
 
 		);
 
+
 		await loadSales();
 
 		await loadSummary();
 
 		await loadMedicines();
+
 	}
 	catch (error) {
 
 		console.error(error);
 
-		showError("Unable to save sale.");
+		showError(
+			"Unable to save sale."
+		);
 
 	}
 	finally {
@@ -1675,13 +2391,17 @@ async function saveSale() {
 
 	}
 }
-// =======================================================
-// Cancel Sale
-// =======================================================
+
+
+/* ===========================================================
+   CANCEL SALE
+=========================================================== */
 
 async function deleteSale(saleId) {
 
-	if (!salesPermissions.delete) {
+	if (
+		!salesPermissions.delete
+	) {
 
 		showMsg(
 			"You do not have permission to cancel sales."
@@ -1689,6 +2409,7 @@ async function deleteSale(saleId) {
 
 		return;
 	}
+
 
 	if (!saleId) {
 
@@ -1699,41 +2420,67 @@ async function deleteSale(saleId) {
 		return;
 	}
 
-	if (!confirm(
-		"Cancel this sale?\n\nThe sale will be cancelled and stock will be restored."
-	)) {
+
+	if (
+		!confirm(
+			"Cancel this sale?\n\nThe sale will be cancelled and stock will be restored."
+		)
+	) {
 
 		return;
 	}
 
+
+	isDeletingSale = true;
+
+
 	try {
 
 		const token =
-			localStorage.getItem("token");
+			localStorage.getItem(
+				"token"
+			);
+
 
 		const query =
 			new URLSearchParams({
-				tenantId: tenantId
+
+				tenantId:
+					tenantId
+
 			});
+
 
 		const response =
 			await fetch(
+
 				`${API_BASE}/saas/wholesaler/billing/sales/${saleId}?${query.toString()}`,
+
 				{
-					method: "DELETE",
+
+					method:
+						"DELETE",
 
 					headers: {
+
 						"Authorization":
 							"Bearer " + token,
 
 						"Accept":
 							"application/json"
+
 					}
+
 				}
+
 			);
 
+
 		const result =
-			await safeJson(response);
+			await safeJson(
+				response
+			);
+
 
 		if (!response.ok) {
 
@@ -1752,13 +2499,18 @@ async function deleteSale(saleId) {
 			return;
 		}
 
+
 		showMsg(
 			"Sale cancelled successfully.",
 			"success"
 		);
 
-		// Reload list from server
+
 		await loadSales();
+
+		await loadSummary();
+
+		await loadMedicines();
 
 	}
 	catch (error) {
@@ -1771,8 +2523,16 @@ async function deleteSale(saleId) {
 		showMsg(
 			"SaaS service not reachable."
 		);
+
 	}
+	finally {
+
+		isDeletingSale = false;
+
+	}
+
 }
+
 
 /* ===========================================================
    LOAD SINGLE SALE
@@ -1784,30 +2544,43 @@ async function loadSale(id) {
 
 	try {
 
-		const response = await fetch(
+		const response =
+			await fetch(
+				`${API_BASE}/saas/sales/${id}?tenantId=${tenantId}`,
+				{
+					headers:
+						authHeaders()
+				}
+			);
 
-			`${API_BASE}/saas/sales/${id}?tenantId=${tenantId}`,
 
-			{
-				headers: authHeaders()
-			}
+		if (
+			handleUnauthorized(
+				response
+			)
+		) {
 
-		);
-
-		if (handleUnauthorized(response)) {
-
-			clearSelect("customerId");
+			clearSelect(
+				"customerId"
+			);
 
 			appendOption(
-				document.getElementById("customerId"),
+				document.getElementById(
+					"customerId"
+				),
 				"",
 				"Unable to load"
 			);
 
 			return;
-
 		}
-		const sale = await safeJson(response);
+
+
+		const sale =
+			await safeJson(
+				response
+			);
+
 
 		if (!response.ok) {
 
@@ -1821,91 +2594,185 @@ async function loadSale(id) {
 			return;
 		}
 
-		setValue("saleId", sale.id);
 
-		setValue("customerId", sale.customerId);
+		setValue(
+			"saleId",
+			sale.id
+		);
+
+
+		setValue(
+			"customerId",
+			sale.customerId
+		);
+
 
 		setValue(
 			"saleDate",
-			(sale.saleDate || "").substring(0, 10)
+			(sale.saleDate || "")
+				.substring(0, 10)
 		);
 
-		setValue("remarks", sale.remarks);
+
+		setValue(
+			"remarks",
+			sale.remarks || ""
+		);
+
 
 		setValue(
 			"paymentMode",
-			sale.paymentMode || "CASH"
+			sale.paymentMode ||
+			"CASH"
 		);
+
 
 		setValue(
 			"paidAmount",
 			sale.paidAmount || 0
 		);
 
+
 		setValue(
 			"otherCharges",
 			sale.otherCharges || 0
 		);
+
 
 		setValue(
 			"roundOffAmount",
 			sale.roundOffAmount || 0
 		);
 
+
 		medicineRows = [];
 
-		if (Array.isArray(sale.items)) {
 
-			sale.items.forEach(item => {
+		if (
+			Array.isArray(
+				sale.items
+			)
+		) {
 
-				const stock = medicines.find(
-					s => Number(s.medicineId) === Number(item.medicineId)
-				);
+			sale.items.forEach(
+				item => {
 
-				medicineRows.push({
+					const stock =
+						medicines.find(
+							s =>
+								Number(
+									s.medicineId
+								) ===
+								Number(
+									item.medicineId
+								)
+						);
 
-					medicineId: item.medicineId,
 
-					stockId: stock ? stock.id : "",
+					medicineRows.push({
 
-					medicineName: item.medicineName,
+						medicineId:
+							item.medicineId,
 
-					quantity: item.quantity,
+						stockId:
+							stock
+								? stock.id
+								: "",
 
-					saleRate: item.saleRate,
+						medicineName:
+							item.medicineName,
 
-					discountPercentage: item.discountPercentage,
+						quantity:
+							Number(
+								item.quantity || 0
+							),
 
-					gstPercentage: item.gstPercentage,
+						/*
+						 * CRITICAL:
+						 *
+						 * This represents the quantity
+						 * that was already deducted
+						 * by the original sale.
+						 */
+						originalQuantity:
+							Number(
+								item.quantity || 0
+							),
 
-					lineTotal: item.lineTotal,
+						saleRate:
+							Number(
+								item.saleRate || 0
+							),
 
-					availableStock: stock ? Number(stock.currentQuantity || 0) : 0
+						discountPercentage:
+							Number(
+								item.discountPercentage || 0
+							),
 
-				});
+						gstPercentage:
+							Number(
+								item.gstPercentage || 0
+							),
 
-			});
+						lineTotal:
+							Number(
+								item.lineTotal || 0
+							),
+
+						availableStock:
+							stock
+								? Number(
+									stock.currentQuantity || 0
+								)
+								: 0
+
+					});
+
+				}
+			);
+
 		}
-		for (let i = 0; i < medicineRows.length; i++) {
 
-			await loadMedicineStock(i);
+
+		/*
+		 * Refresh current stock.
+		 */
+		for (
+			let i = 0;
+			i < medicineRows.length;
+			i++
+		) {
+
+			await loadMedicineStock(
+				i
+			);
 
 		}
+
+
 		renderMedicineRows();
 
 		calculateTotals();
 
 		updatePaymentStatus();
 
-		document.getElementById("customerId")
-			?.dispatchEvent(new Event("change"));
+
+		document
+			.getElementById(
+				"customerId"
+			)
+			?.dispatchEvent(
+				new Event("change")
+			);
 
 	}
 	catch (error) {
 
 		console.error(error);
 
-		showError("Unable to load sale.");
+		showError(
+			"Unable to load sale."
+		);
 
 	}
 	finally {
@@ -1914,130 +2781,202 @@ async function loadSale(id) {
 
 	}
 }
-// =======================================================
-// PRINT INVOICE
-// =======================================================
+
+
+/* ===========================================================
+   PRINT INVOICE
+=========================================================== */
 
 async function printInvoice(saleId) {
 
-    if (!saleId) {
-        return;
-    }
+	if (!saleId) {
+		return;
+	}
 
-    if (!salesPermissions.print) {
 
-        showMsg(
-            "You do not have permission to print sales."
-        );
+	if (!salesPermissions.print) {
 
-        return;
-    }
+		showMsg(
+			"You do not have permission to print sales."
+		);
 
-    try {
+		return;
+	}
 
-        showMsg(
-            "Preparing invoice PDF...",
-            "info"
-        );
 
-        const response = await fetch(
-            `${API_BASE}/saas/wholesaler/billing/invoice/${saleId}/pdf?tenantId=${tenantId}`,
-            {
-                method: "GET",
-                headers: {
-                    ...authHeaders(),
-                    "Accept": "application/pdf"
-                }
-            }
-        );
+	if (isPrintingSale) {
+		return;
+	}
 
-        if (handleUnauthorized(response)) {
-            return;
-        }
 
-        if (!response.ok) {
+	isPrintingSale = true;
 
-            let message =
-                `Unable to generate invoice PDF. (${response.status})`;
 
-            try {
+	try {
 
-                const contentType =
-                    response.headers.get("content-type") || "";
+		showMsg(
+			"Preparing invoice PDF...",
+			"info"
+		);
 
-                if (contentType.includes("application/json")) {
 
-                    const errorData =
-                        await response.json();
+		const response =
+			await fetch(
 
-                    message =
-                        errorData.message ||
-                        errorData.error ||
-                        message;
-                }
+				`${API_BASE}/saas/wholesaler/billing/invoice/${saleId}/pdf?tenantId=${tenantId}`,
 
-            } catch (e) {
-                console.warn(
-                    "Unable to parse PDF error response.",
-                    e
-                );
-            }
+				{
 
-            throw new Error(message);
-        }
+					method:
+						"GET",
 
-        const blob =
-            await response.blob();
+					headers: {
 
-        if (!blob || blob.size === 0) {
+						...authHeaders(),
 
-            throw new Error(
-                "Invoice PDF is empty."
-            );
-        }
+						"Accept":
+							"application/pdf"
 
-        const pdfUrl =
-            URL.createObjectURL(blob);
+					}
 
-        const newWindow =
-            window.open(
-                pdfUrl,
-                "_blank"
-            );
+				}
 
-        if (!newWindow) {
+			);
 
-            URL.revokeObjectURL(pdfUrl);
 
-            throw new Error(
-                "Please allow pop-ups for this site to open the invoice."
-            );
-        }
+		if (
+			handleUnauthorized(
+				response
+			)
+		) {
 
-        /*
-         * Keep the object URL alive long enough
-         * for the browser PDF viewer to load it.
-         */
-        setTimeout(() => {
+			return;
+		}
 
-            URL.revokeObjectURL(pdfUrl);
 
-        }, 60000);
+		if (!response.ok) {
 
-    }
-    catch (error) {
+			let message =
+				`Unable to generate invoice PDF. (${response.status})`;
 
-        console.error(
-            "Print invoice error:",
-            error
-        );
 
-        showMsg(
-            error.message ||
-            "Unable to open invoice PDF."
-        );
-    }
+			try {
+
+				const contentType =
+					response.headers.get(
+						"content-type"
+					) || "";
+
+
+				if (
+					contentType.includes(
+						"application/json"
+					)
+				) {
+
+					const errorData =
+						await response.json();
+
+
+					message =
+						errorData.message ||
+						errorData.error ||
+						message;
+
+				}
+
+			}
+			catch (e) {
+
+				console.warn(
+					"Unable to parse PDF error response.",
+					e
+				);
+
+			}
+
+
+			throw new Error(
+				message
+			);
+
+		}
+
+
+		const blob =
+			await response.blob();
+
+
+		if (
+			!blob ||
+			blob.size === 0
+		) {
+
+			throw new Error(
+				"Invoice PDF is empty."
+			);
+		}
+
+
+		const pdfUrl =
+			URL.createObjectURL(
+				blob
+			);
+
+
+		const newWindow =
+			window.open(
+				pdfUrl,
+				"_blank"
+			);
+
+
+		if (!newWindow) {
+
+			URL.revokeObjectURL(
+				pdfUrl
+			);
+
+			throw new Error(
+				"Please allow pop-ups for this site to open the invoice."
+			);
+
+		}
+
+
+		setTimeout(
+			() => {
+
+				URL.revokeObjectURL(
+					pdfUrl
+				);
+
+			},
+			60000
+		);
+
+	}
+	catch (error) {
+
+		console.error(
+			"Print invoice error:",
+			error
+		);
+
+		showMsg(
+			error.message ||
+			"Unable to open invoice PDF."
+		);
+
+	}
+	finally {
+
+		isPrintingSale = false;
+
+	}
+
 }
+
 
 /* ===========================================================
    CUSTOMER & MEDICINE LOADING
@@ -2045,42 +2984,79 @@ async function printInvoice(saleId) {
 
 async function loadCustomers() {
 
-	const select = document.getElementById("customerId");
+	const select =
+		document.getElementById(
+			"customerId"
+		);
 
-	if (!select) return;
+	if (!select) {
+		return;
+	}
 
-	clearSelect("customerId");
 
-	appendOption(select, "", "Loading Customers...");
+	clearSelect(
+		"customerId"
+	);
+
+
+	appendOption(
+		select,
+		"",
+		"Loading Customers..."
+	);
+
 
 	try {
 
-		const response = await fetch(
-			`${API_BASE}/saas/customers?tenantId=${tenantId}&activeOnly=true`,
-			{
-				headers: authHeaders()
-			}
-		);
+		const response =
+			await fetch(
+				`${API_BASE}/saas/customers?tenantId=${tenantId}&activeOnly=true`,
+				{
+					headers:
+						authHeaders()
+				}
+			);
 
-		if (handleUnauthorized(response)) {
 
-			clearSelect("customerId");
+		if (
+			handleUnauthorized(
+				response
+			)
+		) {
+
+			clearSelect(
+				"customerId"
+			);
 
 			appendOption(
-				document.getElementById("customerId"),
+				document.getElementById(
+					"customerId"
+				),
 				"",
 				"Unable to load"
 			);
 
 			return;
-
 		}
 
-		const result = await safeJson(response);
 
-		clearSelect("customerId");
+		const result =
+			await safeJson(
+				response
+			);
 
-		appendOption(select, "", "Select Customer");
+
+		clearSelect(
+			"customerId"
+		);
+
+
+		appendOption(
+			select,
+			"",
+			"Select Customer"
+		);
+
 
 		if (!response.ok) {
 
@@ -2096,13 +3072,18 @@ async function loadCustomers() {
 			return;
 		}
 
-		customers = Array.isArray(result)
-			? result
-			: [];
+
+		customers =
+			Array.isArray(result)
+				? result
+				: [];
+
 
 		if (!customers.length) {
 
-			clearSelect("customerId");
+			clearSelect(
+				"customerId"
+			);
 
 			appendOption(
 				select,
@@ -2113,19 +3094,19 @@ async function loadCustomers() {
 			return;
 		}
 
-		customers.forEach(customer => {
 
-			appendOption(
+		customers.forEach(
+			customer => {
 
-				select,
+				appendOption(
+					select,
+					customer.id,
+					customer.customerName ||
+					"Customer"
+				);
 
-				customer.id,
-
-				customer.customerName || "Customer"
-
-			);
-
-		});
+			}
+		);
 
 	}
 	catch (e) {
@@ -2134,13 +3115,17 @@ async function loadCustomers() {
 
 		customers = [];
 
-		clearSelect("customerId");
+		clearSelect(
+			"customerId"
+		);
+
 
 		appendOption(
 			select,
 			"",
 			"Service Unavailable"
 		);
+
 
 		showError(
 			"Unable to load customers."
@@ -2150,35 +3135,48 @@ async function loadCustomers() {
 
 }
 
+
 async function loadMedicines() {
 
 	try {
 
-		const response = await fetch(
+		const response =
+			await fetch(
+				`${API_BASE}/saas/inventory/stocks?tenantId=${tenantId}`,
+				{
+					headers:
+						authHeaders()
+				}
+			);
 
-			`${API_BASE}/saas/inventory/stocks?tenantId=${tenantId}`,
 
-			{
-				headers: authHeaders()
-			}
+		if (
+			handleUnauthorized(
+				response
+			)
+		) {
 
-		);
-
-		if (handleUnauthorized(response)) {
-
-			clearSelect("customerId");
+			clearSelect(
+				"customerId"
+			);
 
 			appendOption(
-				document.getElementById("customerId"),
+				document.getElementById(
+					"customerId"
+				),
 				"",
 				"Unable to load"
 			);
 
 			return;
-
 		}
 
-		const result = await safeJson(response);
+
+		const result =
+			await safeJson(
+				response
+			);
+
 
 		if (!response.ok) {
 
@@ -2194,26 +3192,55 @@ async function loadMedicines() {
 			return;
 		}
 
-		/* Only active medicines having stock */
 
-		medicines = Array.isArray(result)
-			? result.filter(stock =>
-				stock.active === true &&
-				(stock.currentQuantity ?? 0) > 0
-			)
-			: [];
+		/*
+		 * Only active medicines having stock.
+		 */
+		medicines =
+			Array.isArray(result)
 
-		console.log("Inventory Medicines :", medicines);
+				? result.filter(
+					stock =>
 
-		medicineOptionsHtml = medicines.map(stock => `
+						stock.active === true &&
 
-    <option value="${stock.medicineId}">
-        ${escapeHtml(stock.medicineName)}
-        (Batch : ${escapeHtml(stock.batchNumber || "-")})
-        - Stock : ${stock.currentQuantity}
-    </option>
+						(
+							stock.currentQuantity ?? 0
+						) > 0
 
-`).join("");
+				)
+
+				: [];
+
+
+		console.log(
+			"Inventory Medicines :",
+			medicines
+		);
+
+
+		medicineOptionsHtml =
+			medicines.map(
+				stock => `
+
+<option value="${stock.medicineId}">
+
+    ${escapeHtml(
+					stock.medicineName
+				)}
+
+    (Batch :
+    ${escapeHtml(
+					stock.batchNumber || "-"
+				)})
+
+    - Stock :
+    ${stock.currentQuantity}
+
+</option>
+
+`
+			).join("");
 
 	}
 	catch (e) {
@@ -2222,51 +3249,83 @@ async function loadMedicines() {
 
 		medicines = [];
 
-		showError("Unable to load inventory medicines.");
+		showError(
+			"Unable to load inventory medicines."
+		);
 
 	}
 
 }
 
+
+/* ===========================================================
+   CUSTOMER SELECTION
+=========================================================== */
+
 function bindCustomerSelection() {
 
-	const customer = document.getElementById("customerId");
-
-	if (!customer) return;
-
-	customer.addEventListener("change", function() {
-
-		const selected = customers.find(
-
-			c => Number(c.id) === Number(this.value)
-
+	const customer =
+		document.getElementById(
+			"customerId"
 		);
 
-		if (!selected) {
+	if (!customer) {
+		return;
+	}
 
-			setValue("customerCode", "");
-			setValue("customerType", "");
-			setValue("customerGstin", "");
 
-			return;
+	customer.addEventListener(
+		"change",
+		function() {
+
+			const selected =
+				customers.find(
+					c =>
+						Number(c.id) ===
+						Number(this.value)
+				);
+
+
+			if (!selected) {
+
+				setValue(
+					"customerCode",
+					""
+				);
+
+				setValue(
+					"customerType",
+					""
+				);
+
+				setValue(
+					"customerGstin",
+					""
+				);
+
+				return;
+			}
+
+
+			setValue(
+				"customerCode",
+				selected.customerCode || ""
+			);
+
+
+			setValue(
+				"customerType",
+				selected.customerType || ""
+			);
+
+
+			setValue(
+				"customerGstin",
+				selected.gstin || ""
+			);
+
 		}
-
-		setValue(
-			"customerCode",
-			selected.customerCode || ""
-		);
-
-		setValue(
-			"customerType",
-			selected.customerType || ""
-		);
-
-		setValue(
-			"customerGstin",
-			selected.gstin || ""
-		);
-
-	});
+	);
 
 }
 
@@ -2276,354 +3335,650 @@ function bindCustomerSelection() {
    MISSING HELPERS
 =========================================================== */
 
-function loadingContent(title, message) {
+function loadingContent(
+	title,
+	message
+) {
 
 	return `
-        <div class="hospital-billing-state">
 
-            <div class="hospital-billing-state-icon hospital-billing-loading-icon">
-                <i class="bi bi-arrow-repeat"></i>
-            </div>
+<div class="hospital-billing-state">
 
-            <h5 class="fw-bold text-primary">
-                ${title}
-            </h5>
+    <div class="hospital-billing-state-icon hospital-billing-loading-icon">
 
-            <p class="text-muted mb-0">
-                ${message}
-            </p>
+        <i class="bi bi-arrow-repeat"></i>
 
-        </div>
-    `;
+    </div>
+
+    <h5 class="fw-bold text-primary">
+
+        ${title}
+
+    </h5>
+
+    <p class="text-muted mb-0">
+
+        ${message}
+
+    </p>
+
+</div>
+
+`;
 
 }
 
-function showOrHideById(id, show) {
 
-	const element = document.getElementById(id);
+function showOrHideById(
+	id,
+	show
+) {
+
+	const element =
+		document.getElementById(
+			id
+		);
 
 	if (!element) {
 		return;
 	}
 
-	element.style.display = show ? "" : "none";
+	element.style.display =
+		show ? "" : "none";
+}
+
+
+function showOrHideByClass(
+	className,
+	show
+) {
+
+	document
+		.querySelectorAll(
+			"." + className
+		)
+		.forEach(
+			element => {
+
+				element.style.display =
+					show ? "" : "none";
+
+			}
+		);
 
 }
 
-function showOrHideByClass(className, show) {
-
-	document.querySelectorAll("." + className).forEach(element => {
-
-		element.style.display = show ? "" : "none";
-
-	});
-
-}
 
 function formatShortMoney(value) {
 
-	value = Number(value || 0);
+	value =
+		Number(
+			value || 0
+		);
 
-	if (value >= 10000000) {
-		return "₹" + (value / 10000000).toFixed(2) + " Cr";
+
+	if (
+		value >= 10000000
+	) {
+
+		return (
+			"₹" +
+			(
+				value / 10000000
+			).toFixed(2) +
+			" Cr"
+		);
+
 	}
 
-	if (value >= 100000) {
-		return "₹" + (value / 100000).toFixed(2) + " L";
+
+	if (
+		value >= 100000
+	) {
+
+		return (
+			"₹" +
+			(
+				value / 100000
+			).toFixed(2) +
+			" L"
+		);
+
 	}
 
-	if (value >= 1000) {
-		return "₹" + (value / 1000).toFixed(1) + " K";
+
+	if (
+		value >= 1000
+	) {
+
+		return (
+			"₹" +
+			(
+				value / 1000
+			).toFixed(1) +
+			" K"
+		);
+
 	}
 
-	return "₹" + currencyFormatter.format(value);
 
+	return (
+		"₹" +
+		currencyFormatter.format(
+			value
+		)
+	);
 }
 
-function setAnimatedNumber(id, value, prefix = "") {
 
-	const element = document.getElementById(id);
+function setAnimatedNumber(
+	id,
+	value,
+	prefix = ""
+) {
+
+	const element =
+		document.getElementById(
+			id
+		);
 
 	if (!element) {
 		return;
 	}
 
-	const target = Number(value || 0);
 
-	const start = Number(element.dataset.value || 0);
+	const target =
+		Number(
+			value || 0
+		);
 
-	const duration = 500;
+	const start =
+		Number(
+			element.dataset.value || 0
+		);
 
-	const startTime = performance.now();
+	const duration =
+		500;
+
+	const startTime =
+		performance.now();
+
 
 	function animate(time) {
 
-		const progress = Math.min((time - startTime) / duration, 1);
+		const progress =
+			Math.min(
+				(
+					time -
+					startTime
+				) /
+				duration,
+				1
+			);
 
-		const current = start + ((target - start) * progress);
 
-		element.dataset.value = target;
+		const current =
+			start +
+			(
+				target -
+				start
+			) *
+			progress;
 
-		if (prefix === "₹") {
-			element.textContent = prefix + currencyFormatter.format(current);
-		} else {
-			element.textContent = Math.round(current);
+
+		element.dataset.value =
+			target;
+
+
+		if (
+			prefix === "₹"
+		) {
+
+			element.textContent =
+				prefix +
+				currencyFormatter.format(
+					current
+				);
+
+		}
+		else {
+
+			element.textContent =
+				Math.round(
+					current
+				);
+
 		}
 
-		if (progress < 1) {
-			requestAnimationFrame(animate);
+
+		if (
+			progress < 1
+		) {
+
+			requestAnimationFrame(
+				animate
+			);
+
 		}
 
 	}
 
-	requestAnimationFrame(animate);
 
+	requestAnimationFrame(
+		animate
+	);
 }
 
+
 /* ===========================================================
-   PART 9
    SALE PREVIEW / VIEW / PRINT
 =========================================================== */
 
-async function viewSale(saleId) {
+async function viewSale(
+	saleId
+) {
 
 	if (!saleId) {
 		return;
 	}
 
-	editingSaleId = saleId;
 
-	const previewBody = document.getElementById("salePreviewBody");
+	editingSaleId =
+		saleId;
+
+
+	const previewBody =
+		document.getElementById(
+			"salePreviewBody"
+		);
+
 
 	if (previewBody) {
 
-		previewBody.innerHTML = loadingContent(
-			"Loading Invoice",
-			"Please wait while invoice details are loading..."
-		);
+		previewBody.innerHTML =
+			loadingContent(
+				"Loading Invoice",
+				"Please wait while invoice details are loading..."
+			);
 
 	}
 
+
 	previewModal?.show();
+
 
 	try {
 
-		const response = await fetch(
-			`${API_BASE}/saas/sales/${saleId}?tenantId=${tenantId}`,
-			{
-				headers: authHeaders()
-			}
-		);
+		const response =
+			await fetch(
+				`${API_BASE}/saas/sales/${saleId}?tenantId=${tenantId}`,
+				{
+					headers:
+						authHeaders()
+				}
+			);
 
-		if (handleUnauthorized(response)) {
 
-			clearSelect("customerId");
+		if (
+			handleUnauthorized(
+				response
+			)
+		) {
+
+			clearSelect(
+				"customerId"
+			);
 
 			appendOption(
-				document.getElementById("customerId"),
+				document.getElementById(
+					"customerId"
+				),
 				"",
 				"Unable to load"
 			);
 
 			return;
-
 		}
+
 
 		if (!response.ok) {
-			throw new Error("Unable to load invoice.");
+
+			throw new Error(
+				"Unable to load invoice."
+			);
+
 		}
 
-		const sale = await response.json();
 
-		renderSalePreview(sale);
+		const sale =
+			await response.json();
 
-	} catch (error) {
+
+		renderSalePreview(
+			sale
+		);
+
+	}
+	catch (error) {
 
 		if (previewBody) {
 
 			previewBody.innerHTML = `
-                <div class="hospital-billing-state">
 
-                    <div class="hospital-billing-state-icon bg-danger text-white">
+<div class="hospital-billing-state">
 
-                        <i class="bi bi-exclamation-circle"></i>
+    <div class="hospital-billing-state-icon bg-danger text-white">
 
-                    </div>
+        <i class="bi bi-exclamation-circle"></i>
 
-                    <h5 class="text-danger fw-bold">
+    </div>
 
-                        Failed to Load Invoice
+    <h5 class="text-danger fw-bold">
 
-                    </h5>
+        Failed to Load Invoice
 
-                    <p class="text-muted mb-0">
+    </h5>
 
-                        ${error.message}
+    <p class="text-muted mb-0">
 
-                    </p>
+        ${escapeHtml(
+				error.message
+			)}
 
-                </div>
-            `;
+    </p>
+
+</div>
+
+`;
 
 		}
 
 	}
 
 }
+
 
 /* ===========================================================
    PREVIEW HTML
 =========================================================== */
 
-function renderSalePreview(sale) {
+function renderSalePreview(
+	sale
+) {
 
-	const previewBody = document.getElementById("salePreviewBody");
+	const previewBody =
+		document.getElementById(
+			"salePreviewBody"
+		);
 
 	if (!previewBody) {
 		return;
 	}
 
-	const items = sale.items || [];
+
+	const items =
+		sale.items || [];
+
 
 	previewBody.innerHTML = `
 
-        <div class="row mb-4">
+<div class="row mb-4">
 
-            <div class="col-md-6">
+    <div class="col-md-6">
 
-                <h5 class="fw-bold text-primary">
-                    ${sale.saleNumber || "-"}
-                </h5>
+        <h5 class="fw-bold text-primary">
 
-                <div>Customer :
-                    <strong>${sale.customerName || "-"}</strong>
-                </div>
+            ${safe(
+		sale.saleNumber
+	)}
 
-                <div>Date :
-                    ${formatDateTime(sale.saleDate)}
-                </div>
+        </h5>
 
-            </div>
+        <div>
 
-            <div class="col-md-6 text-md-end">
+            Customer :
 
-                <div>
-                    Payment :
-                    <strong>${sale.paymentStatus || "-"}</strong>
-                </div>
-
-                <div>
-                    Mode :
-                    <strong>${sale.paymentMode || "-"}</strong>
-                </div>
-
-            </div>
+            <strong>
+                ${safe(
+		sale.customerName
+	)}
+            </strong>
 
         </div>
 
-        <div class="table-responsive">
+        <div>
 
-            <table class="table table-bordered">
+            Date :
 
-                <thead>
-
-                    <tr>
-
-                        <th>Medicine</th>
-
-                        <th>Qty</th>
-
-                        <th>Rate</th>
-
-                        <th>Discount</th>
-
-                        <th>GST</th>
-
-                        <th>Total</th>
-
-                    </tr>
-
-                </thead>
-
-                <tbody>
-
-                    ${items.map(item => `
-
-                        <tr>
-
-                            <td>${item.medicineName || "-"}</td>
-
-                            <td>${item.quantity}</td>
-
-                            <td>${formatMoney(item.saleRate || item.rate)}</td>
-
-                            <td>${item.discountPercentage || 0}%</td>
-
-                            <td>${item.gstPercentage || 0}%</td>
-
-                            <td>${formatMoney(item.lineTotal)}</td>
-
-                        </tr>
-
-                    `).join("")}
-
-                </tbody>
-
-            </table>
+            ${formatDateTime(
+		sale.saleDate
+	)}
 
         </div>
 
-        <hr>
+    </div>
 
-        <div class="row">
 
-            <div class="col-md-4">
+    <div class="col-md-6 text-md-end">
 
-                <strong>Gross :</strong>
-                ${formatMoney(sale.grossAmount || 0)}
+        <div>
 
-            </div>
+            Payment :
 
-            <div class="col-md-4">
-
-                <strong>Discount :</strong>
-                ${formatMoney(sale.discountAmount || 0)}
-
-            </div>
-
-            <div class="col-md-4">
-
-                <strong>GST :</strong>
-                ${formatMoney(sale.gstAmount || 0)}
-
-            </div>
-
-            <div class="col-md-4 mt-3">
-
-                <strong>Grand Total :</strong>
-                ${formatMoney(sale.grandTotal || 0)}
-
-            </div>
-
-            <div class="col-md-4 mt-3">
-
-                <strong>Paid :</strong>
-                ${formatMoney(sale.paidAmount || 0)}
-
-            </div>
-
-            <div class="col-md-4 mt-3">
-
-                <strong>Due :</strong>
-                ${formatMoney(sale.dueAmount || 0)}
-
-            </div>
+            <strong>
+                ${safe(
+		sale.paymentStatus ||
+		"-"
+	)}
+            </strong>
 
         </div>
 
-    `;
+        <div>
+
+            Mode :
+
+            <strong>
+                ${safe(
+		sale.paymentMode ||
+		"-"
+	)}
+            </strong>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="table-responsive">
+
+    <table class="table table-bordered">
+
+        <thead>
+
+            <tr>
+
+                <th>
+                    Medicine
+                </th>
+
+                <th>
+                    Qty
+                </th>
+
+                <th>
+                    Rate
+                </th>
+
+                <th>
+                    Discount
+                </th>
+
+                <th>
+                    GST
+                </th>
+
+                <th>
+                    Total
+                </th>
+
+            </tr>
+
+        </thead>
+
+
+        <tbody>
+
+            ${items.map(
+		item => `
+
+<tr>
+
+    <td>
+
+        ${safe(
+			item.medicineName
+		)}
+
+    </td>
+
+    <td>
+
+        ${item.quantity || 0}
+
+    </td>
+
+    <td>
+
+        ${formatMoney(
+			item.saleRate ||
+			item.rate
+		)}
+
+    </td>
+
+    <td>
+
+        ${item.discountPercentage || 0}%
+
+    </td>
+
+    <td>
+
+        ${item.gstPercentage || 0}%
+
+    </td>
+
+    <td>
+
+        ${formatMoney(
+			item.lineTotal
+		)}
+
+    </td>
+
+</tr>
+
+`
+	).join("")}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+
+<hr>
+
+
+<div class="row">
+
+    <div class="col-md-4">
+
+        <strong>
+            Gross :
+        </strong>
+
+        ${formatMoney(
+		sale.grossAmount || 0
+	)}
+
+    </div>
+
+
+    <div class="col-md-4">
+
+        <strong>
+            Discount :
+        </strong>
+
+        ${formatMoney(
+		sale.discountAmount || 0
+	)}
+
+    </div>
+
+
+    <div class="col-md-4">
+
+        <strong>
+            GST :
+        </strong>
+
+        ${formatMoney(
+		sale.gstAmount || 0
+	)}
+
+    </div>
+
+
+    <div class="col-md-4 mt-3">
+
+        <strong>
+            Grand Total :
+        </strong>
+
+        ${formatMoney(
+		sale.grandTotal || 0
+	)}
+
+    </div>
+
+
+    <div class="col-md-4 mt-3">
+
+        <strong>
+            Paid :
+        </strong>
+
+        ${formatMoney(
+		sale.paidAmount || 0
+	)}
+
+    </div>
+
+
+    <div class="col-md-4 mt-3">
+
+        <strong>
+            Due :
+        </strong>
+
+        ${formatMoney(
+		sale.dueAmount || 0
+	)}
+
+    </div>
+
+</div>
+
+`;
 
 }
+
 
 /* ===========================================================
    CLOSE PREVIEW
@@ -2637,15 +3992,23 @@ function closeSalePreview() {
 
 }
 
+
 /* ===========================================================
    UPDATE SALES SUMMARY
 =========================================================== */
 
-function updateSalesSummary(list) {
+function updateSalesSummary(
+	list
+) {
 
-	list = Array.isArray(list) ? list : [];
+	list =
+		Array.isArray(list)
+			? list
+			: [];
 
-	let totalSales = list.length;
+
+	let totalSales =
+		list.length;
 
 	let totalAmount = 0;
 
@@ -2653,20 +4016,34 @@ function updateSalesSummary(list) {
 
 	let totalDue = 0;
 
-	list.forEach(sale => {
 
-		totalAmount += Number(sale.grandTotal || 0);
+	list.forEach(
+		sale => {
 
-		totalPaid += Number(sale.paidAmount || 0);
+			totalAmount +=
+				Number(
+					sale.grandTotal || 0
+				);
 
-		totalDue += Number(sale.dueAmount || 0);
+			totalPaid +=
+				Number(
+					sale.paidAmount || 0
+				);
 
-	});
+			totalDue +=
+				Number(
+					sale.dueAmount || 0
+				);
+
+		}
+	);
+
 
 	setAnimatedNumber(
 		"summaryTotalSales",
 		totalSales
 	);
+
 
 	setAnimatedNumber(
 		"summaryTotalAmount",
@@ -2674,11 +4051,13 @@ function updateSalesSummary(list) {
 		"₹"
 	);
 
+
 	setAnimatedNumber(
 		"summaryPaidAmount",
 		totalPaid,
 		"₹"
 	);
+
 
 	setAnimatedNumber(
 		"summaryDueAmount",
@@ -2688,13 +4067,17 @@ function updateSalesSummary(list) {
 
 }
 
+
 /* ===========================================================
    CLEAR SEARCH
 =========================================================== */
 
 function clearSearch() {
 
-	const input = document.getElementById("searchKeyword");
+	const input =
+		document.getElementById(
+			"searchKeyword"
+		);
 
 	if (!input) {
 		return;
@@ -2703,101 +4086,154 @@ function clearSearch() {
 	input.value = "";
 
 	filterSales();
-
 }
+
+
+/* ===========================================================
+   AUTH HEADERS
+=========================================================== */
 
 function authHeaders() {
 
-	const token = localStorage.getItem("token");
+	const token =
+		localStorage.getItem(
+			"token"
+		);
 
 	return {
 
-		"Authorization": "Bearer " + token,
-		"Content-Type": "application/json",
-		"Accept": "application/json"
+		"Authorization":
+			"Bearer " + token,
+
+		"Content-Type":
+			"application/json",
+
+		"Accept":
+			"application/json"
 
 	};
-
 }
+
+
+/* ===========================================================
+   LOADER
+=========================================================== */
 
 function showLoader() {
 
-	const loader = document.getElementById("pageLoader");
+	const loader =
+		document.getElementById(
+			"pageLoader"
+		);
 
 	if (loader) {
 
-		loader.classList.remove("d-none");
+		loader.classList.remove(
+			"d-none"
+		);
 
 	}
-
 }
+
 
 function hideLoader() {
 
-	const loader = document.getElementById("pageLoader");
+	const loader =
+		document.getElementById(
+			"pageLoader"
+		);
 
 	if (loader) {
 
-		loader.classList.add("d-none");
+		loader.classList.add(
+			"d-none"
+		);
 
 	}
-
 }
+
 
 /* ===========================================================
    HANDLE UNAUTHORIZED
 =========================================================== */
 
-function handleUnauthorized(response) {
+function handleUnauthorized(
+	response
+) {
 
-	if (response.status === 401) {
+	if (
+		response.status === 401
+	) {
 
 		localStorage.clear();
 
-		showError("Your session has expired. Please login again.");
+		showError(
+			"Your session has expired. Please login again."
+		);
 
-		setTimeout(() => {
 
-			window.location.href = "/login";
+		setTimeout(
+			() => {
 
-		}, 1000);
+				window.location.href =
+					"/login";
+
+			},
+			1000
+		);
+
 
 		return true;
-
 	}
 
-	if (response.status === 403) {
 
-		showError("You do not have permission to perform this action.");
+	if (
+		response.status === 403
+	) {
+
+		showError(
+			"You do not have permission to perform this action."
+		);
 
 		return true;
-
 	}
+
 
 	return false;
-
 }
 
-async function safeJson(response) {
+
+/* ===========================================================
+   SAFE JSON
+=========================================================== */
+
+async function safeJson(
+	response
+) {
 
 	const type =
-		response.headers.get("content-type");
+		response.headers.get(
+			"content-type"
+		);
+
 
 	if (
 		!type ||
-		!type.includes("application/json")
+		!type.includes(
+			"application/json"
+		)
 	) {
 
 		return {};
 
 	}
 
+
 	try {
 
 		return await response.json();
 
 	}
-
 	catch {
 
 		return {};
@@ -2806,214 +4242,423 @@ async function safeJson(response) {
 
 }
 
+
+/* ===========================================================
+   SAFE HTML
+=========================================================== */
+
 function safe(value) {
 
-	return value == null ? "" : escapeHtml(String(value));
+	return value == null
+		? ""
+		: escapeHtml(
+			String(value)
+		);
 
 }
 
-function escapeHtml(text) {
 
-	return String(text || "")
+function escapeHtml(
+	text
+) {
 
-		.replace(/&/g, "&amp;")
-		.replace(/</g, "&lt;")
-		.replace(/>/g, "&gt;")
-		.replace(/"/g, "&quot;")
-		.replace(/'/g, "&#39;");
+	return String(
+		text || ""
+	)
+
+		.replace(
+			/&/g,
+			"&amp;"
+		)
+
+		.replace(
+			/</g,
+			"&lt;"
+		)
+
+		.replace(
+			/>/g,
+			"&gt;"
+		)
+
+		.replace(
+			/"/g,
+			"&quot;"
+		)
+
+		.replace(
+			/'/g,
+			"&#39;"
+		);
 
 }
 
-function setButtonLoading(id, text, loading) {
 
-	const button = document.getElementById(id);
+/* ===========================================================
+   BUTTON LOADING
+=========================================================== */
+
+function setButtonLoading(
+	id,
+	text,
+	loading
+) {
+
+	const button =
+		document.getElementById(
+			id
+		);
 
 	if (!button) {
 		return;
 	}
 
-	if (!button.dataset.originalText) {
 
-		button.dataset.originalText = button.innerHTML;
+	if (
+		!button.dataset.originalText
+	) {
+
+		button.dataset.originalText =
+			button.innerHTML;
 
 	}
+
 
 	if (loading) {
 
 		button.disabled = true;
 
 		button.innerHTML =
-			`<span class="spinner-border spinner-border-sm me-2"></span>${text}`;
+			`
+<span class="spinner-border spinner-border-sm me-2"></span>
+${escapeHtml(text)}
+`;
 
-	} else {
+	}
+	else {
 
 		button.disabled = false;
 
-		button.innerHTML = button.dataset.originalText;
+		button.innerHTML =
+			button.dataset.originalText;
 
 	}
 
 }
 
-function setText(id, value) {
 
-	const element = document.getElementById(id);
+/* ===========================================================
+   DOM HELPERS
+=========================================================== */
+
+function setText(
+	id,
+	value
+) {
+
+	const element =
+		document.getElementById(
+			id
+		);
 
 	if (element) {
 
-		element.textContent = value;
+		element.textContent =
+			value;
 
 	}
 
 }
 
-function setValue(id, value) {
 
-	const element = document.getElementById(id);
+function setValue(
+	id,
+	value
+) {
+
+	const element =
+		document.getElementById(
+			id
+		);
 
 	if (element) {
 
-		element.value = value;
+		element.value =
+			value;
 
 	}
 
 }
 
-function getValue(id) {
 
-	const element = document.getElementById(id);
+function getValue(
+	id
+) {
 
-	return element ? element.value : "";
+	const element =
+		document.getElementById(
+			id
+		);
 
-}
-
-function appendOption(select, value, text) {
-
-	const option = document.createElement("option");
-
-	option.value = value;
-
-	option.textContent = text;
-
-	select.appendChild(option);
+	return element
+		? element.value
+		: "";
 
 }
 
-function clearSelect(id) {
 
-	const select = document.getElementById(id);
+function appendOption(
+	select,
+	value,
+	text
+) {
+
+	if (!select) {
+		return;
+	}
+
+
+	const option =
+		document.createElement(
+			"option"
+		);
+
+	option.value =
+		value;
+
+	option.textContent =
+		text;
+
+	select.appendChild(
+		option
+	);
+
+}
+
+
+function clearSelect(
+	id
+) {
+
+	const select =
+		document.getElementById(
+			id
+		);
 
 	if (select) {
 
-		select.innerHTML = "";
+		select.innerHTML =
+			"";
 
 	}
 
 }
 
-function toMoneyNumber(value) {
 
-	const number = Number(value);
+/* ===========================================================
+   NUMBER / MONEY
+=========================================================== */
 
-	return isNaN(number) ? 0 : number;
+function toMoneyNumber(
+	value
+) {
+
+	const number =
+		Number(value);
+
+	return isNaN(number)
+		? 0
+		: number;
 
 }
 
-function formatMoney(value) {
 
-	return currencyFormatter.format(Number(value || 0));
+function formatMoney(
+	value
+) {
+
+	return currencyFormatter.format(
+		Number(
+			value || 0
+		)
+	);
 
 }
 
-function formatDate(value) {
+
+/* ===========================================================
+   DATE
+=========================================================== */
+
+function formatDate(
+	value
+) {
 
 	if (!value) {
 		return "-";
 	}
 
-	const datePart = String(value).split("T")[0];
 
-	const parts = datePart.split("-");
+	const datePart =
+		String(value)
+			.split("T")[0];
 
-	if (parts.length !== 3) {
+
+	const parts =
+		datePart.split("-");
+
+
+	if (
+		parts.length !== 3
+	) {
+
 		return value;
 	}
 
-	return `${parts[2]}/${parts[1]}/${parts[0]}`;
 
+	return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
-function formatDateTime(value) {
+
+function formatDateTime(
+	value
+) {
 
 	if (!value) {
 		return "-";
 	}
 
-	const date = new Date(value);
 
-	if (isNaN(date.getTime())) {
+	const date =
+		new Date(value);
+
+
+	if (
+		isNaN(
+			date.getTime()
+		)
+	) {
+
 		return "-";
 	}
 
-	const formatter = new Intl.DateTimeFormat("en-IN", {
 
-		day: "2-digit",
-		month: "2-digit",
-		year: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-		second: "2-digit",
-		hour12: true
+	const formatter =
+		new Intl.DateTimeFormat(
+			"en-IN",
+			{
 
-	});
+				day:
+					"2-digit",
 
-	return formatter.format(date);
+				month:
+					"2-digit",
+
+				year:
+					"numeric",
+
+				hour:
+					"2-digit",
+
+				minute:
+					"2-digit",
+
+				second:
+					"2-digit",
+
+				hour12:
+					true
+
+			}
+		);
+
+
+	return formatter.format(
+		date
+	);
 
 }
 
-function paymentStatusBadge(status) {
 
-	status = (status || "UNPAID").toUpperCase();
+/* ===========================================================
+   PAYMENT STATUS
+=========================================================== */
 
-	let cls = "bg-danger";
+function paymentStatusBadge(
+	status
+) {
 
-	if (status === "PAID") {
+	status =
+		(
+			status ||
+			"UNPAID"
+		).toUpperCase();
 
-		cls = "bg-success";
 
-	} else if (status === "PARTIAL") {
+	let cls =
+		"bg-danger";
 
-		cls = "bg-warning text-dark";
+
+	if (
+		status === "PAID"
+	) {
+
+		cls =
+			"bg-success";
+
+	}
+	else if (
+		status === "PARTIAL"
+	) {
+
+		cls =
+			"bg-warning text-dark";
 
 	}
 
-	return `<span class="badge ${cls}">${status}</span>`;
+
+	return `
+<span class="badge ${cls}">
+    ${escapeHtml(status)}
+</span>
+`;
 
 }
+
+
+/* ===========================================================
+   SALES STATES
+=========================================================== */
 
 function showSalesLoadingState() {
 
-	const tbody = document.getElementById("salesTableBody");
+	const tbody =
+		document.getElementById(
+			"salesTableBody"
+		);
 
 	if (!tbody) {
 		return;
 	}
 
+
 	tbody.innerHTML = `
 
 <tr>
 
-<td colspan="7" class="text-center py-5">
+    <td
+        colspan="7"
+        class="text-center py-5">
 
-<div class="spinner-border text-primary"></div>
+        <div class="spinner-border text-primary"></div>
 
-<div class="mt-2">
+        <div class="mt-2">
 
-Loading sales...
+            Loading sales...
 
-</div>
+        </div>
 
-</td>
+    </td>
 
 </tr>
 
@@ -3021,47 +4666,63 @@ Loading sales...
 
 }
 
-function showSalesErrorState(message) {
 
-	const tbody = document.getElementById("salesTableBody");
+function showSalesErrorState(
+	message
+) {
+
+	const tbody =
+		document.getElementById(
+			"salesTableBody"
+		);
 
 	if (!tbody) {
 		return;
 	}
 
+
 	tbody.innerHTML = `
 
 <tr>
 
-<td colspan="7" class="text-center text-danger py-5">
+    <td
+        colspan="7"
+        class="text-center text-danger py-5">
 
-${message}
+        ${escapeHtml(message)}
 
-</td>
+    </td>
 
 </tr>
 
 `;
 
 }
+
 
 function renderEmptyState() {
 
-	const tbody = document.getElementById("salesTableBody");
+	const tbody =
+		document.getElementById(
+			"salesTableBody"
+		);
 
 	if (!tbody) {
 		return;
 	}
 
+
 	tbody.innerHTML = `
 
 <tr>
 
-<td colspan="7" class="text-center text-muted py-5">
+    <td
+        colspan="7"
+        class="text-center text-muted py-5">
 
-No sales found.
+        No sales found.
 
-</td>
+    </td>
 
 </tr>
 
@@ -3069,51 +4730,100 @@ No sales found.
 
 }
 
-function showMsg(message, type = "danger") {
 
-	const msg = document.getElementById("msg");
+/* ===========================================================
+   MESSAGES
+=========================================================== */
+
+function showMsg(
+	message,
+	type = "danger"
+) {
+
+	const msg =
+		document.getElementById(
+			"msg"
+		);
+
 
 	if (!msg) {
 
 		alert(message);
+
 		return;
 	}
 
+
 	msg.innerHTML = `
-		<div class="alert alert-${type} alert-dismissible fade show"
-			 role="alert">
 
-			${escapeHtml(message)}
+<div
+    class="alert alert-${escapeHtml(type)}
+           alert-dismissible fade show"
+    role="alert">
 
-			<button type="button"
-					class="btn-close"
-					data-bs-dismiss="alert">
-			</button>
+    ${escapeHtml(message)}
 
-		</div>
-	`;
+    <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="alert">
+
+    </button>
+
+</div>
+
+`;
+
 
 	window.scrollTo({
+
 		top: 0,
+
 		behavior: "smooth"
+
 	});
+
 }
 
-function showSuccess(message) {
-	showMsg(message, "success");
+
+function showSuccess(
+	message
+) {
+
+	showMsg(
+		message,
+		"success"
+	);
+
 }
 
-function showError(message) {
-	showMsg(message, "danger");
+
+function showError(
+	message
+) {
+
+	showMsg(
+		message,
+		"danger"
+	);
+
 }
 
-function getApiErrorMessage(result, defaultMessage) {
+
+/* ===========================================================
+   API ERROR MESSAGE
+=========================================================== */
+
+function getApiErrorMessage(
+	result,
+	defaultMessage
+) {
 
 	if (!result) {
 
 		return defaultMessage;
-
 	}
+
 
 	return (
 
@@ -3129,91 +4839,237 @@ function getApiErrorMessage(result, defaultMessage) {
 
 }
 
-async function loadMedicineStock(index) {
 
-	const row = medicineRows[index];
+/* ===========================================================
+   LOAD CURRENT STOCK FOR ROW
+=========================================================== */
 
-	if (!row) return;
+async function loadMedicineStock(
+	index
+) {
 
-	const stock = medicines.find(s =>
-		Number(s.id) === Number(row.stockId)
-	);
-
-	if (!stock) return;
-
-	row.availableStock = Number(stock.currentQuantity || 0);
-
-}
-function validateMedicineStock(index) {
-
-	const row = medicineRows[index];
+	const row =
+		medicineRows[index];
 
 	if (!row) {
-
 		return;
-
 	}
 
+
+	const stock =
+		medicines.find(
+			s =>
+				Number(s.id) ===
+				Number(row.stockId)
+		);
+
+
+	if (!stock) {
+
+		/*
+		 * Do not overwrite the existing
+		 * stock value if the batch is no
+		 * longer present in the currently
+		 * filtered medicine list.
+		 */
+		return;
+	}
+
+
+	row.availableStock =
+		Number(
+			stock.currentQuantity || 0
+		);
+
+}
+
+
+/* ===========================================================
+   STOCK VALIDATION ON INPUT
+=========================================================== */
+
+function validateMedicineStockForDisplay(
+	index
+) {
+
+	const row =
+		medicineRows[index];
+
+	if (!row) {
+		return;
+	}
+
+
+	const currentStock =
+		Number(
+			row.availableStock || 0
+		);
+
+	const originalQuantity =
+		Number(
+			row.originalQuantity || 0
+		);
+
+	const effectiveAvailableStock =
+		currentStock +
+		originalQuantity;
+
+
 	if (
-
-		row.availableStock > 0 &&
-
-		row.quantity > row.availableStock
-
+		Number(row.quantity) >
+		effectiveAvailableStock
 	) {
 
 		showError(
-			`${row.medicineName || "Selected medicine"} stock is only ${row.availableStock}.`
+			`${row.medicineName || "Selected medicine"} stock is only ${effectiveAvailableStock}.`
 		);
 
 	}
 
 }
 
-function updatePaymentStatus() {
 
-	const grandElement = document.getElementById("grandTotal");
+/*
+ * Keep the existing function name used
+ * by quantity input events.
+ */
+function validateMedicineStock(
+	index
+) {
 
-	const grand = grandElement
-		? Number(grandElement.dataset.value || 0)
-		: 0;
+	const row =
+		medicineRows[index];
 
-	const paid = toMoneyNumber(getValue("paidAmount"));
-
-	const badge = document.getElementById("paymentStatus");
-
-	if (!badge) {
-
-		return;
-
+	if (!row) {
+		return true;
 	}
 
-	badge.className = "badge";
 
-	if (paid <= 0) {
+	const currentStock =
+		Number(
+			row.availableStock || 0
+		);
 
-		badge.classList.add("bg-danger");
+	const originalQuantity =
+		Number(
+			row.originalQuantity || 0
+		);
 
-		badge.textContent = "UNPAID";
+	const requestedQuantity =
+		Number(
+			row.quantity || 0
+		);
 
-	} else if (paid < grand) {
+	const effectiveAvailableStock =
+		currentStock +
+		originalQuantity;
 
-		badge.classList.add("bg-warning");
 
-		badge.textContent = "PARTIAL";
+	if (
+		requestedQuantity >
+		effectiveAvailableStock
+	) {
 
-	} else if (paid === grand) {
+		showError(
+			`${row.medicineName || "Selected medicine"} stock is only ${effectiveAvailableStock}.`
+		);
 
-		badge.classList.add("bg-success");
+		return false;
+	}
 
-		badge.textContent = "PAID";
+
+	return true;
+}
+
+
+/* ===========================================================
+   PAYMENT STATUS
+=========================================================== */
+
+function updatePaymentStatus() {
+
+	const grandElement =
+		document.getElementById(
+			"grandTotal"
+		);
+
+
+	const grand =
+		grandElement
+			? Number(
+				grandElement.dataset.value ||
+				0
+			)
+			: 0;
+
+
+	const paid =
+		toMoneyNumber(
+			getValue(
+				"paidAmount"
+			)
+		);
+
+
+	const badge =
+		document.getElementById(
+			"paymentStatus"
+		);
+
+
+	if (!badge) {
+		return;
+	}
+
+
+	badge.className =
+		"badge";
+
+
+	if (
+		paid <= 0
+	) {
+
+		badge.classList.add(
+			"bg-danger"
+		);
+
+		badge.textContent =
+			"UNPAID";
+
+	}
+	else if (
+		paid < grand
+	) {
+
+		badge.classList.add(
+			"bg-warning"
+		);
+
+		badge.textContent =
+			"PARTIAL";
+
+	}
+	else if (
+		paid === grand
+	) {
+
+		badge.classList.add(
+			"bg-success"
+		);
+
+		badge.textContent =
+			"PAID";
 
 	}
 	else {
 
-		badge.classList.add("bg-danger");
+		badge.classList.add(
+			"bg-danger"
+		);
 
-		badge.textContent = "INVALID";
+		badge.textContent =
+			"INVALID";
 
 	}
 

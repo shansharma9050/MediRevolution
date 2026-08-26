@@ -18,9 +18,54 @@ function isSaasModuleEnabled(module) {
 			.trim()
 			.toUpperCase();
 
+
+	/*
+	 * =====================================================
+	 * DASHBOARD
+	 * =====================================================
+	 */
+
 	if (requiredModule === "DASHBOARD") {
 		return true;
 	}
+
+	if (
+		getCurrentLoginRole() ===
+		"PATIENT"
+	) {
+
+		return isModuleAllowedForCurrentTenantType(
+			requiredModule
+		);
+	}
+
+
+	/*
+	 * =====================================================
+	 * SAAS CUSTOMER
+	 * =====================================================
+	 *
+	 * Customer ka allowed module set role-based hai.
+	 * Isliye workspace owner/admin ke enabled-module
+	 * response par customer UI depend nahi karega.
+	 */
+
+	if (
+		getCurrentLoginRole() ===
+		"SAAS_CUSTOMER"
+	) {
+
+		return isModuleAllowedForCurrentTenantType(
+			requiredModule
+		);
+	}
+
+
+	/*
+	 * =====================================================
+	 * NORMAL SaaS USER
+	 * =====================================================
+	 */
 
 	if (
 		!isModuleAllowedForCurrentTenantType(
@@ -30,25 +75,46 @@ function isSaasModuleEnabled(module) {
 		return false;
 	}
 
+
+	/*
+	 * =====================================================
+	 * OWNER / ADMIN MODULES
+	 * =====================================================
+	 */
+
 	if (
 		requiredModule === "SETTINGS" ||
 		requiredModule === "PERMISSIONS"
 	) {
-		return window.SAAS_OWNER_OR_ADMIN === true;
+
+		return (
+			window.SAAS_OWNER_OR_ADMIN ===
+			true
+		);
 	}
+
+
+	/*
+	 * =====================================================
+	 * ENABLED MODULES
+	 * =====================================================
+	 */
 
 	return (
 		window.SAAS_ENABLED_MODULES || []
 	).some(
 		function(enabledModule) {
 
-			return String(enabledModule)
-				.trim()
-				.toUpperCase() === requiredModule;
+			return (
+				String(enabledModule)
+					.trim()
+					.toUpperCase() ===
+				requiredModule
+			);
+
 		}
 	);
 }
-
 function getApiBase() {
 	if (typeof API_BASE !== "undefined" && API_BASE) {
 		return API_BASE;
@@ -290,6 +356,26 @@ function clearSaasEnabledModuleCache() {
 }
 
 async function loadCurrentSaasPermissions() {
+
+
+	const role = getCurrentLoginRole();
+
+	if (role === "PATIENT") {
+
+		window.SAAS_PERMISSIONS = [];
+
+		window.SAAS_MEMBER_ROLE =
+			"PATIENT";
+
+		window.SAAS_OWNER_OR_ADMIN =
+			false;
+
+		return {
+			permissions: [],
+			memberRole: "PATIENT",
+			ownerOrAdmin: false
+		};
+	}
 
 	if (isSaasSubscriptionPage()) {
 
@@ -548,6 +634,11 @@ function loadCachedSaasPermissionsFromLocalStorage() {
 }
 
 function hasCachedSaasPermission(module, action) {
+
+	if (getCurrentLoginRole() === "PATIENT") {
+		return true;
+	}
+
 	if (!isSaasMode()) {
 		return true;
 	}
@@ -571,6 +662,11 @@ function hasCachedSaasPermission(module, action) {
 }
 
 async function hasSaasPermission(module, action) {
+
+	if (getCurrentLoginRole() === "PATIENT") {
+		return true;
+	}
+
 	if (!isSaasMode()) {
 		return true;
 	}
@@ -811,19 +907,189 @@ function isModuleAllowedForCurrentTenantType(moduleName) {
 		return false;
 	}
 
-	const tenantType =
-		getCurrentSaasTenantType();
+	/*
+	 * Role-aware module filtering.
+	 *
+	 * SAAS_CUSTOMER ko uske assigned wholesaler ke
+	 * saare wholesaler modules nahi milenge.
+	 */
 
 	const allowedModules =
-		getAllowedModulesForTenantType(
-			tenantType
-		);
+		getAllowedModulesForCurrentUser();
 
 	return allowedModules.has(
 		normalizedModule
 	);
 }
 
+function applySaasCustomerSidebarRules() {
+
+	const role =
+		getCurrentLoginRole();
+
+
+	const salesOrdersLabel =
+		document.getElementById(
+			"sidebarSalesOrdersLabel"
+		);
+
+
+	const switchWorkspaceButton =
+		document.getElementById(
+			"saasSwitchWorkspaceButton"
+		);
+
+
+	const switchModuleButton =
+		document.getElementById(
+			"saasSwitchModuleButton"
+		);
+
+
+	/*
+	 * =====================================================
+	 * PATIENT
+	 * =====================================================
+	 */
+
+	if (role === "PATIENT") {
+
+		/*
+		 * Show patient-only links.
+		 */
+
+		document
+			.querySelectorAll(
+				"[data-patient-only='true']"
+			)
+			.forEach(function(element) {
+
+				element.style.display =
+					"";
+			});
+
+
+		/*
+		 * Hide workspace switch.
+		 */
+
+		if (switchWorkspaceButton) {
+
+			switchWorkspaceButton.style.display =
+				"none";
+		}
+
+
+		/*
+		 * Hide module switch.
+		 */
+
+		if (switchModuleButton) {
+
+			switchModuleButton.style.display =
+				"none";
+		}
+
+
+		/*
+		 * Hide normal Sales Orders.
+		 */
+
+		if (salesOrdersLabel) {
+
+			const link =
+				salesOrdersLabel.closest("a");
+
+			if (link) {
+
+				link.style.display =
+					"none";
+			}
+		}
+
+
+		/*
+		 * Stop here.
+		 */
+
+		return;
+	}
+
+
+	/*
+	 * =====================================================
+	 * SAAS CUSTOMER
+	 * =====================================================
+	 */
+
+	if (role === "SAAS_CUSTOMER") {
+
+		if (salesOrdersLabel) {
+
+			salesOrdersLabel.textContent =
+				"Medicine Store & Orders";
+		}
+
+
+		if (switchWorkspaceButton) {
+
+			switchWorkspaceButton.style.display =
+				"none";
+		}
+
+
+		if (switchModuleButton) {
+
+			switchModuleButton.style.display =
+				"";
+		}
+
+
+		return;
+	}
+
+
+	/*
+	 * =====================================================
+	 * NORMAL SaaS USERS
+	 * =====================================================
+	 */
+
+	/*
+	 * Patient-only links must remain hidden.
+	 */
+
+	document
+		.querySelectorAll(
+			"[data-patient-only='true']"
+		)
+		.forEach(function(element) {
+
+			element.style.display =
+				"none";
+		});
+
+
+	if (salesOrdersLabel) {
+
+		salesOrdersLabel.textContent =
+			"Sales Orders";
+	}
+
+
+	if (switchWorkspaceButton) {
+
+		switchWorkspaceButton.style.display =
+			"";
+	}
+
+
+	if (switchModuleButton) {
+
+		switchModuleButton.style.display =
+			"";
+	}
+}
 async function applySaasPermissionMenu() {
 
 	if (isSaasSubscriptionPage()) {
@@ -844,13 +1110,8 @@ async function applySaasPermissionMenu() {
 	 */
 
 	const sidebar =
-		document.getElementById(
-			"saasSidebar"
-		) ||
-		document.getElementById(
-			"sidebar"
-		);
-
+		document.getElementById("saasSidebar") ||
+		document.getElementById("sidebar");
 
 	if (!sidebar) {
 		return;
@@ -859,7 +1120,149 @@ async function applySaasPermissionMenu() {
 
 	/*
 	 * ============================================================
-	 * SaaS MODE / WORKSPACE
+	 * ROLE
+	 * ============================================================
+	 */
+
+	const role =
+		getCurrentLoginRole();
+
+
+	/*
+	 * ============================================================
+	 * PATIENT
+	 *
+	 * IMPORTANT:
+	 * Patient ke liye generic SaaS module filtering bilkul
+	 * use nahi karna.
+	 * ============================================================
+	 */
+
+	if (role === "PATIENT") {
+
+		/*
+		 * -----------------------------------------------
+		 * Hide EVERY normal SaaS module link
+		 * -----------------------------------------------
+		 */
+
+		sidebar
+			.querySelectorAll(
+				"[data-saas-module], [data-saas]"
+			)
+			.forEach(function(item) {
+
+				item.style.display =
+					"none";
+			});
+
+
+		/*
+		 * -----------------------------------------------
+		 * Hide owner/admin links
+		 * -----------------------------------------------
+		 */
+
+		sidebar
+			.querySelectorAll(
+				"[data-owner-admin='true']"
+			)
+			.forEach(function(item) {
+
+				item.style.display =
+					"none";
+			});
+
+
+		/*
+		 * -----------------------------------------------
+		 * Hide subscription and plans
+		 * -----------------------------------------------
+		 */
+
+		sidebar
+			.querySelectorAll(
+				"[data-role]"
+			)
+			.forEach(function(item) {
+
+				item.style.display =
+					"none";
+			});
+
+
+		/*
+		 * -----------------------------------------------
+		 * Show Patient-only links
+		 * -----------------------------------------------
+		 */
+
+		sidebar
+			.querySelectorAll(
+				"[data-patient-only='true']"
+			)
+			.forEach(function(item) {
+
+				item.style.display =
+					"";
+			});
+
+
+		/*
+		 * -----------------------------------------------
+		 * Workspace switch OFF
+		 * -----------------------------------------------
+		 */
+
+		const switchWorkspaceButton =
+			document.getElementById(
+				"saasSwitchWorkspaceButton"
+			);
+
+		if (switchWorkspaceButton) {
+
+			switchWorkspaceButton.style.display =
+				"none";
+		}
+
+
+		/*
+		 * -----------------------------------------------
+		 * Module switch OFF
+		 * -----------------------------------------------
+		 */
+
+		const switchModuleButton =
+			document.getElementById(
+				"saasSwitchModuleButton"
+			);
+
+		if (switchModuleButton) {
+
+			switchModuleButton.style.display =
+				"none";
+		}
+
+
+		/*
+		 * -----------------------------------------------
+		 * Apply Patient-specific labels/header
+		 * -----------------------------------------------
+		 */
+
+		applySaasCustomerSidebarRules();
+
+		updateSaasSidebarSectionVisibility();
+
+		updateSaasSidebarWorkspaceDetails();
+
+		return;
+	}
+
+
+	/*
+	 * ============================================================
+	 * NORMAL SaaS MODE
 	 * ============================================================
 	 */
 
@@ -881,10 +1284,8 @@ async function applySaasPermissionMenu() {
 
 	/*
 	 * ============================================================
-	 * LOAD CURRENT SAAS PERMISSION + MODULES
+	 * LOAD PERMISSIONS + MODULES
 	 * ============================================================
-	 *
-	 * Ye sirf normal SaaS application pages par chalega.
 	 */
 
 	await Promise.all([
@@ -909,8 +1310,9 @@ async function applySaasPermissionMenu() {
 		function(item) {
 
 			/*
-			 * Sabse pehle hide.
+			 * Hide first.
 			 */
+
 			item.style.display =
 				"none";
 
@@ -918,6 +1320,7 @@ async function applySaasPermissionMenu() {
 			/*
 			 * Module
 			 */
+
 			const moduleName =
 				String(
 					item.getAttribute(
@@ -940,6 +1343,7 @@ async function applySaasPermissionMenu() {
 			/*
 			 * Action
 			 */
+
 			const action =
 				String(
 					item.getAttribute(
@@ -957,6 +1361,7 @@ async function applySaasPermissionMenu() {
 			/*
 			 * Owner/Admin only
 			 */
+
 			const ownerOnly =
 				item.getAttribute(
 					"data-owner-admin"
@@ -973,9 +1378,7 @@ async function applySaasPermissionMenu() {
 
 
 			/*
-			 * ====================================================
-			 * TENANT TYPE CHECK
-			 * ====================================================
+			 * Tenant-type allowed module
 			 */
 
 			if (
@@ -989,9 +1392,7 @@ async function applySaasPermissionMenu() {
 
 
 			/*
-			 * ====================================================
-			 * ENABLED MODULE CHECK
-			 * ====================================================
+			 * Enabled module
 			 */
 
 			if (
@@ -1005,9 +1406,7 @@ async function applySaasPermissionMenu() {
 
 
 			/*
-			 * ====================================================
-			 * PERMISSION CHECK
-			 * ====================================================
+			 * Permission
 			 */
 
 			if (
@@ -1022,15 +1421,22 @@ async function applySaasPermissionMenu() {
 
 
 			/*
-			 * ====================================================
-			 * SHOW
-			 * ====================================================
+			 * Show
 			 */
 
 			item.style.display =
 				"";
 		}
 	);
+
+
+	/*
+	 * ============================================================
+	 * CUSTOMER / NORMAL USER RULES
+	 * ============================================================
+	 */
+
+	applySaasCustomerSidebarRules();
 
 
 	/*
@@ -1044,13 +1450,12 @@ async function applySaasPermissionMenu() {
 
 	/*
 	 * ============================================================
-	 * WORKSPACE DETAILS
+	 * WORKSPACE HEADER
 	 * ============================================================
 	 */
 
 	updateSaasSidebarWorkspaceDetails();
 }
-
 function openBillingPage(event) {
 
 	if (event) {
@@ -1090,6 +1495,9 @@ function openBillingPage(event) {
 
 function updateSaasSidebarWorkspaceDetails() {
 
+	const loginRole =
+		getCurrentLoginRole();
+
 	const tenantName =
 		localStorage.getItem("tenantName") ||
 		"Private Workspace";
@@ -1112,73 +1520,156 @@ function updateSaasSidebarWorkspaceDetails() {
 			"sidebarWorkspaceIcon"
 		);
 
+
+	/*
+	 * =====================================================
+	 * WORKSPACE NAME
+	 * =====================================================
+	 */
+
 	if (nameElement) {
+
 		nameElement.innerText =
 			tenantName;
 	}
+
+
+
+	if (loginRole === "PATIENT") {
+
+		if (typeElement) {
+
+			typeElement.innerText =
+				"Patient Portal";
+		}
+
+
+		if (iconElement) {
+
+			iconElement.className =
+				"bi bi-person-heart";
+		}
+
+
+		return;
+	}
+
+	/*
+	 * =====================================================
+	 * SAAS CUSTOMER
+	 * =====================================================
+	 *
+	 * Customer kisi wholesaler workspace ke andar hai,
+	 * isliye tenantType WHOLESALER ho sakta hai.
+	 *
+	 * Lekin sidebar header customer-specific hona chahiye.
+	 */
+
+	if (loginRole === "SAAS_CUSTOMER") {
+
+		if (typeElement) {
+
+			typeElement.innerText =
+				"Retail Customer";
+		}
+
+		if (iconElement) {
+
+			iconElement.className =
+				"bi bi-shop-window";
+		}
+
+		return;
+	}
+
+
+	/*
+	 * =====================================================
+	 * NORMAL SaaS USER
+	 * =====================================================
+	 */
 
 	if (typeElement) {
 
 		switch (tenantType) {
 
 			case "DOCTOR_CLINIC":
+
 				typeElement.innerText =
 					"Doctor Clinic";
+
 				break;
 
 			case "HOSPITAL":
+
 				typeElement.innerText =
 					"Hospital Workspace";
+
 				break;
 
 			case "WHOLESALER":
+
 				typeElement.innerText =
 					"Wholesale Workspace";
+
 				break;
 
 			case "RETAILER":
+
 				typeElement.innerText =
 					"Retail Pharmacy";
+
 				break;
 
 			default:
+
 				typeElement.innerText =
 					"SaaS Workspace";
 		}
 	}
 
+
 	if (!iconElement) {
 		return;
 	}
 
+
 	switch (tenantType) {
 
 		case "DOCTOR_CLINIC":
+
 			iconElement.className =
 				"bi bi-heart-pulse-fill";
+
 			break;
 
 		case "HOSPITAL":
+
 			iconElement.className =
 				"bi bi-hospital-fill";
+
 			break;
 
 		case "WHOLESALER":
+
 			iconElement.className =
 				"bi bi-box-seam-fill";
+
 			break;
 
 		case "RETAILER":
+
 			iconElement.className =
 				"bi bi-shop-window";
+
 			break;
 
 		default:
+
 			iconElement.className =
 				"bi bi-building-gear";
 	}
 }
-
 function updateSaasSidebarSectionVisibility() {
 
 	const sidebar =
@@ -1189,10 +1680,12 @@ function updateSaasSidebarSectionVisibility() {
 		return;
 	}
 
+
 	const children =
 		Array.from(
 			sidebar.children
 		);
+
 
 	children.forEach(
 		function(sectionTitle, index) {
@@ -1202,11 +1695,14 @@ function updateSaasSidebarSectionVisibility() {
 					"data-sidebar-section-title"
 				)
 			) {
+
 				return;
 			}
 
+
 			let visibleLinkFound =
 				false;
+
 
 			for (
 				let nextIndex = index + 1;
@@ -1217,29 +1713,46 @@ function updateSaasSidebarSectionVisibility() {
 				const nextElement =
 					children[nextIndex];
 
+
+				/*
+				 * Next section starts.
+				 */
+
 				if (
 					nextElement.hasAttribute(
 						"data-sidebar-section-title"
 					)
 				) {
+
 					break;
 				}
 
-				const isModuleLink =
+
+				/*
+				 * Normal SaaS link
+				 * OR Patient-only link
+				 */
+
+				const isSidebarLink =
 					nextElement.matches(
-						"a[data-saas-module], a[data-saas]"
+						"a[data-saas-module]," +
+						"a[data-saas]," +
+						"a[data-patient-only='true']"
 					);
 
+
 				if (
-					isModuleLink &&
+					isSidebarLink &&
 					!isElementHidden(nextElement)
 				) {
+
 					visibleLinkFound =
 						true;
 
 					break;
 				}
 			}
+
 
 			sectionTitle.style.display =
 				visibleLinkFound
@@ -1666,4 +2179,63 @@ function clearModalFormError(modalElement) {
 	errorBox._hideTimer = null;
 
 	errorBox.remove();
+}
+
+function getCurrentLoginRole() {
+
+	return String(
+		localStorage.getItem("role") || ""
+	)
+		.trim()
+		.toUpperCase()
+		.replace(/^ROLE_/, "");
+}
+
+function getAllowedModulesForCurrentUser() {
+
+	const role =
+		getCurrentLoginRole();
+
+
+	/*
+	 * =====================================================
+	 * PATIENT
+	 * =====================================================
+	 */
+
+	if (role === "PATIENT") {
+
+		return new Set([
+			"DASHBOARD",
+			"PATIENT_APPOINTMENTS",
+			"PATIENT_NOTIFICATIONS"
+		]);
+	}
+
+
+	/*
+	 * =====================================================
+	 * SAAS CUSTOMER
+	 * =====================================================
+	 */
+
+	if (role === "SAAS_CUSTOMER") {
+
+		return new Set([
+			"DASHBOARD",
+			"SALES_ORDERS",
+			"NOTIFICATIONS"
+		]);
+	}
+
+
+	/*
+	 * =====================================================
+	 * NORMAL SaaS USER
+	 * =====================================================
+	 */
+
+	return getAllowedModulesForTenantType(
+		getCurrentSaasTenantType()
+	);
 }

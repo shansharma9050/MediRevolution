@@ -2,6 +2,7 @@ package com.example.medi.auth.controller;
 
 import com.example.medi.auth.dto.AuthUserResponse;
 import com.example.medi.auth.dto.CreateSaasCustomerRequest;
+import com.example.medi.auth.dto.CreateSaasPatientRequest;
 import com.example.medi.auth.dto.CreateSaasStaffRequest;
 import com.example.medi.auth.entity.User;
 import com.example.medi.auth.enums.RoleName;
@@ -173,6 +174,96 @@ public class AuthInternalController {
 		 * RETAILER PHARMACY HOSPITAL CLINIC WHOLESALER DISTRIBUTOR OTHER
 		 */
 		newUser.setRole(RoleName.SAAS_CUSTOMER);
+
+		newUser.setActive(true);
+
+		newUser.setApproved(true);
+
+		User saved = userRepository.save(newUser);
+
+		return toResponse(saved);
+	}
+
+	// ============================================================
+	// CREATE SAAS PATIENT
+	// ============================================================
+
+	@PostMapping("/saas-patient")
+	public AuthUserResponse createSaasPatient(@RequestBody CreateSaasPatientRequest request) {
+
+		if (request == null) {
+			throw new RuntimeException("Patient request is required");
+		}
+
+		if (request.getFullName() == null || request.getFullName().isBlank()) {
+
+			throw new RuntimeException("Patient name is required");
+		}
+
+		if (request.getEmail() == null || request.getEmail().isBlank()) {
+
+			throw new RuntimeException("Patient email is required");
+		}
+
+		if (request.getMobile() == null || request.getMobile().isBlank()) {
+
+			throw new RuntimeException("Patient mobile is required");
+		}
+
+		if (request.getPassword() == null || request.getPassword().isBlank()) {
+
+			throw new RuntimeException("Patient password is required");
+		}
+
+		if (request.getPassword().length() < 6) {
+
+			throw new RuntimeException("Patient password must be at least 6 characters");
+		}
+
+		String email = request.getEmail().trim().toLowerCase();
+
+		String mobile = request.getMobile().trim();
+
+		User existingUser = userRepository.findByEmail(email).orElse(null);
+
+		/*
+		 * Existing PATIENT account: reuse the existing login.
+		 */
+		if (existingUser != null) {
+
+			if (existingUser.getRole() != RoleName.PATIENT) {
+
+				throw new RuntimeException("This email is already registered with another role");
+			}
+
+			return toResponse(existingUser);
+		}
+
+		/*
+		 * Mobile must also be unique.
+		 */
+		if (userRepository.existsByMobile(mobile)) {
+
+			throw new RuntimeException("Mobile already registered");
+		}
+
+		User newUser = new User();
+
+		newUser.setFullName(request.getFullName().trim());
+
+		newUser.setEmail(email);
+
+		newUser.setMobile(mobile);
+
+		/*
+		 * NEVER store plain password.
+		 */
+		newUser.setPassword(passwordEncoder.encode(request.getPassword()));
+
+		/*
+		 * Actual Auth role for patient.
+		 */
+		newUser.setRole(RoleName.PATIENT);
 
 		newUser.setActive(true);
 

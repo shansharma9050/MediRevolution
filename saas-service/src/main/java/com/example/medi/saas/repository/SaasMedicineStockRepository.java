@@ -172,4 +172,16 @@ public interface SaasMedicineStockRepository extends JpaRepository<SaasMedicineS
 	);
 	
 	void deleteByTenantId(Long tenantId);
+	
+	List<SaasMedicineStock> findByTenantIdAndActiveTrueAndCurrentQuantityGreaterThan(
+	        Long tenantId,
+	        Integer currentQuantity
+	);
+
+	List<SaasMedicineStock> findByTenantIdAndMedicineIdAndActiveTrueAndCurrentQuantityGreaterThan(
+	        Long tenantId,
+	        Long medicineId,
+	        Integer currentQuantity
+	);
+
 }

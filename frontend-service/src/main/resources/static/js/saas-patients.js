@@ -594,7 +594,9 @@ function renderPatients(patients) {
 }
 
 function openCreatePatientModal() {
+
 	if (!patientPermissions.create) {
+
 		showMsg(
 			"You do not have permission to create patients."
 		);
@@ -604,12 +606,24 @@ function openCreatePatientModal() {
 
 	clearPatientForm();
 
+	// Show password field while creating a patient
+	const passwordField =
+		document.getElementById(
+			"patientPasswordField"
+		);
+
+	if (passwordField) {
+
+		passwordField.style.display = "";
+	}
+
 	setText(
 		"patientModalTitle",
 		"Add Patient"
 	);
 
 	if (patientModal) {
+
 		patientModal.show();
 	}
 }
@@ -691,12 +705,26 @@ async function editPatient(patientId) {
 
 		fillPatientForm(patient);
 
+		// Hide login password field while editing
+		const passwordField =
+			document.getElementById(
+				"patientPasswordField"
+			);
+
+		if (passwordField) {
+
+			passwordField.style.display = "none";
+		}
+
+		setValue("password", "");
+
 		setText(
 			"patientModalTitle",
 			"Edit Patient"
 		);
 
 		if (patientModal) {
+
 			patientModal.show();
 		}
 
@@ -777,6 +805,9 @@ async function savePatient() {
 
 		email:
 			getValue("email"),
+
+		password:
+			getValue("password"),
 
 		gender:
 			getValue("gender"),
@@ -864,6 +895,16 @@ async function savePatient() {
 		showModalFormError(
 			document.getElementById("patientModal"),
 			"Please enter a valid email address."
+		);
+
+		return;
+	}
+
+	if (password.length < 6) {
+
+		showModalFormError(
+			document.getElementById("patientModal"),
+			"Patient password must be at least 6 characters."
 		);
 
 		return;
@@ -1257,6 +1298,7 @@ function clearPatientForm() {
 		"patientName",
 		"mobile",
 		"email",
+		"password",
 		"gender",
 		"dateOfBirth",
 		"age",

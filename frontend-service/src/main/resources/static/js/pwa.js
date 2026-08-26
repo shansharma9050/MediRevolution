@@ -1,54 +1,320 @@
+"use strict";
+
+/* ==========================================================
+   MediRevolution PWA
+========================================================== */
+
 let deferredPrompt = null;
 
-console.log("PWA JS loaded");
+console.log(
+    "🔥 MediRevolution PWA JS loaded"
+);
 
-window.addEventListener("beforeinstallprompt", event => {
-    event.preventDefault();
-    deferredPrompt = event;
 
-    const installBtn = document.getElementById("installAppBtn");
+/* ==========================================================
+   INSTALL PROMPT
+========================================================== */
 
-    if (installBtn) {
-        installBtn.style.display = "inline-block";
+window.addEventListener(
+    "beforeinstallprompt",
+    event => {
+
+        /*
+         * Prevent browser from automatically showing
+         * the install prompt.
+         */
+        event.preventDefault();
+
+        deferredPrompt = event;
+
+        const installBtn =
+            document.getElementById(
+                "installAppBtn"
+            );
+
+        if (installBtn) {
+
+            installBtn.style.display =
+                "inline-block";
+        }
     }
-});
+);
+
+
+/* ==========================================================
+   INSTALL APP
+========================================================== */
 
 async function installMediRevolutionApp() {
+
     if (!deferredPrompt) {
-        alert("Install option is not available right now. Use browser menu: Add to Home Screen.");
+
+        alert(
+            "Install option is not available right now. " +
+            "Use browser menu: Add to Home Screen."
+        );
+
         return;
     }
 
-    deferredPrompt.prompt();
+    try {
 
-    const choice = await deferredPrompt.userChoice;
+        await deferredPrompt.prompt();
 
-    if (choice.outcome === "accepted") {
-        console.log("MediRevolution installed");
-    }
+        const choice =
+            await deferredPrompt.userChoice;
 
-    deferredPrompt = null;
+        if (
+            choice &&
+            choice.outcome === "accepted"
+        ) {
 
-    const installBtn = document.getElementById("installAppBtn");
+            console.log(
+                "✅ MediRevolution install accepted"
+            );
 
-    if (installBtn) {
-        installBtn.style.display = "none";
+        } else {
+
+            console.log(
+                "ℹ️ MediRevolution install dismissed"
+            );
+        }
+
+    } catch (error) {
+
+        console.error(
+            "PWA install prompt failed:",
+            error
+        );
+
+    } finally {
+
+        deferredPrompt = null;
+
+        const installBtn =
+            document.getElementById(
+                "installAppBtn"
+            );
+
+        if (installBtn) {
+
+            installBtn.style.display =
+                "none";
+        }
     }
 }
 
-if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-        navigator.serviceWorker
-            .register("/service-worker.js")
-            .then(registration => {
-                console.log("Service Worker registered:", registration.scope);
-            })
-            .catch(error => {
-                console.log("Service Worker registration failed:", error);
-            });
-    });
+
+/* ==========================================================
+   SERVICE WORKER REGISTRATION
+========================================================== */
+
+async function registerMediRevolutionServiceWorker() {
+
+    if (
+        !("serviceWorker" in navigator)
+    ) {
+
+        console.warn(
+            "Service Worker is not supported by this browser."
+        );
+
+        return;
+    }
+
+    try {
+
+        const registration =
+            await navigator.serviceWorker.register(
+                "/service-worker.js",
+                {
+                    updateViaCache: "none"
+                }
+            );
+
+        console.log(
+            "✅ Service Worker registered:",
+            registration.scope
+        );
+
+
+        /* ==================================================
+           CHECK FOR UPDATED SERVICE WORKER
+        ================================================== */
+
+        try {
+
+            await registration.update();
+
+            console.log(
+                "✅ Service Worker update check completed"
+            );
+
+        } catch (updateError) {
+
+            console.warn(
+                "Service Worker update check failed:",
+                updateError
+            );
+        }
+
+
+        /* ==================================================
+           INSTALLING WORKER
+        ================================================== */
+
+        if (registration.installing) {
+
+            monitorServiceWorker(
+                registration.installing
+            );
+        }
+
+
+        registration.addEventListener(
+            "updatefound",
+            () => {
+
+                const newWorker =
+                    registration.installing;
+
+                if (newWorker) {
+
+                    console.log(
+                        "🔄 New Service Worker found"
+                    );
+
+                    monitorServiceWorker(
+                        newWorker
+                    );
+                }
+            }
+        );
+
+    } catch (error) {
+
+        console.error(
+            "❌ Service Worker registration failed:",
+            error
+        );
+    }
 }
 
-window.addEventListener("appinstalled", () => {
-    console.log("MediRevolution PWA installed");
-});
+
+/* ==========================================================
+   SERVICE WORKER STATE MONITOR
+========================================================== */
+
+function monitorServiceWorker(
+    worker
+) {
+
+    if (!worker) {
+        return;
+    }
+
+    worker.addEventListener(
+        "statechange",
+        () => {
+
+            console.log(
+                "Service Worker state:",
+                worker.state
+            );
+
+            if (
+                worker.state === "installed"
+            ) {
+
+                if (
+                    navigator.serviceWorker.controller
+                ) {
+
+                    console.log(
+                        "🔄 New Service Worker installed. " +
+                        "Waiting to activate..."
+                    );
+
+                } else {
+
+                    console.log(
+                        "✅ Service Worker installed for first use."
+                    );
+                }
+            }
+
+            if (
+                worker.state === "activated"
+            ) {
+
+                console.log(
+                    "✅ New Service Worker activated."
+                );
+            }
+        }
+    );
+}
+
+
+/* ==========================================================
+   SERVICE WORKER CONTROLLER CHANGE
+========================================================== */
+
+navigator.serviceWorker?.addEventListener(
+    "controllerchange",
+    () => {
+
+        console.log(
+            "🔄 New Service Worker now controls this page."
+        );
+
+        /*
+         * Do NOT automatically reload here.
+         *
+         * Automatic reload can create reload loops
+         * during development.
+         */
+    }
+);
+
+
+/* ==========================================================
+   REGISTER AFTER PAGE LOAD
+========================================================== */
+
+window.addEventListener(
+    "load",
+    () => {
+
+        registerMediRevolutionServiceWorker();
+
+    }
+);
+
+
+/* ==========================================================
+   PWA INSTALLED
+========================================================== */
+
+window.addEventListener(
+    "appinstalled",
+    () => {
+
+        console.log(
+            "✅ MediRevolution PWA installed"
+        );
+
+        deferredPrompt = null;
+
+        const installBtn =
+            document.getElementById(
+                "installAppBtn"
+            );
+
+        if (installBtn) {
+
+            installBtn.style.display =
+                "none";
+        }
+    }
+);

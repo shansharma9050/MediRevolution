@@ -21,6 +21,9 @@ public class SaasPatient {
      */
     @Column(nullable = false)
     private Long tenantId;
+    
+    @Column(name = "auth_user_id")
+    private Long authUserId;
 
     @Column(nullable = false, length = 120)
     private String patientName;

@@ -1,10 +1,15 @@
 <aside th:fragment="saasSidebar" class="mr-sidebar saas-sidebar" id="saasSidebar">
 
+	<!-- =========================================================
+         WORKSPACE HEADER
+    ========================================================== -->
+
 	<div class="sidebar-module-header">
 
 		<div class="sidebar-module-icon saas-sidebar-icon">
 
-			<i id="sidebarWorkspaceIcon" class="bi bi-building-gear"></i>
+			<i id="sidebarWorkspaceIcon" class="bi bi-building-gear">
+			</i>
 
 		</div>
 
@@ -22,245 +27,504 @@
 
 	</div>
 
+
+	<!-- =========================================================
+         WORKSPACE
+    ========================================================== -->
+
 	<div class="sidebar-section-title" data-sidebar-section-title>
+
 		Workspace
+
 	</div>
+
+
+	<!-- Dashboard
+         Normal SaaS users
+         Patient also gets this because JS explicitly allows it
+    -->
 
 	<a th:href="@{/saas/dashboard}" data-saas-module="DASHBOARD" data-saas-action="VIEW">
 
 		<i class="bi bi-grid-fill"></i>
-		<span>Dashboard</span>
+
+		<span>
+			Dashboard
+		</span>
 
 	</a>
+
+
+	<!-- Staff
+         Normal SaaS only
+    -->
 
 	<a th:href="@{/saas/staff}" data-saas-module="STAFF" data-saas-action="VIEW">
 
 		<i class="bi bi-people-fill"></i>
-		<span>Staff</span>
+
+		<span>
+			Staff
+		</span>
 
 	</a>
 
-	<div class="sidebar-section-title" data-sidebar-section-title>
-		Healthcare Management
+
+	<!-- =========================================================
+         PATIENT PORTAL
+         
+         IMPORTANT:
+         These are NOT data-saas-module links.
+         They are patient-only links.
+    ========================================================== -->
+
+	<div class="sidebar-section-title" data-sidebar-section-title data-patient-only="true" style="display:none;">
+
+		Patient Portal
+
 	</div>
+
+
+	<a th:href="@{/saas/patient/book-appointment}" data-patient-only="true" class="saas-patient-sidebar-link"
+		style="display:none;">
+
+		<i class="bi bi-calendar-plus-fill"></i>
+
+		<span>
+			Book Appointment
+		</span>
+
+	</a>
+
+
+	<a th:href="@{/saas/patient/my-appointments}" data-patient-only="true" class="saas-patient-sidebar-link"
+		style="display:none;">
+
+		<i class="bi bi-calendar2-check-fill"></i>
+
+		<span>
+			My Appointments
+		</span>
+
+	</a>
+
+
+	<!-- =========================================================
+         HEALTHCARE MANAGEMENT
+         
+         ONLY NORMAL SaaS USERS
+         Patient JS will hide all these.
+    ========================================================== -->
+
+	<div class="sidebar-section-title" data-sidebar-section-title>
+
+		Healthcare Management
+
+	</div>
+
 
 	<a th:href="@{/saas/patients}" data-saas-module="PATIENTS" data-saas-action="VIEW">
 
 		<i class="bi bi-person-vcard-fill"></i>
-		<span>Patients</span>
+
+		<span>
+			Patients
+		</span>
 
 	</a>
+
 
 	<a th:href="@{/saas/doctor-availability}" data-saas-module="DOCTOR_AVAILABILITY" data-saas-action="VIEW">
 
 		<i class="bi bi-clock-fill"></i>
-		<span>Doctor Availability</span>
+
+		<span>
+			Doctor Availability
+		</span>
 
 	</a>
+
 
 	<a th:href="@{/saas/appointments}" data-saas-module="APPOINTMENTS" data-saas-action="VIEW">
 
 		<i class="bi bi-calendar-check-fill"></i>
-		<span>Appointments</span>
+
+		<span>
+			Appointments
+		</span>
 
 	</a>
+
 
 	<a th:href="@{/saas/doctors}" data-saas-module="DOCTORS" data-saas-action="VIEW">
 
 		<i class="bi bi-person-badge-fill"></i>
-		<span>Doctors</span>
+
+		<span>
+			Doctors
+		</span>
 
 	</a>
+
 
 	<a th:href="@{/saas/prescriptions}" data-saas-module="PRESCRIPTIONS" data-saas-action="VIEW">
 
 		<i class="bi bi-file-medical-fill"></i>
-		<span>Prescriptions</span>
+
+		<span>
+			Prescriptions
+		</span>
 
 	</a>
+
 
 	<a th:href="@{/saas/opd}" data-saas-module="OPD" data-saas-action="VIEW">
 
 		<i class="bi bi-hospital-fill"></i>
-		<span>OPD</span>
+
+		<span>
+			OPD
+		</span>
 
 	</a>
+
 
 	<a th:href="@{/saas/ipd}" data-saas-module="IPD" data-saas-action="VIEW">
 
 		<i class="bi bi-heart-pulse-fill"></i>
-		<span>IPD</span>
+
+		<span>
+			IPD
+		</span>
 
 	</a>
+
 
 	<a th:href="@{/saas/pharmacy}" data-saas-module="PHARMACY" data-saas-action="VIEW">
 
 		<i class="bi bi-capsule-pill"></i>
-		<span>Pharmacy</span>
+
+		<span>
+			Pharmacy
+		</span>
 
 	</a>
+
 
 	<a th:href="@{/saas/lab}" data-saas-module="LAB" data-saas-action="VIEW">
 
 		<i class="bi bi-droplet-half"></i>
-		<span>Laboratory</span>
+
+		<span>
+			Laboratory
+		</span>
 
 	</a>
+
 
 	<a th:href="@{/saas/radiology}" data-saas-module="RADIOLOGY" data-saas-action="VIEW">
 
 		<i class="bi bi-radioactive"></i>
-		<span>Radiology</span>
+
+		<span>
+			Radiology
+		</span>
 
 	</a>
 
+
+	<!-- =========================================================
+         BUSINESS MANAGEMENT
+    ========================================================== -->
+
 	<div class="sidebar-section-title" data-sidebar-section-title>
+
 		Business Management
+
 	</div>
+
 
 	<a th:href="@{/saas/medicine-master}" data-saas-module="MEDICINE_MASTER" data-saas-action="VIEW">
 
 		<i class="bi bi-capsule"></i>
-		<span>Medicine Master</span>
+
+		<span>
+			Medicine Master
+		</span>
 
 	</a>
+
 
 	<a th:href="@{/saas/suppliers}" data-saas-module="SUPPLIERS" data-saas-action="VIEW">
 
 		<i class="bi bi-truck-front-fill"></i>
-		<span>Suppliers</span>
+
+		<span>
+			Suppliers
+		</span>
 
 	</a>
+
 
 	<a th:href="@{/saas/customers}" data-saas-module="CUSTOMERS" data-saas-action="VIEW">
 
 		<i class="bi bi-person-lines-fill"></i>
-		<span>Customers</span>
+
+		<span>
+			Customers
+		</span>
 
 	</a>
+
 
 	<a th:href="@{/saas/purchases}" data-saas-module="PURCHASES" data-saas-action="VIEW">
 
 		<i class="bi bi-bag-plus-fill"></i>
-		<span>Purchases</span>
+
+		<span>
+			Purchases
+		</span>
 
 	</a>
+
 
 	<a th:href="@{/saas/inventory}" data-saas-module="INVENTORY" data-saas-action="VIEW">
 
 		<i class="bi bi-box-seam-fill"></i>
-		<span>Inventory</span>
+
+		<span>
+			Inventory
+		</span>
 
 	</a>
+
 
 	<a th:href="@{/saas/sales}" data-saas-module="SALES" data-saas-action="VIEW">
 
 		<i class="bi bi-cart-check-fill"></i>
-		<span>Sales</span>
+
+		<span>
+			Sales
+		</span>
 
 	</a>
+
 
 	<a th:href="@{/saas/sales-orders}" data-saas-module="SALES_ORDERS" data-saas-action="VIEW">
 
-		<i class="bi bi-clipboard-check-fill"></i>
-		<span>Sales Orders</span>
+		<i class="bi bi-cart-check-fill"></i>
+
+		<span id="sidebarSalesOrdersLabel">
+			Sales Orders
+		</span>
 
 	</a>
+
 
 	<a th:href="@{/saas/purchase-returns}" data-saas-module="PURCHASE_RETURNS" data-saas-action="VIEW">
 
 		<i class="bi bi-arrow-return-left"></i>
-		<span>Purchase Returns</span>
+
+		<span>
+			Purchase Returns
+		</span>
 
 	</a>
+
 
 	<a th:href="@{/saas/sales-returns}" data-saas-module="SALES_RETURNS" data-saas-action="VIEW">
 
 		<i class="bi bi-arrow-return-right"></i>
-		<span>Sales Returns</span>
+
+		<span>
+			Sales Returns
+		</span>
 
 	</a>
+
 
 	<a th:href="@{/saas/expiry-management}" data-saas-module="EXPIRY_MANAGEMENT" data-saas-action="VIEW">
 
 		<i class="bi bi-calendar-x-fill"></i>
-		<span>Expiry Management</span>
+
+		<span>
+			Expiry Management
+		</span>
 
 	</a>
 
+
+	<!-- =========================================================
+         FINANCE & ANALYTICS
+    ========================================================== -->
+
 	<div class="sidebar-section-title" data-sidebar-section-title>
+
 		Finance &amp; Analytics
+
 	</div>
+
 
 	<a href="javascript:void(0)" id="saasBillingMenu" data-saas-module="BILLING" data-saas-action="VIEW"
 		onclick="openBillingPage(event)">
 
 		<i class="bi bi-receipt-cutoff"></i>
-		<span>Billing</span>
+
+		<span>
+			Billing
+		</span>
 
 	</a>
+
 
 	<a th:href="@{/saas/payments}" data-saas-module="PAYMENTS" data-saas-action="VIEW">
 
 		<i class="bi bi-credit-card-fill"></i>
-		<span>Payments &amp; Ledger</span>
+
+		<span>
+			Payments &amp; Ledger
+		</span>
 
 	</a>
+
 
 	<a th:href="@{/saas/reports}" data-saas-module="REPORTS" data-saas-action="VIEW">
 
 		<i class="bi bi-bar-chart-line-fill"></i>
-		<span>Reports</span>
+
+		<span>
+			Reports
+		</span>
 
 	</a>
 
+
+	<!-- =========================================================
+         WORKSPACE CONTROL
+    ========================================================== -->
+
 	<div class="sidebar-section-title" data-sidebar-section-title>
+
 		Workspace Control
+
 	</div>
+
+
+	<!-- Normal SaaS notification -->
 
 	<a th:href="@{/saas/notifications}" data-saas-module="NOTIFICATIONS" data-saas-action="VIEW">
 
 		<i class="bi bi-bell-fill"></i>
-		<span>Notifications</span>
+
+		<span>
+			Notifications
+		</span>
 
 	</a>
+
+
+	<!-- Patient notification link
+         Keep separate from SaaS permission module
+    -->
+
+	<a th:href="@{/saas/notifications}" data-patient-only="true" class="saas-patient-sidebar-link"
+		style="display:none;">
+
+		<i class="bi bi-bell-fill"></i>
+
+		<span>
+			Notifications
+		</span>
+
+	</a>
+
+
+	<!-- Subscription -->
 
 	<a th:href="@{/saas/subscription/current}" data-role="WHOLESALER DOCTOR_CLINIC HOSPITAL">
+
 		<i class="bi bi-credit-card-2-front-fill"></i>
-		<span>Subscription</span>
+
+		<span>
+			Subscription
+		</span>
+
 	</a>
 
+
+	<!-- Plans -->
+
 	<a th:href="@{/saas/subscription/plans}" data-role="WHOLESALER DOCTOR_CLINIC HOSPITAL">
+
 		<i class="bi bi-stars"></i>
-		<span>Plans</span>
+
+		<span>
+			Plans
+		</span>
+
 	</a>
+
+
+	<!-- Settings -->
 
 	<a th:href="@{/saas/settings}" data-saas-module="SETTINGS" data-saas-action="VIEW" data-owner-admin="true">
 
 		<i class="bi bi-gear-fill"></i>
-		<span>Settings</span>
+
+		<span>
+			Settings
+		</span>
 
 	</a>
+
+
+	<!-- Permissions -->
 
 	<a th:href="@{/saas/permissions}" data-saas-module="PERMISSIONS" data-saas-action="VIEW" data-owner-admin="true">
 
 		<i class="bi bi-shield-lock-fill"></i>
-		<span>Permissions</span>
+
+		<span>
+			Permissions
+		</span>
 
 	</a>
 
-	<button type="button" class="sidebar-workspace-button" onclick="switchSaasWorkspace()">
+
+	<!-- =========================================================
+         SWITCH WORKSPACE
+         
+         Patient / SaaS Customer hidden through JS
+    ========================================================== -->
+
+	<button type="button" id="saasSwitchWorkspaceButton" class="sidebar-workspace-button"
+		onclick="switchSaasWorkspace()">
 
 		<i class="bi bi-building"></i>
-		<span>Switch Workspace</span>
+
+		<span>
+			Switch Workspace
+		</span>
 
 	</button>
 
-	<button type="button" class="sidebar-switch-button" onclick="switchMediRevolutionModule()">
+
+	<!-- =========================================================
+         SWITCH MODULE
+         
+         Patient hidden through JS
+    ========================================================== -->
+
+	<button type="button" id="saasSwitchModuleButton" class="sidebar-switch-button"
+		onclick="switchMediRevolutionModule()">
 
 		<i class="bi bi-arrow-left-right"></i>
-		<span>Switch Module</span>
+
+		<span>
+			Switch Module
+		</span>
 
 	</button>
+
 
 </aside>

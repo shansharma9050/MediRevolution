@@ -9,5 +9,6 @@ public enum SaasNotificationType {
     IPD,
     PHARMACY,
     SYSTEM,
+    ORDER,
     SUCCESS
 }

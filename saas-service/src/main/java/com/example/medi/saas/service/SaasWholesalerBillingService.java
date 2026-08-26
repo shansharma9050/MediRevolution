@@ -100,8 +100,6 @@ public class SaasWholesalerBillingService {
 		return String.format("SAL-%06d", count + 1);
 	}
 
-	
-
 	private void validateRequest(SaasSaleRequest request) {
 
 		if (request == null) {
@@ -219,7 +217,6 @@ public class SaasWholesalerBillingService {
 				throw new RuntimeException("Invalid sale rate.");
 			}
 
-			
 			GlobalMedicineResponse medicine = loadMedicine(itemRequest.getMedicineId());
 
 			Long availableQty = stockRepository.sumAvailableQuantityForSale(
@@ -360,11 +357,7 @@ public class SaasWholesalerBillingService {
 
 		sale = saleRepository.save(sale);
 
-		SaasInvoice invoice =
-		        createInvoice(
-		                sale,
-		                savedItems
-		        );
+		SaasInvoice invoice = createInvoice(sale, savedItems);
 
 		if (paidAmount.compareTo(ZERO) > 0) {
 
@@ -391,34 +384,27 @@ public class SaasWholesalerBillingService {
 
 			payment.setRemarks("Payment received against Sale " + sale.getSaleNumber());
 
-			billingService.updatePayment(
-			        tenantId,
-			        invoice.getId(),
-			        sale.getPaymentStatus().name(),
-			        sale.getPaymentMode().name(),
-			        sale.getPaidAmount(),
-			        sale.getSaleNumber()
-			);
+			billingService.updatePayment(tenantId, invoice.getId(), sale.getPaymentStatus().name(),
+					sale.getPaymentMode().name(), sale.getPaidAmount(), sale.getSaleNumber());
 		}
 
 		notificationService.createSystemNotificationIfNotExists(
 
-		        tenantId,
+				tenantId,
 
-		        SaasNotificationType.BILLING,
+				SaasNotificationType.BILLING,
 
-		        SaasNotificationPriority.MEDIUM,
+				SaasNotificationPriority.MEDIUM,
 
-		        "Sale Created",
+				"Sale Created",
 
-		        "Sale " + sale.getSaleNumber() + " created successfully.",
+				"Sale " + sale.getSaleNumber() + " created successfully.",
 
-		        sale.getId(),
+				sale.getId(),
 
-		        "SALE",
+				"SALE",
 
-		        "/saas/sales"
-		);
+				"/saas/sales");
 
 		return mapSaleResponse(sale, savedItems);
 	}
@@ -496,14 +482,15 @@ public class SaasWholesalerBillingService {
 
 			invoiceItemRepository.save(item);
 		}
-		
+
 		return invoice;
 	}
 
 	private void allocateStock(Long tenantId, SaasSale sale, SaasSaleItem saleItem, Integer requiredQuantity,
 			BigDecimal saleRate) {
 
-		List<SaasMedicineStock> stocks = stockRepository.findByTenantIdAndMedicineIdAndCurrentQuantityGreaterThanOrderByExpiryDateAscCreatedAtAsc(tenantId,
+		List<SaasMedicineStock> stocks = stockRepository
+				.findByTenantIdAndMedicineIdAndCurrentQuantityGreaterThanOrderByExpiryDateAscCreatedAtAsc(tenantId,
 						saleItem.getMedicineId(), 0);
 
 		if (stocks.isEmpty()) {
@@ -681,7 +668,7 @@ public class SaasWholesalerBillingService {
 				sale.getDueAmount(),
 
 				sale.getPaymentStatus().name(),
-				
+
 				sale.getPaymentMode(),
 
 				sale.getSaleStatus().name(),
@@ -706,12 +693,14 @@ public class SaasWholesalerBillingService {
 
 				SaasPermissionAction.VIEW);
 
-		return saleRepository.findByTenantIdOrderBySaleDateDescCreatedAtDesc(tenantId).stream().filter(sale->sale.getSaleStatus()!= SaasSaleStatus.CANCELLED).map(sale -> {
+		return saleRepository.findByTenantIdOrderBySaleDateDescCreatedAtDesc(tenantId).stream()
+				.filter(sale -> sale.getSaleStatus() != SaasSaleStatus.CANCELLED).map(sale -> {
 
-			List<SaasSaleItem> items = saleItemRepository.findByTenantIdAndSaleIdOrderByIdAsc(tenantId, sale.getId());
+					List<SaasSaleItem> items = saleItemRepository.findByTenantIdAndSaleIdOrderByIdAsc(tenantId,
+							sale.getId());
 
-			return mapSaleResponse(sale, items);
-		}).toList();
+					return mapSaleResponse(sale, items);
+				}).toList();
 	}
 
 	@Transactional(readOnly = true)
@@ -753,12 +742,14 @@ public class SaasWholesalerBillingService {
 			return getAllSales(tenantId);
 		}
 
-		return saleRepository.searchSales(tenantId, keyword.trim()).stream().filter(sale->sale.getSaleStatus()!=SaasSaleStatus.CANCELLED).map(sale -> {
+		return saleRepository.searchSales(tenantId, keyword.trim()).stream()
+				.filter(sale -> sale.getSaleStatus() != SaasSaleStatus.CANCELLED).map(sale -> {
 
-			List<SaasSaleItem> items = saleItemRepository.findByTenantIdAndSaleIdOrderByIdAsc(tenantId, sale.getId());
+					List<SaasSaleItem> items = saleItemRepository.findByTenantIdAndSaleIdOrderByIdAsc(tenantId,
+							sale.getId());
 
-			return mapSaleResponse(sale, items);
-		}).toList();
+					return mapSaleResponse(sale, items);
+				}).toList();
 	}
 
 	@Transactional(readOnly = true)
@@ -830,19 +821,13 @@ public class SaasWholesalerBillingService {
 
 		notification.setAuthUserId(CurrentUserUtil.getUserId());
 
-		notification.setNotificationType(
-		        SaasNotificationType.BILLING.name()
-		);
+		notification.setNotificationType(SaasNotificationType.BILLING.name());
 
-		notification.setPriority(
-		        SaasNotificationPriority.MEDIUM.name()
-		);
+		notification.setPriority(SaasNotificationPriority.MEDIUM.name());
 
 		notification.setTitle("Sale Cancelled");
 
-		notification.setMessage(
-		        "Sale " + sale.getSaleNumber() + " cancelled successfully."
-		);
+		notification.setMessage("Sale " + sale.getSaleNumber() + " cancelled successfully.");
 
 		notification.setReferenceId(sale.getId());
 
@@ -1026,25 +1011,20 @@ public class SaasWholesalerBillingService {
 		return String.format("INV-%06d", count + 1);
 	}
 
-	private SaasPaymentStatus toInvoicePaymentStatus(
-	        SaasSalePaymentStatus status
-	) {
+	private SaasPaymentStatus toInvoicePaymentStatus(SaasSalePaymentStatus status) {
 
-	    if (status == null) {
-	        return SaasPaymentStatus.UNPAID;
-	    }
+		if (status == null) {
+			return SaasPaymentStatus.UNPAID;
+		}
 
-	    return switch (status) {
+		return switch (status) {
 
-	        case PAID ->
-	                SaasPaymentStatus.PAID;
+		case PAID -> SaasPaymentStatus.PAID;
 
-	        case PARTIALLY_PAID ->
-	                SaasPaymentStatus.PARTIAL;
+		case PARTIALLY_PAID -> SaasPaymentStatus.PARTIAL;
 
-	        case UNPAID ->
-	                SaasPaymentStatus.UNPAID;
-	    };
+		case UNPAID -> SaasPaymentStatus.UNPAID;
+		};
 	}
 
 	private BigDecimal calculateGross(Integer quantity, BigDecimal saleRate) {
@@ -1095,18 +1075,12 @@ public class SaasWholesalerBillingService {
 		}
 	}
 
-private void validatePositiveQuantity(
-        Integer quantity
-) {
+	private void validatePositiveQuantity(Integer quantity) {
 
-    if (quantity == null
-            || quantity <= 0) {
+		if (quantity == null || quantity <= 0) {
 
-        throw new RuntimeException(
-                "Quantity must be greater than zero."
-        );
-    }
-}
+			throw new RuntimeException("Quantity must be greater than zero.");
+		}
+	}
 
 }
-

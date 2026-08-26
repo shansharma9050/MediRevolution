@@ -8,32 +8,34 @@ import java.time.LocalTime;
 @Data
 public class SaasAppointmentRequest {
 
-    private Long tenantId;
+	private Long tenantId;
 
-    private Long patientId;
+	/*
+	 * Existing doctor/hospital UI ke liye optional. Patient flow mein backend
+	 * patient ko CurrentUserUtil se resolve karega.
+	 */
+	private Long patientId;
 
-    /*
-     * SaasStaff table ka doctor record ID.
-     */
-    private Long doctorStaffId;
+	private Long doctorStaffId;
 
-    /*
-     * Frontend bhej sakta hai, lekin backend final value
-     * SaasStaff se hi lega.
-     */
-    private Long doctorAuthUserId;
+	private Long doctorAuthUserId;
 
-    private String doctorName;
+	private String doctorName;
 
-    private String department;
+	private String department;
 
-    private String appointmentType;
+	private String appointmentType;
 
-    private LocalDate appointmentDate;
+	private LocalDate appointmentDate;
 
-    private LocalTime appointmentTime;
+	private LocalTime appointmentTime;
 
-    private String symptoms;
+	private String symptoms;
 
-    private String notes;
+	private String notes;
+
+	/*
+	 * OFFLINE / ONLINE
+	 */
+	private String consultationType;
 }

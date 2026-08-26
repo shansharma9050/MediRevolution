@@ -86,15 +86,16 @@ function configureModulesByRole() {
 		"WHOLESALER",
 		"RETAILER",
 		"DOCTOR",
-		"HOSPITAL",
-		"PATIENT"
+		"HOSPITAL"
 	];
 
 	const saasRoles = [
 		"WHOLESALER",
 		"DOCTOR",
 		"HOSPITAL",
-		"SAAS_STAFF"
+		"PATIENT",
+		"SAAS_STAFF",
+		"SAAS_CUSTOMER"
 	];
 
 	configureModuleCardAccess(

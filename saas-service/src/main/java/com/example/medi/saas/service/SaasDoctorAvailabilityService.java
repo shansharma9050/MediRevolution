@@ -13,6 +13,7 @@ import com.example.medi.saas.enums.TenantMemberRole;
 import com.example.medi.saas.enums.TenantModule;
 import com.example.medi.saas.repository.SaasAppointmentRepository;
 import com.example.medi.saas.repository.SaasDoctorAvailabilityRepository;
+import com.example.medi.saas.repository.SaasPatientRepository;
 import com.example.medi.saas.repository.TenantMemberRepository;
 import com.example.medi.saas.security.CurrentUserUtil;
 
@@ -37,17 +38,19 @@ public class SaasDoctorAvailabilityService {
 	private final TenantAccessService tenantAccessService;
 	private final SaasPermissionService permissionService;
 	private final CurrentUserUtil currentUserService;
+	private final SaasPatientRepository patientRepository;
 
 	public SaasDoctorAvailabilityService(SaasDoctorAvailabilityRepository availabilityRepository,
 			SaasAppointmentRepository appointmentRepository, TenantMemberRepository tenantMemberRepository,
 			TenantAccessService tenantAccessService, SaasPermissionService permissionService,
-			CurrentUserUtil currentUserService) {
+			CurrentUserUtil currentUserService, SaasPatientRepository patientRepository) {
 		this.availabilityRepository = availabilityRepository;
 		this.appointmentRepository = appointmentRepository;
 		this.tenantMemberRepository = tenantMemberRepository;
 		this.tenantAccessService = tenantAccessService;
 		this.permissionService = permissionService;
 		this.currentUserService = currentUserService;
+		this.patientRepository = patientRepository;
 	}
 
 	/*
@@ -166,9 +169,44 @@ public class SaasDoctorAvailabilityService {
 			throw new RuntimeException("Date is required.");
 		}
 
-		tenantAccessService.validateTenantAccess(tenantId);
+		Long currentAuthUserId = CurrentUserUtil.getUserId();
 
-		permissionService.requirePermission(tenantId, TenantModule.DOCTOR_AVAILABILITY, SaasPermissionAction.VIEW);
+		if (currentAuthUserId == null) {
+			throw new RuntimeException("Logged-in user ID not found.");
+		}
+
+		String role = normalizeRole(CurrentUserUtil.getRole());
+
+		/*
+		 * ========================================================= PATIENT ACCESS
+		 * =========================================================
+		 *
+		 * Patient tenant member nahi hota.
+		 *
+		 * Patient ka workspace relation saas_patients.tenant_id + auth_user_id se
+		 * verify hoga.
+		 */
+		if ("PATIENT".equals(role)) {
+
+			validatePatientWorkspaceAccess(tenantId, currentAuthUserId);
+
+		} else {
+
+			/*
+			 * ===================================================== NORMAL SaaS USER ACCESS
+			 * =====================================================
+			 */
+			tenantAccessService.validateTenantAccess(tenantId);
+
+			permissionService.requirePermission(tenantId, TenantModule.DOCTOR_AVAILABILITY, SaasPermissionAction.VIEW);
+		}
+
+		/*
+		 * Doctor selected workspace ka hi hona chahiye.
+		 *
+		 * Internal method bhi ye validation karta hai.
+		 */
+		validateDoctorBelongsToTenant(tenantId, doctorAuthUserId);
 
 		return getAvailableSlotsInternal(tenantId, doctorAuthUserId, date);
 	}
@@ -355,6 +393,35 @@ public class SaasDoctorAvailabilityService {
 		}
 
 		return member;
+	}
+
+	private void validatePatientWorkspaceAccess(Long tenantId, Long authUserId) {
+
+		if (tenantId == null) {
+			throw new RuntimeException("Tenant id is required.");
+		}
+
+		if (authUserId == null) {
+			throw new RuntimeException("Patient authentication is required.");
+		}
+
+		patientRepository.findByTenantIdAndAuthUserIdAndActiveTrue(tenantId, authUserId)
+				.orElseThrow(() -> new RuntimeException("You are not assigned to this workspace."));
+	}
+
+	private String normalizeRole(String role) {
+
+		if (role == null) {
+			return "";
+		}
+
+		String normalizedRole = role.trim().toUpperCase();
+
+		if (normalizedRole.startsWith("ROLE_")) {
+			normalizedRole = normalizedRole.substring("ROLE_".length());
+		}
+
+		return normalizedRole;
 	}
 
 	/*

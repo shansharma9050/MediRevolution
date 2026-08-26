@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+
+	<title>MediRevolution | Book SaaS Appointment</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<meta name="theme-color" content="#05285f">
+
+	<link rel="manifest" href="/manifest.json">
+	<link rel="apple-touch-icon" href="/images/icon-192.png">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+	<link th:href="@{/css/medirevolution.css}" rel="stylesheet">
+	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
+
+	<style>
+		.saas-patient-booking-page {
+			position: relative;
+		}
+
+		.booking-hero {
+			position: relative;
+			overflow: hidden;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 30px;
+
+			min-height: 230px;
+			padding: 42px;
+
+			margin-bottom: 28px;
+
+			border-radius: 30px;
+
+			color: #fff;
+
+			background:
+				linear-gradient(135deg,
+					#05285f 0%,
+					#076b9f 52%,
+					#08c7d4 100%);
+
+			box-shadow:
+				0 25px 65px rgba(5, 40, 95, .22);
+		}
+
+		.booking-hero h1 {
+			margin: 0;
+
+			font-size: clamp(31px, 4vw, 52px);
+
+			font-weight: 900;
+
+			letter-spacing: -1.8px;
+		}
+
+		.booking-hero h1 span {
+			color: #b8f267;
+		}
+
+		.booking-hero p {
+			max-width: 720px;
+
+			margin-top: 14px;
+
+			color: rgba(255, 255, 255, .8);
+
+			line-height: 1.7;
+		}
+
+		.hero-badge {
+			display: inline-flex;
+
+			align-items: center;
+
+			gap: 8px;
+
+			padding: 8px 14px;
+
+			border-radius: 999px;
+
+			background:
+				rgba(255, 255, 255, .12);
+
+			font-size: 10px;
+
+			font-weight: 800;
+
+			text-transform: uppercase;
+		}
+
+		.hero-panel {
+			min-width: 220px;
+
+			padding: 24px;
+
+			border:
+				1px solid rgba(255, 255, 255, .18);
+
+			border-radius: 25px;
+
+			background:
+				rgba(255, 255, 255, .11);
+
+			text-align: center;
+
+			backdrop-filter: blur(14px);
+		}
+
+		.hero-panel-icon {
+			display: flex;
+
+			align-items: center;
+			justify-content: center;
+
+			width: 68px;
+			height: 68px;
+
+			margin: 0 auto 14px;
+
+			border-radius: 22px;
+
+			background: #fff;
+
+			color: #05285f;
+
+			font-size: 28px;
+		}
+
+		.booking-card {
+			padding: 30px;
+
+			margin-bottom: 24px;
+
+			border:
+				1px solid rgba(8, 199, 212, .14);
+
+			border-radius: 25px;
+
+			background: rgba(255, 255, 255, .96);
+
+			box-shadow:
+				0 16px 40px rgba(5, 40, 95, .09);
+		}
+
+		.section-title {
+			display: flex;
+
+			align-items: center;
+
+			gap: 12px;
+
+			margin-bottom: 22px;
+
+			padding-bottom: 15px;
+
+			border-bottom:
+				1px solid #e8f1f5;
+		}
+
+		.section-number {
+			display: flex;
+
+			align-items: center;
+			justify-content: center;
+
+			width: 45px;
+			height: 45px;
+
+			border-radius: 15px;
+
+			background:
+				linear-gradient(135deg,
+					#05285f,
+					#08c7d4);
+
+			color: #fff;
+
+			font-weight: 900;
+		}
+
+		.section-title h5 {
+			margin: 0;
+
+			color: #05285f;
+
+			font-weight: 900;
+		}
+
+		.provider-card {
+			height: 100%;
+
+			padding: 20px;
+
+			border:
+				2px solid #e8f1f5;
+
+			border-radius: 20px;
+
+			background: #fff;
+
+			transition:
+				.25s ease;
+		}
+
+		.provider-card:hover {
+			transform:
+				translateY(-4px);
+
+			box-shadow:
+				0 15px 35px rgba(5, 40, 95, .12);
+		}
+
+		.provider-card.selected {
+			border-color: #08c7d4;
+
+			box-shadow:
+				0 15px 35px rgba(8, 199, 212, .18);
+		}
+
+		.provider-icon {
+			display: flex;
+
+			align-items: center;
+			justify-content: center;
+
+			width: 52px;
+			height: 52px;
+
+			margin-bottom: 12px;
+
+			border-radius: 17px;
+
+			color: #fff;
+
+			background:
+				linear-gradient(135deg,
+					#05285f,
+					#08c7d4);
+
+			font-size: 22px;
+		}
+
+		.slot-button {
+			min-width: 105px;
+
+			margin: 5px;
+
+			border-radius: 12px;
+
+			font-weight: 800;
+		}
+
+		.slot-button.selected {
+			color: #fff;
+
+			background:
+				linear-gradient(135deg,
+					#05285f,
+					#08c7d4);
+		}
+
+		.booking-summary {
+			padding: 18px;
+
+			border-radius: 18px;
+
+			background:
+				linear-gradient(135deg,
+					#f2fbfd,
+					#f7fff0);
+		}
+
+		.payment-info {
+			margin-top: 15px;
+
+			padding: 15px;
+
+			border-radius: 14px;
+
+			background: #fff8e1;
+
+			color: #664d03;
+
+			font-size: 13px;
+		}
+
+		@media(max-width:768px) {
+
+			.booking-hero {
+				flex-direction: column;
+
+				align-items: flex-start;
+
+				padding: 27px 21px;
+			}
+
+			.hero-panel {
+				width: 100%;
+			}
+
+			.booking-card {
+				padding: 20px 16px;
+			}
+		}
+	</style>
+
+</head>
+
+<body class="dashboard-body saas-dashboard-body">
+
+	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
+
+	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
+
+	<main class="mr-main saas-main saas-patient-booking-page">
+
+		<section class="booking-hero">
+
+			<div>
+
+				<span class="hero-badge">
+
+					<i class="bi bi-calendar2-heart-fill"></i>
+
+					Patient Appointment Services
+
+				</span>
+
+				<h1 class="mt-3">
+
+					Book your
+
+					<span>appointment</span>
+
+				</h1>
+
+				<p>
+					Select your doctor, choose an available time
+					and book an offline visit or secure online
+					video consultation.
+				</p>
+
+			</div>
+
+			<div class="hero-panel">
+
+				<div class="hero-panel-icon">
+
+					<i class="bi bi-heart-pulse-fill"></i>
+
+				</div>
+
+				<strong id="tenantNameText">
+					Your Workspace
+				</strong>
+
+				<div class="small text-white-50 mt-2">
+					Doctor • Date • Slot • Book
+				</div>
+
+			</div>
+
+		</section>
+
+		<div id="msg"></div>
+
+		<!-- PATIENT -->
+		<section class="booking-card">
+
+			<div class="section-title">
+
+				<span class="section-number">
+					01
+				</span>
+
+				<div>
+					<h5>Patient Information</h5>
+				</div>
+
+			</div>
+
+			<div class="booking-summary">
+
+				<div class="row g-3">
+
+					<div class="col-md-4">
+
+						<strong>Name</strong>
+
+						<div id="patientNameText">
+							Loading...
+						</div>
+
+					</div>
+
+					<div class="col-md-4">
+
+						<strong>Email</strong>
+
+						<div id="patientEmailText">
+							Loading...
+						</div>
+
+					</div>
+
+					<div class="col-md-4">
+
+						<strong>Mobile</strong>
+
+						<div id="patientMobileText">
+							Loading...
+						</div>
+
+					</div>
+
+				</div>
+
+			</div>
+
+		</section>
+
+		<!-- DOCTOR -->
+		<section class="booking-card">
+
+			<div class="section-title">
+
+				<span class="section-number">
+					02
+				</span>
+
+				<div>
+					<h5>Select Doctor</h5>
+				</div>
+
+			</div>
+
+			<input id="doctorSearch" class="form-control mb-4" placeholder="Search doctor, department or specialization"
+				oninput="filterDoctors()">
+
+			<div id="doctorContainer" class="row g-4">
+
+				<div class="col-12 text-center py-5">
+
+					<div class="spinner-border text-primary"></div>
+
+					<div class="mt-3 text-muted">
+						Loading doctors...
+					</div>
+
+				</div>
+
+			</div>
+
+		</section>
+
+		<!-- APPOINTMENT -->
+		<section class="booking-card">
+
+			<div class="section-title">
+
+				<span class="section-number">
+					03
+				</span>
+
+				<div>
+					<h5>Appointment Details</h5>
+				</div>
+
+			</div>
+
+			<div class="row g-3">
+
+				<div class="col-md-4">
+
+					<label class="form-label">
+						Consultation
+					</label>
+
+					<select id="consultationType" class="form-select" onchange="handleConsultationTypeChange()">
+
+						<option value="OFFLINE">
+							Offline Visit
+						</option>
+
+						<option value="ONLINE">
+							Online Video Consultation
+						</option>
+
+					</select>
+
+				</div>
+
+				<div class="col-md-4">
+
+					<label class="form-label">
+						Appointment Date
+					</label>
+
+					<input type="date" id="appointmentDate" class="form-control" onchange="loadSlots()">
+
+				</div>
+
+				<div class="col-md-4">
+
+					<label class="form-label">
+						Selected Time
+					</label>
+
+					<input type="text" id="selectedTime" class="form-control" readonly>
+
+				</div>
+
+			</div>
+
+			<div class="mt-4">
+
+				<label class="form-label">
+					Available Slots
+				</label>
+
+				<div id="slotContainer" class="d-flex flex-wrap">
+
+					<div class="text-muted">
+						Select doctor and date first.
+					</div>
+
+				</div>
+
+			</div>
+
+		</section>
+
+		<!-- SYMPTOMS -->
+		<section class="booking-card">
+
+			<div class="section-title">
+
+				<span class="section-number">
+					04
+				</span>
+
+				<div>
+					<h5>Symptoms & Booking</h5>
+				</div>
+
+			</div>
+
+			<textarea id="symptoms" class="form-control" rows="5" placeholder="Describe your symptoms..."></textarea>
+
+			<div id="onlinePaymentInfo" class="payment-info" style="display:none;">
+
+				<i class="bi bi-shield-check me-1"></i>
+
+				Online consultation requires payment.
+				After successful payment your appointment
+				will be confirmed and the video meeting link
+				will be generated.
+
+			</div>
+
+			<div class="d-flex justify-content-end mt-4">
+
+				<button id="bookAppointmentBtn" class="btn btn-medi px-4" onclick="bookAppointment()">
+
+					<i class="bi bi-calendar-check-fill me-1"></i>
+
+					Book Appointment
+
+				</button>
+
+			</div>
+
+		</section>
+
+		<div th:replace="~{layout/footer :: footer}"></div>
+
+	</main>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+	<script th:src="@{/js/common-dashboard.js}"></script>
+
+	<script th:src="@{/js/module-switch.js}"></script>
+
+	<script th:src="@{/js/saas-auth-guard.js}"></script>
+
+	<script th:src="@{/js/saas-patient-appointments.js?v=1}"></script>
+
+	<script th:src="@{/js/pwa.js}"></script>
+
+</body>
+
+</html>

@@ -19,6 +19,20 @@ document.addEventListener("DOMContentLoaded", async function() {
 		return;
 	}
 
+	const role = getNormalizedLoginRole();
+
+	if (role === "SAAS_CUSTOMER") {
+		await openCustomerWorkspace();
+		return;
+	}
+
+	if (role === "PATIENT") {
+
+		await openPatientWorkspace();
+
+		return;
+	}
+
 	const modalElement =
 		document.getElementById(
 			"createTenantModal"
@@ -37,6 +51,363 @@ document.addEventListener("DOMContentLoaded", async function() {
 });
 
 
+async function openCustomerWorkspace() {
+
+	const token =
+		localStorage.getItem("token");
+
+	if (!token) {
+		window.location.replace("/");
+		return;
+	}
+
+	try {
+
+		/*
+		 * Customer ka workspace backend se nikalo.
+		 *
+		 * /saas/tenants/my
+		 * customer ko sirf uska assigned tenant return karna chahiye.
+		 */
+		const response = await fetch(
+			`${API_BASE}/saas/tenants/my`,
+			{
+				method: "GET",
+				headers: {
+					"Authorization":
+						"Bearer " + token,
+					"Accept":
+						"application/json"
+				}
+			}
+		);
+
+		const result =
+			await safeJson(response);
+
+		if (!response.ok) {
+
+			showMsg(
+				getApiErrorMessage(
+					result,
+					"Unable to load your assigned workspace."
+				)
+			);
+
+			return;
+		}
+
+		const tenants =
+			Array.isArray(result)
+				? result
+				: [];
+
+		if (!tenants.length) {
+
+			showMsg(
+				"No workspace is assigned to this customer."
+			);
+
+			return;
+		}
+
+		/*
+		 * Customer ko ideally sirf ONE workspace milega.
+		 */
+		const tenant = tenants[0];
+
+		const tenantId =
+			String(
+				tenant?.tenantId ??
+				tenant?.id ??
+				""
+			).trim();
+
+		const tenantName =
+			String(
+				tenant?.tenantName ??
+				"Workspace"
+			).trim();
+
+		const tenantType =
+			String(
+				tenant?.tenantType ??
+				""
+			)
+				.trim()
+				.toUpperCase();
+
+		const tenantStatus =
+			String(
+				tenant?.status ??
+				""
+			)
+				.trim()
+				.toUpperCase();
+
+		if (!tenantId) {
+
+			showMsg(
+				"Your assigned workspace ID is missing."
+			);
+
+			return;
+		}
+
+		/*
+		 * Customer ka workspace ACTIVE hona chahiye.
+		 */
+		if (tenantStatus !== "ACTIVE") {
+
+			showMsg(
+				"Your assigned workspace is not active."
+			);
+
+			return;
+		}
+
+		/*
+		 * Save workspace context.
+		 */
+		localStorage.setItem(
+			"tenantId",
+			tenantId
+		);
+
+		localStorage.setItem(
+			"tenantName",
+			tenantName
+		);
+
+		localStorage.setItem(
+			"tenantType",
+			tenantType
+		);
+
+		localStorage.setItem(
+			"saasMode",
+			"true"
+		);
+
+		/*
+		 * Old permission cache clear.
+		 * Dashboard/sidebar selected tenant ke basis par
+		 * permissions dobara load karega.
+		 */
+		localStorage.removeItem(
+			"saasMemberRole"
+		);
+
+		localStorage.removeItem(
+			"saasOwnerOrAdmin"
+		);
+
+		localStorage.removeItem(
+			"saasPermissions"
+		);
+
+		/*
+		 * Direct dashboard.
+		 */
+		window.location.replace(
+			"/saas/dashboard"
+		);
+
+	} catch (error) {
+
+		console.error(
+			"Unable to open customer workspace:",
+			error
+		);
+
+		showMsg(
+			"Unable to open your SaaS workspace."
+		);
+	}
+}
+
+
+
+async function openPatientWorkspace() {
+
+	const token = localStorage.getItem("token");
+
+	if (!token) {
+		window.location.replace("/");
+		return;
+	}
+
+	try {
+
+		const response = await fetch(
+			`${API_BASE}/saas/tenants/my`,
+			{
+				method: "GET",
+				headers: {
+					"Authorization": "Bearer " + token,
+					"Accept": "application/json"
+				}
+			}
+		);
+
+		const result = await safeJson(response);
+
+		if (!response.ok) {
+
+			showMsg(
+				getApiErrorMessage(
+					result,
+					"Unable to load your assigned workspace."
+				)
+			);
+
+			return;
+		}
+
+		const tenants =
+			Array.isArray(result)
+				? result
+				: [];
+
+		if (!tenants.length) {
+
+			showMsg(
+				"No clinic or hospital workspace is assigned to this patient."
+			);
+
+			return;
+		}
+
+		/*
+		 * Patient should normally belong to exactly ONE
+		 * clinic/hospital workspace.
+		 */
+		const tenant = tenants[0];
+
+		const tenantId =
+			String(
+				tenant?.tenantId ??
+				tenant?.id ??
+				""
+			).trim();
+
+		const tenantName =
+			String(
+				tenant?.tenantName ??
+				"Workspace"
+			).trim();
+
+		const tenantType =
+			String(
+				tenant?.tenantType ??
+				""
+			)
+				.trim()
+				.toUpperCase();
+
+		const tenantStatus =
+			String(
+				tenant?.status ??
+				""
+			)
+				.trim()
+				.toUpperCase();
+
+		if (!tenantId) {
+
+			showMsg(
+				"Your assigned workspace ID is missing."
+			);
+
+			return;
+		}
+
+		/*
+		 * Patient workspace must be active.
+		 */
+		if (tenantStatus !== "ACTIVE") {
+
+			showMsg(
+				"Your assigned clinic or hospital workspace is not active."
+			);
+
+			return;
+		}
+
+		/*
+		 * Patient should only enter clinic/hospital workspace.
+		 */
+		if (
+			tenantType !== "DOCTOR_CLINIC" &&
+			tenantType !== "HOSPITAL"
+		) {
+
+			showMsg(
+				"Your patient account is not assigned to a valid clinic or hospital workspace."
+			);
+
+			return;
+		}
+
+		/*
+		 * Save selected workspace context.
+		 */
+		localStorage.setItem(
+			"tenantId",
+			tenantId
+		);
+
+		localStorage.setItem(
+			"tenantName",
+			tenantName
+		);
+
+		localStorage.setItem(
+			"tenantType",
+			tenantType
+		);
+
+		localStorage.setItem(
+			"saasMode",
+			"true"
+		);
+
+		/*
+		 * Patient permission cache must be refreshed
+		 * for the selected workspace.
+		 */
+		localStorage.removeItem(
+			"saasMemberRole"
+		);
+
+		localStorage.removeItem(
+			"saasOwnerOrAdmin"
+		);
+
+		localStorage.removeItem(
+			"saasPermissions"
+		);
+
+		/*
+		 * Direct dashboard.
+		 */
+		window.location.replace(
+			"/saas/dashboard"
+		);
+
+	} catch (error) {
+
+		console.error(
+			"Unable to open patient workspace:",
+			error
+		);
+
+		showMsg(
+			"Unable to open your assigned workspace."
+		);
+	}
+}
+
 function enforceWorkspaceSelectionLayout() {
 	document.body.classList.add("workspace-selection-page");
 }
@@ -49,35 +420,42 @@ window.addEventListener("pageshow", function() {
 
 function requireSaasRole() {
 
-	const role =
-		getNormalizedLoginRole();
+    const role =
+        getNormalizedLoginRole();
 
-	const allowedRoles = [
-		"DOCTOR",
-		"HOSPITAL",
-		"WHOLESALER",
-		"RETAILER",
-		"SAAS_STAFF"
-	];
+    console.log(
+        "Workspace Selection Role =",
+        role
+    );
 
-	if (!allowedRoles.includes(role)) {
+    const allowedRoles = [
+        "DOCTOR",
+        "HOSPITAL",
+        "WHOLESALER",
+        "RETAILER",
+        "PATIENT",
+        "SAAS_STAFF",
+        "SAAS_CUSTOMER"
+    ];
 
-		alert(
-			"SaaS workspace is available only for Doctor, Hospital, Wholesaler, Retailer and assigned SaaS Staff."
-		);
+    if (!allowedRoles.includes(role)) {
 
-		window.location.href =
-			"/dashboard";
+        alert(
+            "SaaS workspace is available only for Doctor, Hospital, Wholesaler, Retailer, Patient, assigned SaaS Staff and SaaS Customer."
+        );
 
-		return false;
-	}
+        window.location.href =
+            "/dashboard";
 
-	localStorage.setItem(
-		"saasMode",
-		"true"
-	);
+        return false;
+    }
 
-	return true;
+    localStorage.setItem(
+        "saasMode",
+        "true"
+    );
+
+    return true;
 }
 
 
@@ -1969,14 +2347,102 @@ function clearTenantForm() {
 
 function getNormalizedLoginRole() {
 
-	return String(
-		localStorage.getItem("role") || ""
-	)
-		.trim()
-		.toUpperCase()
-		.replace(/^ROLE_/, "");
-}
+    // ============================================================
+    // 1. FIRST TRY: LOCAL STORAGE ROLE
+    // ============================================================
 
+    const storedRole =
+        String(
+            localStorage.getItem("role") ||
+            localStorage.getItem("userRole") ||
+            localStorage.getItem("loginRole") ||
+            ""
+        )
+            .trim()
+            .toUpperCase()
+            .replace(/^ROLE_/, "");
+
+    if (storedRole) {
+        return storedRole;
+    }
+
+    // ============================================================
+    // 2. FALLBACK: READ ROLE FROM JWT TOKEN
+    // ============================================================
+
+    const token =
+        localStorage.getItem("token");
+
+    if (!token) {
+        return "";
+    }
+
+    try {
+
+        const parts =
+            token.split(".");
+
+        if (parts.length !== 3) {
+            return "";
+        }
+
+        // JWT payload decode
+        const base64Url = parts[1];
+
+        const base64 =
+            base64Url
+                .replace(/-/g, "+")
+                .replace(/_/g, "/");
+
+        const jsonPayload =
+            decodeURIComponent(
+                atob(base64)
+                    .split("")
+                    .map(function(char) {
+                        return "%" +
+                            ("00" +
+                                char.charCodeAt(0)
+                            .toString(16)
+                            .slice(-2));
+                    })
+                    .join("")
+            );
+
+        const payload =
+            JSON.parse(jsonPayload);
+
+        const tokenRole =
+            String(
+                payload.role ||
+                payload.authority ||
+                payload.userRole ||
+                ""
+            )
+                .trim()
+                .toUpperCase()
+                .replace(/^ROLE_/, "");
+
+        if (tokenRole) {
+
+            // Cache it for future page loads
+            localStorage.setItem(
+                "role",
+                tokenRole
+            );
+
+            return tokenRole;
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Unable to read role from JWT:",
+            error
+        );
+    }
+
+    return "";
+}
 
 function isValidEmail(email) {
 

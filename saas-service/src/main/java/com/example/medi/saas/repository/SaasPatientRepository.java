@@ -8,23 +8,28 @@ import java.util.Optional;
 
 public interface SaasPatientRepository extends JpaRepository<SaasPatient, Long> {
 
-    List<SaasPatient> findByTenantIdAndActiveTrueOrderByCreatedAtDesc(Long tenantId);
+	List<SaasPatient> findByTenantIdAndActiveTrueOrderByCreatedAtDesc(Long tenantId);
 
-    Optional<SaasPatient> findByIdAndTenantIdAndActiveTrue(Long id, Long tenantId);
+	Optional<SaasPatient> findByIdAndTenantIdAndActiveTrue(Long id, Long tenantId);
 
-    List<SaasPatient> findByTenantIdAndActiveTrueAndPatientNameContainingIgnoreCaseOrderByCreatedAtDesc(
-            Long tenantId,
-            String patientName
-    );
+	List<SaasPatient> findByTenantIdAndActiveTrueAndPatientNameContainingIgnoreCaseOrderByCreatedAtDesc(Long tenantId,
+			String patientName);
 
-    List<SaasPatient> findByTenantIdAndActiveTrueAndMobileContainingOrderByCreatedAtDesc(
-            Long tenantId,
-            String mobile
-    );
+	List<SaasPatient> findByTenantIdAndActiveTrueAndMobileContainingOrderByCreatedAtDesc(Long tenantId, String mobile);
 
-    long countByTenantId(Long tenantId);
-    
-    long countByTenantIdAndActiveTrue(Long tenantId);
-    
-    void deleteByTenantId(Long tenantId);
+	long countByTenantId(Long tenantId);
+
+	long countByTenantIdAndActiveTrue(Long tenantId);
+
+	void deleteByTenantId(Long tenantId);
+
+	Optional<SaasPatient> findByTenantIdAndEmailIgnoreCase(Long tenantId, String email);
+
+	Optional<SaasPatient> findByAuthUserIdAndActiveTrue(Long authUserId);
+
+	Optional<SaasPatient> findByAuthUserId(Long authUserId);
+
+	Optional<SaasPatient> findByTenantIdAndAuthUserIdAndActiveTrue(Long tenantId, Long authUserId);
+
+	Optional<SaasPatient> findByAuthUserIdAndTenantIdAndActiveTrue(Long authUserId, Long tenantId);
 }

@@ -3,6 +3,8 @@ package com.example.medi.saas.client;
 import com.example.medi.saas.dto.AuthCustomerCreateRequest;
 import com.example.medi.saas.dto.AuthStaffCreateRequest;
 import com.example.medi.saas.dto.AuthUserResponse;
+import com.example.medi.saas.dto.CreateSaasPatientRequest;
+
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +21,14 @@ public interface AuthClient {
     AuthUserResponse createSaasCustomer(
             @RequestHeader("Authorization") String authorization,
             @RequestBody AuthCustomerCreateRequest request
+    );
+    
+    
+    @PostMapping("/auth/internal/saas-patient")
+    AuthUserResponse createSaasPatient(
+            @RequestHeader("Authorization") String authorization,
+            @RequestHeader("X-Internal-Service-Key") String internalServiceKey,
+            @RequestBody CreateSaasPatientRequest request
     );
 
 

@@ -65,7 +65,7 @@ public class SaasStaffResponse {
 
     private BigDecimal consultationFee;
 
-    private BigDecimal onlineConsultationFee;
+    private Long onlineConsultationFee;
 
     private Boolean onlineConsultationEnabled;
 

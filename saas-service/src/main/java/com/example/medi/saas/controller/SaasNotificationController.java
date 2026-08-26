@@ -5,6 +5,7 @@ import com.example.medi.saas.dto.SaasNotificationCountResponse;
 import com.example.medi.saas.dto.SaasNotificationRequest;
 import com.example.medi.saas.dto.SaasNotificationResponse;
 import com.example.medi.saas.service.SaasNotificationService;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,58 +14,50 @@ import java.util.List;
 @RequestMapping("/saas/notifications")
 public class SaasNotificationController {
 
-    private final SaasNotificationService notificationService;
+	private final SaasNotificationService notificationService;
 
-    public SaasNotificationController(SaasNotificationService notificationService) {
-        this.notificationService = notificationService;
-    }
+	public SaasNotificationController(SaasNotificationService notificationService) {
+		this.notificationService = notificationService;
+	}
 
-    @PostMapping
-    public SaasNotificationResponse createNotification(@RequestBody SaasNotificationRequest request) {
-        return notificationService.createNotification(request);
-    }
+	@PostMapping
+	public SaasNotificationResponse createNotification(@RequestBody SaasNotificationRequest request) {
+		return notificationService.createNotification(request);
+	}
 
-    @GetMapping
-    public List<SaasNotificationResponse> getNotifications(@RequestParam Long tenantId) {
-        return notificationService.getNotifications(tenantId);
-    }
+	@GetMapping
+	public List<SaasNotificationResponse> getNotifications(@RequestParam Long tenantId) {
+		return notificationService.getNotifications(tenantId);
+	}
 
-    @GetMapping("/unread")
-    public List<SaasNotificationResponse> getUnreadNotifications(@RequestParam Long tenantId) {
-        return notificationService.getUnreadNotifications(tenantId);
-    }
+	@GetMapping("/unread")
+	public List<SaasNotificationResponse> getUnreadNotifications(@RequestParam Long tenantId) {
+		return notificationService.getUnreadNotifications(tenantId);
+	}
 
-    @GetMapping("/type")
-    public List<SaasNotificationResponse> getNotificationsByType(
-            @RequestParam Long tenantId,
-            @RequestParam String type
-    ) {
-        return notificationService.getNotificationsByType(tenantId, type);
-    }
+	@GetMapping("/type")
+	public List<SaasNotificationResponse> getNotificationsByType(@RequestParam Long tenantId,
+			@RequestParam String type) {
+		return notificationService.getNotificationsByType(tenantId, type);
+	}
 
-    @GetMapping("/count")
-    public SaasNotificationCountResponse getUnreadCount(@RequestParam Long tenantId) {
-        return notificationService.getUnreadCount(tenantId);
-    }
+	@GetMapping("/count")
+	public SaasNotificationCountResponse getUnreadCount(@RequestParam Long tenantId) {
+		return notificationService.getUnreadCount(tenantId);
+	}
 
-    @PutMapping("/{notificationId}/read")
-    public SaasNotificationResponse markRead(
-            @PathVariable Long notificationId,
-            @RequestParam Long tenantId
-    ) {
-        return notificationService.markRead(tenantId, notificationId);
-    }
+	@PutMapping("/{notificationId}/read")
+	public SaasNotificationResponse markRead(@PathVariable Long notificationId, @RequestParam Long tenantId) {
+		return notificationService.markRead(tenantId, notificationId);
+	}
 
-    @PutMapping("/read-all")
-    public ApiResponse markAllRead(@RequestParam Long tenantId) {
-        return notificationService.markAllRead(tenantId);
-    }
+	@PutMapping("/read-all")
+	public ApiResponse markAllRead(@RequestParam Long tenantId) {
+		return notificationService.markAllRead(tenantId);
+	}
 
-    @DeleteMapping("/{notificationId}")
-    public ApiResponse deleteNotification(
-            @PathVariable Long notificationId,
-            @RequestParam Long tenantId
-    ) {
-        return notificationService.deleteNotification(tenantId, notificationId);
-    }
+	@DeleteMapping("/{notificationId}")
+	public ApiResponse deleteNotification(@PathVariable Long notificationId, @RequestParam Long tenantId) {
+		return notificationService.deleteNotification(tenantId, notificationId);
+	}
 }

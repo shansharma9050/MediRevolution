@@ -431,69 +431,246 @@ function getActionButtons(
 	appointment,
 	appointmentId
 ) {
+
 	if (!appointmentId) {
 		return "-";
 	}
 
 	let html = "";
 
+	/*
+	 * =====================================================
+	 * PENDING / PAYMENT_PENDING
+	 * =====================================================
+	 */
+
 	if (
 		appointment.status === "PENDING" ||
+		appointment.status === "REQUESTED"
+	) {
+
+		html += `
+            <button
+                type="button"
+                class="btn btn-sm btn-outline-success confirm-appointment-btn"
+                onclick="updateStatus(${appointmentId}, 'CONFIRMED')">
+
+                <i class="bi bi-check2-circle me-1"></i>
+                Confirm
+
+            </button>
+
+            <button
+                type="button"
+                class="btn btn-sm btn-outline-warning reject-appointment-btn"
+                onclick="updateStatus(${appointmentId}, 'REJECTED')">
+
+                <i class="bi bi-x-circle me-1"></i>
+                Reject
+
+            </button>
+        `;
+	}
+
+	/*
+	 * =====================================================
+	 * PAYMENT PENDING
+	 * =====================================================
+	 */
+
+	if (
 		appointment.status === "PAYMENT_PENDING"
 	) {
+
 		html += `
-			<button type="button"
-					class="btn btn-sm btn-outline-success confirm-appointment-btn"
-					onclick="updateStatus(${appointmentId}, 'CONFIRMED')">
-
-				<i class="bi bi-check2-circle me-1"></i>
-				Confirm
-			</button>
-
-			<button type="button"
-					class="btn btn-sm btn-outline-warning reject-appointment-btn"
-					onclick="updateStatus(${appointmentId}, 'REJECTED')">
-
-				<i class="bi bi-x-circle me-1"></i>
-				Reject
-			</button>
-		`;
+            <span class="badge bg-warning text-dark">
+                <i class="bi bi-credit-card-fill me-1"></i>
+                Payment Pending
+            </span>
+        `;
 	}
 
-	if (appointment.status === "CONFIRMED") {
+	/*
+	 * =====================================================
+	 * PAYMENT FAILED
+	 * =====================================================
+	 */
+
+	if (
+		appointment.status === "PAYMENT_FAILED"
+	) {
+
 		html += `
-			<button type="button"
-					class="btn btn-sm btn-outline-info complete-appointment-btn"
-					onclick="updateStatus(${appointmentId}, 'COMPLETED')">
-
-				<i class="bi bi-clipboard2-check me-1"></i>
-				Complete
-			</button>
-
-			<button type="button"
-					class="btn btn-sm btn-outline-danger cancel-appointment-btn"
-					onclick="updateStatus(${appointmentId}, 'CANCELLED')">
-
-				<i class="bi bi-calendar-x me-1"></i>
-				Cancel
-			</button>
-		`;
+            <span class="badge bg-danger">
+                <i class="bi bi-x-circle-fill me-1"></i>
+                Payment Failed
+            </span>
+        `;
 	}
+
+	/*
+	 * =====================================================
+	 * CONFIRMED
+	 * =====================================================
+	 */
+
+	if (
+		appointment.status === "CONFIRMED"
+	) {
+
+		/*
+		 * ONLINE
+		 */
+
+		if (
+			appointment.appointmentType === "ONLINE"
+		) {
+
+			const meetingUrl =
+				getSafeHttpUrl(
+					appointment.meetingUrl
+				);
+
+			if (meetingUrl) {
+
+				html += `
+                    <a
+                        href="${escapeAttribute(meetingUrl)}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="btn btn-sm btn-outline-success">
+
+                        <i class="bi bi-camera-video-fill me-1"></i>
+                        Join Meeting
+
+                    </a>
+                `;
+
+			} else {
+
+				html += `
+                    <span class="text-muted small">
+                        Meeting link unavailable
+                    </span>
+                `;
+			}
+
+			/*
+			 * Online appointment cancel
+			 */
+
+			html += `
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger cancel-appointment-btn"
+                    onclick="updateStatus(${appointmentId}, 'CANCELLED')">
+
+                    <i class="bi bi-calendar-x me-1"></i>
+                    Cancel
+
+                </button>
+            `;
+
+		} else {
+
+			/*
+			 * OFFLINE / OPD / IPD
+			 */
+
+			html += `
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-info complete-appointment-btn"
+                    onclick="updateStatus(${appointmentId}, 'COMPLETED')">
+
+                    <i class="bi bi-clipboard2-check me-1"></i>
+                    Complete
+
+                </button>
+
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger cancel-appointment-btn"
+                    onclick="updateStatus(${appointmentId}, 'CANCELLED')">
+
+                    <i class="bi bi-calendar-x me-1"></i>
+                    Cancel
+
+                </button>
+            `;
+		}
+	}
+
+	/*
+	 * =====================================================
+	 * IN CONSULTATION
+	 * =====================================================
+	 */
+
+	if (
+		appointment.status === "IN_CONSULTATION"
+	) {
+
+		const meetingUrl =
+			getSafeHttpUrl(
+				appointment.meetingUrl
+			);
+
+		if (
+			appointment.appointmentType === "ONLINE" &&
+			meetingUrl
+		) {
+
+			html += `
+                <a
+                    href="${escapeAttribute(meetingUrl)}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="btn btn-sm btn-primary">
+
+                    <i class="bi bi-camera-video-fill me-1"></i>
+                    Rejoin Meeting
+
+                </a>
+            `;
+		}
+
+		html += `
+            <button
+                type="button"
+                class="btn btn-sm btn-outline-success complete-appointment-btn"
+                onclick="updateStatus(${appointmentId}, 'COMPLETED')">
+
+                <i class="bi bi-clipboard2-check me-1"></i>
+                Complete
+
+            </button>
+        `;
+	}
+
+	/*
+	 * =====================================================
+	 * EDIT
+	 * =====================================================
+	 */
 
 	if (
 		appointment.status !== "COMPLETED" &&
 		appointment.status !== "CANCELLED" &&
 		appointment.status !== "REJECTED"
 	) {
-		html += `
-			<button type="button"
-					class="btn btn-sm btn-outline-primary edit-appointment-btn"
-					onclick="editAppointment(${appointmentId})">
 
-				<i class="bi bi-pencil-square me-1"></i>
-				Edit
-			</button>
-		`;
+		html += `
+            <button
+                type="button"
+                class="btn btn-sm btn-outline-primary edit-appointment-btn"
+                onclick="editAppointment(${appointmentId})">
+
+                <i class="bi bi-pencil-square me-1"></i>
+                Edit
+
+            </button>
+        `;
 	}
 
 	return html || "-";
@@ -574,7 +751,10 @@ function statusBadge(status) {
 	`;
 }
 
-function buildSafeMeetingLink(url) {
+function buildSafeMeetingLink(
+	url
+) {
+
 	const safeUrl =
 		getSafeHttpUrl(url);
 
@@ -583,15 +763,17 @@ function buildSafeMeetingLink(url) {
 	}
 
 	return `
-		<a href="${escapeAttribute(safeUrl)}"
-		   target="_blank"
-		   rel="noopener noreferrer"
-		   class="saas-appointment-meeting-link">
+        <a
+            href="${escapeAttribute(safeUrl)}"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="saas-appointment-meeting-link">
 
-			<i class="bi bi-camera-video-fill"></i>
-			Join
-		</a>
-	`;
+            <i class="bi bi-camera-video-fill me-1"></i>
+            Join Meeting
+
+        </a>
+    `;
 }
 
 function getSafeHttpUrl(value) {

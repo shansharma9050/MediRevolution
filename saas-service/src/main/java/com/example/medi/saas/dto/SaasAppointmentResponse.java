@@ -9,43 +9,55 @@ import java.time.LocalTime;
 @Data
 public class SaasAppointmentResponse {
 
-    private Long id;
+	private Long id;
 
-    private Long tenantId;
+	private Long tenantId;
 
-    private Long patientId;
+	private Long patientId;
 
-    private String patientCode;
+	private String patientCode;
 
-    private String patientName;
+	private String patientName;
 
-    private String patientMobile;
+	private String patientMobile;
 
-    private Long doctorStaffId;
+	private String patientEmail;
 
-    private Long doctorAuthUserId;
+	private Long doctorStaffId;
 
-    private String doctorName;
+	private Long doctorAuthUserId;
 
-    private String department;
+	private String doctorName;
 
-    private String specialization;
+	private String department;
 
-    private String appointmentType;
+	private String specialization;
 
-    private LocalDate appointmentDate;
+	private String appointmentType;
 
-    private LocalTime appointmentTime;
+	private String consultationType;
 
-    private String status;
+	private LocalDate appointmentDate;
 
-    private String symptoms;
+	private LocalTime appointmentTime;
 
-    private String notes;
+	private String status;
 
-    private String meetingUrl;
+	private String symptoms;
 
-    private Boolean active;
+	private String notes;
 
-    private LocalDateTime createdAt;
+	private String meetingUrl;
+
+	private Long consultationFee;
+
+	private String paymentStatus;
+
+	private String paymentOrderId;
+
+	private String paymentTransactionId;
+
+	private Boolean active;
+
+	private LocalDateTime createdAt;
 }

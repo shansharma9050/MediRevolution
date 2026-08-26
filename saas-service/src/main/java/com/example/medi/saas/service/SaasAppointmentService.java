@@ -3,12 +3,11 @@ package com.example.medi.saas.service;
 import com.example.medi.saas.dto.ApiResponse;
 import com.example.medi.saas.dto.SaasAppointmentRequest;
 import com.example.medi.saas.dto.SaasAppointmentResponse;
-
 import com.example.medi.saas.entity.SaasAppointment;
 import com.example.medi.saas.entity.SaasPatient;
 import com.example.medi.saas.entity.SaasStaff;
+import com.example.medi.saas.entity.Tenant;
 import com.example.medi.saas.entity.TenantMember;
-
 import com.example.medi.saas.enums.SaasAppointmentStatus;
 import com.example.medi.saas.enums.SaasAppointmentType;
 import com.example.medi.saas.enums.SaasNotificationPriority;
@@ -17,15 +16,14 @@ import com.example.medi.saas.enums.SaasPermissionAction;
 import com.example.medi.saas.enums.SaasStaffRole;
 import com.example.medi.saas.enums.TenantMemberRole;
 import com.example.medi.saas.enums.TenantModule;
-
+import com.example.medi.saas.enums.TenantStatus;
 import com.example.medi.saas.repository.SaasAppointmentRepository;
 import com.example.medi.saas.repository.SaasPatientRepository;
 import com.example.medi.saas.repository.SaasStaffRepository;
 import com.example.medi.saas.repository.TenantMemberRepository;
-
+import com.example.medi.saas.repository.TenantRepository;
 import com.example.medi.saas.security.CurrentUserUtil;
 
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,83 +31,135 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class SaasAppointmentService {
 
 	private final SaasAppointmentRepository appointmentRepository;
+
 	private final SaasPatientRepository patientRepository;
+
 	private final SaasStaffRepository staffRepository;
+
 	private final TenantMemberRepository tenantMemberRepository;
+
+	private final TenantRepository tenantRepository;
+
 	private final TenantAccessService tenantAccessService;
+
 	private final SaasPermissionService permissionService;
+
 	private final SaasNotificationService notificationService;
+
 	private final SaasDoctorAvailabilityService availabilityService;
 
 	public SaasAppointmentService(SaasAppointmentRepository appointmentRepository,
 			SaasPatientRepository patientRepository, SaasStaffRepository staffRepository,
-			TenantMemberRepository tenantMemberRepository, TenantAccessService tenantAccessService,
-			SaasPermissionService permissionService, SaasNotificationService notificationService,
-			SaasDoctorAvailabilityService availabilityService) {
+			TenantMemberRepository tenantMemberRepository, TenantRepository tenantRepository,
+			TenantAccessService tenantAccessService, SaasPermissionService permissionService,
+			SaasNotificationService notificationService, SaasDoctorAvailabilityService availabilityService) {
+
 		this.appointmentRepository = appointmentRepository;
+
 		this.patientRepository = patientRepository;
+
 		this.staffRepository = staffRepository;
+
 		this.tenantMemberRepository = tenantMemberRepository;
+
+		this.tenantRepository = tenantRepository;
+
 		this.tenantAccessService = tenantAccessService;
+
 		this.permissionService = permissionService;
+
 		this.notificationService = notificationService;
+
 		this.availabilityService = availabilityService;
 	}
 
 	/*
-	 * ========================================================= CREATE APPOINTMENT
-	 * =========================================================
+	 * ========================================================= CREATE OFFLINE
+	 * APPOINTMENT =========================================================
 	 */
 
 	@Transactional
 	public SaasAppointmentResponse createAppointment(SaasAppointmentRequest request) {
+
 		validateRequest(request);
 
-		tenantAccessService.validateTenantAccess(request.getTenantId());
+		Long currentAuthUserId = getCurrentAuthUserId();
 
-		permissionService.requirePermission(request.getTenantId(), TenantModule.APPOINTMENTS,
-				SaasPermissionAction.CREATE);
+		boolean patientLogin = isPatientRole();
 
-		SaasPatient patient = patientRepository
-				.findByIdAndTenantIdAndActiveTrue(request.getPatientId(), request.getTenantId())
-				.orElseThrow(() -> new RuntimeException("Patient not found in selected workspace."));
+		Long tenantId = request.getTenantId();
 
-		SaasStaff doctorStaff = getAndValidateDoctor(request.getTenantId(), request.getDoctorStaffId());
+		SaasPatient patient;
+
+		if (patientLogin) {
+
+			/*
+			 * PATIENT: Never trust patientId from browser.
+			 */
+			patient = patientRepository.findByTenantIdAndAuthUserIdAndActiveTrue(tenantId, currentAuthUserId)
+					.orElseThrow(() -> new AccessDeniedException("Patient is not assigned to this workspace."));
+
+			requireActiveTenantForPatient(tenantId);
+
+		} else {
+
+			/*
+			 * Doctor / Hospital / Staff flow.
+			 */
+			tenantAccessService.validateTenantAccess(tenantId);
+
+			permissionService.requirePermission(tenantId, TenantModule.APPOINTMENTS, SaasPermissionAction.CREATE);
+
+			if (request.getPatientId() == null) {
+
+				throw new RuntimeException("Patient is required.");
+			}
+
+			patient = patientRepository.findByIdAndTenantIdAndActiveTrue(request.getPatientId(), tenantId)
+					.orElseThrow(() -> new RuntimeException("Patient not found in selected workspace."));
+		}
+
+		SaasStaff doctor = getAndValidateDoctor(tenantId, request.getDoctorStaffId());
 
 		/*
-		 * Doctor login kisi doosre doctor ke naam par appointment create nahi kar
-		 * sakta.
+		 * Doctor account cannot create appointment for another doctor.
 		 */
-		validateSelectedDoctorAccess(request.getTenantId(), doctorStaff);
+		if (!patientLogin) {
+
+			validateSelectedDoctorAccess(tenantId, doctor);
+		}
 
 		SaasAppointmentType appointmentType = parseAppointmentType(request.getAppointmentType());
 
-		validateOnlineConsultation(appointmentType, doctorStaff);
+		validateOnlineConsultation(appointmentType, doctor);
 
-		validateSlotExistsInAvailability(request.getTenantId(), doctorStaff.getAuthUserId(),
-				request.getAppointmentDate(), request.getAppointmentTime());
+		validateSlotExistsInAvailability(tenantId, doctor.getAuthUserId(), request.getAppointmentDate(),
+				request.getAppointmentTime());
 
-		validateSlotNotAlreadyBooked(request.getTenantId(), doctorStaff.getAuthUserId(), request.getAppointmentDate(),
+		validateSlotNotAlreadyBooked(tenantId, doctor.getAuthUserId(), request.getAppointmentDate(),
 				request.getAppointmentTime(), null);
 
 		SaasAppointment appointment = new SaasAppointment();
 
-		appointment.setTenantId(request.getTenantId());
+		appointment.setTenantId(tenantId);
 
 		appointment.setPatientId(patient.getId());
 
-		appointment.setDoctorStaffId(doctorStaff.getId());
+		appointment.setDoctorStaffId(doctor.getId());
 
-		appointment.setDoctorAuthUserId(doctorStaff.getAuthUserId());
+		appointment.setDoctorAuthUserId(doctor.getAuthUserId());
 
-		appointment.setDoctorName(doctorStaff.getStaffName());
+		appointment.setDoctorName(doctor.getStaffName());
 
-		appointment.setDepartment(doctorStaff.getDepartment());
+		appointment.setDepartment(doctor.getDepartment());
+
+		appointment.setSpecialization(doctor.getSpecialization());
 
 		appointment.setAppointmentType(appointmentType);
 
@@ -121,65 +171,79 @@ public class SaasAppointmentService {
 
 		appointment.setNotes(clean(request.getNotes()));
 
-		appointment.setCreatedByAuthUserId(getCurrentAuthUserId());
+		/*
+		 * Offline appointment starts as PENDING.
+		 */
+		appointment.setStatus(SaasAppointmentStatus.PENDING);
+
+		appointment.setPaymentStatus("NOT_REQUIRED");
+
+		appointment.setCreatedByAuthUserId(currentAuthUserId);
 
 		appointment.setActive(true);
 
-		if (appointmentType == SaasAppointmentType.ONLINE) {
+		SaasAppointment saved = appointmentRepository.saveAndFlush(appointment);
 
-			appointment.setStatus(SaasAppointmentStatus.PAYMENT_PENDING);
+		notificationService.createSystemNotification(saved.getTenantId(), SaasNotificationType.APPOINTMENT,
+				SaasNotificationPriority.HIGH, "New appointment booked",
+				"New appointment has been booked with " + saved.getDoctorName(), saved.getId(), "APPOINTMENT",
+				"/saas/appointments");
 
-			appointment.setMeetingUrl(generateMeetingUrl(request.getTenantId(), doctorStaff.getAuthUserId()));
-
-		} else {
-
-			appointment.setStatus(SaasAppointmentStatus.PENDING);
-		}
-
-		try {
-			SaasAppointment saved = appointmentRepository.saveAndFlush(appointment);
-
-			createAppointmentNotification(saved);
-
-			return toResponse(saved);
-
-		} catch (DataIntegrityViolationException exception) {
-			throw handleDatabaseConstraint(exception);
-		}
+		return toResponse(saved);
 	}
 
 	/*
-	 * ========================================================= GET APPOINTMENT
-	 * LIST =========================================================
+	 * ========================================================= PATIENT
+	 * APPOINTMENTS =========================================================
+	 */
+
+	@Transactional(readOnly = true)
+	public List<SaasAppointmentResponse> getMyPatientAppointments(Long tenantId) {
+
+		Long authUserId = getCurrentAuthUserId();
+
+		if (!isPatientRole()) {
+
+			throw new AccessDeniedException("Only patient can access this endpoint.");
+		}
+
+		requireActiveTenantForPatient(tenantId);
+
+		SaasPatient patient = patientRepository.findByTenantIdAndAuthUserIdAndActiveTrue(tenantId, authUserId)
+				.orElseThrow(() -> new AccessDeniedException("Patient is not assigned to this workspace."));
+
+		return appointmentRepository
+				.findByTenantIdAndPatientIdAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(tenantId,
+						patient.getId())
+				.stream().map(this::toResponse).toList();
+	}
+
+	/*
+	 * ========================================================= ALL WORKSPACE
+	 * APPOINTMENTS =========================================================
 	 */
 
 	@Transactional(readOnly = true)
 	public List<SaasAppointmentResponse> getAppointments(Long tenantId) {
+
 		permissionService.requirePermission(tenantId, TenantModule.APPOINTMENTS, SaasPermissionAction.VIEW);
 
 		tenantAccessService.validateTenantAccess(tenantId);
 
-		Long currentAuthUserId = getCurrentAuthUserId();
+		Long authUserId = getCurrentAuthUserId();
 
-		TenantMember currentMember = getCurrentTenantMember(tenantId, currentAuthUserId);
+		TenantMember member = getCurrentTenantMember(tenantId, authUserId);
 
 		List<SaasAppointment> appointments;
 
-		/*
-		 * Doctor ko sirf usi doctorAuthUserId ki appointments.
-		 */
-		if (currentMember.getMemberRole() == TenantMemberRole.DOCTOR) {
+		if (member.getMemberRole() == TenantMemberRole.DOCTOR) {
 
 			appointments = appointmentRepository
 					.findByTenantIdAndDoctorAuthUserIdAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(
-							tenantId, currentAuthUserId);
+							tenantId, authUserId);
 
 		} else {
 
-			/*
-			 * Hospital owner, admin aur authorized non-doctor staff tenant ki complete
-			 * appointment list dekh sakte hain.
-			 */
 			appointments = appointmentRepository
 					.findByTenantIdAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(tenantId);
 		}
@@ -188,12 +252,64 @@ public class SaasAppointmentService {
 	}
 
 	/*
+	 * ========================================================= DOCTOR APPOINTMENTS
+	 * =========================================================
+	 */
+
+	@Transactional(readOnly = true)
+	public List<SaasAppointmentResponse> getDoctorAppointments(Long tenantId, Long doctorAuthUserId) {
+
+		permissionService.requirePermission(tenantId, TenantModule.APPOINTMENTS, SaasPermissionAction.VIEW);
+
+		tenantAccessService.validateTenantAccess(tenantId);
+
+		if (doctorAuthUserId == null) {
+
+			throw new RuntimeException("doctorAuthUserId is required.");
+		}
+
+		Long currentUserId = getCurrentAuthUserId();
+
+		TenantMember member = getCurrentTenantMember(tenantId, currentUserId);
+
+		if (member.getMemberRole() == TenantMemberRole.DOCTOR && !currentUserId.equals(doctorAuthUserId)) {
+
+			throw new AccessDeniedException("You cannot view another doctor's appointments.");
+		}
+
+		return appointmentRepository
+				.findByTenantIdAndDoctorAuthUserIdAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(tenantId,
+						doctorAuthUserId)
+				.stream().map(this::toResponse).toList();
+	}
+
+	/*
 	 * ========================================================= GET SINGLE
-	 * APPOINTMENT =========================================================
+	 * =========================================================
 	 */
 
 	@Transactional(readOnly = true)
 	public SaasAppointmentResponse getAppointment(Long tenantId, Long appointmentId) {
+
+		if (isPatientRole()) {
+
+			Long userId = getCurrentAuthUserId();
+
+			SaasPatient patient = patientRepository.findByTenantIdAndAuthUserIdAndActiveTrue(tenantId, userId)
+					.orElseThrow(() -> new AccessDeniedException("Patient is not assigned to this workspace."));
+
+			SaasAppointment appointment = appointmentRepository
+					.findByIdAndTenantIdAndActiveTrue(appointmentId, tenantId)
+					.orElseThrow(() -> new RuntimeException("Appointment not found."));
+
+			if (!patient.getId().equals(appointment.getPatientId())) {
+
+				throw new AccessDeniedException("You cannot access this appointment.");
+			}
+
+			return toResponse(appointment);
+		}
+
 		permissionService.requirePermission(tenantId, TenantModule.APPOINTMENTS, SaasPermissionAction.VIEW);
 
 		tenantAccessService.validateTenantAccess(tenantId);
@@ -206,86 +322,20 @@ public class SaasAppointmentService {
 	}
 
 	/*
-	 * ========================================================= GET APPOINTMENTS
-	 * FOR A DOCTOR =========================================================
-	 */
-
-	@Transactional(readOnly = true)
-	public List<SaasAppointmentResponse> getDoctorAppointments(Long tenantId, Long doctorAuthUserId) {
-		permissionService.requirePermission(tenantId, TenantModule.APPOINTMENTS, SaasPermissionAction.VIEW);
-
-		tenantAccessService.validateTenantAccess(tenantId);
-
-		if (doctorAuthUserId == null) {
-			throw new RuntimeException("doctorAuthUserId is required.");
-		}
-
-		Long currentAuthUserId = getCurrentAuthUserId();
-
-		TenantMember currentMember = getCurrentTenantMember(tenantId, currentAuthUserId);
-
-		/*
-		 * Doctor query parameter badal kar kisi aur doctor ki appointments access nahi
-		 * kar sakta.
-		 */
-		if (currentMember.getMemberRole() == TenantMemberRole.DOCTOR && !currentAuthUserId.equals(doctorAuthUserId)) {
-
-			throw new AccessDeniedException("You cannot view another doctor's appointments.");
-		}
-
-		return appointmentRepository
-				.findByTenantIdAndDoctorAuthUserIdAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(tenantId,
-						doctorAuthUserId)
-				.stream().map(this::toResponse).toList();
-	}
-
-	/*
-	 * ========================================================= GET APPOINTMENTS
-	 * FOR A PATIENT =========================================================
-	 */
-
-	@Transactional(readOnly = true)
-	public List<SaasAppointmentResponse> getPatientAppointments(Long tenantId, Long patientId) {
-		permissionService.requirePermission(tenantId, TenantModule.APPOINTMENTS, SaasPermissionAction.VIEW);
-
-		tenantAccessService.validateTenantAccess(tenantId);
-
-		patientRepository.findByIdAndTenantIdAndActiveTrue(patientId, tenantId)
-				.orElseThrow(() -> new RuntimeException("Patient not found."));
-
-		Long currentAuthUserId = getCurrentAuthUserId();
-
-		TenantMember currentMember = getCurrentTenantMember(tenantId, currentAuthUserId);
-
-		List<SaasAppointment> appointments = appointmentRepository
-				.findByTenantIdAndPatientIdAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(tenantId,
-						patientId);
-
-		/*
-		 * Doctor patient endpoint se bhi sirf apni appointments dekh sakta hai.
-		 */
-		if (currentMember.getMemberRole() == TenantMemberRole.DOCTOR) {
-
-			appointments = appointments.stream()
-					.filter(appointment -> currentAuthUserId.equals(appointment.getDoctorAuthUserId())).toList();
-		}
-
-		return appointments.stream().map(this::toResponse).toList();
-	}
-
-	/*
-	 * ========================================================= UPDATE APPOINTMENT
+	 * ========================================================= UPDATE
 	 * =========================================================
 	 */
 
 	@Transactional
 	public SaasAppointmentResponse updateAppointment(Long tenantId, Long appointmentId,
 			SaasAppointmentRequest request) {
+
 		permissionService.requirePermission(tenantId, TenantModule.APPOINTMENTS, SaasPermissionAction.UPDATE);
 
 		tenantAccessService.validateTenantAccess(tenantId);
 
 		if (request == null) {
+
 			throw new RuntimeException("Appointment request is required.");
 		}
 
@@ -297,53 +347,43 @@ public class SaasAppointmentService {
 
 		validateAppointmentAccess(tenantId, appointment);
 
-		if (appointment.getStatus() == SaasAppointmentStatus.COMPLETED) {
+		if (appointment.getStatus() == SaasAppointmentStatus.COMPLETED
+				|| appointment.getStatus() == SaasAppointmentStatus.CANCELLED
+				|| appointment.getStatus() == SaasAppointmentStatus.REJECTED) {
 
-			throw new RuntimeException("Completed appointment cannot be updated.");
-		}
-
-		if (appointment.getStatus() == SaasAppointmentStatus.CANCELLED) {
-
-			throw new RuntimeException("Cancelled appointment cannot be updated.");
-		}
-
-		if (appointment.getStatus() == SaasAppointmentStatus.REJECTED) {
-
-			throw new RuntimeException("Rejected appointment cannot be updated.");
+			throw new RuntimeException("This appointment cannot be updated.");
 		}
 
 		SaasPatient patient = patientRepository.findByIdAndTenantIdAndActiveTrue(request.getPatientId(), tenantId)
 				.orElseThrow(() -> new RuntimeException("Patient not found."));
 
-		SaasStaff doctorStaff = getAndValidateDoctor(tenantId, request.getDoctorStaffId());
+		SaasStaff doctor = getAndValidateDoctor(tenantId, request.getDoctorStaffId());
 
-		/*
-		 * Doctor login appointment ko kisi doosre doctor ke naam par transfer nahi kar
-		 * sakta.
-		 */
-		validateSelectedDoctorAccess(tenantId, doctorStaff);
+		validateSelectedDoctorAccess(tenantId, doctor);
 
-		SaasAppointmentType appointmentType = parseAppointmentType(request.getAppointmentType());
+		SaasAppointmentType type = parseAppointmentType(request.getAppointmentType());
 
-		validateOnlineConsultation(appointmentType, doctorStaff);
+		validateOnlineConsultation(type, doctor);
 
-		validateSlotExistsInAvailability(tenantId, doctorStaff.getAuthUserId(), request.getAppointmentDate(),
+		validateSlotExistsInAvailability(tenantId, doctor.getAuthUserId(), request.getAppointmentDate(),
 				request.getAppointmentTime());
 
-		validateSlotNotAlreadyBooked(tenantId, doctorStaff.getAuthUserId(), request.getAppointmentDate(),
+		validateSlotNotAlreadyBooked(tenantId, doctor.getAuthUserId(), request.getAppointmentDate(),
 				request.getAppointmentTime(), appointmentId);
 
 		appointment.setPatientId(patient.getId());
 
-		appointment.setDoctorStaffId(doctorStaff.getId());
+		appointment.setDoctorStaffId(doctor.getId());
 
-		appointment.setDoctorAuthUserId(doctorStaff.getAuthUserId());
+		appointment.setDoctorAuthUserId(doctor.getAuthUserId());
 
-		appointment.setDoctorName(doctorStaff.getStaffName());
+		appointment.setDoctorName(doctor.getStaffName());
 
-		appointment.setDepartment(doctorStaff.getDepartment());
+		appointment.setDepartment(doctor.getDepartment());
 
-		appointment.setAppointmentType(appointmentType);
+		appointment.setSpecialization(doctor.getSpecialization());
+
+		appointment.setAppointmentType(type);
 
 		appointment.setAppointmentDate(request.getAppointmentDate());
 
@@ -353,36 +393,19 @@ public class SaasAppointmentService {
 
 		appointment.setNotes(clean(request.getNotes()));
 
-		if (appointmentType == SaasAppointmentType.ONLINE) {
-
-			if (appointment.getMeetingUrl() == null || appointment.getMeetingUrl().isBlank()) {
-
-				appointment.setMeetingUrl(generateMeetingUrl(tenantId, doctorStaff.getAuthUserId()));
-			}
-
-		} else {
-			appointment.setMeetingUrl(null);
-		}
-
 		appointment.touch();
 
-		try {
-			SaasAppointment saved = appointmentRepository.saveAndFlush(appointment);
-
-			return toResponse(saved);
-
-		} catch (DataIntegrityViolationException exception) {
-			throw handleDatabaseConstraint(exception);
-		}
+		return toResponse(appointmentRepository.saveAndFlush(appointment));
 	}
 
 	/*
-	 * ========================================================= UPDATE APPOINTMENT
-	 * STATUS =========================================================
+	 * ========================================================= STATUS
+	 * =========================================================
 	 */
 
 	@Transactional
 	public SaasAppointmentResponse updateStatus(Long tenantId, Long appointmentId, String status) {
+
 		permissionService.requirePermission(tenantId, TenantModule.APPOINTMENTS, SaasPermissionAction.UPDATE);
 
 		tenantAccessService.validateTenantAccess(tenantId);
@@ -396,6 +419,7 @@ public class SaasAppointmentService {
 		validateStatusTransition(appointment.getStatus(), newStatus);
 
 		appointment.setStatus(newStatus);
+
 		appointment.touch();
 
 		SaasAppointment saved = appointmentRepository.save(appointment);
@@ -409,12 +433,13 @@ public class SaasAppointmentService {
 	}
 
 	/*
-	 * ========================================================= CANCEL APPOINTMENT
+	 * ========================================================= CANCEL
 	 * =========================================================
 	 */
 
 	@Transactional
 	public ApiResponse cancelAppointment(Long tenantId, Long appointmentId) {
+
 		permissionService.requirePermission(tenantId, TenantModule.APPOINTMENTS, SaasPermissionAction.DELETE);
 
 		tenantAccessService.validateTenantAccess(tenantId);
@@ -430,10 +455,6 @@ public class SaasAppointmentService {
 
 		appointment.setStatus(SaasAppointmentStatus.CANCELLED);
 
-		/*
-		 * History me appointment visible rahegi.
-		 */
-		appointment.setActive(true);
 		appointment.touch();
 
 		appointmentRepository.save(appointment);
@@ -442,239 +463,193 @@ public class SaasAppointmentService {
 	}
 
 	/*
-	 * ========================================================= APPOINTMENT ACCESS
+	 * ========================================================= PATIENT TENANT
 	 * VALIDATION =========================================================
 	 */
 
+	private void requireActiveTenantForPatient(Long tenantId) {
+
+		Tenant tenant = tenantRepository.findById(tenantId)
+				.orElseThrow(() -> new RuntimeException("Workspace not found."));
+
+		if (tenant.getStatus() != TenantStatus.ACTIVE) {
+
+			throw new RuntimeException("This workspace is not active.");
+		}
+	}
+
+	/*
+	 * ========================================================= PATIENT ROLE
+	 * =========================================================
+	 */
+
+	private boolean isPatientRole() {
+
+		String role = CurrentUserUtil.getRole();
+
+		return role != null && role.trim().toUpperCase(Locale.ROOT).replaceFirst("^ROLE_", "").equals("PATIENT");
+	}
+
+	/*
+	 * ========================================================= ACCESS
+	 * =========================================================
+	 */
+
 	private void validateAppointmentAccess(Long tenantId, SaasAppointment appointment) {
-		Long currentAuthUserId = getCurrentAuthUserId();
 
-		TenantMember currentMember = getCurrentTenantMember(tenantId, currentAuthUserId);
+		Long currentUserId = getCurrentAuthUserId();
 
-		/*
-		 * Doctor ko sirf assigned appointment access milega.
-		 */
-		if (currentMember.getMemberRole() == TenantMemberRole.DOCTOR) {
+		TenantMember member = getCurrentTenantMember(tenantId, currentUserId);
 
-			if (!currentAuthUserId.equals(appointment.getDoctorAuthUserId())) {
+		if (member.getMemberRole() == TenantMemberRole.DOCTOR) {
+
+			if (!currentUserId.equals(appointment.getDoctorAuthUserId())) {
 
 				throw new AccessDeniedException("You cannot access another doctor's appointment.");
 			}
 		}
-
-		/*
-		 * OWNER, ADMIN aur other authorized non-doctor tenant members ko access
-		 * permissionService ke according milega.
-		 */
 	}
 
-	private void validateSelectedDoctorAccess(Long tenantId, SaasStaff selectedDoctor) {
-		Long currentAuthUserId = getCurrentAuthUserId();
+	private void validateSelectedDoctorAccess(Long tenantId, SaasStaff doctor) {
 
-		TenantMember currentMember = getCurrentTenantMember(tenantId, currentAuthUserId);
+		Long userId = getCurrentAuthUserId();
 
-		if (currentMember.getMemberRole() == TenantMemberRole.DOCTOR
-				&& !currentAuthUserId.equals(selectedDoctor.getAuthUserId())) {
+		TenantMember member = getCurrentTenantMember(tenantId, userId);
 
-			throw new AccessDeniedException("A doctor can create or update only their own appointment.");
+		if (member.getMemberRole() == TenantMemberRole.DOCTOR && !userId.equals(doctor.getAuthUserId())) {
+
+			throw new AccessDeniedException("A doctor can work only with their own appointments.");
 		}
-	}
-
-	/*
-	 * ========================================================= CURRENT USER /
-	 * TENANT MEMBER =========================================================
-	 */
-
-	private Long getCurrentAuthUserId() {
-		Long currentAuthUserId = CurrentUserUtil.getUserId();
-
-		if (currentAuthUserId == null) {
-			throw new AccessDeniedException("Logged-in user ID not found.");
-		}
-
-		return currentAuthUserId;
 	}
 
 	private TenantMember getCurrentTenantMember(Long tenantId, Long authUserId) {
+
 		return tenantMemberRepository.findByTenantIdAndAuthUserIdAndActiveTrue(tenantId, authUserId)
 				.orElseThrow(() -> new AccessDeniedException("You are not an active member of this workspace."));
 	}
 
+	private Long getCurrentAuthUserId() {
+
+		Long id = CurrentUserUtil.getUserId();
+
+		if (id == null) {
+
+			throw new AccessDeniedException("Logged-in user ID not found.");
+		}
+
+		return id;
+	}
+
 	/*
-	 * ========================================================= DOCTOR VALIDATION
+	 * ========================================================= DOCTOR
 	 * =========================================================
 	 */
 
 	private SaasStaff getAndValidateDoctor(Long tenantId, Long doctorStaffId) {
+
 		if (doctorStaffId == null) {
+
 			throw new RuntimeException("Doctor is required.");
 		}
 
-		SaasStaff doctorStaff = staffRepository.findByIdAndTenantIdAndActiveTrue(doctorStaffId, tenantId)
+		SaasStaff doctor = staffRepository.findByIdAndTenantIdAndActiveTrue(doctorStaffId, tenantId)
 				.orElseThrow(() -> new RuntimeException("Selected doctor not found."));
 
-		if (doctorStaff.getStaffRole() != SaasStaffRole.DOCTOR) {
+		if (doctor.getStaffRole() != SaasStaffRole.DOCTOR) {
 
 			throw new RuntimeException("Selected staff member is not a doctor.");
 		}
 
-		if (doctorStaff.getAuthUserId() == null) {
+		if (doctor.getAuthUserId() == null) {
+
 			throw new RuntimeException("Selected doctor's login user is missing.");
 		}
 
-		return doctorStaff;
+		return doctor;
 	}
 
-	/*
-	 * ========================================================= ONLINE CONSULTATION
-	 * VALIDATION =========================================================
-	 */
+	private void validateOnlineConsultation(SaasAppointmentType type, SaasStaff doctor) {
 
-	private void validateOnlineConsultation(SaasAppointmentType appointmentType, SaasStaff doctorStaff) {
-		if (appointmentType == SaasAppointmentType.ONLINE
-				&& !Boolean.TRUE.equals(doctorStaff.getOnlineConsultationEnabled())) {
+		if (type == SaasAppointmentType.ONLINE && !Boolean.TRUE.equals(doctor.getOnlineConsultationEnabled())) {
 
 			throw new RuntimeException("Online consultation is not enabled for selected doctor.");
 		}
 	}
 
 	/*
-	 * ========================================================= SLOT VALIDATION
+	 * ========================================================= SLOT
 	 * =========================================================
 	 */
 
 	private void validateSlotExistsInAvailability(Long tenantId, Long doctorAuthUserId, LocalDate date,
 			LocalTime time) {
+
 		boolean available = availabilityService.isSlotAvailableInternal(tenantId, doctorAuthUserId, date,
 				normalizeTime(time));
 
 		if (!available) {
+
 			throw new RuntimeException("Selected time is not available in doctor's schedule.");
 		}
 	}
 
 	private void validateSlotNotAlreadyBooked(Long tenantId, Long doctorAuthUserId, LocalDate date, LocalTime time,
 			Long excludedAppointmentId) {
-		List<SaasAppointmentStatus> bookedStatuses = getBookedStatuses();
 
-		LocalTime normalizedTime = normalizeTime(time);
+		List<SaasAppointmentStatus> bookedStatuses = List.of(SaasAppointmentStatus.PAYMENT_PENDING,
+				SaasAppointmentStatus.PENDING, SaasAppointmentStatus.CONFIRMED, SaasAppointmentStatus.IN_CONSULTATION,
+				SaasAppointmentStatus.COMPLETED);
 
-		boolean alreadyBooked;
+		LocalTime normalized = normalizeTime(time);
+
+		boolean booked;
 
 		if (excludedAppointmentId == null) {
 
-			alreadyBooked = appointmentRepository
+			booked = appointmentRepository
 					.existsByTenantIdAndDoctorAuthUserIdAndAppointmentDateAndAppointmentTimeAndStatusIn(tenantId,
-							doctorAuthUserId, date, normalizedTime, bookedStatuses);
+							doctorAuthUserId, date, normalized, bookedStatuses);
 
 		} else {
 
-			alreadyBooked = appointmentRepository
+			booked = appointmentRepository
 					.existsByTenantIdAndDoctorAuthUserIdAndAppointmentDateAndAppointmentTimeAndStatusInAndIdNot(
-							tenantId, doctorAuthUserId, date, normalizedTime, bookedStatuses, excludedAppointmentId);
+							tenantId, doctorAuthUserId, date, normalized, bookedStatuses, excludedAppointmentId);
 		}
 
-		if (alreadyBooked) {
+		if (booked) {
+
 			throw new RuntimeException("Selected slot is already booked. Please choose another slot.");
 		}
 	}
 
-	private List<SaasAppointmentStatus> getBookedStatuses() {
-		return List.of(SaasAppointmentStatus.PAYMENT_PENDING, SaasAppointmentStatus.PENDING,
-				SaasAppointmentStatus.CONFIRMED, SaasAppointmentStatus.COMPLETED);
-	}
-
 	/*
-	 * ========================================================= STATUS VALIDATION
+	 * ========================================================= VALIDATION
 	 * =========================================================
 	 */
-
-	private SaasAppointmentStatus parseAppointmentStatus(String status) {
-		if (status == null || status.isBlank()) {
-			throw new RuntimeException("Appointment status is required.");
-		}
-
-		try {
-			return SaasAppointmentStatus.valueOf(status.trim().toUpperCase());
-
-		} catch (IllegalArgumentException exception) {
-
-			throw new RuntimeException("Invalid appointment status: " + status);
-		}
-	}
-
-	private void validateStatusTransition(SaasAppointmentStatus currentStatus, SaasAppointmentStatus newStatus) {
-		if (currentStatus == null) {
-			return;
-		}
-
-		if (currentStatus == SaasAppointmentStatus.COMPLETED) {
-			throw new RuntimeException("Completed appointment status cannot be changed.");
-		}
-
-		if (currentStatus == SaasAppointmentStatus.CANCELLED) {
-			throw new RuntimeException("Cancelled appointment status cannot be changed.");
-		}
-
-		if (currentStatus == SaasAppointmentStatus.REJECTED) {
-			throw new RuntimeException("Rejected appointment status cannot be changed.");
-		}
-
-		if (currentStatus == newStatus) {
-			throw new RuntimeException("Appointment already has status " + newStatus.name() + ".");
-		}
-	}
-
-	/*
-	 * ========================================================= GENERAL HELPERS
-	 * =========================================================
-	 */
-
-	private SaasAppointmentType parseAppointmentType(String appointmentType) {
-		if (appointmentType == null || appointmentType.isBlank()) {
-
-			throw new RuntimeException("appointmentType is required.");
-		}
-
-		try {
-			return SaasAppointmentType.valueOf(appointmentType.trim().toUpperCase());
-
-		} catch (IllegalArgumentException exception) {
-
-			throw new RuntimeException("Invalid appointment type: " + appointmentType);
-		}
-	}
-
-	private SaasAppointment getAppointmentEntity(Long tenantId, Long appointmentId) {
-		if (appointmentId == null) {
-			throw new RuntimeException("Appointment ID is required.");
-		}
-
-		return appointmentRepository.findByIdAndTenantIdAndActiveTrue(appointmentId, tenantId)
-				.orElseThrow(() -> new RuntimeException("Appointment not found."));
-	}
 
 	private void validateRequest(SaasAppointmentRequest request) {
+
 		if (request == null) {
+
 			throw new RuntimeException("Appointment request is required.");
 		}
 
 		if (request.getTenantId() == null) {
+
 			throw new RuntimeException("tenantId is required.");
 		}
 
-		if (request.getPatientId() == null) {
-			throw new RuntimeException("patientId is required.");
-		}
-
 		if (request.getDoctorStaffId() == null) {
+
 			throw new RuntimeException("doctorStaffId is required.");
 		}
 
 		parseAppointmentType(request.getAppointmentType());
 
 		if (request.getAppointmentDate() == null) {
-			throw new RuntimeException("appointmentDate is required.");
+
+			throw new RuntimeException("Appointment date is required.");
 		}
 
 		if (request.getAppointmentDate().isBefore(LocalDate.now())) {
@@ -683,75 +658,106 @@ public class SaasAppointmentService {
 		}
 
 		if (request.getAppointmentTime() == null) {
-			throw new RuntimeException("appointmentTime is required.");
+
+			throw new RuntimeException("Appointment time is required.");
 		}
 
-		LocalTime appointmentTime = normalizeTime(request.getAppointmentTime());
+		LocalTime time = normalizeTime(request.getAppointmentTime());
 
-		LocalTime currentTime = normalizeTime(LocalTime.now());
-
-		if (request.getAppointmentDate().equals(LocalDate.now()) && appointmentTime.isBefore(currentTime)) {
+		if (request.getAppointmentDate().equals(LocalDate.now()) && time.isBefore(normalizeTime(LocalTime.now()))) {
 
 			throw new RuntimeException("Appointment time cannot be in the past.");
 		}
+
+		if (request.getSymptoms() == null || request.getSymptoms().isBlank()) {
+
+			throw new RuntimeException("Symptoms are required.");
+		}
+	}
+
+	private SaasAppointmentType parseAppointmentType(String value) {
+
+		if (value == null || value.isBlank()) {
+
+			throw new RuntimeException("Appointment type is required.");
+		}
+
+		try {
+
+			return SaasAppointmentType.valueOf(value.trim().toUpperCase());
+
+		} catch (IllegalArgumentException e) {
+
+			throw new RuntimeException("Invalid appointment type: " + value);
+		}
+	}
+
+	private SaasAppointmentStatus parseAppointmentStatus(String value) {
+
+		try {
+
+			return SaasAppointmentStatus.valueOf(value.trim().toUpperCase());
+
+		} catch (Exception e) {
+
+			throw new RuntimeException("Invalid appointment status: " + value);
+		}
+	}
+
+	private void validateStatusTransition(SaasAppointmentStatus current, SaasAppointmentStatus next) {
+
+		if (current == null) {
+			return;
+		}
+
+		if (current == SaasAppointmentStatus.COMPLETED || current == SaasAppointmentStatus.CANCELLED
+				|| current == SaasAppointmentStatus.REJECTED) {
+
+			throw new RuntimeException("This appointment status cannot be changed.");
+		}
+
+		if (current == next) {
+
+			throw new RuntimeException("Appointment already has status " + next.name());
+		}
+	}
+
+	/*
+	 * ========================================================= ENTITY
+	 * =========================================================
+	 */
+
+	private SaasAppointment getAppointmentEntity(Long tenantId, Long appointmentId) {
+
+		return appointmentRepository.findByIdAndTenantIdAndActiveTrue(appointmentId, tenantId)
+				.orElseThrow(() -> new RuntimeException("Appointment not found."));
 	}
 
 	private LocalTime normalizeTime(LocalTime time) {
-		if (time == null) {
-			return null;
-		}
 
-		return time.withSecond(0).withNano(0);
-	}
-
-	private String generateMeetingUrl(Long tenantId, Long doctorAuthUserId) {
-		return "https://meet.jit.si/medirevolution-saas-" + tenantId + "-" + doctorAuthUserId + "-"
-				+ System.currentTimeMillis();
-	}
-
-	private void createAppointmentNotification(SaasAppointment appointment) {
-		notificationService.createSystemNotification(appointment.getTenantId(), SaasNotificationType.APPOINTMENT,
-				SaasNotificationPriority.HIGH, "New appointment booked",
-				"New appointment has been booked with " + appointment.getDoctorName(), appointment.getId(),
-				"APPOINTMENT", "/saas/appointments");
-	}
-
-	private RuntimeException handleDatabaseConstraint(DataIntegrityViolationException exception) {
-		String rootMessage = exception.getMostSpecificCause() == null ? exception.getMessage()
-				: exception.getMostSpecificCause().getMessage();
-
-		if (rootMessage != null && rootMessage.contains("uk_saas_appointment_active_doctor_slot")) {
-
-			return new RuntimeException("Selected slot was just booked by another user. Please choose another slot.");
-		}
-
-		System.err.println("Appointment database constraint error: " + rootMessage);
-
-		return new RuntimeException("Unable to save appointment because of a database constraint.");
+		return time == null ? null : time.withSecond(0).withNano(0);
 	}
 
 	private String clean(String value) {
+
 		if (value == null) {
 			return null;
 		}
 
-		String cleanedValue = value.trim();
+		String result = value.trim();
 
-		return cleanedValue.isBlank() ? null : cleanedValue;
+		return result.isBlank() ? null : result;
 	}
 
 	/*
-	 * ========================================================= RESPONSE MAPPING
+	 * ========================================================= RESPONSE
 	 * =========================================================
 	 */
 
 	private SaasAppointmentResponse toResponse(SaasAppointment appointment) {
+
 		SaasPatient patient = patientRepository
 				.findByIdAndTenantIdAndActiveTrue(appointment.getPatientId(), appointment.getTenantId()).orElse(null);
-
-		SaasStaff doctorStaff = staffRepository
-				.findByIdAndTenantIdAndActiveTrue(appointment.getDoctorStaffId(), appointment.getTenantId())
-				.orElse(null);
 
 		SaasAppointmentResponse response = new SaasAppointmentResponse();
 
@@ -767,6 +773,8 @@ public class SaasAppointmentService {
 
 		response.setPatientMobile(patient == null ? null : patient.getMobile());
 
+		response.setPatientEmail(patient == null ? null : patient.getEmail());
+
 		response.setDoctorStaffId(appointment.getDoctorStaffId());
 
 		response.setDoctorAuthUserId(appointment.getDoctorAuthUserId());
@@ -775,10 +783,13 @@ public class SaasAppointmentService {
 
 		response.setDepartment(appointment.getDepartment());
 
-		response.setSpecialization(doctorStaff == null ? null : doctorStaff.getSpecialization());
+		response.setSpecialization(appointment.getSpecialization());
 
 		response.setAppointmentType(
 				appointment.getAppointmentType() == null ? null : appointment.getAppointmentType().name());
+
+		response.setConsultationType(
+				appointment.getAppointmentType() == SaasAppointmentType.ONLINE ? "ONLINE" : "OFFLINE");
 
 		response.setAppointmentDate(appointment.getAppointmentDate());
 
@@ -792,10 +803,27 @@ public class SaasAppointmentService {
 
 		response.setMeetingUrl(appointment.getMeetingUrl());
 
+		response.setConsultationFee(appointment.getConsultationFee());
+
+		response.setPaymentStatus(appointment.getPaymentStatus());
+
+		response.setPaymentOrderId(appointment.getPaymentOrderId());
+
+		response.setPaymentTransactionId(appointment.getPaymentTransactionId());
+
 		response.setActive(appointment.getActive());
 
 		response.setCreatedAt(appointment.getCreatedAt());
 
 		return response;
+	}
+
+	public void validateForOnlinePayment(Long tenantId, Long doctorAuthUserId, LocalDate date, LocalTime time) {
+
+		requireActiveTenantForPatient(tenantId);
+
+		validateSlotExistsInAvailability(tenantId, doctorAuthUserId, date, time);
+
+		validateSlotNotAlreadyBooked(tenantId, doctorAuthUserId, date, time, null);
 	}
 }

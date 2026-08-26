@@ -180,4 +180,19 @@ public class SaasBusinessPageController {
 	public String subscriptionCurrentPage() {
 		return "saas-subscription-current";
 	}
+	
+	@GetMapping("/saas/patient/book-appointment")
+	public String saasPatientAppointments() {
+	    return "patient-appointments";
+	}
+
+	@GetMapping("/saas/patient/my-appointments")
+	public String saasPatientMyAppointments() {
+	    return "patient-my-appointments";
+	}
+	
+	@GetMapping("/saas/appointment-payment-success")
+	public String saasAppointmentPaymentSuccessPage() {
+	    return "appointment-payment-success";
+	}
 }

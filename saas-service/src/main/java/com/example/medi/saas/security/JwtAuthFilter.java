@@ -14,6 +14,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -29,37 +30,66 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 			throws ServletException, IOException {
 
 		try {
+
 			String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
 			if (authHeader != null && authHeader.startsWith("Bearer ")) {
 
-				String token = authHeader.substring(7);
+				String token = authHeader.substring(7).trim();
 
-				Long userId = jwtUtil.extractUserId(token);
-				String role = jwtUtil.extractRole(token);
-				String email = jwtUtil.extractEmail(token);
-				String userName = jwtUtil.extractUserName(token);
+				if (!token.isBlank()) {
 
-				if (userId != null && role != null && email != null) {
+					Long userId = jwtUtil.extractUserId(token);
 
-					String authorityName = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+					String role = jwtUtil.extractRole(token);
 
-					SimpleGrantedAuthority authority = new SimpleGrantedAuthority(authorityName);
+					String email = jwtUtil.extractEmail(token);
 
-					UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email,
-							null, List.of(authority));
+					String userName = jwtUtil.extractUserName(token);
 
-					authentication.setDetails(userId);
+					if (userId != null && role != null && !role.isBlank() && email != null && !email.isBlank()) {
 
-					SecurityContextHolder.getContext().setAuthentication(authentication);
+						/*
+						 * ------------------------------------------------- NORMALIZE ROLE
+						 * -------------------------------------------------
+						 *
+						 * DB/JWT dono forms support:
+						 *
+						 * SAAS_CUSTOMER ROLE_SAAS_CUSTOMER
+						 *
+						 * Internally always keep:
+						 *
+						 * ROLE_SAAS_CUSTOMER
+						 */
+						String normalizedRole = role.trim().toUpperCase(Locale.ROOT).replaceFirst("^ROLE_", "");
 
-					CurrentUserUtil.set(
-					        userId,
-					        role,
-					        email,
-					        userName,
-					        token
-					);
+						String authorityName = "ROLE_" + normalizedRole;
+
+						SimpleGrantedAuthority authority = new SimpleGrantedAuthority(authorityName);
+
+						UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+								email, null, List.of(authority));
+
+						/*
+						 * Store userId in authentication details.
+						 */
+						authentication.setDetails(userId);
+
+						SecurityContextHolder.getContext().setAuthentication(authentication);
+
+						/*
+						 * Store normalized role in CurrentUserUtil.
+						 */
+						CurrentUserUtil.set(userId, normalizedRole, email, userName, token);
+
+						/*
+						 * Temporary debugging.
+						 *
+						 * Isse console mein exact authority dikhegi.
+						 */
+						System.out.println("JWT AUTH SUCCESS -> " + "URI=" + request.getRequestURI() + ", userId="
+								+ userId + ", role=" + normalizedRole + ", authority=" + authorityName);
+					}
 				}
 			}
 
@@ -72,12 +102,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 		}
 
 		try {
-			/*
-			 * Filter chain exactly one time call hogi.
-			 */
+
 			filterChain.doFilter(request, response);
 
 		} finally {
+
 			CurrentUserUtil.clear();
 		}
 	}

@@ -773,17 +773,16 @@
 				</div>
 
 				<div class="modal-body">
-					
-					<div class="common-modal-form-alert alert d-none"
-					     role="alert">
 
-					    <div class="d-flex align-items-start gap-2">
+					<div class="common-modal-form-alert alert d-none" role="alert">
 
-					        <i class="common-modal-form-alert-icon bi bi-exclamation-triangle-fill"></i>
+						<div class="d-flex align-items-start gap-2">
 
-					        <div class="common-modal-form-alert-message"></div>
+							<i class="common-modal-form-alert-icon bi bi-exclamation-triangle-fill"></i>
 
-					    </div>
+							<div class="common-modal-form-alert-message"></div>
+
+						</div>
 
 					</div>
 
@@ -807,6 +806,16 @@
 							<label class="form-label" for="email">Email</label>
 							<i class="bi bi-envelope-fill"></i>
 							<input type="email" id="email" class="form-control" maxlength="180">
+						</div>
+						<div class="col-lg-4 patient-control-wrap" id="patientPasswordField">
+							<label class="form-label" for="password">
+								Login Password *
+							</label>
+
+							<i class="bi bi-lock-fill"></i>
+
+							<input type="password" id="password" class="form-control" maxlength="100"
+								autocomplete="new-password" placeholder="Minimum 6 characters">
 						</div>
 
 						<div class="col-lg-3 patient-control-wrap">
@@ -908,7 +917,10 @@
 					<div class="patient-form-note">
 						<i class="bi bi-info-circle-fill text-primary"></i>
 						<div>
-							At least one field among Patient Mobile or Email is required.
+							For a new patient, Email and Login Password are required
+							to create the patient login account. The password must be
+							at least 6 characters. Existing patient passwords are not changed
+							when the profile is edited.
 							The age will be automatically calculated upon selecting the Date of Birth.
 						</div>
 					</div>

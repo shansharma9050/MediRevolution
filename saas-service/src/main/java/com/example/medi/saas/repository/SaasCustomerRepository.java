@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface SaasCustomerRepository extends JpaRepository<SaasCustomer, Long> {
-
 	List<SaasCustomer> findByTenantIdOrderByCustomerNameAsc(Long tenantId);
 
 	List<SaasCustomer> findByTenantIdAndActiveTrueOrderByCustomerNameAsc(Long tenantId);
@@ -28,49 +27,27 @@ public interface SaasCustomerRepository extends JpaRepository<SaasCustomer, Long
 
 	long countByTenantIdAndActiveTrue(Long tenantId);
 
+	Optional<SaasCustomer> findByAuthUserId(Long authUserId);
+
 	@Query("""
 			SELECT c
 			FROM SaasCustomer c
 			WHERE c.tenantId = :tenantId
 			  AND (
-			        LOWER(c.customerCode)
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(c.customerName)
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(COALESCE(c.customerType, ''))
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(COALESCE(c.contactPersonName, ''))
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(COALESCE(c.mobile, ''))
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(COALESCE(c.alternateMobile, ''))
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(COALESCE(c.email, ''))
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(COALESCE(c.gstin, ''))
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(COALESCE(c.city, ''))
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(COALESCE(c.state, ''))
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
+			        LOWER(c.customerCode) LIKE LOWER(CONCAT('%', :keyword, '%'))
+			     OR LOWER(c.customerName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+			     OR LOWER(COALESCE(c.customerType, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+			     OR LOWER(COALESCE(c.contactPersonName, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+			     OR LOWER(COALESCE(c.mobile, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+			     OR LOWER(COALESCE(c.alternateMobile, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+			     OR LOWER(COALESCE(c.email, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+			     OR LOWER(COALESCE(c.gstin, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+			     OR LOWER(COALESCE(c.city, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+			     OR LOWER(COALESCE(c.state, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
 			  )
 			ORDER BY c.customerName ASC
 			""")
-	List<SaasCustomer> searchCustomers(@Param("tenantId") Long tenantId,
+	List<SaasCustomer> searchCustomers(@Param("tenantId") Long tenantId, @Param("keyword") String keyword);
 
-			@Param("keyword") String keyword);
-	
 	void deleteByTenantId(Long tenantId);
-	
-	
-	Optional<SaasCustomer> findByAuthUserId(Long authUserId);
 }

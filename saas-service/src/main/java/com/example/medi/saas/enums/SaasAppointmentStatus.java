@@ -2,12 +2,21 @@ package com.example.medi.saas.enums;
 
 public enum SaasAppointmentStatus {
 
-    PAYMENT_PENDING,
-    PAYMENT_FAILED,
+	REQUESTED,
 
-    PENDING,
-    CONFIRMED,
-    REJECTED,
-    COMPLETED,
-    CANCELLED
+	PAYMENT_PENDING,
+
+	PAYMENT_FAILED,
+
+	PENDING,
+
+	CONFIRMED,
+
+	IN_CONSULTATION,
+
+	COMPLETED,
+
+	REJECTED,
+
+	CANCELLED
 }

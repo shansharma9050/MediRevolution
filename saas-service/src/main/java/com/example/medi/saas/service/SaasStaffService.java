@@ -7,21 +7,28 @@ import com.example.medi.saas.dto.AuthUserResponse;
 import com.example.medi.saas.dto.SaasStaffRequest;
 import com.example.medi.saas.dto.SaasStaffResponse;
 import com.example.medi.saas.entity.SaasStaff;
+import com.example.medi.saas.entity.Tenant;
 import com.example.medi.saas.entity.TenantMember;
 import com.example.medi.saas.enums.SaasPermissionAction;
 import com.example.medi.saas.enums.SaasStaffRole;
 import com.example.medi.saas.enums.SaasStaffStatus;
 import com.example.medi.saas.enums.TenantMemberRole;
 import com.example.medi.saas.enums.TenantModule;
+import com.example.medi.saas.enums.TenantStatus;
+import com.example.medi.saas.repository.SaasPatientRepository;
 import com.example.medi.saas.repository.SaasStaffRepository;
 import com.example.medi.saas.repository.TenantMemberRepository;
+import com.example.medi.saas.repository.TenantRepository;
 import com.example.medi.saas.security.CurrentUserUtil;
 import jakarta.servlet.http.HttpServletRequest;
+
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class SaasStaffService {
@@ -32,16 +39,20 @@ public class SaasStaffService {
 	private final TenantMemberRepository tenantMemberRepository;
 	private final AuthClient authClient;
 	private final HttpServletRequest httpServletRequest;
+	private final SaasPatientRepository patientRepository;
+	private final TenantRepository tenantRepository;
 
 	public SaasStaffService(SaasStaffRepository staffRepository, TenantAccessService tenantAccessService,
 			SaasPermissionService permissionService, TenantMemberRepository tenantMemberRepository,
-			AuthClient authClient, HttpServletRequest httpServletRequest) {
+			AuthClient authClient, HttpServletRequest httpServletRequest, SaasPatientRepository patientRepository,TenantRepository tenantRepository) {
 		this.staffRepository = staffRepository;
 		this.tenantAccessService = tenantAccessService;
 		this.permissionService = permissionService;
 		this.tenantMemberRepository = tenantMemberRepository;
 		this.authClient = authClient;
 		this.httpServletRequest = httpServletRequest;
+		this.patientRepository = patientRepository;
+		this.tenantRepository=tenantRepository;
 	}
 
 	@Transactional
@@ -314,13 +325,76 @@ public class SaasStaffService {
 		};
 	}
 
+	private String normalizeRole(String role) {
+
+		if (role == null) {
+			return null;
+		}
+
+		String normalizedRole = role.trim().toUpperCase(Locale.ROOT);
+
+		if (normalizedRole.startsWith("ROLE_")) {
+			normalizedRole = normalizedRole.substring("ROLE_".length());
+		}
+
+		return normalizedRole;
+	}
+
 	@Transactional(readOnly = true)
 	public List<SaasStaffResponse> getDoctorsForAppointments(Long tenantId) {
 
-		permissionService.requirePermission(tenantId, TenantModule.APPOINTMENTS, SaasPermissionAction.VIEW);
+		if (tenantId == null || tenantId <= 0) {
+			throw new RuntimeException("Valid workspace is required.");
+		}
 
-		tenantAccessService.validateTenantAccess(tenantId);
+		String role = normalizeRole(CurrentUserUtil.getRole());
+		Long currentUserId = CurrentUserUtil.getUserId();
 
+		/*
+		 * ========================================================= PATIENT ACCESS
+		 * =========================================================
+		 *
+		 * Patient TenantMember nahi hota. Patient ka workspace access:
+		 *
+		 * SaasPatient.authUserId + SaasPatient.tenantId
+		 *
+		 * se verify hoga.
+		 */
+		if ("PATIENT".equals(role)) {
+
+			if (currentUserId == null) {
+				throw new AccessDeniedException("Logged-in patient user ID not found.");
+			}
+			
+			Tenant tenant = tenantRepository.findById(tenantId)
+			        .orElseThrow(() ->
+			                new RuntimeException("Workspace not found.")
+			        );
+
+			if (tenant.getStatus() != TenantStatus.ACTIVE) {
+			    throw new RuntimeException(
+			            "Workspace is not active."
+			    );
+			}
+
+			patientRepository.findByAuthUserIdAndTenantIdAndActiveTrue(currentUserId, tenantId).orElseThrow(
+					() -> new AccessDeniedException("You are not assigned to this workspace as a patient."));
+
+		} else {
+
+			/*
+			 * ===================================================== NORMAL SaaS USER ACCESS
+			 * =====================================================
+			 */
+			permissionService.requirePermission(tenantId, TenantModule.APPOINTMENTS, SaasPermissionAction.VIEW);
+
+			tenantAccessService.validateTenantAccess(tenantId);
+		}
+
+		/*
+		 * ========================================================= DOCTORS
+		 * =========================================================
+		 */
 		return staffRepository
 				.findByTenantIdAndStaffRoleAndActiveTrueOrderByStaffNameAsc(tenantId, SaasStaffRole.DOCTOR).stream()
 				.map(this::toResponse).toList();

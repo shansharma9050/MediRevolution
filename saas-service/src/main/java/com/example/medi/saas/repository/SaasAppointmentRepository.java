@@ -10,88 +10,37 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface SaasAppointmentRepository
-        extends JpaRepository<SaasAppointment, Long> {
+public interface SaasAppointmentRepository extends JpaRepository<SaasAppointment, Long> {
 
-    /* =========================================================
-       BASIC LIST METHODS
-    ========================================================= */
+	List<SaasAppointment> findByTenantIdAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(Long tenantId);
 
-    List<SaasAppointment>
-    findByTenantIdAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(
-            Long tenantId
-    );
+	Optional<SaasAppointment> findByIdAndTenantIdAndActiveTrue(Long appointmentId, Long tenantId);
 
-    Optional<SaasAppointment>
-    findByIdAndTenantIdAndActiveTrue(
-            Long appointmentId,
-            Long tenantId
-    );
+	List<SaasAppointment> findByTenantIdAndPatientIdAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(
+			Long tenantId, Long patientId);
 
-    List<SaasAppointment>
-    findByTenantIdAndPatientIdAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(
-            Long tenantId,
-            Long patientId
-    );
+	List<SaasAppointment> findByTenantIdAndDoctorAuthUserIdAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(
+			Long tenantId, Long doctorAuthUserId);
 
-    List<SaasAppointment>
-    findByTenantIdAndDoctorAuthUserIdAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(
-            Long tenantId,
-            Long doctorAuthUserId
-    );
+	Optional<SaasAppointment> findByPaymentOrderId(String paymentOrderId);
 
-    /* =========================================================
-       REPORT DATE RANGE
-    ========================================================= */
+	List<SaasAppointment> findByTenantIdAndAppointmentDateBetweenAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(
+			Long tenantId, LocalDate fromDate, LocalDate toDate);
 
-    List<SaasAppointment>
-    findByTenantIdAndAppointmentDateBetweenAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(
-            Long tenantId,
-            LocalDate fromDate,
-            LocalDate toDate
-    );
+	long countByTenantIdAndActiveTrue(Long tenantId);
 
-    /* =========================================================
-       DASHBOARD COUNTS
-    ========================================================= */
+	long countByTenantIdAndStatusAndActiveTrue(Long tenantId, SaasAppointmentStatus status);
 
-    long countByTenantIdAndActiveTrue(
-            Long tenantId
-    );
+	List<SaasAppointment> findByTenantIdAndDoctorAuthUserIdAndAppointmentDateAndStatusIn(Long tenantId,
+			Long doctorAuthUserId, LocalDate appointmentDate, List<SaasAppointmentStatus> statuses);
 
-    long countByTenantIdAndStatusAndActiveTrue(
-            Long tenantId,
-            SaasAppointmentStatus status
-    );
+	boolean existsByTenantIdAndDoctorAuthUserIdAndAppointmentDateAndAppointmentTimeAndStatusIn(Long tenantId,
+			Long doctorAuthUserId, LocalDate appointmentDate, LocalTime appointmentTime,
+			List<SaasAppointmentStatus> statuses);
 
-    /* =========================================================
-       BOOKED SLOT METHODS
-    ========================================================= */
+	boolean existsByTenantIdAndDoctorAuthUserIdAndAppointmentDateAndAppointmentTimeAndStatusInAndIdNot(Long tenantId,
+			Long doctorAuthUserId, LocalDate appointmentDate, LocalTime appointmentTime,
+			List<SaasAppointmentStatus> statuses, Long appointmentId);
 
-    List<SaasAppointment>
-    findByTenantIdAndDoctorAuthUserIdAndAppointmentDateAndStatusIn(
-            Long tenantId,
-            Long doctorAuthUserId,
-            LocalDate appointmentDate,
-            List<SaasAppointmentStatus> statuses
-    );
-
-    boolean existsByTenantIdAndDoctorAuthUserIdAndAppointmentDateAndAppointmentTimeAndStatusIn(
-            Long tenantId,
-            Long doctorAuthUserId,
-            LocalDate appointmentDate,
-            LocalTime appointmentTime,
-            List<SaasAppointmentStatus> statuses
-    );
-
-    boolean existsByTenantIdAndDoctorAuthUserIdAndAppointmentDateAndAppointmentTimeAndStatusInAndIdNot(
-            Long tenantId,
-            Long doctorAuthUserId,
-            LocalDate appointmentDate,
-            LocalTime appointmentTime,
-            List<SaasAppointmentStatus> statuses,
-            Long appointmentId
-    );
-    
-    void deleteByTenantId(Long tenantId);
+	void deleteByTenantId(Long tenantId);
 }

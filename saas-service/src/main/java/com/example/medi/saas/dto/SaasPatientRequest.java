@@ -16,6 +16,8 @@ public class SaasPatientRequest {
     private String email;
 
     private String gender;
+    
+    private String password;
 
     private LocalDate dateOfBirth;
 
