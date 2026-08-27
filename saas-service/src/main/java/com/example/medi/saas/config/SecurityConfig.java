@@ -183,7 +183,7 @@ public class SecurityConfig {
 						.hasAnyRole("HOSPITAL", "DOCTOR", "SAAS_STAFF", "PATIENT")
 
 						.requestMatchers(HttpMethod.POST, "/saas/appointments")
-						.hasAnyRole("HOSPITAL", "DOCTOR", "SAAS_STAFF")
+						.hasAnyRole("HOSPITAL", "DOCTOR", "SAAS_STAFF" , "PATIENT")
 
 						.requestMatchers("/saas/appointments/**")
 						.hasAnyRole("HOSPITAL", "DOCTOR", "SAAS_STAFF", "PATIENT")

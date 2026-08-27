@@ -914,7 +914,7 @@ async function createOfflineAppointment(
 			function() {
 
 				window.location.href =
-					"/saas/patient/appointments";
+					"/saas/patient/my-appointments";
 
 			},
 			1200

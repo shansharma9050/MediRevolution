@@ -103,6 +103,29 @@ public class SaasAppointmentController {
 		return appointmentService.cancelAppointment(tenantId, appointmentId);
 	}
 
+	/*
+	 * ========================================================= PATIENT DELETE
+	 * EXPIRED APPOINTMENT =========================================================
+	 *
+	 * Patient sirf apne expired appointment ko remove kar sakta hai. Ye normal
+	 * workspace DELETE permission par depend nahi karega.
+	 *
+	 */
+	@DeleteMapping("/patient/{appointmentId}")
+	public ResponseEntity<?> deleteExpiredPatientAppointment(@PathVariable Long appointmentId,
+			@RequestParam Long tenantId) {
+
+		try {
+
+			return ResponseEntity.ok(appointmentService.deleteExpiredPatientAppointment(tenantId, appointmentId));
+
+		} catch (RuntimeException e) {
+
+			return ResponseEntity.badRequest()
+					.body(Map.of("message", e.getMessage() == null ? "Unable to delete appointment." : e.getMessage()));
+		}
+	}
+
 	@GetMapping("/payment/verify")
 	public ResponseEntity<?> verifyOnlinePayment(@RequestParam Long appointmentId,
 			@RequestParam String merchantOrderId) {

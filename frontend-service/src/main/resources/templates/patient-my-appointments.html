@@ -21,98 +21,1271 @@
 
 	<link th:href="@{/css/module-shell.css}" rel="stylesheet">
 
+
+	<style>
+		/* =====================================================
+           MEDIREVOLUTION PATIENT APPOINTMENTS
+           INTERNAL PAGE CSS
+           ===================================================== */
+
+		:root {
+
+			--mr-primary: #05285f;
+			--mr-primary-light: #0b3d8f;
+			--mr-cyan: #08c7d4;
+			--mr-lime: #b8f267;
+
+			--mr-text: #1f2937;
+			--mr-muted: #6b7280;
+
+			--mr-border: #e4e9ef;
+			--mr-soft-bg: #f6faff;
+
+			--mr-white: #ffffff;
+
+			--mr-success: #198754;
+			--mr-warning: #ffc107;
+			--mr-danger: #dc3545;
+			--mr-info: #0dcaf0;
+
+			--mr-shadow:
+				0 10px 30px rgba(5, 40, 95, 0.08);
+
+			--mr-shadow-hover:
+				0 18px 40px rgba(5, 40, 95, 0.14);
+		}
+
+
+		/* =====================================================
+           PAGE BACKGROUND
+           ===================================================== */
+
+		.saas-patient-my-appointments-body {
+
+			min-height: 100vh;
+
+			background:
+				linear-gradient(180deg,
+					#f3f8ff 0%,
+					#f8fbff 50%,
+					#ffffff 100%);
+		}
+
+
+		/* =====================================================
+           MAIN CONTENT
+           ===================================================== */
+
+		.saas-patient-my-appointments-main {
+
+			padding-bottom: 50px;
+		}
+
+
+		/* =====================================================
+           HERO
+           ===================================================== */
+
+		.patient-appointments-hero {
+
+			position: relative;
+
+			overflow: hidden;
+
+			margin-bottom: 26px;
+
+			padding: 34px 34px;
+
+			border-radius: 24px;
+
+			background:
+				linear-gradient(135deg,
+					#05285f 0%,
+					#084583 48%,
+					#08c7d4 100%);
+
+			box-shadow:
+				0 18px 42px rgba(5, 40, 95, 0.17);
+		}
+
+
+		.patient-appointments-hero::before {
+
+			content: "";
+
+			position: absolute;
+
+			width: 260px;
+			height: 260px;
+
+			top: -130px;
+			right: -70px;
+
+			border-radius: 50%;
+
+			background:
+				rgba(255, 255, 255, 0.09);
+		}
+
+
+		.patient-appointments-hero::after {
+
+			content: "";
+
+			position: absolute;
+
+			width: 170px;
+			height: 170px;
+
+			right: 170px;
+			bottom: -100px;
+
+			border-radius: 50%;
+
+			background:
+				rgba(184, 242, 103, 0.10);
+		}
+
+
+		.patient-appointments-hero-content {
+
+			position: relative;
+
+			z-index: 2;
+		}
+
+
+		.patient-appointments-kicker {
+
+			display: inline-flex;
+
+			align-items: center;
+
+			gap: 8px;
+
+			padding: 7px 14px;
+
+			border-radius: 999px;
+
+			border:
+				1px solid rgba(255, 255, 255, 0.20);
+
+			background:
+				rgba(255, 255, 255, 0.12);
+
+			color:
+				#ffffff;
+
+			font-size:
+				0.74rem;
+
+			font-weight:
+				800;
+
+			letter-spacing:
+				0.08em;
+
+			text-transform:
+				uppercase;
+		}
+
+
+		.patient-appointments-kicker i {
+
+			color:
+				var(--mr-lime);
+
+			font-size:
+				0.9rem;
+		}
+
+
+		.patient-appointments-hero h1 {
+
+			margin:
+				17px 0 10px;
+
+			color:
+				#ffffff;
+
+			font-size:
+				clamp(1.8rem, 3vw, 2.45rem);
+
+			line-height:
+				1.15;
+
+			font-weight:
+				800;
+
+			letter-spacing:
+				-0.03em;
+		}
+
+
+		.patient-appointments-hero p {
+
+			max-width:
+				760px;
+
+			margin:
+				0;
+
+			color:
+				rgba(255, 255, 255, 0.82);
+
+			font-size:
+				0.98rem;
+
+			line-height:
+				1.7;
+		}
+
+
+		/* =====================================================
+           MESSAGE BOX
+           ===================================================== */
+
+		#msg {
+
+			margin-bottom:
+				18px;
+		}
+
+
+		#msg .alert {
+
+			border:
+				0;
+
+			border-radius:
+				14px;
+
+			box-shadow:
+				0 7px 22px rgba(5, 40, 95, 0.07);
+		}
+
+
+		/* =====================================================
+           APPOINTMENT CARD
+           ===================================================== */
+
+		.patient-appointments-card {
+
+			overflow:
+				hidden;
+
+			border:
+				1px solid rgba(5, 40, 95, 0.07);
+
+			border-radius:
+				22px;
+
+			background:
+				var(--mr-white);
+
+			box-shadow:
+				var(--mr-shadow);
+		}
+
+
+		/* =====================================================
+           CARD HEADER
+           ===================================================== */
+
+		.patient-appointments-card-header {
+
+			padding:
+				22px 24px;
+
+			border-bottom:
+				1px solid var(--mr-border);
+
+			background:
+				linear-gradient(180deg,
+					#ffffff 0%,
+					#f8fcff 100%);
+		}
+
+
+		.patient-appointments-header-label {
+
+			display:
+				block;
+
+			color:
+				var(--mr-muted);
+
+			font-size:
+				0.72rem;
+
+			font-weight:
+				800;
+
+			letter-spacing:
+				0.08em;
+
+			text-transform:
+				uppercase;
+		}
+
+
+		.patient-appointments-workspace {
+
+			margin:
+				5px 0 0;
+
+			color:
+				var(--mr-primary);
+
+			font-size:
+				1.05rem;
+
+			font-weight:
+				800;
+		}
+
+
+		/* =====================================================
+           REFRESH BUTTON
+           ===================================================== */
+
+		.patient-appointments-refresh {
+
+			display:
+				inline-flex;
+
+			align-items:
+				center;
+
+			justify-content:
+				center;
+
+			gap:
+				7px;
+
+			padding:
+				9px 15px;
+
+			border:
+				1px solid rgba(5, 40, 95, 0.16);
+
+			border-radius:
+				12px;
+
+			background:
+				#ffffff;
+
+			color:
+				var(--mr-primary);
+
+			font-size:
+				0.82rem;
+
+			font-weight:
+				700;
+
+			transition:
+				all 0.2s ease;
+		}
+
+
+		.patient-appointments-refresh:hover {
+
+			color:
+				#ffffff;
+
+			background:
+				var(--mr-primary);
+
+			border-color:
+				var(--mr-primary);
+
+			transform:
+				translateY(-1px);
+
+			box-shadow:
+				0 8px 20px rgba(5, 40, 95, 0.15);
+		}
+
+
+		.patient-appointments-refresh i {
+
+			transition:
+				transform 0.3s ease;
+		}
+
+
+		.patient-appointments-refresh:hover i {
+
+			transform:
+				rotate(180deg);
+		}
+
+
+		/* =====================================================
+           TABLE
+           ===================================================== */
+
+		.patient-appointments-table-wrapper {
+
+			background:
+				#ffffff;
+
+			overflow-x:
+				auto;
+		}
+
+
+		.patient-appointments-table {
+
+			min-width:
+				900px;
+
+			margin:
+				0;
+
+			border-collapse:
+				separate;
+
+			border-spacing:
+				0;
+		}
+
+
+		/* =====================================================
+           TABLE HEADER
+           ===================================================== */
+
+		.patient-appointments-table thead th {
+
+			padding:
+				15px 14px;
+
+			border-bottom:
+				1px solid #dfe7f0;
+
+			background:
+				#f3f7fb;
+
+			color:
+				var(--mr-primary);
+
+			font-size:
+				0.71rem;
+
+			font-weight:
+				800;
+
+			letter-spacing:
+				0.06em;
+
+			text-transform:
+				uppercase;
+
+			white-space:
+				nowrap;
+		}
+
+
+		/* =====================================================
+           TABLE BODY
+           ===================================================== */
+
+		.patient-appointments-table tbody td {
+
+			padding:
+				17px 14px;
+
+			border-bottom:
+				1px solid #edf1f5;
+
+			color:
+				var(--mr-text);
+
+			vertical-align:
+				middle;
+		}
+
+
+		.patient-appointments-table tbody tr {
+
+			transition:
+				background-color 0.2s ease;
+		}
+
+
+		.patient-appointments-table tbody tr:hover {
+
+			background:
+				#f8fcff;
+		}
+
+
+		.patient-appointments-table tbody tr:last-child td {
+
+			border-bottom:
+				0;
+		}
+
+
+		/* =====================================================
+           DOCTOR
+           ===================================================== */
+
+		.patient-doctor-name {
+
+			color:
+				var(--mr-primary);
+
+			font-weight:
+				800;
+		}
+
+
+		.patient-doctor-meta {
+
+			margin-top:
+				3px;
+
+			color:
+				var(--mr-muted);
+
+			font-size:
+				0.76rem;
+		}
+
+
+		/* =====================================================
+           DATE
+           ===================================================== */
+
+		.patient-appointment-date {
+
+			color:
+				var(--mr-text);
+
+			font-weight:
+				800;
+		}
+
+
+		/* =====================================================
+           TIME
+           ===================================================== */
+
+		.patient-appointment-time {
+
+			display:
+				inline-flex;
+
+			align-items:
+				center;
+
+			gap:
+				6px;
+
+			padding:
+				7px 10px;
+
+			border-radius:
+				10px;
+
+			background:
+				#eef8ff;
+
+			color:
+				var(--mr-primary);
+
+			font-size:
+				0.81rem;
+
+			font-weight:
+				800;
+		}
+
+
+		.patient-appointment-time i {
+
+			color:
+				var(--mr-cyan);
+		}
+
+
+		/* =====================================================
+           BADGES
+           ===================================================== */
+
+		.patient-appointments-table .badge {
+
+			display:
+				inline-flex;
+
+			align-items:
+				center;
+
+			gap:
+				5px;
+
+			padding:
+				7px 10px;
+
+			border-radius:
+				999px;
+
+			font-size:
+				0.68rem;
+
+			font-weight:
+				800;
+
+			white-space:
+				nowrap;
+		}
+
+
+		/* =====================================================
+           JOIN MEETING
+           ===================================================== */
+
+		.patient-join-meeting-btn {
+
+			display:
+				inline-flex;
+
+			align-items:
+				center;
+
+			justify-content:
+				center;
+
+			gap:
+				6px;
+
+			min-width:
+				88px;
+
+			padding:
+				8px 12px;
+
+			border:
+				0;
+
+			border-radius:
+				11px;
+
+			background:
+				linear-gradient(135deg,
+					#198754,
+					#20a464);
+
+			color:
+				#ffffff;
+
+			font-size:
+				0.76rem;
+
+			font-weight:
+				800;
+
+			text-decoration:
+				none;
+
+			box-shadow:
+				0 7px 16px rgba(25, 135, 84, 0.18);
+
+			transition:
+				all 0.2s ease;
+		}
+
+
+		.patient-join-meeting-btn:hover {
+
+			color:
+				#ffffff;
+
+			transform:
+				translateY(-1px);
+
+			box-shadow:
+				0 10px 20px rgba(25, 135, 84, 0.24);
+		}
+
+
+		/* =====================================================
+           DELETE APPOINTMENT
+           ===================================================== */
+
+		.patient-delete-appointment-btn {
+
+			display:
+				inline-flex;
+
+			align-items:
+				center;
+
+			justify-content:
+				center;
+
+			gap:
+				6px;
+
+			padding:
+				8px 12px;
+
+			border:
+				1px solid rgba(220, 53, 69, 0.25);
+
+			border-radius:
+				11px;
+
+			background:
+				#fff7f8;
+
+			color:
+				var(--mr-danger);
+
+			font-size:
+				0.76rem;
+
+			font-weight:
+				800;
+
+			transition:
+				all 0.2s ease;
+		}
+
+
+		.patient-delete-appointment-btn:hover {
+
+			color:
+				#ffffff;
+
+			background:
+				var(--mr-danger);
+
+			border-color:
+				var(--mr-danger);
+
+			transform:
+				translateY(-1px);
+
+			box-shadow:
+				0 8px 18px rgba(220, 53, 69, 0.18);
+		}
+
+
+		/* =====================================================
+           EMPTY STATE
+           ===================================================== */
+
+		.patient-appointments-empty {
+
+			padding:
+				70px 25px;
+
+			text-align:
+				center;
+		}
+
+
+		.patient-appointments-empty-icon {
+
+			width:
+				78px;
+
+			height:
+				78px;
+
+			margin:
+				0 auto 18px;
+
+			display:
+				flex;
+
+			align-items:
+				center;
+
+			justify-content:
+				center;
+
+			border-radius:
+				22px;
+
+			background:
+				linear-gradient(135deg,
+					#edf7ff,
+					#e8fbfc);
+
+			color:
+				var(--mr-primary);
+
+			font-size:
+				2rem;
+		}
+
+
+		.patient-appointments-empty h4 {
+
+			margin-bottom:
+				8px;
+
+			color:
+				var(--mr-primary);
+
+			font-weight:
+				800;
+		}
+
+
+		.patient-appointments-empty p {
+
+			max-width:
+				500px;
+
+			margin:
+				0 auto;
+
+			color:
+				var(--mr-muted);
+
+			line-height:
+				1.7;
+		}
+
+
+		/* =====================================================
+           LOADING
+           ===================================================== */
+
+		.patient-appointments-loading {
+
+			padding:
+				65px 20px;
+
+			text-align:
+				center;
+		}
+
+
+		.patient-appointments-loading .spinner-border {
+
+			width:
+				2.3rem;
+
+			height:
+				2.3rem;
+
+			border-width:
+				0.22em;
+		}
+
+
+		.patient-appointments-loading-text {
+
+			margin-top:
+				13px;
+
+			color:
+				var(--mr-muted);
+
+			font-size:
+				0.88rem;
+
+			font-weight:
+				600;
+		}
+
+
+		/* =====================================================
+           ERROR
+           ===================================================== */
+
+		.patient-appointments-error {
+
+			padding:
+				60px 20px;
+
+			text-align:
+				center;
+		}
+
+
+		.patient-appointments-error i {
+
+			color:
+				var(--mr-danger);
+
+			font-size:
+				2.4rem;
+
+			margin-bottom:
+				12px;
+		}
+
+
+		.patient-appointments-error h5 {
+
+			color:
+				var(--mr-primary);
+
+			font-weight:
+				800;
+		}
+
+
+		/* =====================================================
+           ACTION CELL
+           ===================================================== */
+
+		.patient-appointment-actions {
+
+			display:
+				flex;
+
+			flex-wrap:
+				wrap;
+
+			align-items:
+				center;
+
+			gap:
+				7px;
+		}
+
+
+		/* =====================================================
+           MOBILE
+           ===================================================== */
+
+		@media (max-width: 991.98px) {
+
+			.patient-appointments-hero {
+
+				padding:
+					28px;
+			}
+
+			.patient-appointments-card-header {
+
+				padding:
+					20px;
+			}
+
+			.patient-appointments-table thead th {
+
+				font-size:
+					0.67rem;
+			}
+
+			.patient-appointments-table tbody td {
+
+				padding:
+					14px 12px;
+			}
+		}
+
+
+		@media (max-width: 767.98px) {
+
+			.patient-appointments-hero {
+
+				padding:
+					23px;
+
+				border-radius:
+					18px;
+			}
+
+			.patient-appointments-hero h1 {
+
+				font-size:
+					1.65rem;
+			}
+
+			.patient-appointments-hero p {
+
+				font-size:
+					0.88rem;
+			}
+
+			.patient-appointments-card {
+
+				border-radius:
+					17px;
+			}
+
+			.patient-appointments-card-header {
+
+				flex-direction:
+					column;
+
+				align-items:
+					stretch !important;
+
+				gap:
+					14px;
+			}
+
+			.patient-appointments-refresh {
+
+				width:
+					100%;
+			}
+
+			.patient-appointments-table {
+
+				min-width:
+					900px;
+			}
+		}
+
+
+		@media (max-width: 575.98px) {
+
+			.patient-appointments-hero {
+
+				margin-bottom:
+					18px;
+			}
+
+			.patient-appointments-kicker {
+
+				font-size:
+					0.66rem;
+			}
+
+			.patient-appointments-card-header {
+
+				padding:
+					16px;
+			}
+		}
+
+
+		/* =====================================================
+           FOCUS / ACCESSIBILITY
+           ===================================================== */
+
+		.patient-appointments-refresh:focus-visible,
+		.patient-join-meeting-btn:focus-visible,
+		.patient-delete-appointment-btn:focus-visible {
+
+			outline:
+				3px solid rgba(8, 199, 212, 0.30);
+
+			outline-offset:
+				2px;
+		}
+
+
+		/* =====================================================
+           REDUCED MOTION
+           ===================================================== */
+
+		@media (prefers-reduced-motion: reduce) {
+
+			.patient-appointments-refresh,
+			.patient-join-meeting-btn,
+			.patient-delete-appointment-btn,
+			.patient-appointments-table tbody tr {
+
+				transition:
+					none;
+			}
+
+			.patient-appointments-refresh i {
+
+				transition:
+					none;
+			}
+		}
+	</style>
+
 </head>
 
-<body class="dashboard-body saas-dashboard-body">
+
+<body class="dashboard-body saas-dashboard-body saas-patient-my-appointments-body">
+
+
+	<!-- =====================================================
+         TOP NAVBAR
+         ===================================================== -->
 
 	<div th:replace="~{layout/saas-topnavbar :: saasTopnavbar}"></div>
 
+
+	<!-- =====================================================
+         SAAS SIDEBAR
+         ===================================================== -->
+
 	<div th:replace="~{layout/saas-sidebar :: saasSidebar}"></div>
 
-	<main class="mr-main saas-main">
 
-		<section class="mb-4">
+	<!-- =====================================================
+         MAIN
+         ===================================================== -->
 
-			<div class="p-4 rounded-4 text-white" style="background:linear-gradient(135deg,#05285f,#08c7d4);">
+	<main class="mr-main saas-main saas-patient-my-appointments-main">
 
-				<div class="small text-uppercase fw-bold">
+
+		<!-- =================================================
+             HERO
+             ================================================= -->
+
+		<section class="patient-appointments-hero">
+
+			<div class="patient-appointments-hero-content">
+
+				<div class="patient-appointments-kicker">
+
+					<i class="bi bi-heart-pulse-fill"></i>
+
 					Patient Portal
+
 				</div>
 
-				<h1 class="fw-bold mb-2">
+
+				<h1>
 					My Appointments
 				</h1>
 
-				<p class="mb-0 text-white-50">
+
+				<p>
 					View your booked appointments,
-					payment status and online meeting links.
+					payment status and online consultation
+					meeting links from one place.
 				</p>
 
 			</div>
 
 		</section>
 
+
+		<!-- =================================================
+             MESSAGE
+             ================================================= -->
+
 		<div id="msg"></div>
 
-		<section class="mr-card">
 
-			<div class="d-flex justify-content-between
-                    align-items-center mb-3">
+		<!-- =================================================
+             APPOINTMENTS CARD
+             ================================================= -->
+
+		<section class="patient-appointments-card">
+
+
+			<!-- =============================================
+                 CARD HEADER
+                 ============================================= -->
+
+			<div class="patient-appointments-card-header
+                       d-flex
+                       justify-content-between
+                       align-items-center">
+
 
 				<div>
 
-					<small class="text-muted">
+					<span class="patient-appointments-header-label">
 						Workspace
-					</small>
+					</span>
 
-					<h5 id="tenantNameText" class="fw-bold text-primary mb-0">
+					<h5 id="tenantNameText" class="patient-appointments-workspace mb-0">
+
 						Your Workspace
+
 					</h5>
 
 				</div>
 
-				<button type="button" class="btn btn-outline-primary" onclick="loadMyPatientAppointments()">
 
-					<i class="bi bi-arrow-clockwise me-1"></i>
+				<button type="button" class="patient-appointments-refresh" onclick="loadMyPatientAppointments()">
+
+					<i class="bi bi-arrow-clockwise"></i>
+
 					Refresh
 
 				</button>
 
+
 			</div>
 
-			<div class="table-responsive">
 
-				<table class="table table-hover align-middle">
+			<!-- =============================================
+                 TABLE
+                 ============================================= -->
+
+			<div class="table-responsive patient-appointments-table-wrapper">
+
+
+				<table class="table align-middle patient-appointments-table">
+
 
 					<thead>
 
 						<tr>
 
-							<th>Date</th>
+							<th>
+								Date
+							</th>
 
-							<th>Doctor</th>
+							<th>
+								Doctor
+							</th>
 
-							<th>Time</th>
+							<th>
+								Time
+							</th>
 
-							<th>Type</th>
+							<th>
+								Type
+							</th>
 
-							<th>Payment</th>
+							<th>
+								Payment
+							</th>
 
-							<th>Status</th>
+							<th>
+								Status
+							</th>
 
-							<th>Meeting</th>
+							<th>
+								Meeting
+							</th>
+
+							<th>
+								Action
+							</th>
 
 						</tr>
 
 					</thead>
 
+
 					<tbody id="patientAppointmentsBody">
 
 						<tr>
 
-							<td colspan="7" class="text-center py-5">
+							<td colspan="8" class="text-center py-5">
 
-								Loading appointments...
+								<div class="patient-appointments-loading">
+
+									<div class="spinner-border text-primary" role="status">
+
+										<span class="visually-hidden">
+											Loading...
+										</span>
+
+									</div>
+
+									<div class="patient-appointments-loading-text">
+
+										Loading your appointments...
+
+									</div>
+
+								</div>
 
 							</td>
 
@@ -120,31 +1293,65 @@
 
 					</tbody>
 
+
 				</table>
 
 			</div>
 
+
 		</section>
 
+
 	</main>
+
+
+	<!-- =====================================================
+         BOOTSTRAP
+         ===================================================== -->
 
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
 	</script>
 
+
+	<!-- =====================================================
+         COMMON DASHBOARD
+         ===================================================== -->
+
 	<script th:src="@{/js/common-dashboard.js}">
 	</script>
+
+
+	<!-- =====================================================
+         MODULE SWITCH
+         ===================================================== -->
 
 	<script th:src="@{/js/module-switch.js}">
 	</script>
 
+
+	<!-- =====================================================
+         SAAS AUTH GUARD
+         ===================================================== -->
+
 	<script th:src="@{/js/saas-auth-guard.js}">
 	</script>
 
-	<script th:src="@{/js/saas-patient-my-appointments.js?v=1}">
+
+	<!-- =====================================================
+         PATIENT APPOINTMENTS JS
+         ===================================================== -->
+
+	<script th:src="@{/js/saas-patient-my-appointments.js?v=2}">
 	</script>
+
+
+	<!-- =====================================================
+         PWA
+         ===================================================== -->
 
 	<script th:src="@{/js/pwa.js}">
 	</script>
+
 
 </body>
 

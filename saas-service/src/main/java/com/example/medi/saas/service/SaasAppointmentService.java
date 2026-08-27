@@ -826,4 +826,150 @@ public class SaasAppointmentService {
 
 		validateSlotNotAlreadyBooked(tenantId, doctorAuthUserId, date, time, null);
 	}
+
+	/*
+	 * ========================================================= PATIENT DELETE
+	 * EXPIRED APPOINTMENT =========================================================
+	 *
+	 * Patient: 1. Sirf PATIENT role se call kar sakta hai. 2. Sirf apna appointment
+	 * delete kar sakta hai. 3. Appointment ka scheduled date/time expire hona
+	 * chahiye. 4. Physical DELETE nahi hoga. 5. active=false kiya jayega.
+	 *
+	 */
+	@Transactional
+	public ApiResponse deleteExpiredPatientAppointment(Long tenantId, Long appointmentId) {
+
+		if (tenantId == null) {
+			throw new RuntimeException("tenantId is required.");
+		}
+
+		if (appointmentId == null) {
+			throw new RuntimeException("Appointment id is required.");
+		}
+
+		/*
+		 * --------------------------------------------------------- PATIENT ROLE CHECK
+		 * ---------------------------------------------------------
+		 */
+		if (!isPatientRole()) {
+			throw new AccessDeniedException("Only patient can delete expired appointments.");
+		}
+
+		/*
+		 * --------------------------------------------------------- CURRENT LOGGED-IN
+		 * PATIENT ---------------------------------------------------------
+		 */
+		Long currentAuthUserId = getCurrentAuthUserId();
+
+		requireActiveTenantForPatient(tenantId);
+
+		/*
+		 * --------------------------------------------------------- FIND PATIENT
+		 * ---------------------------------------------------------
+		 *
+		 * Browser se patientId trust nahi kar rahe.
+		 */
+		SaasPatient patient = patientRepository.findByTenantIdAndAuthUserIdAndActiveTrue(tenantId, currentAuthUserId)
+				.orElseThrow(() -> new AccessDeniedException("Patient is not assigned to this workspace."));
+
+		/*
+		 * --------------------------------------------------------- FIND APPOINTMENT
+		 * ---------------------------------------------------------
+		 */
+		SaasAppointment appointment = appointmentRepository.findByIdAndTenantIdAndActiveTrue(appointmentId, tenantId)
+				.orElseThrow(() -> new RuntimeException("Appointment not found."));
+
+		/*
+		 * --------------------------------------------------------- OWNERSHIP CHECK
+		 * ---------------------------------------------------------
+		 */
+		if (!patient.getId().equals(appointment.getPatientId())) {
+
+			throw new AccessDeniedException("You cannot delete another patient's appointment.");
+		}
+
+		/*
+		 * --------------------------------------------------------- EXPIRED CHECK
+		 * ---------------------------------------------------------
+		 *
+		 * Example:
+		 *
+		 * 26 Aug 2026 10:00
+		 *
+		 * Current: 27 Aug 2026 12:00
+		 *
+		 * => expired
+		 *
+		 * Same date + past time: => expired
+		 *
+		 * Future date/time: => NOT expired
+		 */
+		if (!isAppointmentExpired(appointment)) {
+
+			throw new RuntimeException("Only expired appointments can be deleted.");
+		}
+
+		/*
+		 * --------------------------------------------------------- SOFT DELETE
+		 * ---------------------------------------------------------
+		 *
+		 * DB record remain karega. History/API active=true filter ki wajah se disappear
+		 * ho jayega.
+		 */
+		appointment.setActive(false);
+		appointment.touch();
+
+		appointmentRepository.save(appointment);
+
+		return new ApiResponse(true, "Expired appointment deleted successfully.");
+	}
+
+	/*
+	 * ========================================================= APPOINTMENT EXPIRY
+	 * CHECK =========================================================
+	 */
+	private boolean isAppointmentExpired(SaasAppointment appointment) {
+
+		if (appointment == null) {
+			return false;
+		}
+
+		if (appointment.getAppointmentDate() == null) {
+			return false;
+		}
+
+		if (appointment.getAppointmentTime() == null) {
+			return false;
+		}
+
+		LocalDate appointmentDate = appointment.getAppointmentDate();
+
+		LocalTime appointmentTime = normalizeTime(appointment.getAppointmentTime());
+
+		LocalDate today = LocalDate.now();
+
+		LocalTime now = normalizeTime(LocalTime.now());
+
+		/*
+		 * --------------------------------------------------------- DATE ALREADY PASSED
+		 * ---------------------------------------------------------
+		 */
+		if (appointmentDate.isBefore(today)) {
+			return true;
+		}
+
+		/*
+		 * --------------------------------------------------------- DATE IS TODAY +
+		 * TIME ALREADY PASSED ---------------------------------------------------------
+		 */
+		if (appointmentDate.equals(today) && appointmentTime.isBefore(now)) {
+			return true;
+		}
+
+		/*
+		 * --------------------------------------------------------- FUTURE APPOINTMENT
+		 * ---------------------------------------------------------
+		 */
+		return false;
+	}
 }

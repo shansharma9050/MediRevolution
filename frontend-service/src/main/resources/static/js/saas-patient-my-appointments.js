@@ -159,9 +159,7 @@ async function loadMyPatientAppointments() {
 	}
 }
 
-function renderPatientAppointments(
-	appointments
-) {
+function renderPatientAppointments(appointments) {
 
 	const tbody =
 		document.getElementById(
@@ -176,8 +174,7 @@ function renderPatientAppointments(
 
 		tbody.innerHTML = `
             <tr>
-
-                <td colspan="7"
+                <td colspan="8"
                     class="text-center py-5">
 
                     <i class="bi bi-calendar-x"
@@ -194,7 +191,6 @@ function renderPatientAppointments(
                     </div>
 
                 </td>
-
             </tr>
         `;
 
@@ -205,6 +201,25 @@ function renderPatientAppointments(
 		appointments.map(
 			function(appointment) {
 
+				/*
+				 * =================================================
+				 * CHECK EXPIRED
+				 * =================================================
+				 */
+				const expired =
+					isAppointmentExpired(
+						appointment.appointmentDate,
+						appointment.appointmentTime
+					);
+
+				/*
+				 * =================================================
+				 * MEETING BUTTON
+				 * =================================================
+				 *
+				 * Expired online appointment ke liye Join button
+				 * nahi dikhayenge.
+				 */
 				const meetingUrl =
 					getSafeHttpUrl(
 						appointment.meetingUrl
@@ -213,12 +228,9 @@ function renderPatientAppointments(
 				let meetingHtml = "-";
 
 				if (
-					appointment.status
-					=== "CONFIRMED"
-					&&
-					appointment.appointmentType
-					=== "ONLINE"
-					&&
+					!expired &&
+					appointment.status === "CONFIRMED" &&
+					appointment.appointmentType === "ONLINE" &&
 					meetingUrl
 				) {
 
@@ -236,10 +248,35 @@ function renderPatientAppointments(
                     `;
 				}
 
+				/*
+				 * =================================================
+				 * DELETE BUTTON
+				 * =================================================
+				 */
+				let actionHtml = "-";
+
+				if (expired) {
+
+					actionHtml = `
+                        <button
+                            type="button"
+                            class="btn btn-sm btn-outline-danger"
+                            onclick="deleteExpiredPatientAppointment(
+                                ${Number(appointment.id)}
+                            )">
+
+                            <i class="bi bi-trash3-fill me-1"></i>
+                            Delete
+
+                        </button>
+                    `;
+				}
+
 				return `
                     <tr>
 
                         <td>
+
                             <strong>
                                 ${formatDate(
 					appointment.appointmentDate
@@ -247,12 +284,11 @@ function renderPatientAppointments(
                             </strong>
 
                             <div class="small text-muted">
-
                                 ${safe(
 					appointment.doctorName
 				)}
-
                             </div>
+
                         </td>
 
                         <td>
@@ -260,44 +296,40 @@ function renderPatientAppointments(
                             <strong>
                                 Dr. ${safe(
 					appointment.doctorName
-				)
-					}
+				)}
                             </strong>
 
                             <div class="small text-muted">
-
                                 ${safe(
-						appointment.department
-					)}
-
+					appointment.department
+				)}
                             </div>
 
                         </td>
 
                         <td>
                             ${formatTime(
-						appointment.appointmentTime
-					)}
+					appointment.appointmentTime
+				)}
                         </td>
 
                         <td>
-                            ${appointment.appointmentType
-						=== "ONLINE"
 
+                            ${appointment.appointmentType === "ONLINE"
 						? `
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-camera-video-fill me-1"></i>
-                                            ONLINE
-                                        </span>
-                                    `
-
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-camera-video-fill me-1"></i>
+                                        ONLINE
+                                    </span>
+                                `
 						: `
-                                        <span class="badge bg-secondary">
-                                            <i class="bi bi-hospital-fill me-1"></i>
-                                            OFFLINE
-                                        </span>
-                                    `
+                                    <span class="badge bg-secondary">
+                                        <i class="bi bi-hospital-fill me-1"></i>
+                                        OFFLINE
+                                    </span>
+                                `
 					}
+
                         </td>
 
                         <td>
@@ -316,11 +348,208 @@ function renderPatientAppointments(
                             ${meetingHtml}
                         </td>
 
+                        <td>
+                            ${actionHtml}
+                        </td>
+
                     </tr>
                 `;
 			}
+		).join("");
+}
+
+
+function isAppointmentExpired(
+	appointmentDate,
+	appointmentTime
+) {
+
+	if (!appointmentDate || !appointmentTime) {
+		return false;
+	}
+
+	/*
+	 * Date
+	 */
+	const today =
+		new Date();
+
+	today.setHours(
+		0,
+		0,
+		0,
+		0
+	);
+
+	const appointmentDateObj =
+		new Date(
+			`${appointmentDate}T00:00:00`
+		);
+
+	if (
+		Number.isNaN(
+			appointmentDateObj.getTime()
 		)
-			.join("");
+	) {
+		return false;
+	}
+
+	/*
+	 * Appointment date already passed
+	 */
+	if (
+		appointmentDateObj < today
+	) {
+		return true;
+	}
+
+	/*
+	 * Future date
+	 */
+	if (
+		appointmentDateObj > today
+	) {
+		return false;
+	}
+
+	/*
+	 * Same date.
+	 * Now compare time.
+	 */
+	const parts =
+		String(appointmentTime)
+			.split(":");
+
+	const appointmentHour =
+		Number(parts[0]);
+
+	const appointmentMinute =
+		Number(parts[1]);
+
+	if (
+		!Number.isFinite(appointmentHour) ||
+		!Number.isFinite(appointmentMinute)
+	) {
+		return false;
+	}
+
+	const now =
+		new Date();
+
+	const currentMinutes =
+		now.getHours() * 60 +
+		now.getMinutes();
+
+	const appointmentMinutes =
+		appointmentHour * 60 +
+		appointmentMinute;
+
+	return appointmentMinutes <
+		currentMinutes;
+}
+
+async function deleteExpiredPatientAppointment(
+	appointmentId
+) {
+
+	if (!appointmentId) {
+		return;
+	}
+
+	const confirmed =
+		window.confirm(
+			"This appointment has already expired.\n\n" +
+			"Do you want to remove it from your appointment history?"
+		);
+
+	if (!confirmed) {
+		return;
+	}
+
+	const token =
+		localStorage.getItem("token");
+
+	const tenantId =
+		localStorage.getItem("tenantId");
+
+	if (!token) {
+
+		showMsg(
+			"Login token not found."
+		);
+
+		return;
+	}
+
+	if (!tenantId) {
+
+		showMsg(
+			"SaaS workspace is not selected."
+		);
+
+		return;
+	}
+
+	try {
+
+		const response =
+			await fetch(
+				`${API_BASE}/saas/appointments/patient/${encodeURIComponent(
+					appointmentId
+				)}?tenantId=${encodeURIComponent(
+					tenantId
+				)}`,
+				{
+					method: "DELETE",
+
+					headers: {
+						"Authorization":
+							"Bearer " + token,
+
+						"Accept":
+							"application/json"
+					}
+				}
+			);
+
+		const result =
+			await safeJson(response);
+
+		if (!response.ok) {
+
+			showMsg(
+				getApiErrorMessage(
+					result,
+					"Unable to delete appointment."
+				)
+			);
+
+			return;
+		}
+
+		showMsg(
+			getApiErrorMessage(
+				result,
+				"Expired appointment deleted successfully."
+			)
+		);
+
+		/*
+		 * Refresh appointment history
+		 */
+		await loadMyPatientAppointments();
+
+	} catch (error) {
+
+		console.error(
+			"Delete expired appointment error:",
+			error
+		);
+
+		showMsg(
+			"Unable to delete expired appointment."
+		);
+	}
 }
 
 function paymentBadge(
