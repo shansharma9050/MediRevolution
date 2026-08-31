@@ -120,7 +120,7 @@ function getApiBase() {
 		return API_BASE;
 	}
 
-	return "http://localhost:8080";
+	return "http://localhost:8090";
 }
 
 function getSaasTenantId() {

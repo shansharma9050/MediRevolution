@@ -1,0 +1,510 @@
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: medirevolution-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - medirevolution_postgres_data:/var/lib/postgresql/data
+    networks:
+      - medirevolution-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+
+  discovery-server:
+    build:
+      context: ./discovery-server
+    image: medirevolution-discovery
+    container_name: medirevolution-discovery
+    restart: unless-stopped
+    ports:
+      - "8761:8761"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      PORT: 8761
+
+      # Local Docker Eureka server
+      EUREKA_INSTANCE_HOSTNAME: medirevolution-discovery
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED: "true"
+      EUREKA_INSTANCE_SECURE_PORT_ENABLED: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT: 8761
+
+    networks:
+      - medirevolution-network
+
+
+  auth-service:
+    build:
+      context: ./auth-services
+    image: medirevolution-auth
+    container_name: medirevolution-auth
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      PORT: 8081
+
+      AUTH_DB_URL: jdbc:postgresql://medirevolution-postgres:5432/medirevolution_auth
+      AUTH_DB_USERNAME: postgres
+      AUTH_DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://medirevolution-discovery:8761/eureka/
+
+      EUREKA_INSTANCE_HOSTNAME: medirevolution-auth
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED: "true"
+      EUREKA_INSTANCE_SECURE_PORT_ENABLED: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT: 8081
+
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+
+    networks:
+      - medirevolution-network
+
+
+  billing-service:
+    build:
+      context: ./billing-service
+    image: medirevolution-billing
+    container_name: medirevolution-billing
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      PORT: 8080
+
+      BILLING_DB_URL: jdbc:postgresql://medirevolution-postgres:5432/medirevolution_billing
+      BILLING_DB_USERNAME: postgres
+      BILLING_DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://medirevolution-discovery:8761/eureka/
+
+      EUREKA_INSTANCE_HOSTNAME: medirevolution-billing
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED: "true"
+      EUREKA_INSTANCE_SECURE_PORT_ENABLED: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT: 8080
+
+      JWT_SECRET: ${JWT_SECRET}
+
+      PHONEPE_BASE_URL: ${PHONEPE_BASE_URL}
+      PHONEPE_CLIENT_ID: ${PHONEPE_CLIENT_ID}
+      PHONEPE_CLIENT_SECRET: ${PHONEPE_CLIENT_SECRET}
+      PHONEPE_CLIENT_VERSION: ${PHONEPE_CLIENT_VERSION:-1}
+
+      PAYMENT_REDIRECT_URL: ${BILLING_PAYMENT_REDIRECT_URL}
+
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
+      SAAS_SERVICE_URL: http://medirevolution-saas:8095
+
+    networks:
+      - medirevolution-network
+
+
+  doctor-service:
+    build:
+      context: ./doctor-service
+    image: medirevolution-doctor
+    container_name: medirevolution-doctor
+    restart: unless-stopped
+    ports:
+      - "8083:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      PORT: 8080
+
+      DOC_DB_URL: jdbc:postgresql://medirevolution-postgres:5432/medirevolution_doctor
+      DOC_DB_USERNAME: postgres
+      DOC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://medirevolution-discovery:8761/eureka/
+
+      EUREKA_INSTANCE_HOSTNAME: medirevolution-doctor
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED: "true"
+      EUREKA_INSTANCE_SECURE_PORT_ENABLED: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT: 8080
+
+      JWT_SECRET: ${JWT_SECRET}
+
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+
+      PHONEPE_BASE_URL: ${PHONEPE_BASE_URL}
+      PHONEPE_CLIENT_ID: ${PHONEPE_CLIENT_ID}
+      PHONEPE_CLIENT_SECRET: ${PHONEPE_CLIENT_SECRET}
+      PHONEPE_CLIENT_VERSION: ${PHONEPE_CLIENT_VERSION:-1}
+
+      PAYMENT_REDIRECT_URL: ${DOCTOR_PAYMENT_REDIRECT_URL}
+
+    networks:
+      - medirevolution-network
+
+
+  hospital-service:
+    build:
+      context: ./hospital-service
+    image: medirevolution-hospital
+    container_name: medirevolution-hospital
+    restart: unless-stopped
+    ports:
+      - "8084:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      PORT: 8080
+
+      HOS_DB_URL: jdbc:postgresql://medirevolution-postgres:5432/medirevolution_hospital
+      HOS_DB_USERNAME: postgres
+      HOS_DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://medirevolution-discovery:8761/eureka/
+
+      EUREKA_INSTANCE_HOSTNAME: medirevolution-hospital
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED: "true"
+      EUREKA_INSTANCE_SECURE_PORT_ENABLED: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT: 8080
+
+      JWT_SECRET: ${JWT_SECRET}
+
+      PHONEPE_BASE_URL: ${PHONEPE_BASE_URL}
+      PHONEPE_CLIENT_ID: ${PHONEPE_CLIENT_ID}
+      PHONEPE_CLIENT_SECRET: ${PHONEPE_CLIENT_SECRET}
+      PHONEPE_CLIENT_VERSION: ${PHONEPE_CLIENT_VERSION:-1}
+
+      PAYMENT_REDIRECT_URL: ${HOSPITAL_PAYMENT_REDIRECT_URL}
+
+    networks:
+      - medirevolution-network
+
+
+  medicine-service:
+    build:
+      context: ./medicine-service
+    image: medirevolution-medicine
+    container_name: medirevolution-medicine
+    restart: unless-stopped
+    ports:
+      - "8085:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      PORT: 8080
+
+      MED_DB_URL: jdbc:postgresql://medirevolution-postgres:5432/medirevolution_medicine
+      MED_DB_USERNAME: postgres
+      MED_DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://medirevolution-discovery:8761/eureka/
+
+      EUREKA_INSTANCE_HOSTNAME: medirevolution-medicine
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED: "true"
+      EUREKA_INSTANCE_SECURE_PORT_ENABLED: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT: 8080
+
+      JWT_SECRET: ${JWT_SECRET}
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
+
+    networks:
+      - medirevolution-network
+
+
+  notification-service:
+    build:
+      context: ./notification-service
+    image: medirevolution-notification
+    container_name: medirevolution-notification
+    restart: unless-stopped
+    ports:
+      - "8086:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      PORT: 8080
+
+      NOT_DB_URL: jdbc:postgresql://medirevolution-postgres:5432/medirevolution_notification
+      NOT_DB_USERNAME: postgres
+      NOT_DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://medirevolution-discovery:8761/eureka/
+
+      EUREKA_INSTANCE_HOSTNAME: medirevolution-notification
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED: "true"
+      EUREKA_INSTANCE_SECURE_PORT_ENABLED: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT: 8080
+
+      JWT_SECRET: ${JWT_SECRET}
+
+    networks:
+      - medirevolution-network
+
+
+  order-service:
+    build:
+      context: ./order-service
+    image: medirevolution-order
+    container_name: medirevolution-order
+    restart: unless-stopped
+    ports:
+      - "8087:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      PORT: 8080
+
+      ORD_DB_URL: jdbc:postgresql://medirevolution-postgres:5432/medirevolution_order
+      ORD_DB_USERNAME: postgres
+      ORD_DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://medirevolution-discovery:8761/eureka/
+
+      EUREKA_INSTANCE_HOSTNAME: medirevolution-order
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED: "true"
+      EUREKA_INSTANCE_SECURE_PORT_ENABLED: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT: 8080
+
+      JWT_SECRET: ${JWT_SECRET}
+
+    networks:
+      - medirevolution-network
+
+
+  user-service:
+    build:
+      context: ./user-service
+    image: medirevolution-user
+    container_name: medirevolution-user
+    restart: unless-stopped
+    ports:
+      - "8088:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      PORT: 8080
+
+      USER_DB_URL: jdbc:postgresql://medirevolution-postgres:5432/medirevolution_user
+      USER_DB_USERNAME: postgres
+      USER_DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://medirevolution-discovery:8761/eureka/
+
+      EUREKA_INSTANCE_HOSTNAME: medirevolution-user
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED: "true"
+      EUREKA_INSTANCE_SECURE_PORT_ENABLED: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT: 8080
+
+      JWT_SECRET: ${JWT_SECRET}
+
+      UPLOAD_DIR: /app/uploads/user-service
+
+    volumes:
+      - medirevolution_user_uploads:/app/uploads/user-service
+
+    networks:
+      - medirevolution-network
+
+
+  saas-service:
+    build:
+      context: ./saas-service
+    image: medirevolution-saas
+    container_name: medirevolution-saas
+    restart: unless-stopped
+    ports:
+      - "8095:8095"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      discovery-server:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      medicine-service:
+        condition: service_started
+      billing-service:
+        condition: service_started
+    environment:
+      PORT: 8095
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://medirevolution-postgres:5432/medirevolution_saas
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://medirevolution-discovery:8761/eureka/
+
+      EUREKA_INSTANCE_HOSTNAME: medirevolution-saas
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED: "true"
+      EUREKA_INSTANCE_SECURE_PORT_ENABLED: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT: 8095
+
+      JWT_SECRET: ${JWT_SECRET}
+      INTERNAL_SERVICE_KEY: ${INTERNAL_SERVICE_KEY}
+
+      BILLING_SERVICE_URL: http://medirevolution-billing:8080
+
+      PHONEPE_BASE_URL: ${PHONEPE_BASE_URL}
+      PHONEPE_CLIENT_ID: ${PHONEPE_CLIENT_ID}
+      PHONEPE_CLIENT_SECRET: ${PHONEPE_CLIENT_SECRET}
+      PHONEPE_CLIENT_VERSION: ${PHONEPE_CLIENT_VERSION:-1}
+
+      PAYMENT_REDIRECT_URL: ${SAAS_PAYMENT_REDIRECT_URL}
+
+    networks:
+      - medirevolution-network
+
+
+  frontend-service:
+    build:
+      context: ./frontend-service
+    image: medirevolution-frontend
+    container_name: medirevolution-frontend
+    restart: unless-stopped
+    ports:
+      - "8089:8080"
+    depends_on:
+      discovery-server:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      PORT: 8080
+
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://medirevolution-discovery:8761/eureka/
+
+      EUREKA_INSTANCE_HOSTNAME: medirevolution-frontend
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED: "true"
+      EUREKA_INSTANCE_SECURE_PORT_ENABLED: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT: 8080
+
+    networks:
+      - medirevolution-network
+
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    image: medirevolution-gateway
+    container_name: medirevolution-gateway
+    restart: unless-stopped
+    ports:
+      - "8090:8080"
+    depends_on:
+      discovery-server:
+        condition: service_started
+      auth-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      medicine-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+      billing-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      doctor-service:
+        condition: service_started
+      hospital-service:
+        condition: service_started
+      saas-service:
+        condition: service_started
+      frontend-service:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      PORT: 8080
+
+      AUTH_SERVICE_URL: http://medirevolution-auth:8081
+      USER_SERVICE_URL: http://medirevolution-user:8080
+      MEDICINE_SERVICE_URL: http://medirevolution-medicine:8080
+      ORDER_SERVICE_URL: http://medirevolution-order:8080
+      BILLING_SERVICE_URL: http://medirevolution-billing:8080
+      NOTIFICATION_SERVICE_URL: http://medirevolution-notification:8080
+      DOCTOR_SERVICE_URL: http://medirevolution-doctor:8080
+      HOSPITAL_SERVICE_URL: http://medirevolution-hospital:8080
+
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://medirevolution-discovery:8761/eureka/
+
+      EUREKA_INSTANCE_HOSTNAME: medirevolution-gateway
+      EUREKA_INSTANCE_PREFER_IP_ADDRESS: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT_ENABLED: "true"
+      EUREKA_INSTANCE_SECURE_PORT_ENABLED: "false"
+      EUREKA_INSTANCE_NON_SECURE_PORT: 8080
+
+      FRONTEND_URL: http://localhost:8089
+
+    networks:
+      - medirevolution-network
+
+
+volumes:
+  medirevolution_postgres_data:
+    name: medirevolution_postgres_data
+    external: true
+
+  medirevolution_user_uploads:
+    name: medirevolution_user_uploads
+
+
+networks:
+  medirevolution-network:
+    name: medirevolution-network
+    external: true

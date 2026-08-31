@@ -1,6 +1,6 @@
 /* const API_BASE_URL = "https://medirevolution-api-gateway.onrender.com"; */
 
-const API_BASE_URL = "http://localhost:8080";
+const API_BASE_URL = "http://localhost:8090";
 
 let emailVerified = false;
 let verifiedEmail = "";

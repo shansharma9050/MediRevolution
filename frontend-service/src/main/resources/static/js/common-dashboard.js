@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8080";
+const API_BASE = "http://localhost:8090";
 /* const API_BASE = "https://medirevolution-api-gateway.onrender.com"; */
 
 window.SAAS_PERMISSIONS = window.SAAS_PERMISSIONS || [];
