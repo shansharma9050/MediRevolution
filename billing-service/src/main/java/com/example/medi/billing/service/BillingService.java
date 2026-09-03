@@ -4,6 +4,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.medi.billing.client.OrderClient;
 import com.example.medi.billing.dto.InvoiceItemResponse;
@@ -113,6 +114,18 @@ public class BillingService {
 
         return invoiceRepository.findByOrderNumber(orderNo)
                 .orElseThrow(() -> new RuntimeException("Invoice not found"));
+    }
+    
+    @Transactional(readOnly = true)
+    public Invoice getInvoiceForPdf(String orderNo) {
+
+        return invoiceRepository
+                .findByOrderNumberWithItems(orderNo)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Invoice not found for order: " + orderNo
+                        )
+                );
     }
 
     @Cacheable(value = "invoiceResponseById", key = "#invoice.id")

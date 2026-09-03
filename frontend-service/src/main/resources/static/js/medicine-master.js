@@ -397,8 +397,8 @@ async function addMedicine() {
 
 	try {
 		const response =
-			await fetch(
-				`${API_BASE}/medicines`,
+    await fetch(
+        `${API_BASE}/medicines/platform`,
 				{
 					method: "POST",
 

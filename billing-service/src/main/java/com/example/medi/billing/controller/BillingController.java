@@ -37,16 +37,26 @@ public class BillingController {
     }
     
     @GetMapping("/invoice/order/{orderNo}/download")
-    public ResponseEntity<byte[]> downloadInvoicePdf(@PathVariable String orderNo) {
+    public ResponseEntity<byte[]> downloadInvoicePdf(
+            @PathVariable String orderNo
+    ) {
 
-        Invoice invoice = billingService.getInvoiceByOrderId(orderNo);
+        Invoice invoice =
+                billingService.getInvoiceForPdf(orderNo);
 
-        byte[] pdf = invoicePdfService.generateInvoicePdf(invoice);
+        byte[] pdf =
+                invoicePdfService.generateInvoicePdf(invoice);
 
-        String fileName = "invoice-" + invoice.getInvoiceNumber() + ".pdf";
+        String fileName =
+                "invoice-" +
+                invoice.getInvoiceNumber() +
+                ".pdf";
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName)
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=" + fileName
+                )
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdf);
     }

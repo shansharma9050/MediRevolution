@@ -88,6 +88,63 @@ public class MedicineService {
      * Internal SaaS create flow.
      * Permission validation SaaS service me already hoti hai.
      */
+    
+    @Transactional
+    @CacheEvict(
+            value = {
+                    "medicines",
+                    "medicineSearch",
+                    "medicineById",
+                    "wholesalerDashboard"
+            },
+            allEntries = true
+    )
+    public MedicineResponse addMedicineForMainPlatform(
+            MedicineRequest request,
+            String authorization
+    ) {
+
+        String role = normalizeRole(
+                CurrentUserUtil.getRole()
+        );
+
+        if (!"SUPER_ADMIN".equals(role)
+                && !"WHOLESALER".equals(role)) {
+
+            throw new AccessDeniedException(
+                    "Only SUPER_ADMIN or WHOLESALER can add medicine master data"
+            );
+        }
+
+        /*
+         * Main Platform subscription check.
+         *
+         * SaaS flow se completely separate.
+         */
+        if ("WHOLESALER".equals(role)) {
+
+            SubscriptionCheckResponse subscription =
+                    billingClient.checkMainPlatformSubscription(
+                            authorization
+                    );
+
+            if (subscription == null
+                    || !subscription.isActive()) {
+
+                throw new RuntimeException(
+                        "Wholesaler subscription is not active. Please activate a plan."
+                );
+            }
+        }
+
+        Medicine medicine =
+                createMedicineEntity(request);
+
+        return toResponse(
+                medicineRepository.save(medicine)
+        );
+    }
+    
     @Transactional
     @CacheEvict(
             value = {

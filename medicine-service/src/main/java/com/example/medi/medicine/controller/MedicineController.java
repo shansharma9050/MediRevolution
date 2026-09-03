@@ -25,6 +25,18 @@ public class MedicineController {
     ) {
         return medicineService.addMedicine(request);
     }
+    
+    @PostMapping("/platform")
+    public MedicineResponse addMedicineForMainPlatform(
+            @RequestHeader("Authorization") String authorization,
+            @RequestBody MedicineRequest request
+    ) {
+
+        return medicineService.addMedicineForMainPlatform(
+                request,
+                authorization
+        );
+    }
 
     @GetMapping
     public List<MedicineResponse> getAllMedicines() {
