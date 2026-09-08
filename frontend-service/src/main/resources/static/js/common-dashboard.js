@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8090";
+const API_BASE = "http://65.0.32.137:8090";
 /* const API_BASE = "https://medirevolution-api-gateway.onrender.com"; */
 
 window.SAAS_PERMISSIONS = window.SAAS_PERMISSIONS || [];
@@ -443,4 +443,5 @@ function escapeCommonHtml(value) {
 		.replace(/"/g, "&quot;")
 		.replace(/'/g, "&#039;");
 }
+
 

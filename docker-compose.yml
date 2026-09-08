@@ -489,7 +489,7 @@ services:
       EUREKA_INSTANCE_SECURE_PORT_ENABLED: "false"
       EUREKA_INSTANCE_NON_SECURE_PORT: 8080
 
-      FRONTEND_URL: http://localhost:8089
+      FRONTEND_URL: http://65.0.32.137:8089
 
     networks:
       - medirevolution-network

@@ -3162,3 +3162,23 @@ a:focus-visible,
 			rgba(5, 40, 95, 0.16),
 			transparent);
 }
+/* ---------- Mobile icon-input spacing fix ---------- */
+/* ---------- Common icon-form spacing fix ---------- */
+i.bi ~ .form-control,
+i.bi ~ .form-select {
+        padding-left: 41px !important;
+}
+
+
+/* ---------- Mobile icon-input spacing fix ---------- */
+@media (max-width: 576px) {
+        [class*="-search-wrap"] .form-control {
+                padding-left: 50px !important;
+        }
+}
+
+
+/* ---------- Login icon-input spacing ---------- */
+.login-input-wrap .form-control {
+        padding-left: 44px !important;
+}
