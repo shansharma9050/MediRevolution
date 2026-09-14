@@ -334,6 +334,10 @@ function updateDashboardForTenantType(
 		"sidebarWorkspaceIcon",
 		config.workspaceIcon
 	);
+
+		updateDashboardIntelligence(
+		normalizedType
+	);
 }
 
 
@@ -485,6 +489,215 @@ function getTenantDashboardConfig(
 	}
 }
 
+function updateDashboardIntelligence(
+	tenantType
+) {
+
+	const config =
+		getDashboardIntelligenceConfig(
+			normalizeTenantType(
+				tenantType
+			)
+		);
+
+	setText(
+		"dashboardIntelligenceTitle",
+		config.title
+	);
+
+	setText(
+		"dashboardIntelligenceDescription",
+		config.description
+	);
+
+	setText(
+		"dashboardIntelligenceFocus",
+		config.focus
+	);
+
+	setText(
+		"dashboardPrimaryActionText",
+		config.actionText
+	);
+
+	setElementIcon(
+		"dashboardIntelligenceIcon",
+		config.icon
+	);
+
+	setElementIcon(
+		"dashboardPrimaryActionIcon",
+		config.actionIcon
+	);
+
+	const action =
+		document.getElementById(
+			"dashboardPrimaryAction"
+		);
+
+	if (action) {
+		action.setAttribute(
+			"href",
+			config.actionUrl
+		);
+	}
+}
+
+
+function getDashboardIntelligenceConfig(
+	tenantType
+) {
+
+	switch (tenantType) {
+
+		case "DOCTOR_CLINIC":
+
+			return {
+				title:
+					"Clinic operations at a glance",
+
+				description:
+					"Stay focused on appointments, patient follow-ups, prescriptions and the clinical work that needs your attention today.",
+
+				focus:
+					"Review today's appointments and pending patient follow-ups",
+
+				icon:
+					"bi bi-heart-pulse-fill",
+
+				actionText:
+					"View Appointments",
+
+				actionIcon:
+					"bi bi-calendar-check-fill",
+
+				actionUrl:
+					"/saas/appointments"
+			};
+
+
+		case "HOSPITAL":
+
+			return {
+				title:
+					"Hospital operations command center",
+
+				description:
+					"Coordinate OPD, IPD, appointments, diagnostics, pharmacy and operational workflows from one secure workspace.",
+
+				focus:
+					"Review today's clinical workload and operational priorities",
+
+				icon:
+					"bi bi-hospital-fill",
+
+				actionText:
+					"Open OPD",
+
+				actionIcon:
+					"bi bi-hospital-fill",
+
+				actionUrl:
+					"/saas/opd"
+			};
+
+
+		case "WHOLESALER":
+
+			return {
+				title:
+					"Wholesale business intelligence",
+
+				description:
+					"Keep purchases, inventory, customer orders, expiry exposure and payment activity visible from a single business cockpit.",
+
+				focus:
+					"Review inventory movement, pending orders and expiry risk",
+
+				icon:
+					"bi bi-box-seam-fill",
+
+				actionText:
+					"View Inventory",
+
+				actionIcon:
+					"bi bi-box-seam-fill",
+
+				actionUrl:
+					"/saas/inventory"
+			};
+
+
+		case "RETAILER":
+
+			return {
+				title:
+					"Retail pharmacy command center",
+
+				description:
+					"Monitor medicine availability, customer activity, sales, payments and expiry control for smooth day-to-day pharmacy operations.",
+
+				focus:
+					"Review stock availability and today's sales activity",
+
+				icon:
+					"bi bi-shop-window",
+
+				actionText:
+					"Open Sales",
+
+				actionIcon:
+					"bi bi-cart-check-fill",
+
+				actionUrl:
+					"/saas/sales"
+			};
+
+
+		default:
+
+			return {
+				title:
+					"Your workspace command center",
+
+				description:
+					"Access the most important modules and operational workflows available to your organization.",
+
+				focus:
+					"Review today's workspace activity",
+
+				icon:
+					"bi bi-lightning-charge-fill",
+
+				actionText:
+					"Open Modules",
+
+				actionIcon:
+					"bi bi-grid-fill",
+
+				actionUrl:
+					"#moduleContainer"
+			};
+	}
+}
+
+
+function scrollToWorkspaceModules() {
+
+	const element =
+		document.getElementById(
+			"moduleContainer"
+		);
+
+	if (!element) {
+		return;
+	}
+
+	element.scrollIntoView({
+		behavior: "smooth",
+		block: "start"
+	});
+}
 
 function setElementIcon(
 	elementId,

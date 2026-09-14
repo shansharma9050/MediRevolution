@@ -729,6 +729,144 @@ MOTION
 
 }
 
+/*
+============================================================
+SAAS COMMAND CENTER
+============================================================
+*/
+
+.saas-command-center {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 28px;
+	margin-bottom: 25px;
+	padding: 24px 26px;
+}
+
+.saas-command-center-main {
+	display: flex;
+	flex: 1;
+	align-items: center;
+	gap: 28px;
+	min-width: 0;
+}
+
+.saas-command-center-heading {
+	flex: 1;
+	min-width: 0;
+}
+
+.saas-command-center-heading h3 {
+	margin: 12px 0 7px;
+	color: var(--mr-primary-900);
+	font-size: clamp(1.15rem, 2vw, 1.45rem);
+	font-weight: 850;
+	letter-spacing: -0.025em;
+}
+
+.saas-command-center-heading p {
+	max-width: 720px;
+	margin: 0;
+	color: var(--mr-gray-500);
+	font-size: 0.87rem;
+	line-height: 1.65;
+}
+
+.saas-command-insight {
+	display: flex;
+	align-items: center;
+	gap: 13px;
+	min-width: 260px;
+	padding: 14px 16px;
+	border: 1px solid rgba(8, 199, 212, 0.15);
+	border-radius: var(--mr-radius-lg);
+	background: rgba(255, 255, 255, 0.72);
+}
+
+.saas-command-insight-icon {
+	display: flex;
+	flex: 0 0 44px;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	border-radius: 14px;
+	color: white;
+	background:
+		linear-gradient(
+			135deg,
+			var(--mr-primary-900),
+			var(--mr-cyan-500)
+		);
+	box-shadow:
+		0 8px 20px rgba(5, 40, 95, 0.15);
+}
+
+.saas-command-insight div:last-child {
+	display: flex;
+	min-width: 0;
+	flex-direction: column;
+}
+
+.saas-command-insight small {
+	margin-bottom: 3px;
+	color: var(--mr-gray-500);
+	font-size: 0.68rem;
+	font-weight: 800;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+}
+
+.saas-command-insight strong {
+	overflow: hidden;
+	color: var(--mr-primary-900);
+	font-size: 0.83rem;
+	font-weight: 800;
+	line-height: 1.4;
+	text-overflow: ellipsis;
+}
+
+.saas-command-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 10px;
+}
+
+@media (max-width: 1199.98px) {
+
+	.saas-command-center {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.saas-command-actions {
+		justify-content: flex-start;
+	}
+
+}
+
+@media (max-width: 767.98px) {
+
+	.saas-command-center {
+		padding: 20px;
+	}
+
+	.saas-command-center-main {
+		align-items: stretch;
+		flex-direction: column;
+		gap: 18px;
+	}
+
+	.saas-command-insight {
+		width: 100%;
+		min-width: 0;
+	}
+
+}
+
 
 /*
 ============================================================
