@@ -4,12 +4,27 @@ import com.example.medi.saas.client.AuthClient;
 import com.example.medi.saas.dto.ApiResponse;
 import com.example.medi.saas.dto.AuthUserResponse;
 import com.example.medi.saas.dto.CreateSaasPatientRequest;
+import com.example.medi.saas.dto.SaasPatient360Response;
 import com.example.medi.saas.dto.SaasPatientRequest;
 import com.example.medi.saas.dto.SaasPatientResponse;
+import com.example.medi.saas.entity.SaasAppointment;
+import com.example.medi.saas.entity.SaasDiagnosticOrder;
+import com.example.medi.saas.entity.SaasInvoice;
+import com.example.medi.saas.entity.SaasIpdAdmission;
+import com.example.medi.saas.entity.SaasIpdDailyNote;
+import com.example.medi.saas.entity.SaasOpdVisit;
 import com.example.medi.saas.entity.SaasPatient;
+import com.example.medi.saas.entity.SaasPrescription;
 import com.example.medi.saas.enums.SaasPermissionAction;
 import com.example.medi.saas.enums.TenantModule;
+import com.example.medi.saas.repository.SaasAppointmentRepository;
+import com.example.medi.saas.repository.SaasDiagnosticOrderRepository;
+import com.example.medi.saas.repository.SaasInvoiceRepository;
+import com.example.medi.saas.repository.SaasIpdAdmissionRepository;
+import com.example.medi.saas.repository.SaasIpdDailyNoteRepository;
+import com.example.medi.saas.repository.SaasOpdVisitRepository;
 import com.example.medi.saas.repository.SaasPatientRepository;
+import com.example.medi.saas.repository.SaasPrescriptionRepository;
 import com.example.medi.saas.security.CurrentUserUtil;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +32,10 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,19 +43,36 @@ import java.util.Optional;
 public class SaasPatientService {
 
 	private final SaasPatientRepository patientRepository;
+	private final SaasAppointmentRepository appointmentRepository;
+	private final SaasPrescriptionRepository prescriptionRepository;
 	private final TenantAccessService tenantAccessService;
 	private final SaasPermissionService permissionService;
 	private final AuthClient authClient;
 	private final String internalServiceKey;
+	private final SaasOpdVisitRepository opdVisitRepository;
+	private final SaasIpdAdmissionRepository ipdAdmissionRepository;
+	private final SaasDiagnosticOrderRepository diagnosticOrderRepository;
+	private final SaasInvoiceRepository invoiceRepository;
+	private final SaasIpdDailyNoteRepository ipdDailyNoteRepository;
 
 	public SaasPatientService(SaasPatientRepository patientRepository, TenantAccessService tenantAccessService,
 			SaasPermissionService permissionService, AuthClient authClient,
-			@Value("${internal.service.key}") String internalServiceKey) {
+			SaasAppointmentRepository appointmentRepository, SaasPrescriptionRepository prescriptionRepository,
+			@Value("${internal.service.key}") String internalServiceKey, SaasOpdVisitRepository opdVisitRepository,
+			SaasIpdAdmissionRepository ipdAdmissionRepository, SaasDiagnosticOrderRepository diagnosticOrderRepository,
+			SaasInvoiceRepository invoiceRepository, SaasIpdDailyNoteRepository ipdDailyNoteRepository) {
 		this.patientRepository = patientRepository;
 		this.tenantAccessService = tenantAccessService;
 		this.permissionService = permissionService;
 		this.authClient = authClient;
 		this.internalServiceKey = internalServiceKey;
+		this.appointmentRepository = appointmentRepository;
+		this.prescriptionRepository = prescriptionRepository;
+		this.opdVisitRepository = opdVisitRepository;
+		this.ipdAdmissionRepository = ipdAdmissionRepository;
+		this.diagnosticOrderRepository = diagnosticOrderRepository;
+		this.invoiceRepository = invoiceRepository;
+		this.ipdDailyNoteRepository = ipdDailyNoteRepository;
 	}
 
 	public SaasPatientResponse createPatient(SaasPatientRequest request, String authorization) {
@@ -189,6 +224,407 @@ public class SaasPatientService {
 				.orElseThrow(() -> new RuntimeException("Patient not found"));
 
 		return toResponse(patient);
+	}
+
+	@Transactional(readOnly = true)
+	public SaasPatient360Response getPatient360(Long tenantId, Long patientId) {
+
+		permissionService.requirePermission(tenantId, TenantModule.PATIENTS, SaasPermissionAction.VIEW);
+
+		tenantAccessService.validateTenantAccess(tenantId);
+
+		SaasPatient patient = patientRepository.findByIdAndTenantIdAndActiveTrue(patientId, tenantId)
+				.orElseThrow(() -> new RuntimeException("Patient not found"));
+
+		long appointmentCount = appointmentRepository.countByTenantIdAndPatientIdAndActiveTrue(tenantId, patientId);
+
+		Optional<SaasAppointment> latestAppointment = appointmentRepository
+				.findFirstByTenantIdAndPatientIdAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(tenantId,
+						patientId);
+
+		long prescriptionCount = prescriptionRepository.countByTenantIdAndPatientIdAndActiveTrue(tenantId, patientId);
+
+		Optional<SaasPrescription> latestPrescription = prescriptionRepository
+				.findFirstByTenantIdAndPatientIdAndActiveTrueOrderByCreatedAtDesc(tenantId, patientId);
+
+		Optional<SaasPrescription> nextFollowUp = prescriptionRepository
+				.findFirstByTenantIdAndPatientIdAndActiveTrueAndFollowUpDateGreaterThanEqualOrderByFollowUpDateAsc(
+						tenantId, patientId, LocalDate.now());
+
+		SaasPatient360Response.AppointmentSnapshot appointmentSnapshot = null;
+
+		if (latestAppointment.isPresent()) {
+
+			SaasAppointment appointment = latestAppointment.get();
+
+			appointmentSnapshot = new SaasPatient360Response.AppointmentSnapshot(appointment.getId(),
+					appointment.getDoctorName(), appointment.getDepartment(), appointment.getSpecialization(),
+					appointment.getAppointmentDate(), appointment.getAppointmentTime(),
+					appointment.getAppointmentType() == null ? null : appointment.getAppointmentType().name(),
+					appointment.getStatus() == null ? null : appointment.getStatus().name(), appointment.getSymptoms());
+		}
+
+		SaasPatient360Response.PrescriptionSnapshot prescriptionSnapshot = null;
+
+		SaasPatient360Response.VitalSnapshot vitalSnapshot = null;
+
+		String latestDiagnosis = null;
+
+		if (latestPrescription.isPresent()) {
+
+			SaasPrescription prescription = latestPrescription.get();
+
+			prescriptionSnapshot = new SaasPatient360Response.PrescriptionSnapshot(prescription.getId(),
+					prescription.getAppointmentId(), prescription.getDiagnosis(), prescription.getClinicalNotes(),
+					prescription.getAdvice(), prescription.getLabTests(), prescription.getFollowUpAdvice(),
+					prescription.getFollowUpDate());
+
+		}
+
+		vitalSnapshot = resolveLatestVitals(tenantId, patientId, latestPrescription);
+
+		latestDiagnosis = resolveLatestDiagnosis(tenantId, patientId, latestPrescription);
+
+		LocalDate nextFollowUpDate = nextFollowUp.map(SaasPrescription::getFollowUpDate).orElse(null);
+
+		List<SaasPatient360Response.TimelineItem> timeline = buildPatientTimeline(tenantId, patientId);
+
+		return new SaasPatient360Response(toResponse(patient), appointmentCount, appointmentSnapshot, prescriptionCount,
+				prescriptionSnapshot, vitalSnapshot, latestDiagnosis, nextFollowUpDate, timeline);
+	}
+
+	private SaasPatient360Response.VitalSnapshot resolveLatestVitals(Long tenantId, Long patientId,
+			Optional<SaasPrescription> latestPrescription) {
+
+		LocalDateTime latestVitalDateTime = null;
+		SaasPatient360Response.VitalSnapshot latestVitals = null;
+
+		if (latestPrescription.isPresent()) {
+
+			SaasPrescription prescription = latestPrescription.get();
+
+			if (hasAnyVitals(prescription.getBloodPressure(), prescription.getPulse(), prescription.getTemperature(),
+					prescription.getSpo2(), prescription.getWeight(), prescription.getHeight(),
+					prescription.getSugarLevel())) {
+
+				latestVitalDateTime = prescription.getCreatedAt();
+
+				latestVitals = new SaasPatient360Response.VitalSnapshot(prescription.getBloodPressure(),
+						prescription.getPulse(), prescription.getTemperature(), prescription.getSpo2(),
+						prescription.getWeight(), prescription.getHeight(), prescription.getSugarLevel());
+			}
+		}
+
+		Optional<SaasIpdAdmission> latestAdmission = ipdAdmissionRepository
+				.findByTenantIdAndPatientIdAndActiveTrueOrderByAdmissionDateTimeDesc(tenantId, patientId).stream()
+				.findFirst();
+
+		if (latestAdmission.isPresent()) {
+
+			SaasIpdAdmission admission = latestAdmission.get();
+
+			Optional<SaasIpdDailyNote> latestDailyNote = ipdDailyNoteRepository
+					.findFirstByTenantIdAndAdmissionIdOrderByNoteDateTimeDesc(tenantId, admission.getId());
+
+			if (latestDailyNote.isPresent()) {
+
+				SaasIpdDailyNote note = latestDailyNote.get();
+
+				if (hasAnyVitals(note.getBloodPressure(), note.getPulse(), note.getTemperature(), note.getSpo2(),
+						note.getWeight(), note.getHeight(), note.getSugarLevel())) {
+
+					if (latestVitalDateTime == null || (note.getNoteDateTime() != null
+							&& note.getNoteDateTime().isAfter(latestVitalDateTime))) {
+
+						latestVitals = new SaasPatient360Response.VitalSnapshot(note.getBloodPressure(),
+								note.getPulse(), note.getTemperature(), note.getSpo2(), note.getWeight(),
+								note.getHeight(), note.getSugarLevel());
+					}
+				}
+			}
+		}
+
+		return latestVitals;
+	}
+
+	private boolean hasAnyVitals(
+	        String bloodPressure,
+	        String pulse,
+	        String temperature,
+	        String spo2,
+	        String weight,
+	        String height,
+	        String sugarLevel) {
+
+	    return hasText(bloodPressure)
+	            || hasText(pulse)
+	            || hasText(temperature)
+	            || hasText(spo2)
+	            || hasText(weight)
+	            || hasText(height)
+	            || hasText(sugarLevel);
+	}
+
+	private String resolveLatestDiagnosis(Long tenantId, Long patientId,
+			Optional<SaasPrescription> latestPrescription) {
+
+		LocalDateTime latestDateTime = null;
+		String latestDiagnosis = null;
+
+		if (latestPrescription.isPresent()) {
+
+			SaasPrescription prescription = latestPrescription.get();
+
+			if (hasText(prescription.getDiagnosis())) {
+
+				latestDateTime = prescription.getCreatedAt();
+
+				latestDiagnosis = prescription.getDiagnosis();
+			}
+		}
+
+		Optional<SaasOpdVisit> latestOpd = opdVisitRepository
+				.findByTenantIdAndPatientIdAndActiveTrueOrderByVisitDateTimeDesc(tenantId, patientId).stream()
+				.filter(opd -> hasText(opd.getDiagnosis())).findFirst();
+
+		if (latestOpd.isPresent()) {
+
+			SaasOpdVisit opd = latestOpd.get();
+
+			if (latestDateTime == null
+					|| (opd.getVisitDateTime() != null && opd.getVisitDateTime().isAfter(latestDateTime))) {
+
+				latestDateTime = opd.getVisitDateTime();
+
+				latestDiagnosis = opd.getDiagnosis();
+			}
+		}
+
+		Optional<SaasIpdAdmission> latestIpd = ipdAdmissionRepository
+				.findByTenantIdAndPatientIdAndActiveTrueOrderByAdmissionDateTimeDesc(tenantId, patientId).stream()
+				.filter(ipd -> hasText(ipd.getProvisionalDiagnosis())).findFirst();
+
+		if (latestIpd.isPresent()) {
+
+			SaasIpdAdmission ipd = latestIpd.get();
+
+			if (latestDateTime == null
+					|| (ipd.getAdmissionDateTime() != null && ipd.getAdmissionDateTime().isAfter(latestDateTime))) {
+
+				latestDiagnosis = ipd.getProvisionalDiagnosis();
+			}
+		}
+
+		return latestDiagnosis;
+	}
+
+	private boolean hasText(String value) {
+
+		return value != null && !value.trim().isEmpty();
+	}
+
+	private List<SaasPatient360Response.TimelineItem> buildPatientTimeline(Long tenantId, Long patientId) {
+
+		List<SaasPatient360Response.TimelineItem> timeline = new ArrayList<>();
+
+		/*
+		 * ============================================================ APPOINTMENTS
+		 * ============================================================
+		 */
+
+		List<SaasAppointment> appointments = appointmentRepository
+				.findByTenantIdAndPatientIdAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(tenantId,
+						patientId);
+
+		for (SaasAppointment appointment : appointments) {
+
+			LocalDateTime eventAt = null;
+
+			if (appointment.getAppointmentDate() != null && appointment.getAppointmentTime() != null) {
+
+				eventAt = appointment.getAppointmentDate().atTime(appointment.getAppointmentTime());
+			}
+
+			String subtitle = buildAppointmentSubtitle(appointment);
+
+			String detail = firstNonBlank(appointment.getSymptoms(), appointment.getNotes());
+
+			timeline.add(new SaasPatient360Response.TimelineItem("APPOINTMENT", appointment.getId(), eventAt,
+					"Appointment", subtitle, appointment.getStatus() == null ? null : appointment.getStatus().name(),
+					detail, appointment.getId()));
+		}
+
+		/*
+		 * ============================================================ PRESCRIPTIONS
+		 * ============================================================
+		 */
+
+		List<SaasPrescription> prescriptions = prescriptionRepository
+				.findByTenantIdAndPatientIdAndActiveTrueOrderByCreatedAtDesc(tenantId, patientId);
+
+		for (SaasPrescription prescription : prescriptions) {
+
+			String detail = firstNonBlank(prescription.getDiagnosis(), prescription.getClinicalNotes(),
+					prescription.getAdvice());
+
+			String subtitle = prescription.getDiagnosis();
+
+			if (subtitle == null || subtitle.isBlank()) {
+
+				subtitle = "Clinical prescription";
+			}
+
+			timeline.add(new SaasPatient360Response.TimelineItem("PRESCRIPTION", prescription.getId(),
+					prescription.getCreatedAt(), "Prescription", subtitle, "ACTIVE", detail,
+					prescription.getAppointmentId()));
+		}
+
+		List<SaasOpdVisit> opdVisits = opdVisitRepository
+				.findByTenantIdAndPatientIdAndActiveTrueOrderByVisitDateTimeDesc(tenantId, patientId);
+
+		for (SaasOpdVisit opd : opdVisits) {
+
+			String subtitle = firstNonBlank(opd.getOpdNumber(), opd.getDiagnosis(), "Outpatient visit");
+
+			String detail = firstNonBlank(opd.getDiagnosis(), opd.getSymptoms(), opd.getNotes());
+
+			timeline.add(new SaasPatient360Response.TimelineItem("OPD", opd.getId(), opd.getVisitDateTime(),
+					"OPD Visit", subtitle, opd.getStatus() == null ? null : opd.getStatus().name(), detail,
+					opd.getAppointmentId()));
+		}
+
+		List<SaasIpdAdmission> ipdAdmissions = ipdAdmissionRepository
+				.findByTenantIdAndPatientIdAndActiveTrueOrderByAdmissionDateTimeDesc(tenantId, patientId);
+
+		for (SaasIpdAdmission ipd : ipdAdmissions) {
+
+			String subtitle = firstNonBlank(ipd.getIpdNumber(), ipd.getProvisionalDiagnosis(), "Inpatient admission");
+
+			String detail = firstNonBlank(ipd.getProvisionalDiagnosis(), ipd.getReasonForAdmission(),
+					ipd.getDischargeSummary(), ipd.getDischargeAdvice());
+
+			timeline.add(new SaasPatient360Response.TimelineItem("IPD", ipd.getId(), ipd.getAdmissionDateTime(),
+					"IPD Admission", subtitle, ipd.getStatus() == null ? null : ipd.getStatus().name(), detail, null));
+		}
+
+		List<SaasDiagnosticOrder> diagnosticOrders = diagnosticOrderRepository
+				.findByTenantIdAndPatientIdAndActiveTrueOrderByOrderDateTimeDesc(tenantId, patientId);
+
+		for (SaasDiagnosticOrder order : diagnosticOrders) {
+
+			String diagnosticType = order.getDiagnosticType() == null ? "DIAGNOSTIC" : order.getDiagnosticType().name();
+
+			String title;
+
+			if ("LAB".equalsIgnoreCase(diagnosticType)) {
+				title = "Lab Investigation";
+
+			} else if ("RADIOLOGY".equalsIgnoreCase(diagnosticType)) {
+				title = "Radiology Investigation";
+
+			} else {
+				title = "Diagnostic Investigation";
+			}
+
+			String subtitle = firstNonBlank(order.getOrderNumber(), diagnosticType);
+
+			String detail = firstNonBlank(order.getResultSummary(), order.getResultDetails(), order.getClinicalNotes());
+
+			timeline.add(new SaasPatient360Response.TimelineItem(diagnosticType, order.getId(),
+					order.getOrderDateTime(), title, subtitle,
+					order.getStatus() == null ? null : order.getStatus().name(), detail, order.getAppointmentId()));
+		}
+
+		List<SaasInvoice> invoices = invoiceRepository
+				.findByTenantIdAndPatientIdAndActiveTrueOrderByInvoiceDateTimeDesc(tenantId, patientId);
+
+		for (SaasInvoice invoice : invoices) {
+
+			String subtitle = firstNonBlank(invoice.getInvoiceNumber(),
+					invoice.getInvoiceType() == null ? null : invoice.getInvoiceType().name(), "Patient invoice");
+
+			StringBuilder billingDetail = new StringBuilder();
+
+			if (invoice.getTotalAmount() != null) {
+
+				billingDetail.append("Total â‚¹").append(invoice.getTotalAmount());
+			}
+
+			if (invoice.getPaidAmount() != null) {
+
+				if (!billingDetail.isEmpty()) {
+					billingDetail.append(" â€¢ ");
+				}
+
+				billingDetail.append("Paid â‚¹").append(invoice.getPaidAmount());
+			}
+
+			if (invoice.getDueAmount() != null) {
+
+				if (!billingDetail.isEmpty()) {
+					billingDetail.append(" â€¢ ");
+				}
+
+				billingDetail.append("Due â‚¹").append(invoice.getDueAmount());
+			}
+
+			String detail = billingDetail.isEmpty() ? invoice.getNotes() : billingDetail.toString();
+
+			timeline.add(new SaasPatient360Response.TimelineItem("BILLING", invoice.getId(),
+					invoice.getInvoiceDateTime(), "Invoice", subtitle,
+					invoice.getPaymentStatus() == null ? null : invoice.getPaymentStatus().name(), detail, null));
+		}
+
+		/*
+		 * ============================================================ LATEST EVENT
+		 * FIRST ============================================================
+		 */
+
+		timeline.sort(Comparator.comparing(SaasPatient360Response.TimelineItem::getEventAt,
+				Comparator.nullsLast(Comparator.reverseOrder())));
+
+		return timeline;
+	}
+
+	private String firstNonBlank(String... values) {
+
+		if (values == null) {
+			return null;
+		}
+
+		for (String value : values) {
+
+			if (value != null && !value.isBlank()) {
+				return value.trim();
+			}
+		}
+
+		return null;
+	}
+
+	private String buildAppointmentSubtitle(SaasAppointment appointment) {
+
+		List<String> parts = new ArrayList<>();
+
+		if (appointment.getDoctorName() != null && !appointment.getDoctorName().isBlank()) {
+			parts.add(appointment.getDoctorName().trim());
+		}
+
+		if (appointment.getSpecialization() != null && !appointment.getSpecialization().isBlank()) {
+			parts.add(appointment.getSpecialization().trim());
+		} else if (appointment.getDepartment() != null && !appointment.getDepartment().isBlank()) {
+			parts.add(appointment.getDepartment().trim());
+		}
+
+		if (appointment.getAppointmentType() != null) {
+			parts.add(appointment.getAppointmentType().name());
+		}
+
+		if (parts.isEmpty()) {
+			return "Patient appointment";
+		}
+
+		return String.join(" â€¢ ", parts);
 	}
 
 	public List<SaasPatientResponse> searchPatients(Long tenantId, String keyword) {

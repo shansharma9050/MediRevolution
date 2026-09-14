@@ -16,4 +16,18 @@ public class SaasIpdDailyNoteRequest {
     private String treatmentPlan;
 
     private String vitals;
+
+    private String bloodPressure;
+
+    private String pulse;
+
+    private String temperature;
+
+    private String spo2;
+
+    private String weight;
+
+    private String height;
+
+    private String sugarLevel;
 }

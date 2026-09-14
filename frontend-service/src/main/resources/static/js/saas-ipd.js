@@ -728,8 +728,86 @@ function openNoteModal(admissionId, doctorProfileId) {
 	setValue("noteDoctorProfileId", doctorProfileId || "");
 	setValue("progressNote", "");
 	setValue("treatmentPlan", "");
-	setValue("vitals", "");
+
+	setValue("bloodPressure", "");
+	setValue("pulse", "");
+	setValue("temperature", "");
+	setValue("spo2", "");
+	setValue("weight", "");
+	setValue("height", "");
+	setValue("sugarLevel", "");
+
 	noteModal.show();
+}
+
+function buildDailyNoteVitalsSummary() {
+
+    const parts = [];
+
+    const bloodPressure =
+        getValue("bloodPressure");
+
+    const pulse =
+        getValue("pulse");
+
+    const temperature =
+        getValue("temperature");
+
+    const spo2 =
+        getValue("spo2");
+
+    const weight =
+        getValue("weight");
+
+    const height =
+        getValue("height");
+
+    const sugarLevel =
+        getValue("sugarLevel");
+
+    if (bloodPressure) {
+        parts.push(
+            `BP: ${bloodPressure}`
+        );
+    }
+
+    if (pulse) {
+        parts.push(
+            `Pulse: ${pulse}`
+        );
+    }
+
+    if (temperature) {
+        parts.push(
+            `Temp: ${temperature}`
+        );
+    }
+
+    if (spo2) {
+        parts.push(
+            `SpO2: ${spo2}`
+        );
+    }
+
+    if (weight) {
+        parts.push(
+            `Weight: ${weight}`
+        );
+    }
+
+    if (height) {
+        parts.push(
+            `Height: ${height}`
+        );
+    }
+
+    if (sugarLevel) {
+        parts.push(
+            `Sugar: ${sugarLevel}`
+        );
+    }
+
+    return parts.join(" | ");
 }
 
 async function submitDailyNote() {
@@ -741,7 +819,7 @@ async function submitDailyNote() {
 		doctorProfileId: toPositiveNumberOrNull(getValue("noteDoctorProfileId")),
 		progressNote: getValue("progressNote"),
 		treatmentPlan: getValue("treatmentPlan"),
-		vitals: getValue("vitals")
+		vitals: buildDailyNoteVitalsSummary(),
 	};
 
 	if (!payload.tenantId) {

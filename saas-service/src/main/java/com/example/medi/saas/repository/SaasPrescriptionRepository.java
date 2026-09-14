@@ -17,6 +17,23 @@ public interface SaasPrescriptionRepository extends JpaRepository<SaasPrescripti
             Long patientId
     );
 
+    Optional<SaasPrescription> findFirstByTenantIdAndPatientIdAndActiveTrueOrderByCreatedAtDesc(
+            Long tenantId,
+            Long patientId
+    );
+
+    long countByTenantIdAndPatientIdAndActiveTrue(
+            Long tenantId,
+            Long patientId
+    );
+
+    Optional<SaasPrescription>
+            findFirstByTenantIdAndPatientIdAndActiveTrueAndFollowUpDateGreaterThanEqualOrderByFollowUpDateAsc(
+                    Long tenantId,
+                    Long patientId,
+                    java.time.LocalDate followUpDate
+            );
+
     List<SaasPrescription> findByTenantIdAndDoctorProfileIdAndActiveTrueOrderByCreatedAtDesc(
             Long tenantId,
             Long doctorProfileId
@@ -26,6 +43,6 @@ public interface SaasPrescriptionRepository extends JpaRepository<SaasPrescripti
             Long tenantId,
             Long appointmentId
     );
-    
+
     void deleteByTenantId(Long tenantId);
 }

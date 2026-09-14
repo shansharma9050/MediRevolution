@@ -1,6 +1,7 @@
 package com.example.medi.saas.controller;
 
 import com.example.medi.saas.dto.ApiResponse;
+import com.example.medi.saas.dto.SaasPatient360Response;
 import com.example.medi.saas.dto.SaasPatientRequest;
 import com.example.medi.saas.dto.SaasPatientResponse;
 import com.example.medi.saas.service.SaasPatientService;
@@ -28,6 +29,12 @@ public class SaasPatientController {
 	@GetMapping
 	public List<SaasPatientResponse> getPatients(@RequestParam Long tenantId) {
 		return patientService.getPatients(tenantId);
+	}
+
+	@GetMapping("/{patientId}/360")
+	public SaasPatient360Response getPatient360(@PathVariable Long patientId, @RequestParam Long tenantId) {
+
+		return patientService.getPatient360(tenantId, patientId);
 	}
 
 	@GetMapping("/{patientId}")

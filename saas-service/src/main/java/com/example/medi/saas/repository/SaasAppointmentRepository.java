@@ -19,6 +19,16 @@ public interface SaasAppointmentRepository extends JpaRepository<SaasAppointment
 	List<SaasAppointment> findByTenantIdAndPatientIdAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(
 			Long tenantId, Long patientId);
 
+	Optional<SaasAppointment> findFirstByTenantIdAndPatientIdAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(
+	        Long tenantId,
+	        Long patientId
+	);
+
+	long countByTenantIdAndPatientIdAndActiveTrue(
+	        Long tenantId,
+	        Long patientId
+	);
+
 	List<SaasAppointment> findByTenantIdAndDoctorAuthUserIdAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(
 			Long tenantId, Long doctorAuthUserId);
 

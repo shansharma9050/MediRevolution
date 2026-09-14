@@ -1,4 +1,5 @@
 let patientModal;
+let patient360Modal;
 let allPatients = [];
 
 let patientPermissions = {
@@ -13,6 +14,7 @@ let isLoadingPatientDetail = false;
 let isSavingPatient = false;
 let deletingPatientIds = new Set();
 let patientSearchTimer = null;
+let isLoadingPatient360 = false;
 
 document.addEventListener("DOMContentLoaded", async function() {
 	const allowed =
@@ -51,6 +53,18 @@ document.addEventListener("DOMContentLoaded", async function() {
 		patientModal =
 			bootstrap.Modal.getOrCreateInstance(
 				modalElement
+			);
+	}
+
+	const patient360ModalElement =
+		document.getElementById(
+			"patient360Modal"
+		);
+
+	if (patient360ModalElement) {
+		patient360Modal =
+			bootstrap.Modal.getOrCreateInstance(
+				patient360ModalElement
 			);
 	}
 
@@ -561,6 +575,16 @@ function renderPatients(patients) {
 
 							<div class="patient-actions">
 
+									<button type="button"
+        id="viewPatient360Btn_${patientId}"
+        class="btn btn-sm btn-outline-info"
+        onclick="viewPatient360(${patientId})"
+        ${patientId ? "" : "disabled"}>
+
+    <i class="bi bi-heart-pulse-fill me-1"></i>
+    360Â°
+</button>
+
 								<button type="button"
 										id="editPatientBtn_${patientId}"
 										class="btn btn-sm btn-outline-primary edit-patient-btn"
@@ -626,6 +650,775 @@ function openCreatePatientModal() {
 
 		patientModal.show();
 	}
+}
+
+async function viewPatient360(patientId) {
+
+	if (isLoadingPatient360) {
+		return;
+	}
+
+	const numericId =
+		Number(patientId);
+
+	if (
+		!Number.isFinite(numericId) ||
+		numericId <= 0
+	) {
+		showMsg(
+			"Invalid patient selected."
+		);
+
+		return;
+	}
+
+	const tenantId =
+		localStorage.getItem(
+			"tenantId"
+		);
+
+	if (!tenantId) {
+		showMsg(
+			"Please select SaaS workspace first."
+		);
+
+		return;
+	}
+
+	isLoadingPatient360 = true;
+
+	setButtonLoading(
+		`viewPatient360Btn_${numericId}`,
+		"Loading...",
+		true
+	);
+
+	showPatient360Loading();
+
+	if (patient360Modal) {
+		patient360Modal.show();
+	}
+
+	try {
+
+		const query =
+			new URLSearchParams({
+				tenantId:
+					tenantId
+			});
+
+		const response =
+			await fetch(
+				`${API_BASE}/saas/patients/${encodeURIComponent(numericId)}/360?${query.toString()}`,
+				{
+					headers: {
+						"Authorization":
+							"Bearer " +
+							localStorage.getItem(
+								"token"
+							),
+
+						"Accept":
+							"application/json"
+					}
+				}
+			);
+
+		const result =
+			await safeJson(response);
+
+		if (!response.ok) {
+
+			const message =
+				getApiErrorMessage(
+					result,
+					"Unable to load Patient 360."
+				);
+
+			showPatient360Error(
+				message
+			);
+
+			return;
+		}
+
+		renderPatient360(
+			result
+		);
+
+	} catch (error) {
+
+		console.error(
+			"Patient 360 error:",
+			error
+		);
+
+		showPatient360Error(
+			"Patient 360 service is currently unavailable."
+		);
+
+	} finally {
+
+		isLoadingPatient360 = false;
+
+		setButtonLoading(
+			`viewPatient360Btn_${numericId}`,
+			"360Â°",
+			false
+		);
+	}
+}
+
+function renderPatient360(data) {
+
+	const loading =
+		document.getElementById(
+			"patient360Loading"
+		);
+
+	const content =
+		document.getElementById(
+			"patient360MainContent"
+		);
+
+	const error =
+		document.getElementById(
+			"patient360Error"
+		);
+
+	if (loading) {
+		loading.classList.add(
+			"d-none"
+		);
+	}
+
+	if (error) {
+		error.classList.add(
+			"d-none"
+		);
+	}
+
+	if (content) {
+		content.classList.remove(
+			"d-none"
+		);
+	}
+
+	const patient =
+		data?.patient || {};
+
+	setText(
+		"patient360Name",
+		patient.patientName ||
+		"Patient"
+	);
+
+	setText(
+		"patient360Code",
+		patient.patientCode ||
+		"-"
+	);
+
+	setText(
+		"patient360Age",
+		patient.age ?? "-"
+	);
+
+	setText(
+		"patient360Gender",
+		formatLabel(
+			patient.gender
+		) || "-"
+	);
+
+	setText(
+		"patient360BloodGroup",
+		patient.bloodGroup ||
+		"-"
+	);
+
+	setText(
+		"patient360Mobile",
+		patient.mobile ||
+		"-"
+	);
+
+	setText(
+		"patient360Email",
+		patient.email ||
+		"-"
+	);
+
+	setText(
+		"patient360Location",
+		[
+			patient.city,
+			patient.state
+		]
+			.filter(Boolean)
+			.join(", ") || "-"
+	);
+
+	setText(
+		"patient360Allergies",
+		patient.allergies ||
+		"No allergies recorded"
+	);
+
+	setText(
+		"patient360Diseases",
+		patient.existingDiseases ||
+		"No existing diseases recorded"
+	);
+
+	setText(
+		"patient360AppointmentCount",
+		data?.appointmentCount ?? 0
+	);
+
+	setText(
+		"patient360PrescriptionCount",
+		data?.prescriptionCount ?? 0
+	);
+
+	setText(
+		"patient360Diagnosis",
+		data?.latestDiagnosis ||
+		"No diagnosis recorded"
+	);
+
+	setText(
+		"patient360NextFollowUp",
+		formatPatient360Date(
+			data?.nextFollowUpDate
+		)
+	);
+
+	renderPatient360Vitals(
+		data?.latestVitals
+	);
+
+	renderPatient360LatestAppointment(
+		data?.latestAppointment
+	);
+
+	renderPatient360LatestPrescription(
+		data?.latestPrescription
+	);
+
+	renderPatient360Timeline(
+		data?.timeline
+	);
+}
+
+function renderPatient360Vitals(vitals) {
+
+	setText(
+		"patient360Bp",
+		vitals?.bloodPressure || "-"
+	);
+
+	setText(
+		"patient360Pulse",
+		vitals?.pulse || "-"
+	);
+
+	setText(
+		"patient360Temperature",
+		vitals?.temperature || "-"
+	);
+
+	setText(
+		"patient360Spo2",
+		vitals?.spo2 || "-"
+	);
+
+	setText(
+		"patient360Weight",
+		vitals?.weight || "-"
+	);
+
+	setText(
+		"patient360Height",
+		vitals?.height || "-"
+	);
+
+	setText(
+		"patient360Sugar",
+		vitals?.sugarLevel || "-"
+	);
+}
+
+function renderPatient360LatestAppointment(appointment) {
+
+	const container =
+		document.getElementById(
+			"patient360LatestAppointment"
+		);
+
+	if (!container) {
+		return;
+	}
+
+	if (!appointment) {
+
+		container.innerHTML = `
+            <div class="text-muted">
+                No appointment history available.
+            </div>
+        `;
+
+		return;
+	}
+
+	container.innerHTML = `
+        <div class="patient360-record-title">
+            ${safe(
+		appointment.doctorName ||
+		"Doctor"
+	)}
+        </div>
+
+        <div class="patient360-record-meta">
+            ${safe(
+		appointment.specialization ||
+		appointment.department ||
+		"-"
+	)}
+        </div>
+
+        <div class="patient360-record-meta">
+            ${safe(
+		formatPatient360Date(
+			appointment.appointmentDate
+		)
+	)}
+            ${safe(
+		formatPatient360Time(
+			appointment.appointmentTime
+		)
+	)}
+        </div>
+
+        <span class="badge text-bg-primary mt-2">
+            ${safe(
+		formatLabel(
+			appointment.status
+		)
+	)}
+        </span>
+    `;
+}
+
+function renderPatient360LatestPrescription(prescription) {
+
+	const container =
+		document.getElementById(
+			"patient360LatestPrescription"
+		);
+
+	if (!container) {
+		return;
+	}
+
+	if (!prescription) {
+
+		container.innerHTML = `
+            <div class="text-muted">
+                No prescription history available.
+            </div>
+        `;
+
+		return;
+	}
+
+	container.innerHTML = `
+        <div class="patient360-record-title">
+            ${safe(
+		prescription.diagnosis ||
+		"Clinical Prescription"
+	)}
+        </div>
+
+        <div class="patient360-record-meta mt-2">
+            ${safe(
+		prescription.clinicalNotes ||
+		prescription.advice ||
+		"No clinical notes recorded."
+	)}
+        </div>
+
+        <div class="patient360-record-meta mt-2">
+            Follow-up:
+            <strong>
+                ${safe(
+		formatPatient360Date(
+			prescription.followUpDate
+		)
+	)}
+            </strong>
+        </div>
+    `;
+}
+
+function renderPatient360Timeline(timeline) {
+
+	const container =
+		document.getElementById(
+			"patient360Timeline"
+		);
+
+	if (!container) {
+		return;
+	}
+
+	const items =
+		Array.isArray(timeline)
+			? timeline
+			: [];
+
+	if (!items.length) {
+
+		container.innerHTML = `
+            <div class="patient360-empty">
+                <i class="bi bi-clock-history"></i>
+                <div>
+                    No clinical timeline available yet.
+                </div>
+            </div>
+        `;
+
+		return;
+	}
+
+	container.innerHTML =
+		items.map(
+			function(item) {
+
+				const eventStyle =
+					getPatient360TimelineStyle(
+						item.type
+					);
+
+				const icon =
+					eventStyle.icon;
+
+				return `
+                    <div class="patient360-timeline-item">
+
+                        <div class="patient360-timeline-icon ${safe(eventStyle.cssClass)}">
+    <i class="bi ${safe(icon)}"></i>
+</div>
+
+                        <div class="patient360-timeline-content">
+
+                            <div class="patient360-timeline-date">
+                                ${safe(
+					formatPatient360DateTime(
+						item.eventAt
+					)
+				)}
+                            </div>
+
+                            <div class="patient360-timeline-title">
+                                ${safe(
+					item.title ||
+					formatLabel(
+						item.type
+					)
+				)}
+                            </div>
+
+                            <div class="patient360-timeline-subtitle">
+                                ${safe(
+					item.subtitle ||
+					"-"
+				)}
+                            </div>
+
+                            ${item.detail
+						? `
+                                        <div class="patient360-timeline-detail">
+                                            ${safe(
+							item.detail
+						)}
+                                        </div>
+                                    `
+						: ""
+					}
+
+                            ${item.status
+						? `
+                                        <span class="badge text-bg-light mt-2">
+                                            ${safe(
+							formatPatient360Status(
+								item.status
+							)
+						)}
+                                        </span>
+                                    `
+						: ""
+					}
+
+                        </div>
+
+                    </div>
+                `;
+			}
+		).join("");
+}
+
+function getPatient360TimelineStyle(type) {
+
+	const normalizedType =
+		String(type || "")
+			.trim()
+			.toUpperCase();
+
+	const styles = {
+
+		APPOINTMENT: {
+			icon:
+				"bi-calendar2-check-fill",
+			cssClass:
+				"patient360-event-appointment"
+		},
+
+		PRESCRIPTION: {
+			icon:
+				"bi-file-medical-fill",
+			cssClass:
+				"patient360-event-prescription"
+		},
+
+		OPD: {
+			icon:
+				"bi-person-walking",
+			cssClass:
+				"patient360-event-opd"
+		},
+
+		IPD: {
+			icon:
+				"bi-hospital-fill",
+			cssClass:
+				"patient360-event-ipd"
+		},
+
+		LAB: {
+			icon:
+				"bi-droplet-half",
+			cssClass:
+				"patient360-event-lab"
+		},
+
+		RADIOLOGY: {
+			icon:
+				"bi-radioactive",
+			cssClass:
+				"patient360-event-radiology"
+		},
+
+		DIAGNOSTIC: {
+			icon:
+				"bi-clipboard2-pulse-fill",
+			cssClass:
+				"patient360-event-diagnostic"
+		},
+
+		BILLING: {
+			icon:
+				"bi-receipt-cutoff",
+			cssClass:
+				"patient360-event-billing"
+		}
+
+	};
+
+	return (
+		styles[normalizedType] || {
+			icon:
+				"bi-activity",
+			cssClass:
+				"patient360-event-default"
+		}
+	);
+}
+
+function showPatient360Loading() {
+
+	const loading =
+		document.getElementById(
+			"patient360Loading"
+		);
+
+	const content =
+		document.getElementById(
+			"patient360MainContent"
+		);
+
+	const error =
+		document.getElementById(
+			"patient360Error"
+		);
+
+	if (loading) {
+		loading.classList.remove(
+			"d-none"
+		);
+	}
+
+	if (content) {
+		content.classList.add(
+			"d-none"
+		);
+	}
+
+	if (error) {
+		error.classList.add(
+			"d-none"
+		);
+	}
+}
+
+function showPatient360Error(message) {
+
+	const loading =
+		document.getElementById(
+			"patient360Loading"
+		);
+
+	const content =
+		document.getElementById(
+			"patient360MainContent"
+		);
+
+	const error =
+		document.getElementById(
+			"patient360Error"
+		);
+
+	if (loading) {
+		loading.classList.add(
+			"d-none"
+		);
+	}
+
+	if (content) {
+		content.classList.add(
+			"d-none"
+		);
+	}
+
+	if (error) {
+
+		error.classList.remove(
+			"d-none"
+		);
+
+		error.textContent =
+			message ||
+			"Unable to load Patient 360.";
+	}
+}
+
+function formatPatient360Date(value) {
+
+	if (!value) {
+		return "-";
+	}
+
+	const date =
+		new Date(
+			value + "T00:00:00"
+		);
+
+	if (
+		Number.isNaN(
+			date.getTime()
+		)
+	) {
+		return value;
+	}
+
+	return date.toLocaleDateString(
+		"en-IN",
+		{
+			day: "2-digit",
+			month: "short",
+			year: "numeric"
+		}
+	);
+}
+
+
+function formatPatient360Time(value) {
+
+	if (!value) {
+		return "";
+	}
+
+	const parts =
+		String(value)
+			.split(":");
+
+	const hour =
+		Number(parts[0]);
+
+	const minute =
+		Number(parts[1] || 0);
+
+	if (!Number.isFinite(hour)) {
+		return value;
+	}
+
+	const date =
+		new Date();
+
+	date.setHours(
+		hour,
+		minute,
+		0,
+		0
+	);
+
+	return date.toLocaleTimeString(
+		"en-IN",
+		{
+			hour: "2-digit",
+			minute: "2-digit"
+		}
+	);
+}
+
+
+function formatPatient360DateTime(value) {
+
+	if (!value) {
+		return "-";
+	}
+
+	const date =
+		new Date(value);
+
+	if (
+		Number.isNaN(
+			date.getTime()
+		)
+	) {
+		return value;
+	}
+
+	return date.toLocaleString(
+		"en-IN",
+		{
+			day: "2-digit",
+			month: "short",
+			year: "numeric",
+			hour: "2-digit",
+			minute: "2-digit"
+		}
+	);
 }
 
 async function editPatient(patientId) {
@@ -1509,6 +2302,20 @@ function showPatientsErrorState(message) {
 			</td>
 		</tr>
 	`;
+}
+
+function formatPatient360Status(status) {
+
+	if (!status) {
+		return "-";
+	}
+
+	return String(status)
+		.replaceAll("_", " ")
+		.toLowerCase()
+		.replace(/\b\w/g, function(char) {
+			return char.toUpperCase();
+		});
 }
 
 function normalizeArrayResponse(result) {

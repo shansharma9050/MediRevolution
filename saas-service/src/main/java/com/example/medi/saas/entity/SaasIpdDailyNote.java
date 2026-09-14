@@ -35,6 +35,27 @@ public class SaasIpdDailyNote {
     @Column(length = 500)
     private String vitals;
 
+    @Column(length = 30)
+    private String bloodPressure;
+
+    @Column(length = 30)
+    private String pulse;
+
+    @Column(length = 30)
+    private String temperature;
+
+    @Column(length = 30)
+    private String spo2;
+
+    @Column(length = 30)
+    private String weight;
+
+    @Column(length = 30)
+    private String height;
+
+    @Column(length = 30)
+    private String sugarLevel;
+
     private Long createdByAuthUserId;
 
     private LocalDateTime createdAt = LocalDateTime.now();
