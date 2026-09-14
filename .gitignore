@@ -1,6 +1,63 @@
-/.metadata/
-.metadata/
+# ==============================
+# MediRevolution Git Ignore
+# ==============================
+
+# Maven / Build
 target/
+**/target/
+
+# Eclipse
+.metadata/
+**/.metadata/
 .settings/
+**/.settings/
 .project
+**/.project
 .classpath
+**/.classpath/
+
+# IntelliJ
+.idea/
+**/.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Environment / Secrets
+.env
+.env.*
+!.env.example
+
+# Keys / Certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Database Backups
+db-backups/
+*.dump
+*.backup
+*.bak
+
+# Logs
+*.log
+logs/
+**/logs/
+
+# Docker image / transfer archives
+*.tar
+*.tar.gz
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary Files
+*.tmp
+*.temp
+*.swp
+~$*
