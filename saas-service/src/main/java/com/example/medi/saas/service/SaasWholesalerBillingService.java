@@ -1017,14 +1017,20 @@ public class SaasWholesalerBillingService {
 			return SaasPaymentStatus.UNPAID;
 		}
 
-		return switch (status) {
+		switch (status) {
 
-		case PAID -> SaasPaymentStatus.PAID;
+		case PAID:
+			return SaasPaymentStatus.PAID;
 
-		case PARTIALLY_PAID -> SaasPaymentStatus.PARTIAL;
+		case PARTIALLY_PAID:
+			return SaasPaymentStatus.PARTIAL;
 
-		case UNPAID -> SaasPaymentStatus.UNPAID;
-		};
+		case UNPAID:
+			return SaasPaymentStatus.UNPAID;
+
+		default:
+			return SaasPaymentStatus.UNPAID;
+		}
 	}
 
 	private BigDecimal calculateGross(Integer quantity, BigDecimal saleRate) {
