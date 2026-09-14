@@ -1,7 +1,11 @@
 package com.example.medi.saas.service;
 
+import com.example.medi.saas.client.AuthClient;
 import com.example.medi.saas.dto.AddTenantMemberRequest;
+import com.example.medi.saas.dto.AdminCreateTenantRequest;
+import com.example.medi.saas.dto.AdminWorkspaceResponse;
 import com.example.medi.saas.dto.ApiResponse;
+import com.example.medi.saas.dto.AuthUserResponse;
 import com.example.medi.saas.dto.CreateTenantRequest;
 import com.example.medi.saas.dto.TenantResponse;
 import com.example.medi.saas.entity.SaasPatient;
@@ -18,9 +22,11 @@ import com.example.medi.saas.repository.TenantModuleSettingRepository;
 import com.example.medi.saas.repository.TenantRepository;
 import com.example.medi.saas.security.CurrentUserUtil;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -37,11 +43,13 @@ public class SaasTenantService {
 	private final SaasWorkspaceDeletionService saasWorkspaceDeletionService;
 	private final BillingWorkspaceCleanupClient billingWorkspaceCleanupClient;
 	private final SaasPatientRepository patientRepository;
+	private final AuthClient authClient;
 
 	public SaasTenantService(TenantRepository tenantRepository, TenantMemberRepository memberRepository,
 			TenantModuleSettingRepository moduleRepository, SaasPermissionService permissionService,
 			SaasDefaultModuleService defaultModuleService, SaasWorkspaceDeletionService saasWorkspaceDeletionService,
-			BillingWorkspaceCleanupClient billingWorkspaceCleanupClient, SaasPatientRepository patientRepository) {
+			BillingWorkspaceCleanupClient billingWorkspaceCleanupClient, SaasPatientRepository patientRepository,
+			AuthClient authClient) {
 		this.tenantRepository = tenantRepository;
 		this.memberRepository = memberRepository;
 		this.moduleRepository = moduleRepository;
@@ -50,6 +58,7 @@ public class SaasTenantService {
 		this.saasWorkspaceDeletionService = saasWorkspaceDeletionService;
 		this.billingWorkspaceCleanupClient = billingWorkspaceCleanupClient;
 		this.patientRepository = patientRepository;
+		this.authClient = authClient;
 	}
 
 	@Transactional
@@ -109,6 +118,195 @@ public class SaasTenantService {
 				ownerMember.getMemberRole());
 
 		return toResponse(savedTenant);
+	}
+
+	@Transactional
+	public TenantResponse adminCreateTenant(AdminCreateTenantRequest request) {
+
+		if (request == null) {
+			throw new RuntimeException("Workspace request is required");
+		}
+
+		if (request.getUserId() == null || request.getUserId() <= 0) {
+			throw new RuntimeException("Valid user id is required");
+		}
+
+		if (request.getTenantName() == null || request.getTenantName().isBlank()) {
+			throw new RuntimeException("Workspace name is required");
+		}
+
+		AuthUserResponse user = getAndValidateAdminTargetUser(request.getUserId());
+
+		String role = normalizeRole(user.getRole());
+
+		if (!isWorkspaceAllowedRole(role)) {
+			throw new RuntimeException(
+					"SaaS workspace is available only for Doctor, Hospital, Wholesaler and Retailer");
+		}
+
+		TenantType tenantType = resolveTenantType(role, request.getTenantType());
+
+		Tenant tenant = new Tenant();
+
+		tenant.setOwnerAuthUserId(user.getId());
+		tenant.setTenantName(request.getTenantName().trim());
+		tenant.setTenantCode(generateTenantCode(request.getTenantName()));
+		tenant.setTenantType(tenantType);
+
+		tenant.setContactEmail(trimToNull(request.getContactEmail()));
+		tenant.setContactMobile(trimToNull(request.getContactMobile()));
+		tenant.setAddress(trimToNull(request.getAddress()));
+		tenant.setCity(trimToNull(request.getCity()));
+		tenant.setState(trimToNull(request.getState()));
+		tenant.setPincode(trimToNull(request.getPincode()));
+
+		/*
+		 * Admin-created workspace is free and immediately active. No PhonePe/payment
+		 * flow is involved.
+		 */
+		tenant.setStatus(TenantStatus.ACTIVE);
+
+		LocalDate validFrom = request.getValidFrom();
+		LocalDate validUntil = request.getValidUntil();
+
+		if (validFrom == null) {
+			throw new RuntimeException("Valid from date is required");
+		}
+
+		if (validUntil == null) {
+			throw new RuntimeException("Valid until date is required");
+		}
+
+		if (validUntil.isBefore(validFrom)) {
+			throw new RuntimeException("Valid until date cannot be before valid from date");
+		}
+
+		if (validUntil.isBefore(LocalDate.now())) {
+			throw new RuntimeException("Valid until date cannot be in the past");
+		}
+
+		tenant.setValidFrom(validFrom);
+		tenant.setValidUntil(validUntil);
+
+		Tenant savedTenant = tenantRepository.save(tenant);
+
+		TenantMember ownerMember = new TenantMember();
+
+		ownerMember.setTenantId(savedTenant.getId());
+		ownerMember.setAuthUserId(user.getId());
+		ownerMember.setName(trimToNull(user.getFullName()));
+		ownerMember.setEmail(trimToNull(user.getEmail()));
+		ownerMember.setMobile(trimToNull(user.getMobile()));
+		ownerMember.setMemberRole(TenantMemberRole.OWNER);
+		ownerMember.setActive(true);
+
+		TenantMember savedOwnerMember = memberRepository.save(ownerMember);
+
+		createDefaultModules(savedTenant);
+
+		permissionService.assignDefaultPermissions(savedTenant.getId(), savedOwnerMember.getAuthUserId(),
+				savedOwnerMember.getMemberRole());
+
+		return toResponse(savedTenant);
+	}
+
+	public List<AdminWorkspaceResponse> getAdminSaasWorkspaces() {
+
+		String role = normalizeRole(CurrentUserUtil.getRole());
+
+		if (!"SUPER_ADMIN".equals(role)) {
+			throw new RuntimeException("Only SUPER_ADMIN can view all workspaces");
+		}
+
+		return tenantRepository.findAll().stream()
+				.map(tenant -> new AdminWorkspaceResponse(tenant.getId(), tenant.getTenantName(),
+						tenant.getTenantCode(), tenant.getTenantType() != null ? tenant.getTenantType().name() : null,
+						tenant.getStatus() != null ? tenant.getStatus().name() : null, tenant.getOwnerAuthUserId(),
+						tenant.getValidFrom(), tenant.getValidUntil()))
+				.collect(Collectors.toList());
+	}
+
+	@Scheduled(cron = "0 10 0 * * *", zone = "Asia/Kolkata")
+	@Transactional
+	public void expireAdminControlledWorkspaces() {
+
+		LocalDate today = LocalDate.now();
+
+		List<Tenant> expiredTenants = tenantRepository.findByValidUntilBeforeAndStatus(today, TenantStatus.ACTIVE);
+
+		if (expiredTenants.isEmpty()) {
+			return;
+		}
+
+		for (Tenant tenant : expiredTenants) {
+
+			tenant.setStatus(TenantStatus.SUSPENDED);
+			tenant.touch();
+		}
+
+		tenantRepository.saveAll(expiredTenants);
+
+		System.out.println("Admin workspace validity expired. Suspended workspaces: " + expiredTenants.size());
+	}
+
+	public List<AuthUserResponse> getAdminSaasWorkspaceUsers() {
+
+		String role = CurrentUserUtil.getRole();
+
+		if (role == null || role.isBlank()) {
+			throw new RuntimeException("User role not found from token");
+		}
+
+		role = role.trim().toUpperCase();
+
+		if (role.startsWith("ROLE_")) {
+			role = role.substring("ROLE_".length());
+		}
+
+		if (!"SUPER_ADMIN".equals(role)) {
+			throw new RuntimeException("Only ADMIN can view SaaS workspace users");
+		}
+
+		String token = CurrentUserUtil.getToken();
+
+		if (token == null || token.isBlank()) {
+			throw new RuntimeException("Authorization token not found");
+		}
+
+		String authorization = token.startsWith("Bearer ") ? token : "Bearer " + token;
+
+		return authClient.getSaasWorkspaceUsers(authorization);
+	}
+
+	private AuthUserResponse getAndValidateAdminTargetUser(Long userId) {
+
+		if (userId == null || userId <= 0) {
+			throw new RuntimeException("Valid user id is required");
+		}
+
+		String token = CurrentUserUtil.getToken();
+
+		if (token == null || token.isBlank()) {
+			throw new RuntimeException("Authorization token not found");
+		}
+
+		String authorization = token.startsWith("Bearer ") ? token : "Bearer " + token;
+
+		AuthUserResponse user = authClient.getUserById(authorization, userId);
+
+		if (user == null) {
+			throw new RuntimeException("User not found");
+		}
+
+		if (!Boolean.TRUE.equals(user.getActive())) {
+			throw new RuntimeException("Selected user account is inactive");
+		}
+
+		if (!Boolean.TRUE.equals(user.getApproved())) {
+			throw new RuntimeException("Selected user account is not approved");
+		}
+
+		return user;
 	}
 
 	@Transactional
@@ -266,6 +464,53 @@ public class SaasTenantService {
 			throw new RuntimeException("Only workspace owner can activate subscription");
 		}
 
+		tenant.setStatus(TenantStatus.ACTIVE);
+		tenant.touch();
+
+		Tenant saved = tenantRepository.save(tenant);
+
+		return toResponse(saved);
+	}
+
+	@Transactional
+	public TenantResponse activateWorkspace(Long tenantId, Long authUserId, LocalDate validFrom, LocalDate validUntil) {
+
+		if (tenantId == null || tenantId <= 0) {
+			throw new RuntimeException("Workspace id is required");
+		}
+
+		if (authUserId == null) {
+			throw new RuntimeException("User id is required");
+		}
+
+		if (validFrom == null) {
+			throw new RuntimeException("Workspace valid from date is required");
+		}
+
+		if (validUntil == null) {
+			throw new RuntimeException("Workspace valid until date is required");
+		}
+
+		if (validUntil.isBefore(validFrom)) {
+			throw new RuntimeException("Workspace valid until date cannot be before valid from date");
+		}
+
+		Tenant tenant = tenantRepository.findById(tenantId)
+				.orElseThrow(() -> new RuntimeException("Workspace not found"));
+
+		/*
+		 * Only workspace owner can activate subscription for this workspace.
+		 */
+		if (!tenant.getOwnerAuthUserId().equals(authUserId)) {
+			throw new RuntimeException("Only workspace owner can activate subscription");
+		}
+
+		/*
+		 * Keep SaaS workspace validity synchronized with the successfully created
+		 * UserSubscription in Billing service.
+		 */
+		tenant.setValidFrom(validFrom);
+		tenant.setValidUntil(validUntil);
 		tenant.setStatus(TenantStatus.ACTIVE);
 		tenant.touch();
 
@@ -488,18 +733,23 @@ public class SaasTenantService {
 
 	private TenantType resolveTenantType(String role, String requestedType) {
 
-		return switch (role) {
+		switch (role) {
 
-		case "DOCTOR" -> TenantType.DOCTOR_CLINIC;
+		case "DOCTOR":
+			return TenantType.DOCTOR_CLINIC;
 
-		case "HOSPITAL" -> TenantType.HOSPITAL;
+		case "HOSPITAL":
+			return TenantType.HOSPITAL;
 
-		case "WHOLESALER" -> TenantType.WHOLESALER;
+		case "WHOLESALER":
+			return TenantType.WHOLESALER;
 
-		case "RETAILER" -> TenantType.RETAILER;
+		case "RETAILER":
+			return TenantType.RETAILER;
 
-		default -> resolveRequestedTenantType(requestedType);
-		};
+		default:
+			return resolveRequestedTenantType(requestedType);
+		}
 	}
 
 	private TenantType resolveRequestedTenantType(String requestedType) {
@@ -602,5 +852,161 @@ public class SaasTenantService {
 		 * Other users must be active members.
 		 */
 		return memberRepository.findByTenantIdAndAuthUserIdAndActiveTrue(tenantId, authUserId).isPresent();
+	}
+
+	@Transactional
+	public TenantResponse adminSetWorkspaceValidity(Long tenantId, LocalDate validFrom, LocalDate validUntil) {
+
+		if (tenantId == null || tenantId <= 0) {
+			throw new RuntimeException("Workspace id is required");
+		}
+
+		if (validFrom == null) {
+			throw new RuntimeException("Valid from date is required");
+		}
+
+		if (validUntil == null) {
+			throw new RuntimeException("Valid until date is required");
+		}
+
+		if (validUntil.isBefore(validFrom)) {
+			throw new RuntimeException("Valid until date cannot be before valid from date");
+		}
+
+		if (validUntil.isBefore(LocalDate.now())) {
+			throw new RuntimeException("Valid until date cannot be in the past");
+		}
+
+		Tenant tenant = tenantRepository.findById(tenantId)
+				.orElseThrow(() -> new RuntimeException("Workspace not found"));
+
+		/*
+		 * Update SaaS workspace validity.
+		 */
+		tenant.setValidFrom(validFrom);
+		tenant.setValidUntil(validUntil);
+
+		/*
+		 * IMPORTANT:
+		 *
+		 * Do NOT automatically change workspace status here.
+		 *
+		 * This keeps existing suspend/reactivate logic unchanged.
+		 */
+		// tenant.setStatus(TenantStatus.ACTIVE);
+
+		tenant.touch();
+
+		Tenant saved = tenantRepository.save(tenant);
+
+		/*
+		 * Synchronize the corresponding workspace subscription in Billing.
+		 *
+		 * For an admin-created FREE workspace there may be no UserSubscription. Billing
+		 * client safely handles that case.
+		 *
+		 * Platform subscription (tenantId == null) is never touched because this method
+		 * always sends the specific workspace tenantId.
+		 */
+		billingWorkspaceCleanupClient.updateWorkspaceSubscriptionValidity(tenantId, validFrom, validUntil);
+
+		return toResponse(saved);
+	}
+
+	@Transactional
+	public TenantResponse adminExtendWorkspaceValidity(Long tenantId, LocalDate newValidUntil) {
+
+		if (tenantId == null || tenantId <= 0) {
+			throw new RuntimeException("Workspace id is required");
+		}
+
+		if (newValidUntil == null) {
+			throw new RuntimeException("New valid until date is required");
+		}
+
+		if (newValidUntil.isBefore(LocalDate.now())) {
+			throw new RuntimeException("New validity date cannot be in the past");
+		}
+
+		Tenant tenant = tenantRepository.findById(tenantId)
+				.orElseThrow(() -> new RuntimeException("Workspace not found"));
+
+		LocalDate currentValidUntil = tenant.getValidUntil();
+
+		if (currentValidUntil != null && newValidUntil.isBefore(currentValidUntil)) {
+
+			throw new RuntimeException("New validity date cannot be earlier than current validity date");
+		}
+
+		if (tenant.getValidFrom() == null) {
+			tenant.setValidFrom(LocalDate.now());
+		}
+
+		tenant.setValidUntil(newValidUntil);
+
+		/*
+		 * Do NOT automatically change workspace status here.
+		 *
+		 * Existing suspend/reactivate flow remains unchanged.
+		 */
+		// tenant.setStatus(TenantStatus.ACTIVE);
+
+		tenant.touch();
+
+		Tenant saved = tenantRepository.save(tenant);
+
+		/*
+		 * Synchronize Billing workspace subscription validity.
+		 *
+		 * If this is an admin-created FREE workspace and no UserSubscription exists,
+		 * Billing safely does nothing.
+		 */
+		billingWorkspaceCleanupClient.updateWorkspaceSubscriptionValidity(tenantId, tenant.getValidFrom(),
+				newValidUntil);
+
+		return toResponse(saved);
+	}
+
+	@Transactional
+	public TenantResponse adminSuspendWorkspace(Long tenantId) {
+
+		if (tenantId == null || tenantId <= 0) {
+			throw new RuntimeException("Workspace id is required");
+		}
+
+		Tenant tenant = tenantRepository.findById(tenantId)
+				.orElseThrow(() -> new RuntimeException("Workspace not found"));
+
+		tenant.setStatus(TenantStatus.SUSPENDED);
+		tenant.touch();
+
+		Tenant saved = tenantRepository.save(tenant);
+
+		return toResponse(saved);
+	}
+
+	@Transactional
+	public TenantResponse adminReactivateWorkspace(Long tenantId) {
+
+		if (tenantId == null || tenantId <= 0) {
+			throw new RuntimeException("Workspace id is required");
+		}
+
+		Tenant tenant = tenantRepository.findById(tenantId)
+				.orElseThrow(() -> new RuntimeException("Workspace not found"));
+
+		LocalDate today = LocalDate.now();
+
+		if (tenant.getValidUntil() != null && tenant.getValidUntil().isBefore(today)) {
+
+			throw new RuntimeException("Workspace validity has expired. Extend the validity before reactivating.");
+		}
+
+		tenant.setStatus(TenantStatus.ACTIVE);
+		tenant.touch();
+
+		Tenant saved = tenantRepository.save(tenant);
+
+		return toResponse(saved);
 	}
 }

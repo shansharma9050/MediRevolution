@@ -23,16 +23,23 @@ import java.util.Set;
 public class SaasPermissionService {
 
 	private final SaasTenantMemberPermissionRepository permissionRepository;
+
 	private final TenantMemberRepository tenantMemberRepository;
+
 	private final TenantAccessService tenantAccessService;
+
 	private final SaasCustomerRepository customerRepository;
 
 	public SaasPermissionService(SaasTenantMemberPermissionRepository permissionRepository,
 			TenantMemberRepository tenantMemberRepository, TenantAccessService tenantAccessService,
 			SaasCustomerRepository customerRepository) {
+
 		this.permissionRepository = permissionRepository;
+
 		this.tenantMemberRepository = tenantMemberRepository;
+
 		this.tenantAccessService = tenantAccessService;
+
 		this.customerRepository = customerRepository;
 	}
 
@@ -48,19 +55,24 @@ public class SaasPermissionService {
 	}
 
 	public List<SaasMemberPermissionResponse> getMemberPermissions(Long tenantId, Long authUserId) {
+
 		tenantAccessService.validateOwnerOrAdmin(tenantId);
 
-		return permissionRepository.findByTenantIdAndAuthUserIdOrderByModuleAscPermissionActionAsc(tenantId, authUserId)
-				.stream().map(this::toResponse).toList();
+		return permissionRepository
+				.findByTenantIdAndAuthUserIdOrderByModuleAscPermissionActionAsc(tenantId, authUserId).stream()
+				.map(this::toResponse).toList();
 	}
 
 	@Transactional
 	public List<SaasMemberPermissionResponse> saveMemberPermissions(SaasMemberPermissionRequest request) {
+
 		if (request.getTenantId() == null) {
+
 			throw new RuntimeException("tenantId is required");
 		}
 
 		if (request.getAuthUserId() == null) {
+
 			throw new RuntimeException("authUserId is required");
 		}
 
@@ -71,37 +83,49 @@ public class SaasPermissionService {
 				.orElseThrow(() -> new RuntimeException("Tenant member not found"));
 
 		if (targetMember.getMemberRole() == TenantMemberRole.OWNER) {
+
 			throw new RuntimeException("Owner permissions cannot be changed");
 		}
 
 		permissionRepository.deleteByTenantIdAndAuthUserId(request.getTenantId(), request.getAuthUserId());
+
 		permissionRepository.flush();
 
 		Set<String> uniquePermissions = new HashSet<>();
 
 		if (request.getPermissions() != null) {
+
 			for (SaasPermissionItemRequest item : request.getPermissions()) {
 
 				if (item.getModule() == null || item.getPermissionAction() == null) {
+
 					continue;
 				}
 
 				TenantModule module = TenantModule.valueOf(item.getModule().toUpperCase());
 
-				SaasPermissionAction action = SaasPermissionAction.valueOf(item.getPermissionAction().toUpperCase());
+				SaasPermissionAction action = SaasPermissionAction
+						.valueOf(item.getPermissionAction().toUpperCase());
 
 				String uniqueKey = module.name() + "_" + action.name();
 
 				if (!uniquePermissions.add(uniqueKey)) {
+
 					continue;
 				}
 
 				SaasTenantMemberPermission permission = new SaasTenantMemberPermission();
+
 				permission.setTenantId(request.getTenantId());
+
 				permission.setAuthUserId(request.getAuthUserId());
+
 				permission.setModule(module);
+
 				permission.setPermissionAction(action);
+
 				permission.setAllowed(item.getAllowed() == null || item.getAllowed());
+
 				permission.setGrantedByAuthUserId(CurrentUserUtil.getUserId());
 
 				permissionRepository.save(permission);
@@ -114,6 +138,7 @@ public class SaasPermissionService {
 	public SaasCurrentPermissionResponse getCurrentUserPermissions(Long tenantId) {
 
 		if (tenantId == null || tenantId <= 0) {
+
 			throw new RuntimeException("Workspace id is required");
 		}
 
@@ -176,6 +201,7 @@ public class SaasPermissionService {
 	}
 
 	public SaasPermissionCheckResponse checkPermission(Long tenantId, String module, String action) {
+
 		boolean allowed = hasPermission(tenantId, TenantModule.valueOf(module.toUpperCase()),
 				SaasPermissionAction.valueOf(action.toUpperCase()));
 
@@ -207,7 +233,8 @@ public class SaasPermissionService {
 
 			if (tenant.getStatus() == TenantStatus.SUSPENDED) {
 
-				throw new RuntimeException("Workspace subscription has expired. " + "Please renew your subscription.");
+				throw new RuntimeException(
+						"Workspace subscription has expired. " + "Please renew your subscription.");
 			}
 
 			throw new RuntimeException("Workspace is not active.");
@@ -267,7 +294,8 @@ public class SaasPermissionService {
 		 * ======================================================
 		 */
 
-		if (member.getMemberRole() == TenantMemberRole.OWNER || member.getMemberRole() == TenantMemberRole.ADMIN) {
+		if (member.getMemberRole() == TenantMemberRole.OWNER
+				|| member.getMemberRole() == TenantMemberRole.ADMIN) {
 
 			return true;
 		}
@@ -277,12 +305,14 @@ public class SaasPermissionService {
 		 * ======================================================
 		 */
 
-		return permissionRepository.existsByTenantIdAndAuthUserIdAndModuleAndPermissionActionAndAllowedTrue(tenantId,
-				member.getAuthUserId(), module, action);
+		return permissionRepository.existsByTenantIdAndAuthUserIdAndModuleAndPermissionActionAndAllowedTrue(
+				tenantId, member.getAuthUserId(), module, action);
 	}
 
 	public void requirePermission(Long tenantId, TenantModule module, SaasPermissionAction action) {
+
 		if (!hasPermission(tenantId, module, action)) {
+
 			throw new RuntimeException("Permission denied: " + module.name() + " - " + action.name());
 		}
 	}
@@ -293,11 +323,14 @@ public class SaasPermissionService {
 	 */
 	@Transactional
 	public void assignDefaultPermissions(Long tenantId, Long authUserId, TenantMemberRole memberRole) {
+
 		if (tenantId == null || authUserId == null || memberRole == null) {
+
 			return;
 		}
 
 		if (memberRole == TenantMemberRole.OWNER || memberRole == TenantMemberRole.ADMIN) {
+
 			return;
 		}
 
@@ -308,9 +341,12 @@ public class SaasPermissionService {
 		/*
 		 * Doctor/Hospital roles Existing permissions unchanged.
 		 */
-		case DOCTOR -> {
+		case DOCTOR: {
+
 			allowAllActions(tenantId, authUserId, TenantModule.PATIENTS);
+
 			allowAllActions(tenantId, authUserId, TenantModule.APPOINTMENTS);
+
 			allowAllActions(tenantId, authUserId, TenantModule.DOCTOR_AVAILABILITY);
 
 			allowAllActions(tenantId, authUserId, TenantModule.PRESCRIPTIONS);
@@ -323,10 +359,13 @@ public class SaasPermissionService {
 
 			allowViewCreateUpdate(tenantId, authUserId, TenantModule.RADIOLOGY);
 
+			break;
 		}
 
-		case RECEPTIONIST -> {
+		case RECEPTIONIST: {
+
 			allowAllActions(tenantId, authUserId, TenantModule.PATIENTS);
+
 			allowAllActions(tenantId, authUserId, TenantModule.APPOINTMENTS);
 
 			allowViewCreateUpdate(tenantId, authUserId, TenantModule.OPD);
@@ -334,13 +373,16 @@ public class SaasPermissionService {
 			allowViewCreateUpdate(tenantId, authUserId, TenantModule.IPD);
 
 			allowView(tenantId, authUserId, TenantModule.BILLING);
+
+			break;
 		}
 
 		/*
 		 * Shared accountant role: Hospital, Wholesaler and Retailer workspaces me use
 		 * ho sakta hai.
 		 */
-		case ACCOUNTANT -> {
+		case ACCOUNTANT: {
+
 			allowAllActions(tenantId, authUserId, TenantModule.BILLING);
 
 			allowAllActions(tenantId, authUserId, TenantModule.PAYMENTS);
@@ -362,12 +404,15 @@ public class SaasPermissionService {
 			allowView(tenantId, authUserId, TenantModule.SALES_RETURNS);
 
 			allowView(tenantId, authUserId, TenantModule.REPORTS);
+
+			break;
 		}
 
 		/*
 		 * Pharmacist hospital pharmacy aur retailer pharmacy dono me use ho sakta hai.
 		 */
-		case PHARMACIST -> {
+		case PHARMACIST: {
+
 			allowAllActions(tenantId, authUserId, TenantModule.PHARMACY);
 
 			allowAllActions(tenantId, authUserId, TenantModule.MEDICINE_MASTER);
@@ -381,20 +426,26 @@ public class SaasPermissionService {
 			allowViewCreateUpdate(tenantId, authUserId, TenantModule.SALES);
 
 			allowViewCreateUpdate(tenantId, authUserId, TenantModule.BILLING);
+
+			break;
 		}
 
-		case LAB_TECHNICIAN -> {
+		case LAB_TECHNICIAN: {
+
 			allowAllActions(tenantId, authUserId, TenantModule.LAB);
 
 			allowView(tenantId, authUserId, TenantModule.PATIENTS);
 
 			allowViewCreateUpdate(tenantId, authUserId, TenantModule.BILLING);
+
+			break;
 		}
 
 		/*
 		 * Wholesaler/Retailer sales department.
 		 */
-		case SALES_MANAGER -> {
+		case SALES_MANAGER: {
+
 			allowAllActions(tenantId, authUserId, TenantModule.CUSTOMERS);
 
 			allowAllActions(tenantId, authUserId, TenantModule.SALES);
@@ -412,12 +463,15 @@ public class SaasPermissionService {
 			allowView(tenantId, authUserId, TenantModule.INVENTORY);
 
 			allowView(tenantId, authUserId, TenantModule.REPORTS);
+
+			break;
 		}
 
 		/*
 		 * Purchase and supplier management.
 		 */
-		case PURCHASE_MANAGER -> {
+		case PURCHASE_MANAGER: {
+
 			allowAllActions(tenantId, authUserId, TenantModule.SUPPLIERS);
 
 			allowAllActions(tenantId, authUserId, TenantModule.PURCHASES);
@@ -431,12 +485,15 @@ public class SaasPermissionService {
 			allowViewCreateUpdate(tenantId, authUserId, TenantModule.PAYMENTS);
 
 			allowView(tenantId, authUserId, TenantModule.REPORTS);
+
+			break;
 		}
 
 		/*
 		 * Warehouse, batches, stock and expiry management.
 		 */
-		case WAREHOUSE_MANAGER -> {
+		case WAREHOUSE_MANAGER: {
+
 			allowAllActions(tenantId, authUserId, TenantModule.MEDICINE_MASTER);
 
 			allowAllActions(tenantId, authUserId, TenantModule.INVENTORY);
@@ -452,12 +509,15 @@ public class SaasPermissionService {
 			allowView(tenantId, authUserId, TenantModule.SALES_ORDERS);
 
 			allowView(tenantId, authUserId, TenantModule.REPORTS);
+
+			break;
 		}
 
 		/*
 		 * Retail pharmacy/counter billing.
 		 */
-		case CASHIER -> {
+		case CASHIER: {
+
 			allowViewCreateUpdate(tenantId, authUserId, TenantModule.CUSTOMERS);
 
 			allowViewCreateUpdate(tenantId, authUserId, TenantModule.SALES);
@@ -469,12 +529,15 @@ public class SaasPermissionService {
 			allowView(tenantId, authUserId, TenantModule.MEDICINE_MASTER);
 
 			allowView(tenantId, authUserId, TenantModule.INVENTORY);
+
+			break;
 		}
 
 		/*
 		 * Wholesaler field/counter salesperson.
 		 */
-		case SALESPERSON -> {
+		case SALESPERSON: {
+
 			allowViewCreateUpdate(tenantId, authUserId, TenantModule.CUSTOMERS);
 
 			allowViewCreateUpdate(tenantId, authUserId, TenantModule.SALES);
@@ -486,12 +549,15 @@ public class SaasPermissionService {
 			allowView(tenantId, authUserId, TenantModule.MEDICINE_MASTER);
 
 			allowView(tenantId, authUserId, TenantModule.INVENTORY);
+
+			break;
 		}
 
 		/*
 		 * Shared manager role.
 		 */
-		case MANAGER -> {
+		case MANAGER: {
+
 			allowAllActions(tenantId, authUserId, TenantModule.PATIENTS);
 
 			allowAllActions(tenantId, authUserId, TenantModule.APPOINTMENTS);
@@ -521,12 +587,15 @@ public class SaasPermissionService {
 			allowAllActions(tenantId, authUserId, TenantModule.EXPIRY_MANAGEMENT);
 
 			allowView(tenantId, authUserId, TenantModule.REPORTS);
+
+			break;
 		}
 
 		/*
 		 * Generic staff ko sirf basic read access.
 		 */
-		case STAFF -> {
+		case STAFF: {
+
 			allowView(tenantId, authUserId, TenantModule.DASHBOARD);
 
 			allowView(tenantId, authUserId, TenantModule.PATIENTS);
@@ -538,48 +607,74 @@ public class SaasPermissionService {
 			allowView(tenantId, authUserId, TenantModule.CUSTOMERS);
 
 			allowView(tenantId, authUserId, TenantModule.INVENTORY);
+
+			break;
 		}
 
 		/*
 		 * OWNER and ADMIN method ke start me return ho jaate hain.
 		 */
-		case OWNER, ADMIN -> {
+		case OWNER:
+		case ADMIN: {
+
 			// No permission rows required.
+
+			break;
 		}
 
-		default -> allowView(tenantId, authUserId, TenantModule.DASHBOARD);
+		default: {
+
+			allowView(tenantId, authUserId, TenantModule.DASHBOARD);
+
+			break;
+		}
 		}
 	}
 
 	private void allowAllActions(Long tenantId, Long authUserId, TenantModule module) {
+
 		for (SaasPermissionAction action : SaasPermissionAction.values()) {
+
 			savePermission(tenantId, authUserId, module, action);
 		}
 	}
 
 	private void allowView(Long tenantId, Long authUserId, TenantModule module) {
+
 		savePermission(tenantId, authUserId, module, SaasPermissionAction.VIEW);
 	}
 
 	private void allowViewCreateUpdate(Long tenantId, Long authUserId, TenantModule module) {
+
 		savePermission(tenantId, authUserId, module, SaasPermissionAction.VIEW);
+
 		savePermission(tenantId, authUserId, module, SaasPermissionAction.CREATE);
+
 		savePermission(tenantId, authUserId, module, SaasPermissionAction.UPDATE);
 	}
 
-	private void savePermission(Long tenantId, Long authUserId, TenantModule module, SaasPermissionAction action) {
+	private void savePermission(Long tenantId, Long authUserId, TenantModule module,
+			SaasPermissionAction action) {
+
 		SaasTenantMemberPermission permission = new SaasTenantMemberPermission();
+
 		permission.setTenantId(tenantId);
+
 		permission.setAuthUserId(authUserId);
+
 		permission.setModule(module);
+
 		permission.setPermissionAction(action);
+
 		permission.setAllowed(true);
+
 		permission.setGrantedByAuthUserId(CurrentUserUtil.getUserId());
 
 		permissionRepository.save(permission);
 	}
 
 	private SaasMemberPermissionResponse toResponse(SaasTenantMemberPermission permission) {
+
 		return new SaasMemberPermissionResponse(permission.getId(), permission.getTenantId(),
 				permission.getAuthUserId(), permission.getModule().name(), permission.getPermissionAction().name(),
 				permission.getAllowed());

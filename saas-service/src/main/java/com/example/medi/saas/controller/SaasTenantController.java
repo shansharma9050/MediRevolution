@@ -1,10 +1,15 @@
 package com.example.medi.saas.controller;
 
 import com.example.medi.saas.dto.AddTenantMemberRequest;
+import com.example.medi.saas.dto.AdminCreateTenantRequest;
+import com.example.medi.saas.dto.AdminWorkspaceResponse;
+import com.example.medi.saas.dto.AdminWorkspaceValidityRequest;
 import com.example.medi.saas.dto.ApiResponse;
+import com.example.medi.saas.dto.AuthUserResponse;
 import com.example.medi.saas.dto.CreateTenantRequest;
 import com.example.medi.saas.dto.TenantResponse;
 import com.example.medi.saas.dto.WorkspaceAccessResponse;
+import com.example.medi.saas.entity.Tenant;
 import com.example.medi.saas.entity.TenantMember;
 import com.example.medi.saas.entity.TenantModuleSetting;
 import com.example.medi.saas.security.CurrentUserUtil;
@@ -13,6 +18,7 @@ import com.example.medi.saas.service.SaasTenantService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -20,6 +26,28 @@ import java.util.List;
 public class SaasTenantController {
 
 	private final SaasTenantService saasTenantService;
+	
+	@PostMapping("/admin")
+	public TenantResponse adminCreateTenant(@RequestBody AdminCreateTenantRequest request) {
+
+	    String role = CurrentUserUtil.getRole();
+
+	    if (role == null || role.isBlank()) {
+	        throw new RuntimeException("User role not found from token");
+	    }
+
+	    role = role.trim().toUpperCase();
+
+	    if (role.startsWith("ROLE_")) {
+	        role = role.substring("ROLE_".length());
+	    }
+
+	    if (!"SUPER_ADMIN".equals(role)) {
+	        throw new RuntimeException("Only ADMIN can create workspace for a user");
+	    }
+
+	    return saasTenantService.adminCreateTenant(request);
+	}
 
 	@Value("${internal.service.key}")
 	private String internalServiceKey;
@@ -87,4 +115,95 @@ public class SaasTenantController {
 
 		return new ApiResponse(true, "SaaS workspace deleted successfully");
 	}
+	
+	@GetMapping("/admin/workspace-users")
+	public List<AuthUserResponse> getAdminSaasWorkspaceUsers() {
+	    return saasTenantService.getAdminSaasWorkspaceUsers();
+	}
+	
+	@GetMapping("/admin/workspaces")
+	public List<AdminWorkspaceResponse> getAdminSaasWorkspaces() {
+	    String role = CurrentUserUtil.getRole();
+
+	    if (role == null || !"SUPER_ADMIN".equalsIgnoreCase(
+	            role.replaceFirst("^ROLE_", ""))) {
+	        throw new RuntimeException(
+	                "Only SUPER_ADMIN can view all workspaces");
+	    }
+
+	    return saasTenantService.getAdminSaasWorkspaces();
+	}
+	
+	@PutMapping("/admin/{tenantId}/validity")
+	public TenantResponse adminSetWorkspaceValidity(
+	        @PathVariable Long tenantId,
+	        @RequestBody AdminWorkspaceValidityRequest request) {
+
+	    String role = CurrentUserUtil.getRole();
+
+	    if (role == null || !"SUPER_ADMIN".equalsIgnoreCase(
+	            role.replaceFirst("^ROLE_", ""))) {
+
+	        throw new RuntimeException(
+	                "Only SUPER_ADMIN can control workspace validity");
+	    }
+
+	    return saasTenantService.adminSetWorkspaceValidity(
+	            tenantId,
+	            request.getValidFrom(),
+	            request.getValidUntil());
+	}
+	
+	@PutMapping("/admin/{tenantId}/validity/extend")
+	public TenantResponse adminExtendWorkspaceValidity(
+	        @PathVariable Long tenantId,
+	        @RequestParam LocalDate validUntil) {
+
+	    String role = CurrentUserUtil.getRole();
+
+	    if (role == null || !"SUPER_ADMIN".equalsIgnoreCase(
+	            role.replaceFirst("^ROLE_", ""))) {
+
+	        throw new RuntimeException(
+	                "Only SUPER_ADMIN can control workspace validity");
+	    }
+
+	    return saasTenantService.adminExtendWorkspaceValidity(
+	            tenantId,
+	            validUntil);
+	}
+	
+	@PutMapping("/admin/{tenantId}/suspend")
+	public TenantResponse adminSuspendWorkspace(
+	        @PathVariable Long tenantId) {
+
+	    String role = CurrentUserUtil.getRole();
+
+	    if (role == null || !"SUPER_ADMIN".equalsIgnoreCase(
+	            role.replaceFirst("^ROLE_", ""))) {
+
+	        throw new RuntimeException(
+	                "Only SUPER_ADMIN can control workspace validity");
+	    }
+
+	    return saasTenantService.adminSuspendWorkspace(tenantId);
+	}
+	
+	@PutMapping("/admin/{tenantId}/reactivate")
+	public TenantResponse adminReactivateWorkspace(
+	        @PathVariable Long tenantId) {
+
+	    String role = CurrentUserUtil.getRole();
+
+	    if (role == null || !"SUPER_ADMIN".equalsIgnoreCase(
+	            role.replaceFirst("^ROLE_", ""))) {
+
+	        throw new RuntimeException(
+	                "Only SUPER_ADMIN can control workspace validity");
+	    }
+
+	    return saasTenantService.adminReactivateWorkspace(tenantId);
+	}
+	
+	
 }

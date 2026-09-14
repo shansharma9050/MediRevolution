@@ -1,6 +1,6 @@
 /* const API_BASE_URL = "https://medirevolution-api-gateway.onrender.com"; */
 
-const API_BASE_URL = "http://65.0.32.137:8090";
+const API_BASE_URL = "http://13.201.98.118:8090";
 
 let emailVerified = false;
 let verifiedEmail = "";
@@ -911,3 +911,5 @@ document.addEventListener(
 		);
 	}
 );
+
+

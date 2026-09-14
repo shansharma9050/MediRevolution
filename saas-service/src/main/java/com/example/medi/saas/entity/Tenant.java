@@ -5,6 +5,7 @@ import com.example.medi.saas.enums.TenantType;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -32,6 +33,12 @@ public class Tenant {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private TenantStatus status = TenantStatus.ACTIVE;
+    
+    @Column(name = "valid_from")
+    private LocalDate validFrom;
+
+    @Column(name = "valid_until")
+    private LocalDate validUntil;
 
     private String contactEmail;
 

@@ -26,59 +26,58 @@ public interface SaasSalesOrderRepository extends JpaRepository<SaasSalesOrder, 
 
 	long countByTenantIdAndCustomerId(Long tenantId, Long customerId);
 
-	long countByTenantIdAndCustomerIdAndOrderStatus(Long tenantId, Long customerId, SaasSalesOrderStatus orderStatus);
+	long countByTenantIdAndCustomerIdAndOrderStatus(Long tenantId, Long customerId,
+			SaasSalesOrderStatus orderStatus);
 
-	@Query("""
-			SELECT o
-			FROM SaasSalesOrder o
-			WHERE o.tenantId = :tenantId
-			  AND (
-			        LOWER(o.orderNumber) LIKE LOWER(CONCAT('%', :keyword, '%'))
-			     OR LOWER(o.customerName) LIKE LOWER(CONCAT('%', :keyword, '%'))
-			     OR LOWER(COALESCE(o.customerCode, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
-			     OR LOWER(COALESCE(o.customerMobile, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
-			     OR LOWER(COALESCE(o.customerGstin, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
-			  )
-			ORDER BY o.orderDate DESC, o.createdAt DESC
-			""")
-	List<SaasSalesOrder> searchOrders(@Param("tenantId") Long tenantId, @Param("keyword") String keyword);
-
-	@Query("""
-			SELECT o
-			FROM SaasSalesOrder o
-			WHERE o.tenantId = :tenantId
-			  AND o.customerId = :customerId
-			  AND (
-			        LOWER(o.orderNumber) LIKE LOWER(CONCAT('%', :keyword, '%'))
-			     OR LOWER(COALESCE(o.remarks, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
-			  )
-			ORDER BY o.orderDate DESC, o.createdAt DESC
-			""")
-	List<SaasSalesOrder> searchCustomerOrders(@Param("tenantId") Long tenantId, @Param("customerId") Long customerId,
+	@Query("SELECT o " +
+			"FROM SaasSalesOrder o " +
+			"WHERE o.tenantId = :tenantId " +
+			"AND (" +
+			"LOWER(o.orderNumber) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+			"OR LOWER(o.customerName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+			"OR LOWER(COALESCE(o.customerCode, '')) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+			"OR LOWER(COALESCE(o.customerMobile, '')) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+			"OR LOWER(COALESCE(o.customerGstin, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
+			") " +
+			"ORDER BY o.orderDate DESC, o.createdAt DESC")
+	List<SaasSalesOrder> searchOrders(
+			@Param("tenantId") Long tenantId,
 			@Param("keyword") String keyword);
 
-	@Query("""
-			SELECT COALESCE(SUM(o.grandTotal), 0)
-			FROM SaasSalesOrder o
-			WHERE o.tenantId = :tenantId
-			  AND o.orderStatus NOT IN (
-			        com.example.medi.saas.enums.SaasSalesOrderStatus.REJECTED,
-			        com.example.medi.saas.enums.SaasSalesOrderStatus.CANCELLED
-			  )
-			""")
+	@Query("SELECT o " +
+			"FROM SaasSalesOrder o " +
+			"WHERE o.tenantId = :tenantId " +
+			"AND o.customerId = :customerId " +
+			"AND (" +
+			"LOWER(o.orderNumber) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+			"OR LOWER(COALESCE(o.remarks, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
+			") " +
+			"ORDER BY o.orderDate DESC, o.createdAt DESC")
+	List<SaasSalesOrder> searchCustomerOrders(
+			@Param("tenantId") Long tenantId,
+			@Param("customerId") Long customerId,
+			@Param("keyword") String keyword);
+
+	@Query("SELECT COALESCE(SUM(o.grandTotal), 0) " +
+			"FROM SaasSalesOrder o " +
+			"WHERE o.tenantId = :tenantId " +
+			"AND o.orderStatus NOT IN (" +
+			"com.example.medi.saas.enums.SaasSalesOrderStatus.REJECTED, " +
+			"com.example.medi.saas.enums.SaasSalesOrderStatus.CANCELLED" +
+			")")
 	BigDecimal sumOrderValue(@Param("tenantId") Long tenantId);
 
-	@Query("""
-			SELECT COALESCE(SUM(o.grandTotal), 0)
-			FROM SaasSalesOrder o
-			WHERE o.tenantId = :tenantId
-			  AND o.customerId = :customerId
-			  AND o.orderStatus NOT IN (
-			        com.example.medi.saas.enums.SaasSalesOrderStatus.REJECTED,
-			        com.example.medi.saas.enums.SaasSalesOrderStatus.CANCELLED
-			  )
-			""")
-	BigDecimal sumCustomerOrderValue(@Param("tenantId") Long tenantId, @Param("customerId") Long customerId);
+	@Query("SELECT COALESCE(SUM(o.grandTotal), 0) " +
+			"FROM SaasSalesOrder o " +
+			"WHERE o.tenantId = :tenantId " +
+			"AND o.customerId = :customerId " +
+			"AND o.orderStatus NOT IN (" +
+			"com.example.medi.saas.enums.SaasSalesOrderStatus.REJECTED, " +
+			"com.example.medi.saas.enums.SaasSalesOrderStatus.CANCELLED" +
+			")")
+	BigDecimal sumCustomerOrderValue(
+			@Param("tenantId") Long tenantId,
+			@Param("customerId") Long customerId);
 
 	void deleteByTenantId(Long tenantId);
 }

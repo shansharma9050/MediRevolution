@@ -18,67 +18,48 @@ public interface SaasSalesReturnRepository extends JpaRepository<SaasSalesReturn
 
 	long countByTenantIdAndReturnStatusNot(Long tenantId, SaasSalesReturnStatus returnStatus);
 
-	@Query("""
-			SELECT r
-			FROM SaasSalesReturn r
-			WHERE r.tenantId = :tenantId
-			  AND (
-			        LOWER(r.returnNumber)
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(r.saleNumber)
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(r.customerName)
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(COALESCE(r.customerCode, ''))
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(COALESCE(r.creditNoteNumber, ''))
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-			  )
-			ORDER BY r.returnDate DESC, r.createdAt DESC
-			""")
-	List<SaasSalesReturn> searchReturns(@Param("tenantId") Long tenantId,
-
+	@Query("SELECT r " +
+			"FROM SaasSalesReturn r " +
+			"WHERE r.tenantId = :tenantId " +
+			"AND (" +
+			"LOWER(r.returnNumber) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+			"OR LOWER(r.saleNumber) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+			"OR LOWER(r.customerName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+			"OR LOWER(COALESCE(r.customerCode, '')) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+			"OR LOWER(COALESCE(r.creditNoteNumber, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
+			") " +
+			"ORDER BY r.returnDate DESC, r.createdAt DESC")
+	List<SaasSalesReturn> searchReturns(
+			@Param("tenantId") Long tenantId,
 			@Param("keyword") String keyword);
 
-	@Query("""
-			SELECT COALESCE(SUM(r.totalQuantity), 0)
-			FROM SaasSalesReturn r
-			WHERE r.tenantId = :tenantId
-			  AND r.returnStatus <>
-			      com.example.medi.saas.enums.SaasSalesReturnStatus.CANCELLED
-			""")
+	@Query("SELECT COALESCE(SUM(r.totalQuantity), 0) " +
+			"FROM SaasSalesReturn r " +
+			"WHERE r.tenantId = :tenantId " +
+			"AND r.returnStatus <> " +
+			"com.example.medi.saas.enums.SaasSalesReturnStatus.CANCELLED")
 	Long sumReturnedQuantity(@Param("tenantId") Long tenantId);
 
-	@Query("""
-			SELECT COALESCE(SUM(r.grandTotal), 0)
-			FROM SaasSalesReturn r
-			WHERE r.tenantId = :tenantId
-			  AND r.returnStatus <>
-			      com.example.medi.saas.enums.SaasSalesReturnStatus.CANCELLED
-			""")
+	@Query("SELECT COALESCE(SUM(r.grandTotal), 0) " +
+			"FROM SaasSalesReturn r " +
+			"WHERE r.tenantId = :tenantId " +
+			"AND r.returnStatus <> " +
+			"com.example.medi.saas.enums.SaasSalesReturnStatus.CANCELLED")
 	BigDecimal sumReturnAmount(@Param("tenantId") Long tenantId);
 
-	@Query("""
-			SELECT COALESCE(SUM(r.refundedAmount), 0)
-			FROM SaasSalesReturn r
-			WHERE r.tenantId = :tenantId
-			  AND r.returnStatus <>
-			      com.example.medi.saas.enums.SaasSalesReturnStatus.CANCELLED
-			""")
+	@Query("SELECT COALESCE(SUM(r.refundedAmount), 0) " +
+			"FROM SaasSalesReturn r " +
+			"WHERE r.tenantId = :tenantId " +
+			"AND r.returnStatus <> " +
+			"com.example.medi.saas.enums.SaasSalesReturnStatus.CANCELLED")
 	BigDecimal sumRefundedAmount(@Param("tenantId") Long tenantId);
 
-	@Query("""
-			SELECT COALESCE(SUM(r.pendingRefundAmount), 0)
-			FROM SaasSalesReturn r
-			WHERE r.tenantId = :tenantId
-			  AND r.returnStatus <>
-			      com.example.medi.saas.enums.SaasSalesReturnStatus.CANCELLED
-			""")
+	@Query("SELECT COALESCE(SUM(r.pendingRefundAmount), 0) " +
+			"FROM SaasSalesReturn r " +
+			"WHERE r.tenantId = :tenantId " +
+			"AND r.returnStatus <> " +
+			"com.example.medi.saas.enums.SaasSalesReturnStatus.CANCELLED")
 	BigDecimal sumPendingRefundAmount(@Param("tenantId") Long tenantId);
-	
+
 	void deleteByTenantId(Long tenantId);
 }

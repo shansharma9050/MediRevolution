@@ -402,6 +402,8 @@ public class SubscriptionService {
 				.orElseThrow(() -> new RuntimeException("No subscription found"));
 	}
 
+	
+
 	// ============================================================
 	// PAYMENT VERIFICATION
 	// ============================================================
@@ -510,17 +512,11 @@ public class SubscriptionService {
 
 		PhonePePaymentStatus phonePePaymentStatus = phonePeSubscriptionService.checkPaymentStatus(merchantOrderId);
 
-		String phonePeState = phonePePaymentStatus != null
-				? phonePePaymentStatus.getState()
-				: null;
+		String phonePeState = phonePePaymentStatus != null ? phonePePaymentStatus.getState() : null;
 
-		String phonePeTransactionId = phonePePaymentStatus != null
-				? phonePePaymentStatus.getTransactionId()
-				: null;
+		String phonePeTransactionId = phonePePaymentStatus != null ? phonePePaymentStatus.getTransactionId() : null;
 
-		String normalizedState = phonePeState == null
-				? "UNKNOWN"
-				: phonePeState.trim().toUpperCase();
+		String normalizedState = phonePeState == null ? "UNKNOWN" : phonePeState.trim().toUpperCase();
 
 		// --------------------------------------------------------
 		// PAYMENT NOT SUCCESSFUL
@@ -574,8 +570,6 @@ public class SubscriptionService {
 			payment.touch();
 
 			paymentRepository.save(payment);
-
-			
 
 			return new SubscriptionPaymentVerifyResponse(
 
@@ -699,10 +693,9 @@ public class SubscriptionService {
 
 		UserSubscription savedSubscription = subscriptionRepository.save(subscription);
 
-		
 		if (tenantId != null) {
-
-			saasWorkspaceAuthorizationService.activateWorkspace(tenantId, authUserId);
+			saasWorkspaceAuthorizationService.activateWorkspace(tenantId, authUserId, savedSubscription.getStartDate(),
+					savedSubscription.getEndDate());
 		}
 
 		// --------------------------------------------------------
@@ -811,6 +804,113 @@ public class SubscriptionService {
 		expireOldSubscriptions();
 	}
 
+	// ============================================================
+	// ADMIN WORKSPACE VALIDITY SYNC
+	// ============================================================
+
+	@Transactional
+	public void updateWorkspaceSubscriptionValidity(Long tenantId, LocalDate validFrom, LocalDate validUntil) {
+
+		if (tenantId == null || tenantId <= 0) {
+			throw new RuntimeException("Workspace id is required");
+		}
+
+		if (validFrom == null) {
+			throw new RuntimeException("Valid from date is required");
+		}
+
+		if (validUntil == null) {
+			throw new RuntimeException("Valid until date is required");
+		}
+
+		if (validUntil.isBefore(validFrom)) {
+			throw new RuntimeException("Valid until date cannot be before valid from date");
+		}
+
+		/*
+		 * IMPORTANT:
+		 *
+		 * tenantId is mandatory here.
+		 *
+		 * Therefore the main/platform subscription (tenantId == null) can NEVER be
+		 * modified by this method.
+		 */
+		List<UserSubscription> workspaceSubscriptions = subscriptionRepository.findAll().stream().filter(
+				subscription -> subscription.getTenantId() != null && tenantId.equals(subscription.getTenantId()))
+				.toList();
+
+		/*
+		 * An admin-created FREE workspace may not have a UserSubscription at all.
+		 *
+		 * In that case SaaS Tenant validity remains the source of truth and there is
+		 * nothing to update in Billing.
+		 */
+		if (workspaceSubscriptions.isEmpty()) {
+			return;
+		}
+
+		/*
+		 * A workspace can have multiple subscription records because of renewals.
+		 *
+		 * Synchronize only the latest subscription record.
+		 */
+		UserSubscription latestSubscription = workspaceSubscriptions.stream().max((first, second) -> {
+
+			LocalDate firstEnd = first.getEndDate();
+			LocalDate secondEnd = second.getEndDate();
+
+			if (firstEnd == null && secondEnd == null) {
+				return 0;
+			}
+
+			if (firstEnd == null) {
+				return -1;
+			}
+
+			if (secondEnd == null) {
+				return 1;
+			}
+
+			int result = firstEnd.compareTo(secondEnd);
+
+			if (result != 0) {
+				return result;
+			}
+
+			Long firstId = first.getId();
+			Long secondId = second.getId();
+
+			if (firstId == null && secondId == null) {
+				return 0;
+			}
+
+			if (firstId == null) {
+				return -1;
+			}
+
+			if (secondId == null) {
+				return 1;
+			}
+
+			return firstId.compareTo(secondId);
+		}).orElse(null);
+
+		if (latestSubscription == null) {
+			return;
+		}
+
+		/*
+		 * Update only the workspace subscription dates.
+		 *
+		 * tenantId remains unchanged. Payment details remain unchanged. Cancellation
+		 * details remain unchanged.
+		 */
+		latestSubscription.setStartDate(validFrom);
+		latestSubscription.setEndDate(validUntil);
+
+		subscriptionRepository.save(latestSubscription);
+	}
+
 	@Transactional
 	public int expireOldSubscriptions() {
 
@@ -897,11 +997,8 @@ public class SubscriptionService {
 
 		String normalized = status.trim().toUpperCase();
 
-		return normalized.equals("COMPLETED")
-				|| normalized.equals("SUCCESS")
-				|| normalized.equals("PAYMENT_SUCCESS")
-				|| normalized.equals("PAID")
-				|| normalized.equals("SUCCESSFUL");
+		return normalized.equals("COMPLETED") || normalized.equals("SUCCESS") || normalized.equals("PAYMENT_SUCCESS")
+				|| normalized.equals("PAID") || normalized.equals("SUCCESSFUL");
 	}
 
 	private boolean isPhonePePaymentPending(String status) {

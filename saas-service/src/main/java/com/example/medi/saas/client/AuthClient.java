@@ -5,6 +5,8 @@ import com.example.medi.saas.dto.AuthStaffCreateRequest;
 import com.example.medi.saas.dto.AuthUserResponse;
 import com.example.medi.saas.dto.CreateSaasPatientRequest;
 
+import java.util.List;
+
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,5 +38,16 @@ public interface AuthClient {
     AuthUserResponse getUserByEmail(
             @RequestHeader("Authorization") String authorization,
             @RequestParam String email
+    );
+    
+    @GetMapping("/auth/internal/users/{userId}")
+    AuthUserResponse getUserById(
+            @RequestHeader("Authorization") String authorization,
+            @PathVariable Long userId
+    );
+    
+    @GetMapping("/auth/admin/users/saas-workspace-users")
+    List<AuthUserResponse> getSaasWorkspaceUsers(
+            @RequestHeader("Authorization") String authorization
     );
 }

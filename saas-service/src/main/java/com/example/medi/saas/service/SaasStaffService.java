@@ -21,7 +21,6 @@ import com.example.medi.saas.repository.TenantMemberRepository;
 import com.example.medi.saas.repository.TenantRepository;
 import com.example.medi.saas.security.CurrentUserUtil;
 import jakarta.servlet.http.HttpServletRequest;
-
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +43,9 @@ public class SaasStaffService {
 
 	public SaasStaffService(SaasStaffRepository staffRepository, TenantAccessService tenantAccessService,
 			SaasPermissionService permissionService, TenantMemberRepository tenantMemberRepository,
-			AuthClient authClient, HttpServletRequest httpServletRequest, SaasPatientRepository patientRepository,TenantRepository tenantRepository) {
+			AuthClient authClient, HttpServletRequest httpServletRequest, SaasPatientRepository patientRepository,
+			TenantRepository tenantRepository) {
+
 		this.staffRepository = staffRepository;
 		this.tenantAccessService = tenantAccessService;
 		this.permissionService = permissionService;
@@ -52,7 +53,7 @@ public class SaasStaffService {
 		this.authClient = authClient;
 		this.httpServletRequest = httpServletRequest;
 		this.patientRepository = patientRepository;
-		this.tenantRepository=tenantRepository;
+		this.tenantRepository = tenantRepository;
 	}
 
 	@Transactional
@@ -65,12 +66,14 @@ public class SaasStaffService {
 		tenantAccessService.validateTenantAccess(request.getTenantId());
 
 		if (request.getAuthUserId() == null && (request.getPassword() == null || request.getPassword().isBlank())) {
+
 			throw new RuntimeException("Password is required for new staff login");
 		}
 
 		Long authUserId = resolveStaffAuthUserId(request);
 
 		SaasStaff staff = new SaasStaff();
+
 		staff.setTenantId(request.getTenantId());
 		staff.setAuthUserId(authUserId);
 		staff.setStatus(SaasStaffStatus.ACTIVE);
@@ -82,6 +85,7 @@ public class SaasStaffService {
 		SaasStaff saved = staffRepository.save(staff);
 
 		saved.setStaffCode(generateStaffCode(saved));
+
 		saved = staffRepository.save(saved);
 
 		syncTenantMemberForStaff(saved, true);
@@ -107,6 +111,7 @@ public class SaasStaffService {
 		 * Doctor list can be used by appointment and availability pages. STAFF VIEW
 		 * permission is enough because doctors are staff records.
 		 */
+
 		permissionService.requirePermission(tenantId, TenantModule.STAFF, SaasPermissionAction.VIEW);
 
 		tenantAccessService.validateTenantAccess(tenantId);
@@ -174,11 +179,13 @@ public class SaasStaffService {
 		/*
 		 * Important: Do not overwrite authUserId with null during update.
 		 */
+
 		if (request.getAuthUserId() != null) {
 			staff.setAuthUserId(request.getAuthUserId());
 		}
 
 		applyRequestToStaff(staff, request);
+
 		staff.touch();
 
 		SaasStaff saved = staffRepository.save(staff);
@@ -187,6 +194,7 @@ public class SaasStaffService {
 		 * Sync tenant member name/email/mobile/role. Do not reset custom permissions on
 		 * update.
 		 */
+
 		syncTenantMemberForStaff(saved, false);
 
 		return toResponse(saved);
@@ -221,7 +229,6 @@ public class SaasStaffService {
 		staff.setEmail(clean(request.getEmail()));
 		staff.setMobile(clean(request.getMobile()));
 		staff.setStaffRole(staffRole);
-
 		staff.setDepartment(clean(request.getDepartment()));
 		staff.setDesignation(clean(request.getDesignation()));
 		staff.setGender(clean(request.getGender()));
@@ -236,19 +243,29 @@ public class SaasStaffService {
 		staff.setEmergencyContactMobile(clean(request.getEmergencyContactMobile()));
 
 		if (staffRole == SaasStaffRole.DOCTOR) {
+
 			staff.setQualification(clean(request.getQualification()));
+
 			staff.setSpecialization(clean(request.getSpecialization()));
+
 			staff.setRegistrationNumber(clean(request.getRegistrationNumber()));
+
 			staff.setExperienceYears(request.getExperienceYears());
+
 			staff.setConsultationFee(request.getConsultationFee());
+
 			staff.setOnlineConsultationFee(request.getOnlineConsultationFee());
+
 			staff.setOnlineConsultationEnabled(Boolean.TRUE.equals(request.getOnlineConsultationEnabled()));
+
 		} else {
+
 			clearDoctorFields(staff);
 		}
 	}
 
 	private void clearDoctorFields(SaasStaff staff) {
+
 		staff.setQualification(null);
 		staff.setSpecialization(null);
 		staff.setRegistrationNumber(null);
@@ -265,6 +282,7 @@ public class SaasStaffService {
 		}
 
 		AuthStaffCreateRequest authRequest = new AuthStaffCreateRequest();
+
 		authRequest.setFullName(request.getStaffName());
 		authRequest.setEmail(request.getEmail());
 		authRequest.setMobile(request.getMobile());
@@ -276,10 +294,12 @@ public class SaasStaffService {
 		AuthUserResponse authUser = authClient.createSaasStaff(authorization, authRequest);
 
 		if (authUser == null || authUser.getId() == null) {
+
 			throw new RuntimeException("Unable to create staff login user");
 		}
 
 		if (!"SAAS_STAFF".equals(authUser.getRole())) {
+
 			throw new RuntimeException("Staff login user must have SAAS_STAFF role");
 		}
 
@@ -292,37 +312,59 @@ public class SaasStaffService {
 			return TenantMemberRole.STAFF;
 		}
 
-		return switch (staffRole) {
+		switch (staffRole) {
 
-		case OWNER -> TenantMemberRole.OWNER;
+		case OWNER:
+			return TenantMemberRole.OWNER;
 
-		case ADMIN -> TenantMemberRole.ADMIN;
+		case ADMIN:
+			return TenantMemberRole.ADMIN;
 
-		case DOCTOR -> TenantMemberRole.DOCTOR;
+		case DOCTOR:
+			return TenantMemberRole.DOCTOR;
 
-		case RECEPTIONIST -> TenantMemberRole.RECEPTIONIST;
+		case RECEPTIONIST:
+			return TenantMemberRole.RECEPTIONIST;
 
-		case PHARMACIST -> TenantMemberRole.PHARMACIST;
+		case PHARMACIST:
+			return TenantMemberRole.PHARMACIST;
 
-		case LAB_TECHNICIAN -> TenantMemberRole.LAB_TECHNICIAN;
+		case LAB_TECHNICIAN:
+			return TenantMemberRole.LAB_TECHNICIAN;
 
-		case ACCOUNTANT -> TenantMemberRole.ACCOUNTANT;
+		case ACCOUNTANT:
+			return TenantMemberRole.ACCOUNTANT;
 
-		case MANAGER -> TenantMemberRole.MANAGER;
+		case MANAGER:
+			return TenantMemberRole.MANAGER;
 
-		case SALES_MANAGER -> TenantMemberRole.SALES_MANAGER;
+		case SALES_MANAGER:
+			return TenantMemberRole.SALES_MANAGER;
 
-		case PURCHASE_MANAGER -> TenantMemberRole.PURCHASE_MANAGER;
+		case PURCHASE_MANAGER:
+			return TenantMemberRole.PURCHASE_MANAGER;
 
-		case WAREHOUSE_MANAGER -> TenantMemberRole.WAREHOUSE_MANAGER;
+		case WAREHOUSE_MANAGER:
+			return TenantMemberRole.WAREHOUSE_MANAGER;
 
-		case CASHIER -> TenantMemberRole.CASHIER;
+		case CASHIER:
+			return TenantMemberRole.CASHIER;
 
-		case SALESPERSON -> TenantMemberRole.SALESPERSON;
+		case SALESPERSON:
+			return TenantMemberRole.SALESPERSON;
 
-		case NURSE, RADIOLOGY_TECHNICIAN, BILLING_STAFF, WARD_BOY, CLEANING_STAFF, SECURITY, OTHER ->
-			TenantMemberRole.STAFF;
-		};
+		case NURSE:
+		case RADIOLOGY_TECHNICIAN:
+		case BILLING_STAFF:
+		case WARD_BOY:
+		case CLEANING_STAFF:
+		case SECURITY:
+		case OTHER:
+			return TenantMemberRole.STAFF;
+
+		default:
+			return TenantMemberRole.STAFF;
+		}
 	}
 
 	private String normalizeRole(String role) {
@@ -348,6 +390,7 @@ public class SaasStaffService {
 		}
 
 		String role = normalizeRole(CurrentUserUtil.getRole());
+
 		Long currentUserId = CurrentUserUtil.getUserId();
 
 		/*
@@ -360,32 +403,31 @@ public class SaasStaffService {
 		 *
 		 * se verify hoga.
 		 */
+
 		if ("PATIENT".equals(role)) {
 
 			if (currentUserId == null) {
+
 				throw new AccessDeniedException("Logged-in patient user ID not found.");
 			}
-			
+
 			Tenant tenant = tenantRepository.findById(tenantId)
-			        .orElseThrow(() ->
-			                new RuntimeException("Workspace not found.")
-			        );
+					.orElseThrow(() -> new RuntimeException("Workspace not found."));
 
 			if (tenant.getStatus() != TenantStatus.ACTIVE) {
-			    throw new RuntimeException(
-			            "Workspace is not active."
-			    );
+
+				throw new RuntimeException("Workspace is not active.");
 			}
 
 			patientRepository.findByAuthUserIdAndTenantIdAndActiveTrue(currentUserId, tenantId).orElseThrow(
 					() -> new AccessDeniedException("You are not assigned to this workspace as a patient."));
-
 		} else {
 
 			/*
 			 * ===================================================== NORMAL SaaS USER ACCESS
 			 * =====================================================
 			 */
+
 			permissionService.requirePermission(tenantId, TenantModule.APPOINTMENTS, SaasPermissionAction.VIEW);
 
 			tenantAccessService.validateTenantAccess(tenantId);
@@ -395,6 +437,7 @@ public class SaasStaffService {
 		 * ========================================================= DOCTORS
 		 * =========================================================
 		 */
+
 		return staffRepository
 				.findByTenantIdAndStaffRoleAndActiveTrueOrderByStaffNameAsc(tenantId, SaasStaffRole.DOCTOR).stream()
 				.map(this::toResponse).toList();
@@ -403,6 +446,7 @@ public class SaasStaffService {
 	private void syncTenantMemberForStaff(SaasStaff staff, boolean assignDefaultPermissions) {
 
 		if (staff.getTenantId() == null || staff.getAuthUserId() == null) {
+
 			return;
 		}
 
@@ -412,7 +456,9 @@ public class SaasStaffService {
 				.findByTenantIdAndAuthUserIdAndActiveTrue(staff.getTenantId(), staff.getAuthUserId()).orElse(null);
 
 		if (member == null) {
+
 			member = new TenantMember();
+
 			member.setTenantId(staff.getTenantId());
 			member.setAuthUserId(staff.getAuthUserId());
 			member.setActive(true);
@@ -426,6 +472,7 @@ public class SaasStaffService {
 		TenantMember savedMember = tenantMemberRepository.save(member);
 
 		if (assignDefaultPermissions) {
+
 			permissionService.assignDefaultPermissions(savedMember.getTenantId(), savedMember.getAuthUserId(),
 					savedMember.getMemberRole());
 		}
@@ -433,6 +480,7 @@ public class SaasStaffService {
 
 	@Transactional(readOnly = true)
 	public List<SaasStaffResponse> getDoctorsForClinical(Long tenantId) {
+
 		tenantAccessService.validateTenantAccess(tenantId);
 
 		return staffRepository
@@ -443,11 +491,13 @@ public class SaasStaffService {
 	private void deactivateTenantMemberForStaff(SaasStaff staff) {
 
 		if (staff.getTenantId() == null || staff.getAuthUserId() == null) {
+
 			return;
 		}
 
 		tenantMemberRepository.findByTenantIdAndAuthUserIdAndActiveTrue(staff.getTenantId(), staff.getAuthUserId())
 				.ifPresent(member -> {
+
 					member.setActive(false);
 					tenantMemberRepository.save(member);
 				});
@@ -464,30 +514,38 @@ public class SaasStaffService {
 		}
 
 		if (request.getStaffName() == null || request.getStaffName().isBlank()) {
+
 			throw new RuntimeException("Staff name is required");
 		}
 
 		if (request.getStaffRole() == null || request.getStaffRole().isBlank()) {
+
 			throw new RuntimeException("Staff role is required");
 		}
 
 		if (request.getEmail() == null || request.getEmail().isBlank()) {
+
 			throw new RuntimeException("Email is required");
 		}
 
 		if (request.getMobile() == null || request.getMobile().isBlank()) {
+
 			throw new RuntimeException("Mobile is required");
 		}
 
 		SaasStaffRole staffRole;
 
 		try {
+
 			staffRole = SaasStaffRole.valueOf(request.getStaffRole().toUpperCase());
+
 		} catch (Exception e) {
+
 			throw new RuntimeException("Invalid staff role: " + request.getStaffRole());
 		}
 
 		if (staffRole == SaasStaffRole.OWNER) {
+
 			throw new RuntimeException("OWNER role cannot be assigned manually");
 		}
 
@@ -499,40 +557,74 @@ public class SaasStaffService {
 	private void validateDoctorFields(SaasStaffRequest request) {
 
 		if (request.getDepartment() == null || request.getDepartment().isBlank()) {
+
 			throw new RuntimeException("Department is required for doctor");
 		}
 
 		if (request.getSpecialization() == null || request.getSpecialization().isBlank()) {
+
 			throw new RuntimeException("Specialization is required for doctor");
 		}
 
 		if (request.getQualification() == null || request.getQualification().isBlank()) {
+
 			throw new RuntimeException("Qualification is required for doctor");
 		}
 
 		if (request.getConsultationFee() == null) {
+
 			throw new RuntimeException("Consultation fee is required for doctor");
 		}
 	}
 
 	private String generateStaffCode(SaasStaff staff) {
+
 		return "STF-" + staff.getTenantId() + "-" + String.format("%05d", staff.getId());
 	}
 
 	private String clean(String value) {
+
 		return value == null ? null : value.trim();
 	}
 
-	private SaasStaffResponse toResponse(SaasStaff staff) {
-		return new SaasStaffResponse(staff.getId(), staff.getTenantId(), staff.getAuthUserId(), staff.getStaffCode(),
-				staff.getStaffName(), staff.getEmail(), staff.getMobile(),
-				staff.getStaffRole() == null ? null : staff.getStaffRole().name(),
-				staff.getStatus() == null ? null : staff.getStatus().name(), staff.getDepartment(),
-				staff.getDesignation(), staff.getGender(), staff.getDateOfBirth(), staff.getJoiningDate(),
-				staff.getAddress(), staff.getCity(), staff.getState(), staff.getPincode(), staff.getSalary(),
-				staff.getEmergencyContactName(), staff.getEmergencyContactMobile(), staff.getQualification(),
-				staff.getSpecialization(), staff.getRegistrationNumber(), staff.getExperienceYears(),
-				staff.getConsultationFee(), staff.getOnlineConsultationFee(), staff.getOnlineConsultationEnabled(),
-				staff.getActive(), staff.getCreatedAt());
-	}
+private SaasStaffResponse toResponse(
+        SaasStaff staff) {
+
+    return new SaasStaffResponse(
+            staff.getId(),
+            staff.getTenantId(),
+            staff.getAuthUserId(),
+            staff.getStaffCode(),
+            staff.getStaffName(),
+            staff.getEmail(),
+            staff.getMobile(),
+            staff.getStaffRole() == null
+                    ? null
+                    : staff.getStaffRole().name(),
+            staff.getStatus() == null
+                    ? null
+                    : staff.getStatus().name(),
+            staff.getDepartment(),
+            staff.getDesignation(),
+            staff.getGender(),
+            staff.getDateOfBirth(),
+            staff.getJoiningDate(),
+            staff.getAddress(),
+            staff.getCity(),
+            staff.getState(),
+            staff.getPincode(),
+            staff.getSalary(),
+            staff.getEmergencyContactName(),
+            staff.getEmergencyContactMobile(),
+            staff.getQualification(),
+            staff.getSpecialization(),
+            staff.getRegistrationNumber(),
+            staff.getExperienceYears(),
+            staff.getConsultationFee(),
+            staff.getOnlineConsultationFee(),
+            staff.getOnlineConsultationEnabled(),
+            staff.getActive(),
+            staff.getCreatedAt());
+}
+
 }

@@ -39,106 +39,90 @@ public interface SaasMedicineStockRepository extends JpaRepository<SaasMedicineS
 	long countByTenantIdAndActiveTrue(Long tenantId);
 
 	@Lock(LockModeType.PESSIMISTIC_WRITE)
-	@Query("""
-			SELECT s
-			FROM SaasMedicineStock s
-			WHERE s.tenantId = :tenantId
-			  AND s.medicineId = :medicineId
-			  AND s.active = true
-			  AND COALESCE(s.currentQuantity, 0) > 0
-			  AND (
-			        s.expiryDate IS NULL
-			        OR s.expiryDate >= :today
-			  )
-			ORDER BY
-			    CASE
-			        WHEN s.expiryDate IS NULL THEN 1
-			        ELSE 0
-			    END ASC,
-			    s.expiryDate ASC,
-			    s.createdAt ASC
-			""")
+	@Query("SELECT s " +
+	        "FROM SaasMedicineStock s " +
+	        "WHERE s.tenantId = :tenantId " +
+	        "AND s.medicineId = :medicineId " +
+	        "AND s.active = true " +
+	        "AND COALESCE(s.currentQuantity, 0) > 0 " +
+	        "AND (" +
+	        "s.expiryDate IS NULL " +
+	        "OR s.expiryDate >= :today" +
+	        ") " +
+	        "ORDER BY " +
+	        "CASE " +
+	        "WHEN s.expiryDate IS NULL THEN 1 " +
+	        "ELSE 0 " +
+	        "END ASC, " +
+	        "s.expiryDate ASC, " +
+	        "s.createdAt ASC")
 	List<SaasMedicineStock> findAvailableBatchesForSale(@Param("tenantId") Long tenantId,
 
 			@Param("medicineId") Long medicineId,
 
 			@Param("today") LocalDate today);
 
-	@Query("""
-			SELECT COALESCE(SUM(s.currentQuantity), 0)
-			FROM SaasMedicineStock s
-			WHERE s.tenantId = :tenantId
-			  AND s.active = true
-			""")
+	@Query("SELECT COALESCE(SUM(s.currentQuantity), 0) " +
+	        "FROM SaasMedicineStock s " +
+	        "WHERE s.tenantId = :tenantId " +
+	        "AND s.active = true")
 	Long sumCurrentQuantity(@Param("tenantId") Long tenantId);
 
-	@Query("""
-			SELECT COALESCE(
-			    SUM(
-			        COALESCE(s.currentQuantity, 0)
-			        * COALESCE(s.purchasePrice, 0)
-			    ),
-			    0
-			)
-			FROM SaasMedicineStock s
-			WHERE s.tenantId = :tenantId
-			  AND s.active = true
-			""")
+	@Query("SELECT COALESCE(" +
+	        "SUM(" +
+	        "COALESCE(s.currentQuantity, 0) * " +
+	        "COALESCE(s.purchasePrice, 0)" +
+	        "), " +
+	        "0" +
+	        ") " +
+	        "FROM SaasMedicineStock s " +
+	        "WHERE s.tenantId = :tenantId " +
+	        "AND s.active = true")
 	BigDecimal sumPurchaseValue(@Param("tenantId") Long tenantId);
 
-	@Query("""
-			SELECT COALESCE(
-			    SUM(
-			        COALESCE(s.currentQuantity, 0)
-			        * COALESCE(s.salePrice, 0)
-			    ),
-			    0
-			)
-			FROM SaasMedicineStock s
-			WHERE s.tenantId = :tenantId
-			  AND s.active = true
-			""")
+	@Query("SELECT COALESCE(" +
+	        "SUM(" +
+	        "COALESCE(s.currentQuantity, 0) * " +
+	        "COALESCE(s.salePrice, 0)" +
+	        "), " +
+	        "0" +
+	        ") " +
+	        "FROM SaasMedicineStock s " +
+	        "WHERE s.tenantId = :tenantId " +
+	        "AND s.active = true")
 	BigDecimal sumSaleValue(@Param("tenantId") Long tenantId);
 
-	@Query("""
-			SELECT s
-			FROM SaasMedicineStock s
-			WHERE s.tenantId = :tenantId
-			  AND s.active = true
-			  AND (
-			        LOWER(COALESCE(s.batchNumber, ''))
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(COALESCE(s.supplierName, ''))
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(COALESCE(s.medicineName, ''))
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(COALESCE(s.medicineType, ''))
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(COALESCE(s.manufacturer, ''))
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-			  )
-			ORDER BY s.createdAt DESC
-			""")
+	@Query("SELECT s " +
+	        "FROM SaasMedicineStock s " +
+	        "WHERE s.tenantId = :tenantId " +
+	        "AND s.active = true " +
+	        "AND (" +
+	        "LOWER(COALESCE(s.batchNumber, '')) " +
+	        "LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+	        "OR LOWER(COALESCE(s.supplierName, '')) " +
+	        "LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+	        "OR LOWER(COALESCE(s.medicineName, '')) " +
+	        "LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+	        "OR LOWER(COALESCE(s.medicineType, '')) " +
+	        "LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+	        "OR LOWER(COALESCE(s.manufacturer, '')) " +
+	        "LIKE LOWER(CONCAT('%', :keyword, '%'))" +
+	        ") " +
+	        "ORDER BY s.createdAt DESC")
 	List<SaasMedicineStock> searchStocks(@Param("tenantId") Long tenantId,
 
 			@Param("keyword") String keyword);
 
-	@Query("""
-			SELECT COALESCE(SUM(s.currentQuantity), 0)
-			FROM SaasMedicineStock s
-			WHERE s.tenantId = :tenantId
-			  AND s.medicineId = :medicineId
-			  AND s.active = true
-			  AND COALESCE(s.currentQuantity, 0) > 0
-			  AND (
-			        s.expiryDate IS NULL
-			        OR s.expiryDate >= :requiredDate
-			  )
-			""")
+	@Query("SELECT COALESCE(SUM(s.currentQuantity), 0) " +
+	        "FROM SaasMedicineStock s " +
+	        "WHERE s.tenantId = :tenantId " +
+	        "AND s.medicineId = :medicineId " +
+	        "AND s.active = true " +
+	        "AND COALESCE(s.currentQuantity, 0) > 0 " +
+	        "AND (" +
+	        "s.expiryDate IS NULL " +
+	        "OR s.expiryDate >= :requiredDate" +
+	        ")")
 	Long sumAvailableQuantityForSale(@Param("tenantId") Long tenantId,
 
 			@Param("medicineId") Long medicineId,
@@ -146,13 +130,11 @@ public interface SaasMedicineStockRepository extends JpaRepository<SaasMedicineS
 			@Param("requiredDate") java.time.LocalDate requiredDate);
 
 	@Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
-	@Query("""
-			SELECT s
-			FROM SaasMedicineStock s
-			WHERE s.id = :stockId
-			  AND s.tenantId = :tenantId
-			  AND s.active = true
-			""")
+	@Query("SELECT s " +
+	        "FROM SaasMedicineStock s " +
+	        "WHERE s.id = :stockId " +
+	        "AND s.tenantId = :tenantId " +
+	        "AND s.active = true")
 	Optional<SaasMedicineStock> findStockForUpdate(@Param("stockId") Long stockId,
 
 			@Param("tenantId") Long tenantId);

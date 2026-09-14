@@ -120,7 +120,7 @@ function getApiBase() {
 		return API_BASE;
 	}
 
-	return "http://65.0.32.137:8090";
+	return "http://13.201.98.118:8090";
 }
 
 function getSaasTenantId() {
@@ -2239,3 +2239,5 @@ function getAllowedModulesForCurrentUser() {
 		getCurrentSaasTenantType()
 	);
 }
+
+

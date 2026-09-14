@@ -23,40 +23,27 @@ public interface SaasPaymentTransactionRepository extends JpaRepository<SaasPaym
 
 	long countByTenantIdAndPaymentStatusNot(Long tenantId, SaasPaymentStatus paymentStatus);
 
-	@Query("""
-			SELECT p
-			FROM SaasPaymentTransaction p
-			WHERE p.tenantId = :tenantId
-			  AND (
-			        LOWER(p.paymentNumber)
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(p.partyName)
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(COALESCE(p.partyCode, ''))
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(COALESCE(p.referenceNumber, ''))
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-			     OR LOWER(COALESCE(p.referenceNumberSnapshot, ''))
-			            LIKE LOWER(CONCAT('%', :keyword, '%'))
-			  )
-			ORDER BY p.paymentDate DESC, p.createdAt DESC
-			""")
+	@Query("SELECT p " +
+	        "FROM SaasPaymentTransaction p " +
+	        "WHERE p.tenantId = :tenantId " +
+	        "AND (" +
+	        "LOWER(p.paymentNumber) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+	        "OR LOWER(p.partyName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+	        "OR LOWER(COALESCE(p.partyCode, '')) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+	        "OR LOWER(COALESCE(p.referenceNumber, '')) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+	        "OR LOWER(COALESCE(p.referenceNumberSnapshot, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
+	        ") " +
+	        "ORDER BY p.paymentDate DESC, p.createdAt DESC")
 	List<SaasPaymentTransaction> searchPayments(@Param("tenantId") Long tenantId,
 
 			@Param("keyword") String keyword);
 
-	@Query("""
-			SELECT COALESCE(SUM(p.amount), 0)
-			FROM SaasPaymentTransaction p
-			WHERE p.tenantId = :tenantId
-			  AND p.transactionType = :transactionType
-			  AND p.paymentStatus <>
-			      com.example.medi.saas.enums.SaasPaymentStatus.CANCELLED
-			""")
+	@Query("SELECT COALESCE(SUM(p.amount), 0) " +
+	        "FROM SaasPaymentTransaction p " +
+	        "WHERE p.tenantId = :tenantId " +
+	        "AND p.transactionType = :transactionType " +
+	        "AND p.paymentStatus <> " +
+	        "com.example.medi.saas.enums.SaasPaymentStatus.CANCELLED")
 	BigDecimal sumAmountByTransactionType(@Param("tenantId") Long tenantId,
 
 			@Param("transactionType") SaasPaymentTransactionType transactionType);

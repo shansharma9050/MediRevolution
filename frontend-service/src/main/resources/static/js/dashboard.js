@@ -1,4 +1,4 @@
-const API_BASE = "http://65.0.32.137:8090";
+const API_BASE = "http://13.201.98.118:8090";
 
 /*
 const API_BASE =
@@ -1363,3 +1363,5 @@ function escapeHtml(value) {
 		.replaceAll("'", "&#039;");
 
 }
+
+

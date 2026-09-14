@@ -324,8 +324,7 @@ public class SaasPaymentService {
 
 		switch (referenceType) {
 
-		case "PURCHASE" -> {
-
+		case "PURCHASE": {
 			SaasPurchase purchase = purchaseRepository.findByIdAndTenantId(referenceId, tenantId)
 					.orElseThrow(() -> new RuntimeException("Referenced purchase not found"));
 
@@ -333,10 +332,11 @@ public class SaasPaymentService {
 
 				throw new RuntimeException("Referenced purchase does not belong to selected supplier");
 			}
+
+			break;
 		}
 
-		case "PURCHASE_RETURN" -> {
-
+		case "PURCHASE_RETURN": {
 			SaasPurchaseReturn purchaseReturn = purchaseReturnRepository.findByIdAndTenantId(referenceId, tenantId)
 					.orElseThrow(() -> new RuntimeException("Referenced purchase return not found"));
 
@@ -344,15 +344,20 @@ public class SaasPaymentService {
 
 				throw new RuntimeException("Referenced purchase return does not belong to selected supplier");
 			}
+
+			break;
 		}
 
-		case "OPENING_BALANCE", "OTHER" -> {
+		case "OPENING_BALANCE":
+		case "OTHER": {
 			/*
 			 * Generic reference types. Party and tenant are already validated.
 			 */
+			break;
 		}
 
-		default -> throw new RuntimeException("Invalid supplier payment reference type");
+		default:
+			throw new RuntimeException("Invalid supplier payment reference type");
 		}
 	}
 
@@ -361,8 +366,7 @@ public class SaasPaymentService {
 
 		switch (referenceType) {
 
-		case "SALE" -> {
-
+		case "SALE": {
 			SaasSale sale = saleRepository.findByIdAndTenantId(referenceId, tenantId)
 					.orElseThrow(() -> new RuntimeException("Referenced sale not found"));
 
@@ -370,10 +374,11 @@ public class SaasPaymentService {
 
 				throw new RuntimeException("Referenced sale does not belong to selected customer");
 			}
+
+			break;
 		}
 
-		case "SALES_RETURN" -> {
-
+		case "SALES_RETURN": {
 			SaasSalesReturn salesReturn = salesReturnRepository.findByIdAndTenantId(referenceId, tenantId)
 					.orElseThrow(() -> new RuntimeException("Referenced sales return not found"));
 
@@ -381,15 +386,20 @@ public class SaasPaymentService {
 
 				throw new RuntimeException("Referenced sales return does not belong to selected customer");
 			}
+
+			break;
 		}
 
-		case "OPENING_BALANCE", "OTHER" -> {
+		case "OPENING_BALANCE":
+		case "OTHER": {
 			/*
 			 * Generic reference types. Party and tenant are already validated.
 			 */
+			break;
 		}
 
-		default -> throw new RuntimeException("Invalid customer receipt reference type");
+		default:
+			throw new RuntimeException("Invalid customer receipt reference type");
 		}
 	}
 

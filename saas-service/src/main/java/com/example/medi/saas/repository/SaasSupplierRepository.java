@@ -61,37 +61,20 @@ public interface SaasSupplierRepository
             Long tenantId
     );
 
-    @Query("""
-            SELECT s
-            FROM SaasSupplier s
-            WHERE s.tenantId = :tenantId
-              AND (
-                    LOWER(s.supplierCode)
-                        LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-                 OR LOWER(s.supplierName)
-                        LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-                 OR LOWER(COALESCE(s.contactPersonName, ''))
-                        LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-                 OR LOWER(COALESCE(s.mobile, ''))
-                        LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-                 OR LOWER(COALESCE(s.email, ''))
-                        LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-                 OR LOWER(COALESCE(s.gstin, ''))
-                        LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-                 OR LOWER(COALESCE(s.city, ''))
-                        LIKE LOWER(CONCAT('%', :keyword, '%'))
-
-                 OR LOWER(COALESCE(s.state, ''))
-                        LIKE LOWER(CONCAT('%', :keyword, '%'))
-              )
-            ORDER BY s.supplierName ASC
-            """)
+    @Query("SELECT s " +
+            "FROM SaasSupplier s " +
+            "WHERE s.tenantId = :tenantId " +
+            "AND (" +
+            "LOWER(s.supplierCode) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(s.supplierName) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(COALESCE(s.contactPersonName, '')) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(COALESCE(s.mobile, '')) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(COALESCE(s.email, '')) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(COALESCE(s.gstin, '')) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(COALESCE(s.city, '')) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(COALESCE(s.state, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
+            ") " +
+            "ORDER BY s.supplierName ASC")
     List<SaasSupplier> searchSuppliers(
             @Param("tenantId")
             Long tenantId,
@@ -99,6 +82,6 @@ public interface SaasSupplierRepository
             @Param("keyword")
             String keyword
     );
-    
+
     void deleteByTenantId(Long tenantId);
 }

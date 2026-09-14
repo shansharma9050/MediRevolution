@@ -16,17 +16,15 @@ public interface SaasPurchaseReturnItemRepository
             Long purchaseReturnId
     );
 
-    @Query("""
-            SELECT COALESCE(SUM(i.returnQuantity), 0)
-            FROM SaasPurchaseReturnItem i,
-                 SaasPurchaseReturn r
-            WHERE i.purchaseReturnId = r.id
-              AND i.tenantId = :tenantId
-              AND i.purchaseItemId = :purchaseItemId
-              AND r.tenantId = :tenantId
-              AND r.returnStatus <>
-                  com.example.medi.saas.enums.SaasPurchaseReturnStatus.CANCELLED
-            """)
+    @Query("SELECT COALESCE(SUM(i.returnQuantity), 0) " +
+            "FROM SaasPurchaseReturnItem i, " +
+            "SaasPurchaseReturn r " +
+            "WHERE i.purchaseReturnId = r.id " +
+            "AND i.tenantId = :tenantId " +
+            "AND i.purchaseItemId = :purchaseItemId " +
+            "AND r.tenantId = :tenantId " +
+            "AND r.returnStatus <> " +
+            "com.example.medi.saas.enums.SaasPurchaseReturnStatus.CANCELLED")
     Long sumReturnedQuantityByPurchaseItem(
             @Param("tenantId")
             Long tenantId,
@@ -34,6 +32,6 @@ public interface SaasPurchaseReturnItemRepository
             @Param("purchaseItemId")
             Long purchaseItemId
     );
-    
+
     void deleteByTenantId(Long tenantId);
 }

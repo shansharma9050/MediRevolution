@@ -1,5 +1,6 @@
 package com.example.medi.billing.security;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -32,21 +33,17 @@ public class SaasWorkspaceAuthorizationService {
 	public void validateWorkspaceAccess(Long tenantId, Long authUserId) {
 
 		if (tenantId == null || tenantId <= 0) {
-
 			throw new RuntimeException("SaaS workspace is required");
 		}
 
 		if (authUserId == null) {
-
 			throw new RuntimeException("User not authenticated");
 		}
 
 		String url = saasServiceUrl + "/saas/tenants/" + tenantId + "/access?authUserId=" + authUserId;
 
 		HttpHeaders headers = new HttpHeaders();
-
 		headers.set("X-Internal-Service-Key", internalServiceKey);
-
 		headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 
 		HttpEntity<Void> request = new HttpEntity<>(headers);
@@ -64,7 +61,6 @@ public class SaasWorkspaceAuthorizationService {
 			WorkspaceAccessResponse result = response.getBody();
 
 			if (!result.isAllowed()) {
-
 				throw new RuntimeException("You are not authorized to access this SaaS workspace");
 			}
 
@@ -78,44 +74,33 @@ public class SaasWorkspaceAuthorizationService {
 		}
 	}
 
-	public void activateWorkspace(Long tenantId, Long authUserId) {
+	public void activateWorkspace(Long tenantId, Long authUserId, LocalDate validFrom, LocalDate validUntil) {
 
 		if (tenantId == null || tenantId <= 0) {
-			throw new RuntimeException("SaaS workspace is required");
+			throw new RuntimeException("Workspace id is required");
 		}
 
 		if (authUserId == null) {
-			throw new RuntimeException("User not authenticated");
+			throw new RuntimeException("User id is required");
+		}
+
+		if (validFrom == null) {
+			throw new RuntimeException("Workspace valid from date is required");
+		}
+
+		if (validUntil == null) {
+			throw new RuntimeException("Workspace valid until date is required");
 		}
 
 		String url = saasServiceUrl + "/saas/internal/tenants/" + tenantId + "/subscription/activate" + "?authUserId="
-				+ authUserId;
+				+ authUserId + "&validFrom=" + validFrom + "&validUntil=" + validUntil;
 
 		HttpHeaders headers = new HttpHeaders();
-
 		headers.set("X-Internal-Service-Key", internalServiceKey);
 
-		headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+		HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-		HttpEntity<Void> request = new HttpEntity<>(headers);
-
-		try {
-
-			ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, request, Map.class);
-
-			if (!response.getStatusCode().is2xxSuccessful()) {
-
-				throw new RuntimeException("Unable to activate SaaS workspace");
-			}
-
-		} catch (RuntimeException ex) {
-
-			throw ex;
-
-		} catch (Exception ex) {
-
-			throw new RuntimeException("SaaS workspace service is unavailable");
-		}
+		restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
 	}
 
 	public void suspendWorkspace(Long tenantId) {
@@ -127,9 +112,7 @@ public class SaasWorkspaceAuthorizationService {
 		String url = saasServiceUrl + "/saas/internal/tenants/" + tenantId + "/subscription/suspend";
 
 		HttpHeaders headers = new HttpHeaders();
-
 		headers.set("X-Internal-Service-Key", internalServiceKey);
-
 		headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 
 		HttpEntity<Void> request = new HttpEntity<>(headers);
@@ -139,7 +122,6 @@ public class SaasWorkspaceAuthorizationService {
 			ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, request, Map.class);
 
 			if (!response.getStatusCode().is2xxSuccessful()) {
-
 				throw new RuntimeException("Unable to suspend SaaS workspace");
 			}
 

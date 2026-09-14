@@ -285,6 +285,24 @@ public class AuthInternalController {
 
 		return toResponse(user);
 	}
+	
+	
+	// ============================================================
+	// GET USER BY ID
+	// ============================================================
+
+	@GetMapping("/users/{userId}")
+	public AuthUserResponse getUserById(@PathVariable Long userId) {
+
+	    if (userId == null || userId <= 0) {
+	        throw new RuntimeException("Valid user id is required");
+	    }
+
+	    User user = userRepository.findById(userId)
+	            .orElseThrow(() -> new RuntimeException("User not found"));
+
+	    return toResponse(user);
+	}
 
 	// ============================================================
 	// RESPONSE

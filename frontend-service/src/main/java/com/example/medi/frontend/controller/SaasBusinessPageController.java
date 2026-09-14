@@ -55,6 +55,11 @@ public class SaasBusinessPageController {
 	public String saasWorkspacesPage() {
 		return "saas-workspaces";
 	}
+    
+    @GetMapping("/saas/admin/workspaces")
+    public String saasAdminWorkspacesPage() {
+        return "saas-admin-workspaces";
+    }
 
 	@GetMapping("/saas/dashboard")
 	public String saasDashboardPage() {

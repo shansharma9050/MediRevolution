@@ -352,8 +352,7 @@ public class SaasExpiryManagementService {
 
 		switch (actionType) {
 
-		case RETURN_TO_SUPPLIER -> {
-
+		case RETURN_TO_SUPPLIER: {
 			linkPurchaseReturn(request, action, stock);
 
 			if (request.getPurchaseReturnId() != null) {
@@ -382,10 +381,12 @@ public class SaasExpiryManagementService {
 
 				action.setQuantityAfter(quantityAfter);
 			}
+
+			break;
 		}
 
-		case DISPOSAL, STOCK_ADJUSTMENT -> {
-
+		case DISPOSAL:
+		case STOCK_ADJUSTMENT: {
 			int availableQuantity = currentQuantity - quarantinedQuantity;
 
 			if (actionQuantity > availableQuantity) {
@@ -405,10 +406,11 @@ public class SaasExpiryManagementService {
 			stock.setExpiryQuarantined(safeInteger(stock.getQuarantinedQuantity()) > 0);
 
 			action.setQuantityAfter(quantityAfter);
+
+			break;
 		}
 
-		case QUARANTINE -> {
-
+		case QUARANTINE: {
 			int availableQuantity = currentQuantity - quarantinedQuantity;
 
 			if (actionQuantity > availableQuantity) {
@@ -423,10 +425,11 @@ public class SaasExpiryManagementService {
 			stock.setExpiryQuarantined(newQuarantinedQuantity > 0);
 
 			action.setQuantityAfter(currentQuantity);
+
+			break;
 		}
 
-		case RELEASE_FROM_QUARANTINE -> {
-
+		case RELEASE_FROM_QUARANTINE: {
 			if (actionQuantity > quarantinedQuantity) {
 
 				throw new RuntimeException("Release quantity cannot exceed quarantined quantity");
@@ -439,7 +442,12 @@ public class SaasExpiryManagementService {
 			stock.setExpiryQuarantined(newQuarantinedQuantity > 0);
 
 			action.setQuantityAfter(currentQuantity);
+
+			break;
 		}
+
+		default:
+			throw new IllegalArgumentException("Unsupported expiry action type: " + actionType);
 		}
 
 		stock.touch();
@@ -547,7 +555,7 @@ public class SaasExpiryManagementService {
 
 		switch (actionType) {
 
-		case RETURN_TO_SUPPLIER -> {
+		case RETURN_TO_SUPPLIER: {
 
 			if (stock.getSupplierId() == null) {
 				throw new RuntimeException("Supplier information is required for return-to-supplier action");
@@ -560,9 +568,11 @@ public class SaasExpiryManagementService {
 			if (quantity > availableQuantity) {
 				throw new RuntimeException("Return quantity cannot exceed available non-quarantined stock");
 			}
+
+			break;
 		}
 
-		case DISPOSAL -> {
+		case DISPOSAL: {
 
 			if (parseOptionalDisposalMethod(request.getDisposalMethod()) == null) {
 				throw new RuntimeException("Disposal method is required");
@@ -575,9 +585,11 @@ public class SaasExpiryManagementService {
 			if (normalizeOptional(request.getAuthorizedBy()) == null) {
 				throw new RuntimeException("Authorized-by name is required for disposal");
 			}
+
+			break;
 		}
 
-		case STOCK_ADJUSTMENT -> {
+		case STOCK_ADJUSTMENT: {
 
 			if (parseOptionalAdjustmentReason(request.getAdjustmentReason()) == null) {
 				throw new RuntimeException("Stock-adjustment reason is required");
@@ -586,16 +598,20 @@ public class SaasExpiryManagementService {
 			if (quantity > availableQuantity) {
 				throw new RuntimeException("Adjustment quantity cannot exceed available non-quarantined stock");
 			}
+
+			break;
 		}
 
-		case QUARANTINE -> {
+		case QUARANTINE: {
 
 			if (quantity > availableQuantity) {
 				throw new RuntimeException("Quarantine quantity cannot exceed available stock");
 			}
+
+			break;
 		}
 
-		case RELEASE_FROM_QUARANTINE -> {
+		case RELEASE_FROM_QUARANTINE: {
 
 			if (quantity > quarantinedQuantity) {
 				throw new RuntimeException("Release quantity cannot exceed quarantined stock");
@@ -604,7 +620,12 @@ public class SaasExpiryManagementService {
 			if (stock.getExpiryDate() != null && !stock.getExpiryDate().isAfter(LocalDate.now())) {
 				throw new RuntimeException("Expired stock cannot be released from quarantine");
 			}
+
+			break;
 		}
+
+		default:
+			throw new IllegalArgumentException("Unsupported expiry action type: " + actionType);
 		}
 
 		if (currentQuantity <= 0) {
@@ -615,18 +636,33 @@ public class SaasExpiryManagementService {
 	private void createInventoryMovement(SaasExpiryActionType actionType, SaasMedicineStock stock,
 			SaasExpiryAction action) {
 
-		SaasStockMovementType movementType = switch (actionType) {
+		SaasStockMovementType movementType;
 
-		case RETURN_TO_SUPPLIER -> SaasStockMovementType.EXPIRY_RETURN_TO_SUPPLIER;
+		switch (actionType) {
 
-		case DISPOSAL -> SaasStockMovementType.EXPIRY_DISPOSAL;
+		case RETURN_TO_SUPPLIER:
+			movementType = SaasStockMovementType.EXPIRY_RETURN_TO_SUPPLIER;
+			break;
 
-		case STOCK_ADJUSTMENT -> SaasStockMovementType.EXPIRY_ADJUSTMENT;
+		case DISPOSAL:
+			movementType = SaasStockMovementType.EXPIRY_DISPOSAL;
+			break;
 
-		case QUARANTINE -> SaasStockMovementType.EXPIRY_QUARANTINE;
+		case STOCK_ADJUSTMENT:
+			movementType = SaasStockMovementType.EXPIRY_ADJUSTMENT;
+			break;
 
-		case RELEASE_FROM_QUARANTINE -> SaasStockMovementType.EXPIRY_RELEASE;
-		};
+		case QUARANTINE:
+			movementType = SaasStockMovementType.EXPIRY_QUARANTINE;
+			break;
+
+		case RELEASE_FROM_QUARANTINE:
+			movementType = SaasStockMovementType.EXPIRY_RELEASE;
+			break;
+
+		default:
+			throw new IllegalArgumentException("Unsupported expiry action type: " + actionType);
+		}
 
 		inventoryService.createMovement(action.getTenantId(), action.getMedicineId(), stock.getId(), movementType,
 				action.getActionQuantity(), buildMovementRemarks(action), action.getId());
@@ -1050,18 +1086,33 @@ public class SaasExpiryManagementService {
 
 	private String generateActionNumber(Long tenantId, SaasExpiryActionType actionType) {
 
-		String prefix = switch (actionType) {
+		String prefix;
 
-		case RETURN_TO_SUPPLIER -> "ERT";
+		switch (actionType) {
 
-		case DISPOSAL -> "EDP";
+		case RETURN_TO_SUPPLIER:
+			prefix = "ERT";
+			break;
 
-		case STOCK_ADJUSTMENT -> "EAD";
+		case DISPOSAL:
+			prefix = "EDP";
+			break;
 
-		case QUARANTINE -> "EQT";
+		case STOCK_ADJUSTMENT:
+			prefix = "EAD";
+			break;
 
-		case RELEASE_FROM_QUARANTINE -> "ERQ";
-		};
+		case QUARANTINE:
+			prefix = "EQT";
+			break;
+
+		case RELEASE_FROM_QUARANTINE:
+			prefix = "ERQ";
+			break;
+
+		default:
+			throw new IllegalArgumentException("Unsupported expiry action type: " + actionType);
+		}
 
 		String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 

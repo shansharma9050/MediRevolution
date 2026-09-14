@@ -36,7 +36,6 @@ public class SaasPhonePeService {
 	private String redirectUrl;
 
 	public SaasPhonePeService(RestTemplate restTemplate) {
-
 		this.restTemplate = restTemplate;
 	}
 
@@ -45,19 +44,14 @@ public class SaasPhonePeService {
 		String url = baseUrl + "/v1/oauth/token";
 
 		HttpHeaders headers = new HttpHeaders();
-
 		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
 		headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 
 		MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
 
 		body.add("client_id", clientId);
-
 		body.add("client_version", clientVersion);
-
 		body.add("client_secret", clientSecret);
-
 		body.add("grant_type", "client_credentials");
 
 		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
@@ -74,7 +68,6 @@ public class SaasPhonePeService {
 			Object token = response.getBody().get("access_token");
 
 			if (token == null) {
-
 				throw new RuntimeException("PhonePe access token not found.");
 			}
 
@@ -93,9 +86,7 @@ public class SaasPhonePeService {
 		String url = baseUrl + "/checkout/v2/pay";
 
 		HttpHeaders headers = new HttpHeaders();
-
 		headers.setContentType(MediaType.APPLICATION_JSON);
-
 		headers.set("Authorization", "O-Bearer " + token);
 
 		String finalRedirectUrl = UriComponentsBuilder.fromUriString(redirectUrl)
@@ -111,11 +102,8 @@ public class SaasPhonePeService {
 		Map<String, Object> body = new HashMap<>();
 
 		body.put("merchantOrderId", merchantOrderId);
-
 		body.put("amount", amountInPaise);
-
 		body.put("expireAfter", 1200);
-
 		body.put("paymentFlow", paymentFlow);
 
 		HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
@@ -131,7 +119,9 @@ public class SaasPhonePeService {
 
 		Object redirect = responseBody.get("redirectUrl");
 
-		if (redirect == null && responseBody.get("data") instanceof Map data) {
+		if (redirect == null && responseBody.get("data") instanceof Map) {
+
+			Map data = (Map) responseBody.get("data");
 
 			redirect = data.get("redirectUrl");
 		}
@@ -147,6 +137,7 @@ public class SaasPhonePeService {
 	public SaasPhonePayPaymentStatus checkPaymentStatus(String merchantOrderId) {
 
 		if (merchantOrderId == null || merchantOrderId.isBlank()) {
+
 			throw new RuntimeException("Merchant order ID is required.");
 		}
 
@@ -209,7 +200,9 @@ public class SaasPhonePeService {
 
 		Object data = body.get("data");
 
-		if (data instanceof Map dataMap) {
+		if (data instanceof Map) {
+
+			Map dataMap = (Map) data;
 
 			Object nestedState = dataMap.get("state");
 
@@ -227,41 +220,49 @@ public class SaasPhonePeService {
 		return null;
 	}
 
-	private String extractTransactionId(Map body) {
+private String extractTransactionId(Map body) {
 
-		if (body == null) {
-			return null;
-		}
+    if (body == null) {
+        return null;
+    }
 
-		Object value = body.get("transactionId");
+    Object value =
+            body.get("transactionId");
 
-		if (value != null) {
-			return value.toString();
-		}
+    if (value != null) {
+        return value.toString();
+    }
 
-		Object data = body.get("data");
+    Object data =
+            body.get("data");
 
-		if (data instanceof Map dataMap) {
+    if (data instanceof Map) {
 
-			Object transactionId = dataMap.get("transactionId");
+        Map dataMap = (Map) data;
 
-			if (transactionId != null) {
-				return transactionId.toString();
-			}
+        Object transactionId =
+                dataMap.get("transactionId");
 
-			Object transactionReferenceId = dataMap.get("transactionReferenceId");
+        if (transactionId != null) {
+            return transactionId.toString();
+        }
 
-			if (transactionReferenceId != null) {
-				return transactionReferenceId.toString();
-			}
+        Object transactionReferenceId =
+                dataMap.get("transactionReferenceId");
 
-			Object providerReferenceId = dataMap.get("providerReferenceId");
+        if (transactionReferenceId != null) {
+            return transactionReferenceId.toString();
+        }
 
-			if (providerReferenceId != null) {
-				return providerReferenceId.toString();
-			}
-		}
+        Object providerReferenceId =
+                dataMap.get("providerReferenceId");
 
-		return null;
-	}
+        if (providerReferenceId != null) {
+            return providerReferenceId.toString();
+        }
+    }
+
+    return null;
+}
+
 }

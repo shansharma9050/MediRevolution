@@ -3,6 +3,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.medi.auth.dto.AdminDashboardCountResponse;
 import com.example.medi.auth.entity.User;
+import com.example.medi.auth.enums.RoleName;
 import com.example.medi.auth.repository.UserRepository;
 
 import java.util.List;
@@ -58,5 +59,19 @@ public class AdminUserService {
                 approved,
                 rejected
         );
+    }
+    
+    public List<User> getSaasWorkspaceUsers() {
+
+        return List.of(
+                RoleName.DOCTOR,
+                RoleName.HOSPITAL,
+                RoleName.WHOLESALER,
+                RoleName.RETAILER
+        ).stream()
+         .flatMap(role -> userRepository.findByRole(role).stream())
+         .filter(User::isActive)
+         .filter(User::isApproved)
+         .toList();
     }
 }

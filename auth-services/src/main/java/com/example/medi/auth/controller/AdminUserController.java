@@ -3,6 +3,7 @@ package com.example.medi.auth.controller;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.medi.auth.dto.AdminDashboardCountResponse;
+import com.example.medi.auth.dto.AuthUserResponse;
 import com.example.medi.auth.entity.User;
 import com.example.medi.auth.service.AdminUserService;
 
@@ -21,6 +22,22 @@ public class AdminUserController {
     @GetMapping("/pending")
     public List<User> getPendingUsers() {
         return adminUserService.getPendingUsers();
+    }
+    
+    @GetMapping("/saas-workspace-users")
+    public List<AuthUserResponse> getSaasWorkspaceUsers() {
+        return adminUserService.getSaasWorkspaceUsers()
+                .stream()
+                .map(user -> new AuthUserResponse(
+                        user.getId(),
+                        user.getFullName(),
+                        user.getEmail(),
+                        user.getMobile(),
+                        user.getRole().name(),
+                        user.isActive(),
+                        user.isApproved()
+                ))
+                .toList();
     }
 
     @PutMapping("/{userId}/approve")

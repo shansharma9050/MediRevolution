@@ -51,6 +51,15 @@ public class SecurityConfig {
 
 						.requestMatchers(HttpMethod.GET, "/saas/patients/me")
 						.hasAnyRole("HOSPITAL", "DOCTOR", "PATIENT")
+						
+						
+						/*
+						 * ======================================================
+						 * ADMIN SaaS WORKSPACE MANAGEMENT
+						 * ======================================================
+						 */
+						.requestMatchers("/saas/tenants/admin/**")
+						.hasRole("SUPER_ADMIN")
 
 						/*
 						 * ====================================================== WORKSPACE CREATION

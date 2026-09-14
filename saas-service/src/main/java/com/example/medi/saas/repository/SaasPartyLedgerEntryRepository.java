@@ -24,51 +24,43 @@ public interface SaasPartyLedgerEntryRepository extends JpaRepository<SaasPartyL
 	boolean existsByTenantIdAndReferenceTypeAndReferenceIdAndEntryType(Long tenantId, String referenceType,
 			Long referenceId, com.example.medi.saas.enums.SaasLedgerEntryType entryType);
 
-	@Query("""
-			SELECT COALESCE(SUM(e.debitAmount), 0)
-			FROM SaasPartyLedgerEntry e
-			WHERE e.tenantId = :tenantId
-			  AND e.partyType = :partyType
-			  AND e.partyId = :partyId
-			""")
+	@Query("SELECT COALESCE(SUM(e.debitAmount), 0) " +
+	        "FROM SaasPartyLedgerEntry e " +
+	        "WHERE e.tenantId = :tenantId " +
+	        "AND e.partyType = :partyType " +
+	        "AND e.partyId = :partyId")
 	BigDecimal sumDebitByParty(@Param("tenantId") Long tenantId,
 
 			@Param("partyType") SaasPaymentPartyType partyType,
 
 			@Param("partyId") Long partyId);
 
-	@Query("""
-			SELECT COALESCE(SUM(e.creditAmount), 0)
-			FROM SaasPartyLedgerEntry e
-			WHERE e.tenantId = :tenantId
-			  AND e.partyType = :partyType
-			  AND e.partyId = :partyId
-			""")
+	@Query("SELECT COALESCE(SUM(e.creditAmount), 0) " +
+	        "FROM SaasPartyLedgerEntry e " +
+	        "WHERE e.tenantId = :tenantId " +
+	        "AND e.partyType = :partyType " +
+	        "AND e.partyId = :partyId")
 	BigDecimal sumCreditByParty(@Param("tenantId") Long tenantId,
 
 			@Param("partyType") SaasPaymentPartyType partyType,
 
 			@Param("partyId") Long partyId);
 
-	@Query("""
-			SELECT COALESCE(SUM(e.debitAmount - e.creditAmount), 0)
-			FROM SaasPartyLedgerEntry e
-			WHERE e.tenantId = :tenantId
-			  AND e.partyType = :partyType
-			  AND e.partyId = :partyId
-			""")
+	@Query("SELECT COALESCE(SUM(e.debitAmount - e.creditAmount), 0) " +
+	        "FROM SaasPartyLedgerEntry e " +
+	        "WHERE e.tenantId = :tenantId " +
+	        "AND e.partyType = :partyType " +
+	        "AND e.partyId = :partyId")
 	BigDecimal calculatePartyBalance(@Param("tenantId") Long tenantId,
 
 			@Param("partyType") SaasPaymentPartyType partyType,
 
 			@Param("partyId") Long partyId);
 
-	@Query("""
-			SELECT COALESCE(SUM(e.debitAmount - e.creditAmount), 0)
-			FROM SaasPartyLedgerEntry e
-			WHERE e.tenantId = :tenantId
-			  AND e.partyType = :partyType
-			""")
+	@Query("SELECT COALESCE(SUM(e.debitAmount - e.creditAmount), 0) " +
+	        "FROM SaasPartyLedgerEntry e " +
+	        "WHERE e.tenantId = :tenantId " +
+	        "AND e.partyType = :partyType")
 	BigDecimal calculateTotalBalanceByPartyType(@Param("tenantId") Long tenantId,
 
 			@Param("partyType") SaasPaymentPartyType partyType);
