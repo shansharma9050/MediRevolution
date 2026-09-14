@@ -1,5 +1,5 @@
 const API_BASE =
-	"http://13.201.98.118:8090";
+	"http://localhost:8080";
 
 /*
 const API_BASE =
@@ -1701,5 +1701,3 @@ function escapeHtml(
 		.replace(/"/g, "&quot;")
 		.replace(/'/g, "&#039;");
 }
-
-

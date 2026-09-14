@@ -120,7 +120,10 @@ function getApiBase() {
 		return API_BASE;
 	}
 
-	return "http://13.201.98.118:8090";
+	return (
+window.MR_CONFIG?.API_BASE ||
+"http://localhost:8080"
+);
 }
 
 function getSaasTenantId() {
@@ -2239,5 +2242,3 @@ function getAllowedModulesForCurrentUser() {
 		getCurrentSaasTenantType()
 	);
 }
-
-

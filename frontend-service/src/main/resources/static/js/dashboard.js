@@ -1,4 +1,6 @@
-const API_BASE = "http://13.201.98.118:8090";
+const API_BASE =
+    window.MR_CONFIG?.API_BASE ||
+    "http://localhost:8080";
 
 /*
 const API_BASE =
@@ -1363,5 +1365,3 @@ function escapeHtml(value) {
 		.replaceAll("'", "&#039;");
 
 }
-
-

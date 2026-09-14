@@ -321,7 +321,8 @@
     </div>
 </div>
 
-<script th:src="@{/js/common-dashboard.js}"></script>
+<script th:src="@{/js/medirevolution-config.js?v=20260914_1}"></script>
+	<script th:src="@{/js/common-dashboard.js}"></script>
 
 <script>
     document.addEventListener("DOMContentLoaded", verifyPayment);
@@ -331,7 +332,10 @@
             return API_BASE;
         }
 
-        return "http://13.201.98.118:8090";
+        return (
+            window.MR_CONFIG?.API_BASE ||
+            "http://localhost:8080"
+        );
     }
 
     async function verifyPayment() {
