@@ -4,6 +4,7 @@ import com.example.medi.saas.dto.ApiResponse;
 import com.example.medi.saas.dto.SaasPatient360Response;
 import com.example.medi.saas.dto.SaasPatientRequest;
 import com.example.medi.saas.dto.SaasPatientResponse;
+import com.example.medi.saas.service.SaasPatient360AssemblerService;
 import com.example.medi.saas.service.SaasPatientService;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,54 +14,136 @@ import java.util.List;
 @RequestMapping("/saas/patients")
 public class SaasPatientController {
 
-	private final SaasPatientService patientService;
+    private final SaasPatientService patientService;
 
-	public SaasPatientController(SaasPatientService patientService) {
-		this.patientService = patientService;
-	}
+    private final SaasPatient360AssemblerService patient360AssemblerService;
 
-	@PostMapping
-	public SaasPatientResponse createPatient(@RequestHeader("Authorization") String authorization,
-			@RequestBody SaasPatientRequest request) {
 
-		return patientService.createPatient(request, authorization);
-	}
+    public SaasPatientController(
+            SaasPatientService patientService,
+            SaasPatient360AssemblerService patient360AssemblerService
+    ) {
 
-	@GetMapping
-	public List<SaasPatientResponse> getPatients(@RequestParam Long tenantId) {
-		return patientService.getPatients(tenantId);
-	}
+        this.patientService =
+                patientService;
 
-	@GetMapping("/{patientId}/360")
-	public SaasPatient360Response getPatient360(@PathVariable Long patientId, @RequestParam Long tenantId) {
+        this.patient360AssemblerService =
+                patient360AssemblerService;
+    }
 
-		return patientService.getPatient360(tenantId, patientId);
-	}
 
-	@GetMapping("/{patientId}")
-	public SaasPatientResponse getPatient(@PathVariable Long patientId, @RequestParam Long tenantId) {
-		return patientService.getPatient(tenantId, patientId);
-	}
+    @PostMapping
+    public SaasPatientResponse createPatient(
+            @RequestHeader("Authorization")
+            String authorization,
 
-	@GetMapping("/search")
-	public List<SaasPatientResponse> searchPatients(@RequestParam Long tenantId,
-			@RequestParam(required = false) String keyword) {
-		return patientService.searchPatients(tenantId, keyword);
-	}
+            @RequestBody
+            SaasPatientRequest request
+    ) {
 
-	@PutMapping("/{patientId}")
-	public SaasPatientResponse updatePatient(@PathVariable Long patientId, @RequestParam Long tenantId,
-			@RequestBody SaasPatientRequest request) {
-		return patientService.updatePatient(tenantId, patientId, request);
-	}
+        return patientService.createPatient(
+                request,
+                authorization
+        );
+    }
 
-	@DeleteMapping("/{patientId}")
-	public ApiResponse deletePatient(@PathVariable Long patientId, @RequestParam Long tenantId) {
-		return patientService.deletePatient(tenantId, patientId);
-	}
 
-	@GetMapping("/me")
-	public SaasPatientResponse getMyPatient(@RequestParam Long tenantId) {
-		return patientService.getMyPatient(tenantId);
-	}
+    @GetMapping
+    public List<SaasPatientResponse> getPatients(
+            @RequestParam Long tenantId
+    ) {
+
+        return patientService.getPatients(
+                tenantId
+        );
+    }
+
+
+    /*
+     * ================================================================
+     * PATIENT 360
+     * ================================================================
+     */
+
+    @GetMapping("/{patientId}/360")
+    public SaasPatient360Response getPatient360(
+            @PathVariable Long patientId,
+            @RequestParam Long tenantId
+    ) {
+
+        return patient360AssemblerService.getPatient360(
+                tenantId,
+                patientId
+        );
+    }
+
+
+    @GetMapping("/{patientId}")
+    public SaasPatientResponse getPatient(
+            @PathVariable Long patientId,
+            @RequestParam Long tenantId
+    ) {
+
+        return patientService.getPatient(
+                tenantId,
+                patientId
+        );
+    }
+
+
+    @GetMapping("/search")
+    public List<SaasPatientResponse> searchPatients(
+            @RequestParam Long tenantId,
+
+            @RequestParam(required = false)
+            String keyword
+    ) {
+
+        return patientService.searchPatients(
+                tenantId,
+                keyword
+        );
+    }
+
+
+    @PutMapping("/{patientId}")
+    public SaasPatientResponse updatePatient(
+            @PathVariable Long patientId,
+
+            @RequestParam Long tenantId,
+
+            @RequestBody
+            SaasPatientRequest request
+    ) {
+
+        return patientService.updatePatient(
+                tenantId,
+                patientId,
+                request
+        );
+    }
+
+
+    @DeleteMapping("/{patientId}")
+    public ApiResponse deletePatient(
+            @PathVariable Long patientId,
+            @RequestParam Long tenantId
+    ) {
+
+        return patientService.deletePatient(
+                tenantId,
+                patientId
+        );
+    }
+
+
+    @GetMapping("/me")
+    public SaasPatientResponse getMyPatient(
+            @RequestParam Long tenantId
+    ) {
+
+        return patientService.getMyPatient(
+                tenantId
+        );
+    }
 }

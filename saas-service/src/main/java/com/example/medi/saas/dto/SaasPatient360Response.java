@@ -14,43 +14,16 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SaasPatient360Response {
-
-    /*
-     * ============================================================
-     * PATIENT BASIC PROFILE
-     * ============================================================
-     */
-
+	
     private SaasPatientResponse patient;
-
-
-    /*
-     * ============================================================
-     * APPOINTMENT SUMMARY
-     * ============================================================
-     */
 
     private long appointmentCount;
 
     private AppointmentSnapshot latestAppointment;
 
-
-    /*
-     * ============================================================
-     * PRESCRIPTION SUMMARY
-     * ============================================================
-     */
-
     private long prescriptionCount;
 
     private PrescriptionSnapshot latestPrescription;
-
-
-    /*
-     * ============================================================
-     * CLINICAL SUMMARY
-     * ============================================================
-     */
 
     private VitalSnapshot latestVitals;
 
@@ -58,48 +31,22 @@ public class SaasPatient360Response {
 
     private LocalDate nextFollowUpDate;
 
-
-    /*
-     * ============================================================
-     * PATIENT 360 CLINICAL OVERVIEW
-     * ============================================================
-     */
-
     private ClinicalOverview clinicalOverview;
-
-
-    /*
-     * ============================================================
-     * MEDICATION HISTORY
-     * ============================================================
-     */
 
     private List<MedicationHistoryItem> medicationHistory;
 
-
-    /*
-     * ============================================================
-     * INVESTIGATION / REPORT HISTORY
-     * ============================================================
-     */
-
     private List<InvestigationHistoryItem> investigationHistory;
 
-
     /*
      * ============================================================
-     * LONGITUDINAL HEALTH TIMELINE
+     * DOCUMENT VAULT
      * ============================================================
      */
+
+    private List<DocumentHistoryItem> documentHistory;
 
     private List<TimelineItem> timeline;
 
-
-    /*
-     * ============================================================
-     * APPOINTMENT SNAPSHOT
-     * ============================================================
-     */
 
     @Data
     @NoArgsConstructor
@@ -126,12 +73,6 @@ public class SaasPatient360Response {
     }
 
 
-    /*
-     * ============================================================
-     * PRESCRIPTION SNAPSHOT
-     * ============================================================
-     */
-
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -155,12 +96,6 @@ public class SaasPatient360Response {
     }
 
 
-    /*
-     * ============================================================
-     * LATEST VITAL SNAPSHOT
-     * ============================================================
-     */
-
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -181,12 +116,6 @@ public class SaasPatient360Response {
         private String sugarLevel;
     }
 
-
-    /*
-     * ============================================================
-     * PATIENT 360 CLINICAL OVERVIEW
-     * ============================================================
-     */
 
     @Data
     @NoArgsConstructor
@@ -213,12 +142,6 @@ public class SaasPatient360Response {
     }
 
 
-    /*
-     * ============================================================
-     * MEDICATION HISTORY ITEM
-     * ============================================================
-     */
-
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -243,12 +166,6 @@ public class SaasPatient360Response {
         private String instructions;
     }
 
-
-    /*
-     * ============================================================
-     * INVESTIGATION HISTORY ITEM
-     * ============================================================
-     */
 
     @Data
     @NoArgsConstructor
@@ -285,12 +202,6 @@ public class SaasPatient360Response {
     }
 
 
-    /*
-     * ============================================================
-     * INVESTIGATION TEST ITEM
-     * ============================================================
-     */
-
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -308,9 +219,48 @@ public class SaasPatient360Response {
 
     /*
      * ============================================================
-     * LONGITUDINAL TIMELINE ITEM
+     * DOCUMENT HISTORY ITEM
      * ============================================================
      */
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DocumentHistoryItem {
+
+        private Long documentId;
+
+        private String documentType;
+
+        private String title;
+
+        private String fileName;
+
+        private String mimeType;
+
+        private String fileExtension;
+
+        private Long fileSizeBytes;
+
+        private LocalDate documentDate;
+
+        private String description;
+
+        private Long appointmentId;
+
+        private Long prescriptionId;
+
+        private Long diagnosticOrderId;
+
+        private Long opdVisitId;
+
+        private Long ipdAdmissionId;
+
+        private Long invoiceId;
+
+        private LocalDateTime createdAt;
+    }
+
 
     @Data
     @NoArgsConstructor
@@ -332,5 +282,60 @@ public class SaasPatient360Response {
         private String detail;
 
         private Long appointmentId;
+    }
+    
+    public SaasPatient360Response(
+            SaasPatientResponse patient,
+            long appointmentCount,
+            AppointmentSnapshot latestAppointment,
+            long prescriptionCount,
+            PrescriptionSnapshot latestPrescription,
+            VitalSnapshot latestVitals,
+            String latestDiagnosis,
+            LocalDate nextFollowUpDate,
+            ClinicalOverview clinicalOverview,
+            List<MedicationHistoryItem> medicationHistory,
+            List<InvestigationHistoryItem> investigationHistory,
+            List<TimelineItem> timeline
+    ) {
+
+        this.patient =
+                patient;
+
+        this.appointmentCount =
+                appointmentCount;
+
+        this.latestAppointment =
+                latestAppointment;
+
+        this.prescriptionCount =
+                prescriptionCount;
+
+        this.latestPrescription =
+                latestPrescription;
+
+        this.latestVitals =
+                latestVitals;
+
+        this.latestDiagnosis =
+                latestDiagnosis;
+
+        this.nextFollowUpDate =
+                nextFollowUpDate;
+
+        this.clinicalOverview =
+                clinicalOverview;
+
+        this.medicationHistory =
+                medicationHistory;
+
+        this.investigationHistory =
+                investigationHistory;
+
+        this.documentHistory =
+                List.of();
+
+        this.timeline =
+                timeline;
     }
 }
