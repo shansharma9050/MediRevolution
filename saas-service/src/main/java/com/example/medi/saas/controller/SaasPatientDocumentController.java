@@ -43,25 +43,12 @@ public class SaasPatientDocumentController {
 
     /*
      * ================================================================
-     * CREATE DOCUMENT METADATA
+     * SECURE FILE UPLOAD
      * ================================================================
-     */
-
-    @PostMapping
-    public SaasPatientDocumentResponse createDocument(
-            @RequestBody SaasPatientDocumentRequest request
-    ) {
-
-        return documentService.createDocument(
-                request
-        );
-    }
-
-
-    /*
-     * ================================================================
-     * SECURE FILE UPLOAD + DOCUMENT CREATION
-     * ================================================================
+     *
+     * Metadata-only document creation is intentionally not exposed.
+     * Every managed Document Vault record must originate from a
+     * validated multipart upload.
      */
 
     @PostMapping(
@@ -164,9 +151,6 @@ public class SaasPatientDocumentController {
                     storedFile.originalFileName()
             );
 
-            /*
-             * Private internal storage key.
-             */
             request.setFileUrl(
                     storedFile.storageKey()
             );
@@ -211,7 +195,7 @@ public class SaasPatientDocumentController {
 
     /*
      * ================================================================
-     * PATIENT DOCUMENT LIST
+     * LIST
      * ================================================================
      */
 
@@ -230,7 +214,7 @@ public class SaasPatientDocumentController {
 
     /*
      * ================================================================
-     * DOCUMENT METADATA
+     * GET METADATA
      * ================================================================
      */
 
@@ -249,7 +233,7 @@ public class SaasPatientDocumentController {
 
     /*
      * ================================================================
-     * SECURE DOCUMENT DOWNLOAD
+     * SECURE DOWNLOAD
      * ================================================================
      */
 
@@ -264,6 +248,12 @@ public class SaasPatientDocumentController {
                         tenantId,
                         documentId
                 );
+
+
+        validateTenantStorageKey(
+                tenantId,
+                document.getFileUrl()
+        );
 
 
         Resource resource =
@@ -323,8 +313,10 @@ public class SaasPatientDocumentController {
 
     /*
      * ================================================================
-     * UPDATE DOCUMENT METADATA
+     * UPDATE METADATA
      * ================================================================
+     *
+     * Physical file identity is immutable here.
      */
 
     @PutMapping("/{documentId}")
@@ -333,6 +325,53 @@ public class SaasPatientDocumentController {
             @RequestParam Long tenantId,
             @RequestBody SaasPatientDocumentRequest request
     ) {
+
+        SaasPatientDocumentResponse existing =
+                documentService.getDocument(
+                        tenantId,
+                        documentId
+                );
+
+
+        validateTenantStorageKey(
+                tenantId,
+                existing.getFileUrl()
+        );
+
+
+        request.setTenantId(
+                tenantId
+        );
+
+        request.setPatientId(
+                existing.getPatientId()
+        );
+
+
+        /*
+         * Preserve secure managed-file fields.
+         */
+
+        request.setFileName(
+                existing.getFileName()
+        );
+
+        request.setFileUrl(
+                existing.getFileUrl()
+        );
+
+        request.setMimeType(
+                existing.getMimeType()
+        );
+
+        request.setFileExtension(
+                existing.getFileExtension()
+        );
+
+        request.setFileSizeBytes(
+                existing.getFileSizeBytes()
+        );
+
 
         return documentService.updateDocument(
                 tenantId,
@@ -344,7 +383,7 @@ public class SaasPatientDocumentController {
 
     /*
      * ================================================================
-     * DELETE DOCUMENT + PHYSICAL FILE
+     * DELETE
      * ================================================================
      */
 
@@ -361,6 +400,12 @@ public class SaasPatientDocumentController {
                 );
 
 
+        validateTenantStorageKey(
+                tenantId,
+                document.getFileUrl()
+        );
+
+
         ApiResponse response =
                 documentService.deleteDocument(
                         tenantId,
@@ -374,6 +419,57 @@ public class SaasPatientDocumentController {
 
 
         return response;
+    }
+
+
+    /*
+     * ================================================================
+     * STORAGE SECURITY
+     * ================================================================
+     */
+
+    private void validateTenantStorageKey(
+            Long tenantId,
+            String storageKey
+    ) {
+
+        if (
+                tenantId == null ||
+                storageKey == null ||
+                storageKey.isBlank()
+        ) {
+
+            throw new RuntimeException(
+                    "Invalid patient document storage reference"
+            );
+        }
+
+
+        String normalized =
+                storageKey
+                        .replace(
+                                '\\',
+                                '/'
+                        )
+                        .trim();
+
+
+        String expectedPrefix =
+                "tenant-"
+                        + tenantId
+                        + "/";
+
+
+        if (
+                !normalized.startsWith(
+                        expectedPrefix
+                )
+        ) {
+
+            throw new RuntimeException(
+                    "Patient document does not belong to this workspace"
+            );
+        }
     }
 
 

@@ -5,6 +5,7 @@ import com.example.medi.saas.dto.SaasPatient360Response;
 import com.example.medi.saas.dto.SaasPatientRequest;
 import com.example.medi.saas.dto.SaasPatientResponse;
 import com.example.medi.saas.service.SaasPatient360AssemblerService;
+import com.example.medi.saas.service.SaasPatientSelfResolverService;
 import com.example.medi.saas.service.SaasPatientService;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,10 +19,13 @@ public class SaasPatientController {
 
     private final SaasPatient360AssemblerService patient360AssemblerService;
 
+    private final SaasPatientSelfResolverService patientSelfResolverService;
+
 
     public SaasPatientController(
             SaasPatientService patientService,
-            SaasPatient360AssemblerService patient360AssemblerService
+            SaasPatient360AssemblerService patient360AssemblerService,
+            SaasPatientSelfResolverService patientSelfResolverService
     ) {
 
         this.patientService =
@@ -29,6 +33,9 @@ public class SaasPatientController {
 
         this.patient360AssemblerService =
                 patient360AssemblerService;
+
+        this.patientSelfResolverService =
+                patientSelfResolverService;
     }
 
 
@@ -54,6 +61,42 @@ public class SaasPatientController {
     ) {
 
         return patientService.getPatients(
+                tenantId
+        );
+    }
+
+
+    @GetMapping("/search")
+    public List<SaasPatientResponse> searchPatients(
+            @RequestParam Long tenantId,
+
+            @RequestParam(required = false)
+            String keyword
+    ) {
+
+        return patientService.searchPatients(
+                tenantId,
+                keyword
+        );
+    }
+
+
+    /*
+     * ================================================================
+     * CURRENT PATIENT
+     * ================================================================
+     *
+     * Supports both:
+     * 1. direct active patient identity
+     * 2. duplicate patient identity merged into a canonical patient
+     */
+
+    @GetMapping("/me")
+    public SaasPatientResponse getMyPatient(
+            @RequestParam Long tenantId
+    ) {
+
+        return patientSelfResolverService.getMyPatient(
                 tenantId
         );
     }
@@ -91,21 +134,6 @@ public class SaasPatientController {
     }
 
 
-    @GetMapping("/search")
-    public List<SaasPatientResponse> searchPatients(
-            @RequestParam Long tenantId,
-
-            @RequestParam(required = false)
-            String keyword
-    ) {
-
-        return patientService.searchPatients(
-                tenantId,
-                keyword
-        );
-    }
-
-
     @PutMapping("/{patientId}")
     public SaasPatientResponse updatePatient(
             @PathVariable Long patientId,
@@ -133,17 +161,6 @@ public class SaasPatientController {
         return patientService.deletePatient(
                 tenantId,
                 patientId
-        );
-    }
-
-
-    @GetMapping("/me")
-    public SaasPatientResponse getMyPatient(
-            @RequestParam Long tenantId
-    ) {
-
-        return patientService.getMyPatient(
-                tenantId
         );
     }
 }
