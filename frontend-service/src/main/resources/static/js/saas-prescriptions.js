@@ -872,10 +872,10 @@ async function loadDoctorsDropdown() {
 						document.createElement("option");
 
 					filterOption.value =
-						String(staff.authUserId);
-
-					filterOption.dataset.staffId =
 						String(staff.id);
+
+					filterOption.dataset.authUserId =
+						String(staff.authUserId);
 
 					filterOption.dataset.doctorName =
 						staff.staffName || "";
