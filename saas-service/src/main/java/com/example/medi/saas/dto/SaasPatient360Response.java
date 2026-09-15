@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SaasPatient360Response {
-	
+
     private SaasPatientResponse patient;
 
     private long appointmentCount;
@@ -36,6 +36,14 @@ public class SaasPatient360Response {
     private List<MedicationHistoryItem> medicationHistory;
 
     private List<InvestigationHistoryItem> investigationHistory;
+
+    /*
+     * ============================================================
+     * STRUCTURED ALLERGY HISTORY
+     * ============================================================
+     */
+
+    private List<AllergyHistoryItem> allergyHistory;
 
     /*
      * ============================================================
@@ -219,6 +227,39 @@ public class SaasPatient360Response {
 
     /*
      * ============================================================
+     * ALLERGY HISTORY ITEM
+     * ============================================================
+     */
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AllergyHistoryItem {
+
+        private Long allergyId;
+
+        private String allergen;
+
+        private String allergyType;
+
+        private String reaction;
+
+        private String severity;
+
+        private String status;
+
+        private LocalDate onsetDate;
+
+        private String notes;
+
+        private LocalDateTime createdAt;
+
+        private LocalDateTime updatedAt;
+    }
+
+
+    /*
+     * ============================================================
      * DOCUMENT HISTORY ITEM
      * ============================================================
      */
@@ -283,7 +324,15 @@ public class SaasPatient360Response {
 
         private Long appointmentId;
     }
-    
+
+
+    /*
+     * ============================================================
+     * BACKWARD-COMPATIBLE CONSTRUCTOR
+     * Existing SaasPatientService still creates the base Patient 360.
+     * ============================================================
+     */
+
     public SaasPatient360Response(
             SaasPatientResponse patient,
             long appointmentCount,
@@ -331,6 +380,9 @@ public class SaasPatient360Response {
 
         this.investigationHistory =
                 investigationHistory;
+
+        this.allergyHistory =
+                List.of();
 
         this.documentHistory =
                 List.of();
