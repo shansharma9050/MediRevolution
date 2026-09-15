@@ -649,6 +649,14 @@ async function saveSale() {
 				getValue("patientId")
 			),
 
+		prescriptionId:
+			toPositiveNumberOrNull(
+				getValue(
+					"pharmacyPrescriptionId"
+				)
+			),
+
+
 		discountAmount:
 			toNonNegativeNumber(
 				getValue(

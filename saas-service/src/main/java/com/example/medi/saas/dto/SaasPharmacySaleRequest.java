@@ -12,6 +12,13 @@ public class SaasPharmacySaleRequest {
 
     private Long patientId;
 
+    /*
+     * Optional.
+     *
+     * Null means direct pharmacy sale.
+     */
+    private Long prescriptionId;
+
     private BigDecimal discountAmount;
 
     private BigDecimal taxAmount;

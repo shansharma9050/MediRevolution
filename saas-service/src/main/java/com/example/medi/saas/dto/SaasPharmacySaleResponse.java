@@ -23,6 +23,8 @@ public class SaasPharmacySaleResponse {
 
     private String patientMobile;
 
+    private Long prescriptionId;
+
     private Long invoiceId;
 
     private BigDecimal subtotal;

@@ -1,6 +1,7 @@
 package com.example.medi.saas.repository;
 
 import com.example.medi.saas.entity.SaasPharmacySale;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
@@ -9,22 +10,22 @@ import java.util.Optional;
 
 public interface SaasPharmacySaleRepository extends JpaRepository<SaasPharmacySale, Long> {
 
-    List<SaasPharmacySale> findByTenantIdAndActiveTrueOrderBySaleDateTimeDesc(Long tenantId);
+	List<SaasPharmacySale> findByTenantIdAndActiveTrueOrderBySaleDateTimeDesc(Long tenantId);
 
-    Optional<SaasPharmacySale> findByIdAndTenantIdAndActiveTrue(Long id, Long tenantId);
+	Optional<SaasPharmacySale> findByIdAndTenantIdAndActiveTrue(Long id, Long tenantId);
 
-    List<SaasPharmacySale> findByTenantIdAndPatientIdAndActiveTrueOrderBySaleDateTimeDesc(
-            Long tenantId,
-            Long patientId
-    );
-    
-    long countByTenantIdAndActiveTrue(Long tenantId);
+	List<SaasPharmacySale> findByTenantIdAndPatientIdAndActiveTrueOrderBySaleDateTimeDesc(Long tenantId,
+			Long patientId);
 
-    List<SaasPharmacySale> findByTenantIdAndSaleDateTimeBetweenAndActiveTrueOrderBySaleDateTimeDesc(
-            Long tenantId,
-            LocalDateTime fromDateTime,
-            LocalDateTime toDateTime
-    );
-    
-    void deleteByTenantId(Long tenantId);
+	Optional<SaasPharmacySale> findFirstByTenantIdAndPrescriptionIdAndActiveTrueOrderBySaleDateTimeDesc(Long tenantId,
+			Long prescriptionId);
+
+	boolean existsByTenantIdAndPrescriptionIdAndActiveTrue(Long tenantId, Long prescriptionId);
+
+	long countByTenantIdAndActiveTrue(Long tenantId);
+
+	List<SaasPharmacySale> findByTenantIdAndSaleDateTimeBetweenAndActiveTrueOrderBySaleDateTimeDesc(Long tenantId,
+			LocalDateTime fromDateTime, LocalDateTime toDateTime);
+
+	void deleteByTenantId(Long tenantId);
 }
