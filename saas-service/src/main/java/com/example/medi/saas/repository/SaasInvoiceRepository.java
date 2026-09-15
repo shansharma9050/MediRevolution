@@ -1,40 +1,68 @@
 package com.example.medi.saas.repository;
 
 import com.example.medi.saas.entity.SaasInvoice;
+import com.example.medi.saas.enums.SaasInvoiceType;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface SaasInvoiceRepository extends JpaRepository<SaasInvoice, Long> {
+public interface SaasInvoiceRepository
+        extends JpaRepository<SaasInvoice, Long> {
 
-    List<SaasInvoice> findByTenantIdAndActiveTrueOrderByInvoiceDateTimeDesc(Long tenantId);
+    List<SaasInvoice>
+            findByTenantIdAndActiveTrueOrderByInvoiceDateTimeDesc(
+                    Long tenantId
+            );
 
-    Optional<SaasInvoice> findByIdAndTenantIdAndActiveTrue(Long id, Long tenantId);
+    Optional<SaasInvoice>
+            findByIdAndTenantIdAndActiveTrue(
+                    Long id,
+                    Long tenantId
+            );
 
-    List<SaasInvoice> findByTenantIdAndPatientIdAndActiveTrueOrderByInvoiceDateTimeDesc(
+    List<SaasInvoice>
+            findByTenantIdAndPatientIdAndActiveTrueOrderByInvoiceDateTimeDesc(
+                    Long tenantId,
+                    Long patientId
+            );
+
+    List<SaasInvoice>
+            findByTenantIdAndIpdAdmissionIdAndActiveTrueOrderByInvoiceDateTimeDesc(
+                    Long tenantId,
+                    Long ipdAdmissionId
+            );
+
+    List<SaasInvoice>
+            findByTenantIdAndOpdVisitIdAndActiveTrueOrderByInvoiceDateTimeDesc(
+                    Long tenantId,
+                    Long opdVisitId
+            );
+
+
+    boolean existsByTenantIdAndIpdAdmissionIdAndInvoiceTypeAndActiveTrue(
             Long tenantId,
-            Long patientId
+            Long ipdAdmissionId,
+            SaasInvoiceType invoiceType
     );
 
-    List<SaasInvoice> findByTenantIdAndIpdAdmissionIdAndActiveTrueOrderByInvoiceDateTimeDesc(
-            Long tenantId,
-            Long ipdAdmissionId
+
+    long countByTenantIdAndActiveTrue(
+            Long tenantId
     );
 
-    List<SaasInvoice> findByTenantIdAndOpdVisitIdAndActiveTrueOrderByInvoiceDateTimeDesc(
-            Long tenantId,
-            Long opdVisitId
-    );
-    
-    long countByTenantIdAndActiveTrue(Long tenantId);
 
-    List<SaasInvoice> findByTenantIdAndInvoiceDateTimeBetweenAndActiveTrueOrderByInvoiceDateTimeDesc(
-            Long tenantId,
-            LocalDateTime fromDateTime,
-            LocalDateTime toDateTime
+    List<SaasInvoice>
+            findByTenantIdAndInvoiceDateTimeBetweenAndActiveTrueOrderByInvoiceDateTimeDesc(
+                    Long tenantId,
+                    LocalDateTime fromDateTime,
+                    LocalDateTime toDateTime
+            );
+
+
+    void deleteByTenantId(
+            Long tenantId
     );
-    
-    void deleteByTenantId(Long tenantId);
 }

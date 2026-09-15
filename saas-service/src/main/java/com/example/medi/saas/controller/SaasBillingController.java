@@ -5,6 +5,7 @@ import com.example.medi.saas.dto.SaasInvoiceResponse;
 import com.example.medi.saas.dto.SaasPaymentReceiptResponse;
 import com.example.medi.saas.service.SaasBillingService;
 import com.example.medi.saas.service.SaasInvoicePdfService;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,98 +18,108 @@ import java.util.List;
 @RequestMapping("/saas/billing")
 public class SaasBillingController {
 
-    private final SaasBillingService billingService;
-    private final SaasInvoicePdfService pdfService;
+	private final SaasBillingService billingService;
 
-    public SaasBillingController(
-            SaasBillingService billingService,
-            SaasInvoicePdfService pdfService
-    ) {
-        this.billingService = billingService;
-        this.pdfService = pdfService;
-    }
+	private final SaasInvoicePdfService pdfService;
 
-    @PostMapping("/invoices")
-    public SaasInvoiceResponse createInvoice(@RequestBody SaasInvoiceRequest request) {
-        return billingService.createInvoice(request);
-    }
+	public SaasBillingController(SaasBillingService billingService, SaasInvoicePdfService pdfService) {
 
-    @GetMapping("/invoices")
-    public List<SaasInvoiceResponse> getInvoices(@RequestParam Long tenantId) {
-        return billingService.getInvoices(tenantId);
-    }
+		this.billingService = billingService;
 
-    @GetMapping("/invoices/{invoiceId}")
-    public SaasInvoiceResponse getInvoice(
-            @PathVariable Long invoiceId,
-            @RequestParam Long tenantId
-    ) {
-        return billingService.getInvoice(tenantId, invoiceId);
-    }
+		this.pdfService = pdfService;
+	}
 
-    @GetMapping("/invoices/patient")
-    public List<SaasInvoiceResponse> getPatientInvoices(
-            @RequestParam Long tenantId,
-            @RequestParam Long patientId
-    ) {
-        return billingService.getPatientInvoices(tenantId, patientId);
-    }
+	@PostMapping("/invoices")
+	public SaasInvoiceResponse createInvoice(@RequestBody SaasInvoiceRequest request) {
 
-    @GetMapping("/invoices/ipd")
-    public List<SaasInvoiceResponse> getIpdInvoices(
-            @RequestParam Long tenantId,
-            @RequestParam Long admissionId
-    ) {
-        return billingService.getIpdInvoices(tenantId, admissionId);
-    }
+		return billingService.createInvoice(request);
+	}
 
-    @PostMapping("/invoices/ipd-final")
-    public SaasInvoiceResponse createIpdFinalInvoice(
-            @RequestParam Long tenantId,
-            @RequestParam Long admissionId
-    ) {
-        return billingService.createIpdFinalInvoice(tenantId, admissionId);
-    }
+	@GetMapping("/invoices")
+	public List<SaasInvoiceResponse> getInvoices(@RequestParam Long tenantId) {
 
-    @PutMapping("/invoices/{invoiceId}/payment")
-    public SaasInvoiceResponse updatePayment(
-            @PathVariable Long invoiceId,
-            @RequestParam Long tenantId,
-            @RequestParam String paymentStatus,
-            @RequestParam String paymentMode,
-            @RequestParam(required = false) BigDecimal paidAmount,
-            @RequestParam(required = false) String transactionId
-    ) {
-        return billingService.updatePayment(
-                tenantId,
-                invoiceId,
-                paymentStatus,
-                paymentMode,
-                paidAmount,
-                transactionId
-        );
-    }
+		return billingService.getInvoices(tenantId);
+	}
 
-    @GetMapping("/invoices/{invoiceId}/receipts")
-    public List<SaasPaymentReceiptResponse> getReceipts(
-            @PathVariable Long invoiceId,
-            @RequestParam Long tenantId
-    ) {
-        return billingService.getReceipts(tenantId, invoiceId);
-    }
+	@GetMapping("/invoices/{invoiceId}")
+	public SaasInvoiceResponse getInvoice(@PathVariable Long invoiceId, @RequestParam Long tenantId) {
 
-    @GetMapping("/invoices/{invoiceId}/pdf")
-    public ResponseEntity<byte[]> downloadInvoicePdf(
-            @PathVariable Long invoiceId,
-            @RequestParam Long tenantId
-    ) {
-        byte[] pdf = pdfService.generateInvoicePdf(tenantId, invoiceId);
+		return billingService.getInvoice(tenantId, invoiceId);
+	}
 
-        String filename = "saas-invoice-" + invoiceId + ".pdf";
+	@GetMapping("/invoices/patient")
+	public List<SaasInvoiceResponse> getPatientInvoices(@RequestParam Long tenantId, @RequestParam Long patientId) {
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-                .contentType(MediaType.APPLICATION_PDF)
-                .body(pdf);
-    }
+		return billingService.getPatientInvoices(tenantId, patientId);
+	}
+
+	@GetMapping("/invoices/ipd")
+	public List<SaasInvoiceResponse> getIpdInvoices(@RequestParam Long tenantId, @RequestParam Long admissionId) {
+
+		return billingService.getIpdInvoices(tenantId, admissionId);
+	}
+
+	/*
+	 * ================================================================ FINAL IPD
+	 * BILL ================================================================
+	 */
+
+	@PostMapping("/invoices/ipd-final")
+	public SaasInvoiceResponse createIpdFinalInvoice(@RequestParam Long tenantId, @RequestParam Long admissionId) {
+
+		return billingService.createIpdFinalInvoice(tenantId, admissionId);
+	}
+
+	/*
+	 * ================================================================ PAYMENT
+	 * ================================================================
+	 *
+	 * paidAmount = amount received in this transaction.
+	 *
+	 * paymentStatus retained as optional only for older clients. Backend derives
+	 * actual status.
+	 */
+
+	@PutMapping("/invoices/{invoiceId}/payment")
+	public SaasInvoiceResponse updatePayment(@PathVariable Long invoiceId, @RequestParam Long tenantId,
+			@RequestParam(required = false) String paymentStatus, @RequestParam String paymentMode,
+			@RequestParam BigDecimal paidAmount, @RequestParam(required = false) String transactionId) {
+
+		return billingService.updatePayment(
+
+				tenantId,
+
+				invoiceId,
+
+				paymentStatus,
+
+				paymentMode,
+
+				paidAmount,
+
+				transactionId);
+	}
+
+	@GetMapping("/invoices/{invoiceId}/receipts")
+	public List<SaasPaymentReceiptResponse> getReceipts(@PathVariable Long invoiceId, @RequestParam Long tenantId) {
+
+		return billingService.getReceipts(tenantId, invoiceId);
+	}
+
+	/*
+	 * ================================================================ PDF
+	 * ================================================================
+	 */
+
+	@GetMapping("/invoices/{invoiceId}/pdf")
+	public ResponseEntity<byte[]> downloadInvoicePdf(@PathVariable Long invoiceId, @RequestParam Long tenantId) {
+
+		byte[] pdf = pdfService.generateInvoicePdf(tenantId, invoiceId);
+
+		String filename = "saas-invoice-" + invoiceId + ".pdf";
+
+		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+				.header(HttpHeaders.CACHE_CONTROL, "no-store").header("X-Content-Type-Options", "nosniff")
+				.contentType(MediaType.APPLICATION_PDF).body(pdf);
+	}
 }
