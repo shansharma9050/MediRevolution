@@ -12,11 +12,15 @@ import com.example.medi.saas.enums.SaasStaffRole;
 import com.example.medi.saas.enums.TenantModule;
 import com.example.medi.saas.repository.*;
 import com.example.medi.saas.security.CurrentUserUtil;
+
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class SaasIpdService {
@@ -27,10 +31,11 @@ public class SaasIpdService {
 	private final SaasIpdDailyNoteRepository dailyNoteRepository;
 	private final SaasIpdChargeRepository chargeRepository;
 	private final SaasPatientRepository patientRepository;
+	private final SaasStaffRepository staffRepository;
+
 	private final TenantAccessService tenantAccessService;
 	private final SaasNotificationService notificationService;
 	private final SaasPermissionService permissionService;
-	private final SaasStaffRepository staffRepository;
 
 	public SaasIpdService(SaasWardRepository wardRepository, SaasBedRepository bedRepository,
 			SaasIpdAdmissionRepository admissionRepository, SaasIpdDailyNoteRepository dailyNoteRepository,
@@ -39,100 +44,127 @@ public class SaasIpdService {
 			SaasPermissionService permissionService, SaasStaffRepository staffRepository) {
 
 		this.wardRepository = wardRepository;
+
 		this.bedRepository = bedRepository;
+
 		this.admissionRepository = admissionRepository;
+
 		this.dailyNoteRepository = dailyNoteRepository;
+
 		this.chargeRepository = chargeRepository;
+
 		this.patientRepository = patientRepository;
+
 		this.tenantAccessService = tenantAccessService;
+
 		this.notificationService = notificationService;
+
 		this.permissionService = permissionService;
+
 		this.staffRepository = staffRepository;
 	}
 
+	/*
+	 * ================================================================ WARDS
+	 * ================================================================
+	 */
+
+	@Transactional
 	public SaasWardResponse createWard(SaasWardRequest request) {
 
-		permissionService.requirePermission(request.getTenantId(), TenantModule.IPD, SaasPermissionAction.CREATE);
+		if (request == null) {
 
-		if (request.getTenantId() == null) {
-			throw new RuntimeException("tenantId is required");
+			throw new RuntimeException("Ward request is required.");
 		}
+
+		requirePermission(request.getTenantId(), SaasPermissionAction.CREATE);
 
 		if (request.getWardName() == null || request.getWardName().isBlank()) {
-			throw new RuntimeException("Ward name is required");
-		}
 
-		tenantAccessService.validateTenantAccess(request.getTenantId());
+			throw new RuntimeException("Ward name is required.");
+		}
 
 		String wardName = request.getWardName().trim();
 
 		boolean duplicateWard = wardRepository.findByTenantIdAndActiveTrueOrderByWardNameAsc(request.getTenantId())
-				.stream().anyMatch(existingWard -> existingWard.getWardName() != null
-						&& existingWard.getWardName().trim().equalsIgnoreCase(wardName));
+				.stream().anyMatch(existing -> existing.getWardName() != null
+						&& existing.getWardName().trim().equalsIgnoreCase(wardName));
 
 		if (duplicateWard) {
-			throw new RuntimeException("Ward already exists in this workspace");
+
+			throw new RuntimeException("Ward already exists in this workspace.");
 		}
 
 		SaasWard ward = new SaasWard();
 
 		ward.setTenantId(request.getTenantId());
+
 		ward.setWardName(wardName);
+
 		ward.setWardType(request.getWardType());
-		ward.setDescription(request.getDescription());
+
+		ward.setDescription(trimToNull(request.getDescription()));
+
 		ward.setActive(true);
 
 		return toWardResponse(wardRepository.save(ward));
 	}
 
+	@Transactional(readOnly = true)
 	public List<SaasWardResponse> getWards(Long tenantId) {
 
-		permissionService.requirePermission(tenantId, TenantModule.IPD, SaasPermissionAction.VIEW);
-
-		tenantAccessService.validateTenantAccess(tenantId);
+		requirePermission(tenantId, SaasPermissionAction.VIEW);
 
 		return wardRepository.findByTenantIdAndActiveTrueOrderByWardNameAsc(tenantId).stream().map(this::toWardResponse)
 				.toList();
 	}
 
+	/*
+	 * ================================================================ BEDS
+	 * ================================================================
+	 */
+
+	@Transactional
 	public SaasBedResponse createBed(SaasBedRequest request) {
 
-		permissionService.requirePermission(request.getTenantId(), TenantModule.IPD, SaasPermissionAction.CREATE);
+		if (request == null) {
 
-		if (request.getTenantId() == null) {
-			throw new RuntimeException("tenantId is required");
+			throw new RuntimeException("Bed request is required.");
 		}
 
+		requirePermission(request.getTenantId(), SaasPermissionAction.CREATE);
+
 		if (request.getWardId() == null) {
-			throw new RuntimeException("wardId is required");
+
+			throw new RuntimeException("wardId is required.");
 		}
 
 		if (request.getBedNumber() == null || request.getBedNumber().isBlank()) {
 
-			throw new RuntimeException("Bed number is required");
+			throw new RuntimeException("Bed number is required.");
 		}
 
-		tenantAccessService.validateTenantAccess(request.getTenantId());
+		if (request.getDailyCharge() != null && request.getDailyCharge().signum() < 0) {
 
-		SaasWard ward = wardRepository.findByIdAndTenantIdAndActiveTrue(request.getWardId(), request.getTenantId())
-				.orElseThrow(() -> new RuntimeException("Ward not found"));
+			throw new RuntimeException("Daily bed charge cannot be negative.");
+		}
+
+		SaasWard ward = getWard(request.getTenantId(), request.getWardId());
 
 		String bedNumber = request.getBedNumber().trim();
 
-		boolean duplicateBed = bedRepository.findByTenantIdAndActiveTrueOrderByBedNumberAsc(request.getTenantId())
-				.stream()
-				.anyMatch(existingBed -> existingBed.getWardId() != null && existingBed.getWardId().equals(ward.getId())
-						&& existingBed.getBedNumber() != null
-						&& existingBed.getBedNumber().trim().equalsIgnoreCase(bedNumber));
+		if (bedRepository.existsByTenantIdAndWardIdAndBedNumberIgnoreCase(request.getTenantId(), ward.getId(),
+				bedNumber)) {
 
-		if (duplicateBed) {
-			throw new RuntimeException("Bed number already exists in this ward");
+			throw new RuntimeException("Bed number already exists in this ward.");
 		}
 
 		SaasBed bed = new SaasBed();
 
 		bed.setTenantId(request.getTenantId());
+
 		bed.setWardId(ward.getId());
+
 		bed.setBedNumber(bedNumber);
 
 		bed.setDailyCharge(request.getDailyCharge() == null ? BigDecimal.ZERO : request.getDailyCharge());
@@ -144,60 +176,81 @@ public class SaasIpdService {
 		return toBedResponse(bedRepository.save(bed));
 	}
 
+	@Transactional(readOnly = true)
 	public List<SaasBedResponse> getBeds(Long tenantId) {
 
-		permissionService.requirePermission(tenantId, TenantModule.IPD, SaasPermissionAction.VIEW);
-
-		tenantAccessService.validateTenantAccess(tenantId);
+		requirePermission(tenantId, SaasPermissionAction.VIEW);
 
 		return bedRepository.findByTenantIdAndActiveTrueOrderByBedNumberAsc(tenantId).stream().map(this::toBedResponse)
 				.toList();
 	}
 
+	@Transactional(readOnly = true)
 	public List<SaasBedResponse> getAvailableBeds(Long tenantId) {
 
-		permissionService.requirePermission(tenantId, TenantModule.IPD, SaasPermissionAction.VIEW);
-
-		tenantAccessService.validateTenantAccess(tenantId);
+		requirePermission(tenantId, SaasPermissionAction.VIEW);
 
 		return bedRepository.findByTenantIdAndStatusAndActiveTrueOrderByBedNumberAsc(tenantId, SaasBedStatus.AVAILABLE)
 				.stream().map(this::toBedResponse).toList();
 	}
 
+	/*
+	 * ================================================================ ADMISSION
+	 * ================================================================
+	 */
+
 	@Transactional
 	public SaasIpdAdmissionResponse admitPatient(SaasIpdAdmissionRequest request) {
 
-		permissionService.requirePermission(request.getTenantId(), TenantModule.IPD, SaasPermissionAction.CREATE);
-
 		validateAdmissionRequest(request);
 
-		tenantAccessService.validateTenantAccess(request.getTenantId());
+		requirePermission(request.getTenantId(), SaasPermissionAction.CREATE);
 
 		SaasPatient patient = patientRepository
 				.findByIdAndTenantIdAndActiveTrue(request.getPatientId(), request.getTenantId())
-				.orElseThrow(() -> new RuntimeException("Patient not found"));
+				.orElseThrow(() -> new RuntimeException("Patient not found."));
+
+		/*
+		 * One active IPD admission per patient.
+		 */
+
+		if (admissionRepository.existsByTenantIdAndPatientIdAndStatusAndActiveTrue(request.getTenantId(),
+				patient.getId(), SaasIpdStatus.ADMITTED)) {
+
+			throw new RuntimeException("Patient already has an active IPD admission.");
+		}
 
 		SaasStaff doctor = getActiveDoctorStaff(request.getDoctorProfileId(), request.getTenantId());
 
+		validateDoctorOwnership(doctor);
+
 		if (doctor.getAuthUserId() == null) {
+
 			throw new RuntimeException("Selected doctor's login user is missing.");
 		}
 
-		SaasWard ward = wardRepository.findByIdAndTenantIdAndActiveTrue(request.getWardId(), request.getTenantId())
-				.orElseThrow(() -> new RuntimeException("Ward not found"));
+		SaasWard ward = getWard(request.getTenantId(), request.getWardId());
 
-		SaasBed bed = bedRepository.findByIdAndTenantIdAndActiveTrue(request.getBedId(), request.getTenantId())
-				.orElseThrow(() -> new RuntimeException("Bed not found"));
+		/*
+		 * PESSIMISTIC WRITE LOCK prevents simultaneous allocation.
+		 */
 
-		if (bed.getStatus() != SaasBedStatus.AVAILABLE) {
-			throw new RuntimeException("Selected bed is not available");
+		SaasBed bed = bedRepository.findForUpdate(request.getBedId(), request.getTenantId())
+				.orElseThrow(() -> new RuntimeException("Bed not found."));
+
+		validateBedForWard(bed, ward);
+
+		ensureBedAvailable(bed);
+
+		if (admissionRepository.existsByTenantIdAndBedIdAndStatusAndActiveTrue(request.getTenantId(), bed.getId(),
+				SaasIpdStatus.ADMITTED)) {
+
+			throw new RuntimeException("Selected bed already has an admitted patient.");
 		}
 
-		boolean alreadyOccupied = admissionRepository.existsByTenantIdAndBedIdAndStatusAndActiveTrue(
-				request.getTenantId(), bed.getId(), SaasIpdStatus.ADMITTED);
+		if (request.getAdvanceAmount() != null && request.getAdvanceAmount().signum() < 0) {
 
-		if (alreadyOccupied) {
-			throw new RuntimeException("Selected bed already has admitted patient");
+			throw new RuntimeException("Advance amount cannot be negative.");
 		}
 
 		SaasIpdAdmission admission = new SaasIpdAdmission();
@@ -207,8 +260,7 @@ public class SaasIpdService {
 		admission.setPatientId(patient.getId());
 
 		/*
-		 * Historical field name retained for DB/API compatibility. Value now represents
-		 * SaasStaff.id where staffRole = DOCTOR.
+		 * Historical property name. Value = canonical SaasStaff.id.
 		 */
 		admission.setDoctorProfileId(doctor.getId());
 
@@ -216,9 +268,9 @@ public class SaasIpdService {
 
 		admission.setBedId(bed.getId());
 
-		admission.setReasonForAdmission(request.getReasonForAdmission());
+		admission.setReasonForAdmission(trimToNull(request.getReasonForAdmission()));
 
-		admission.setProvisionalDiagnosis(request.getProvisionalDiagnosis());
+		admission.setProvisionalDiagnosis(trimToNull(request.getProvisionalDiagnosis()));
 
 		admission.setAdvanceAmount(request.getAdvanceAmount() == null ? BigDecimal.ZERO : request.getAdvanceAmount());
 
@@ -230,7 +282,7 @@ public class SaasIpdService {
 
 		admission.setActive(true);
 
-		SaasIpdAdmission saved = admissionRepository.save(admission);
+		SaasIpdAdmission saved = admissionRepository.saveAndFlush(admission);
 
 		saved.setIpdNumber(generateIpdNumber(saved));
 
@@ -242,67 +294,168 @@ public class SaasIpdService {
 
 		bedRepository.save(bed);
 
+		notificationService.createSystemNotification(
+
+				saved.getTenantId(),
+
+				SaasNotificationType.IPD,
+
+				SaasNotificationPriority.MEDIUM,
+
+				"Patient admitted",
+
+				"Patient admitted. IPD No: " + saved.getIpdNumber(),
+
+				saved.getId(),
+
+				"IPD_ADMISSION",
+
+				"/saas/ipd");
+
 		return toAdmissionResponse(saved);
 	}
 
+	/*
+	 * ================================================================ ADMISSION
+	 * LIST / HISTORY
+	 * ================================================================
+	 */
+
+	@Transactional(readOnly = true)
 	public List<SaasIpdAdmissionResponse> getAdmissions(Long tenantId) {
 
-		permissionService.requirePermission(tenantId, TenantModule.IPD, SaasPermissionAction.VIEW);
-
-		tenantAccessService.validateTenantAccess(tenantId);
+		requirePermission(tenantId, SaasPermissionAction.VIEW);
 
 		return admissionRepository.findByTenantIdAndActiveTrueOrderByAdmissionDateTimeDesc(tenantId).stream()
 				.map(this::toAdmissionResponse).toList();
 	}
 
+	@Transactional(readOnly = true)
 	public List<SaasIpdAdmissionResponse> getPatientIpdHistory(Long tenantId, Long patientId) {
 
-		permissionService.requirePermission(tenantId, TenantModule.IPD, SaasPermissionAction.VIEW);
-
-		tenantAccessService.validateTenantAccess(tenantId);
+		requirePermission(tenantId, SaasPermissionAction.VIEW);
 
 		return admissionRepository
 				.findByTenantIdAndPatientIdAndActiveTrueOrderByAdmissionDateTimeDesc(tenantId, patientId).stream()
 				.map(this::toAdmissionResponse).toList();
 	}
 
+	@Transactional(readOnly = true)
 	public SaasIpdAdmissionResponse getAdmission(Long tenantId, Long admissionId) {
 
-		permissionService.requirePermission(tenantId, TenantModule.IPD, SaasPermissionAction.VIEW);
+		requirePermission(tenantId, SaasPermissionAction.VIEW);
 
-		tenantAccessService.validateTenantAccess(tenantId);
-
-		SaasIpdAdmission admission = admissionRepository.findByIdAndTenantIdAndActiveTrue(admissionId, tenantId)
-				.orElseThrow(() -> new RuntimeException("Admission not found"));
-
-		return toAdmissionResponse(admission);
+		return toAdmissionResponse(getAdmissionEntity(tenantId, admissionId));
 	}
+
+	/*
+	 * ================================================================ BED TRANSFER
+	 * ================================================================
+	 */
+
+	@Transactional
+	public SaasIpdAdmissionResponse transferBed(Long admissionId, SaasIpdBedTransferRequest request) {
+
+		if (request == null) {
+
+			throw new RuntimeException("Bed transfer request is required.");
+		}
+
+		requirePermission(request.getTenantId(), SaasPermissionAction.UPDATE);
+
+		if (request.getWardId() == null || request.getBedId() == null) {
+
+			throw new RuntimeException("Target ward and bed are required.");
+		}
+
+		SaasIpdAdmission admission = getActiveAdmission(request.getTenantId(), admissionId);
+
+		SaasStaff doctor = getActiveDoctorStaff(admission.getDoctorProfileId(), request.getTenantId());
+
+		validateDoctorOwnership(doctor);
+
+		if (admission.getBedId().equals(request.getBedId())) {
+
+			throw new RuntimeException("Patient is already assigned to selected bed.");
+		}
+
+		SaasWard targetWard = getWard(request.getTenantId(), request.getWardId());
+
+		SaasBed targetBed = bedRepository.findForUpdate(request.getBedId(), request.getTenantId())
+				.orElseThrow(() -> new RuntimeException("Target bed not found."));
+
+		validateBedForWard(targetBed, targetWard);
+
+		ensureBedAvailable(targetBed);
+
+		if (admissionRepository.existsByTenantIdAndBedIdAndStatusAndActiveTrue(request.getTenantId(), targetBed.getId(),
+				SaasIpdStatus.ADMITTED)) {
+
+			throw new RuntimeException("Target bed is already occupied.");
+		}
+
+		SaasBed currentBed = bedRepository.findForUpdate(admission.getBedId(), request.getTenantId())
+				.orElseThrow(() -> new RuntimeException("Current bed not found."));
+
+		currentBed.setStatus(SaasBedStatus.AVAILABLE);
+
+		currentBed.touch();
+
+		targetBed.setStatus(SaasBedStatus.OCCUPIED);
+
+		targetBed.touch();
+
+		bedRepository.save(currentBed);
+
+		bedRepository.save(targetBed);
+
+		admission.setWardId(targetWard.getId());
+
+		admission.setBedId(targetBed.getId());
+
+		admission.touch();
+
+		return toAdmissionResponse(admissionRepository.save(admission));
+	}
+
+	/*
+	 * ================================================================ DISCHARGE
+	 * ================================================================
+	 */
 
 	@Transactional
 	public SaasIpdAdmissionResponse dischargePatient(Long admissionId, SaasIpdDischargeRequest request) {
 
-		permissionService.requirePermission(request.getTenantId(), TenantModule.IPD, SaasPermissionAction.UPDATE);
+		if (request == null) {
 
-		if (request.getTenantId() == null) {
-			throw new RuntimeException("tenantId is required");
+			throw new RuntimeException("Discharge request is required.");
 		}
 
-		tenantAccessService.validateTenantAccess(request.getTenantId());
+		requirePermission(request.getTenantId(), SaasPermissionAction.UPDATE);
 
-		SaasIpdAdmission admission = admissionRepository
-				.findByIdAndTenantIdAndActiveTrue(admissionId, request.getTenantId())
-				.orElseThrow(() -> new RuntimeException("Admission not found"));
+		SaasIpdAdmission admission = getActiveAdmission(request.getTenantId(), admissionId);
 
-		if (admission.getStatus() != SaasIpdStatus.ADMITTED) {
+		SaasStaff doctor = getActiveDoctorStaff(admission.getDoctorProfileId(), request.getTenantId());
 
-			throw new RuntimeException("Patient is not admitted");
+		validateDoctorOwnership(doctor);
+
+		if (request.getDischargeSummary() == null || request.getDischargeSummary().isBlank()) {
+
+			throw new RuntimeException("Discharge summary is required.");
 		}
 
-		admission.setDischargeDateTime(java.time.LocalDateTime.now());
+		/*
+		 * Lock current bed while releasing it.
+		 */
 
-		admission.setDischargeSummary(request.getDischargeSummary());
+		SaasBed bed = bedRepository.findForUpdate(admission.getBedId(), admission.getTenantId())
+				.orElseThrow(() -> new RuntimeException("Assigned bed not found."));
 
-		admission.setDischargeAdvice(request.getDischargeAdvice());
+		admission.setDischargeDateTime(LocalDateTime.now());
+
+		admission.setDischargeSummary(request.getDischargeSummary().trim());
+
+		admission.setDischargeAdvice(trimToNull(request.getDischargeAdvice()));
 
 		admission.setStatus(SaasIpdStatus.DISCHARGED);
 
@@ -310,64 +463,74 @@ public class SaasIpdService {
 
 		SaasIpdAdmission saved = admissionRepository.save(admission);
 
-		notificationService.createSystemNotification(saved.getTenantId(), SaasNotificationType.IPD,
-				SaasNotificationPriority.MEDIUM, "Patient discharged",
-				"IPD patient discharged. IPD No: " + saved.getIpdNumber(), saved.getId(), "IPD_ADMISSION", "/saas/ipd");
+		bed.setStatus(SaasBedStatus.AVAILABLE);
 
-		bedRepository.findByIdAndTenantIdAndActiveTrue(admission.getBedId(), admission.getTenantId()).ifPresent(bed -> {
+		bed.touch();
 
-			bed.setStatus(SaasBedStatus.AVAILABLE);
+		bedRepository.save(bed);
 
-			bed.touch();
+		notificationService.createSystemNotification(
 
-			bedRepository.save(bed);
-		});
+				saved.getTenantId(),
+
+				SaasNotificationType.IPD,
+
+				SaasNotificationPriority.MEDIUM,
+
+				"Patient discharged",
+
+				"IPD patient discharged. IPD No: " + saved.getIpdNumber(),
+
+				saved.getId(),
+
+				"IPD_ADMISSION",
+
+				"/saas/ipd");
 
 		return toAdmissionResponse(saved);
 	}
 
+	/*
+	 * ================================================================ DAILY
+	 * CLINICAL NOTES
+	 * ================================================================
+	 */
+
 	@Transactional
 	public SaasIpdDailyNoteResponse addDailyNote(SaasIpdDailyNoteRequest request) {
 
-		permissionService.requirePermission(request.getTenantId(), TenantModule.IPD, SaasPermissionAction.UPDATE);
+		if (request == null) {
 
-		if (request.getTenantId() == null) {
-			throw new RuntimeException("tenantId is required");
+			throw new RuntimeException("Daily note request is required.");
 		}
 
+		requirePermission(request.getTenantId(), SaasPermissionAction.UPDATE);
+
 		if (request.getAdmissionId() == null) {
-			throw new RuntimeException("admissionId is required");
+
+			throw new RuntimeException("admissionId is required.");
 		}
 
 		if (request.getDoctorProfileId() == null) {
-			throw new RuntimeException("doctorProfileId is required");
+
+			throw new RuntimeException("doctorProfileId is required.");
 		}
 
 		if (request.getProgressNote() == null || request.getProgressNote().isBlank()) {
 
-			throw new RuntimeException("Progress note is required");
+			throw new RuntimeException("Progress note is required.");
 		}
 
-		tenantAccessService.validateTenantAccess(request.getTenantId());
-
-		SaasIpdAdmission admission = admissionRepository
-				.findByIdAndTenantIdAndActiveTrue(request.getAdmissionId(), request.getTenantId())
-				.orElseThrow(() -> new RuntimeException("Admission not found"));
-
-		if (admission.getStatus() != SaasIpdStatus.ADMITTED) {
-
-			throw new RuntimeException("Daily note can be added only for an admitted patient.");
-		}
+		SaasIpdAdmission admission = getActiveAdmission(request.getTenantId(), request.getAdmissionId());
 
 		SaasStaff doctor = getActiveDoctorStaff(request.getDoctorProfileId(), request.getTenantId());
 
-		/*
-		 * Daily note must remain linked to the doctor assigned to this IPD admission.
-		 */
-		if (admission.getDoctorProfileId() == null || !admission.getDoctorProfileId().equals(doctor.getId())) {
+		if (!doctor.getId().equals(admission.getDoctorProfileId())) {
 
 			throw new RuntimeException("Selected doctor is not assigned to this admission.");
 		}
+
+		validateDoctorOwnership(doctor);
 
 		SaasIpdDailyNote note = new SaasIpdDailyNote();
 
@@ -375,9 +538,6 @@ public class SaasIpdService {
 
 		note.setAdmissionId(admission.getId());
 
-		/*
-		 * Historical property name retained. This stores SaasStaff.id for the doctor.
-		 */
 		note.setDoctorProfileId(doctor.getId());
 
 		note.setProgressNote(request.getProgressNote().trim());
@@ -402,65 +562,73 @@ public class SaasIpdService {
 
 		note.setCreatedByAuthUserId(CurrentUserUtil.getUserId());
 
-		SaasIpdDailyNote saved = dailyNoteRepository.save(note);
-
-		return toDailyNoteResponse(saved);
+		return toDailyNoteResponse(dailyNoteRepository.save(note));
 	}
 
+	@Transactional(readOnly = true)
 	public List<SaasIpdDailyNoteResponse> getDailyNotes(Long tenantId, Long admissionId) {
 
-		permissionService.requirePermission(tenantId, TenantModule.IPD, SaasPermissionAction.VIEW);
+		requirePermission(tenantId, SaasPermissionAction.VIEW);
 
-		tenantAccessService.validateTenantAccess(tenantId);
-
-		admissionRepository.findByIdAndTenantIdAndActiveTrue(admissionId, tenantId)
-				.orElseThrow(() -> new RuntimeException("Admission not found"));
+		getAdmissionEntity(tenantId, admissionId);
 
 		return dailyNoteRepository.findByTenantIdAndAdmissionIdOrderByNoteDateTimeDesc(tenantId, admissionId).stream()
 				.map(this::toDailyNoteResponse).toList();
 	}
 
+	/*
+	 * ================================================================ IPD CHARGES
+	 * ================================================================
+	 */
+
 	@Transactional
 	public SaasIpdChargeResponse addCharge(SaasIpdChargeRequest request) {
 
-		permissionService.requirePermission(request.getTenantId(), TenantModule.IPD, SaasPermissionAction.UPDATE);
+		if (request == null) {
 
-		if (request.getTenantId() == null) {
-			throw new RuntimeException("tenantId is required");
+			throw new RuntimeException("IPD charge request is required.");
 		}
 
+		requirePermission(request.getTenantId(), SaasPermissionAction.UPDATE);
+
 		if (request.getAdmissionId() == null) {
-			throw new RuntimeException("admissionId is required");
+
+			throw new RuntimeException("admissionId is required.");
 		}
 
 		if (request.getChargeType() == null || request.getChargeType().isBlank()) {
 
-			throw new RuntimeException("chargeType is required");
+			throw new RuntimeException("chargeType is required.");
 		}
 
 		if (request.getDescription() == null || request.getDescription().isBlank()) {
 
-			throw new RuntimeException("description is required");
+			throw new RuntimeException("description is required.");
 		}
 
-		tenantAccessService.validateTenantAccess(request.getTenantId());
+		/*
+		 * Prevent financial mutation after discharge.
+		 */
 
-		SaasIpdAdmission admission = admissionRepository
-				.findByIdAndTenantIdAndActiveTrue(request.getAdmissionId(), request.getTenantId())
-				.orElseThrow(() -> new RuntimeException("Admission not found"));
+		SaasIpdAdmission admission = getActiveAdmission(request.getTenantId(), request.getAdmissionId());
 
 		SaasIpdChargeType chargeType;
 
 		try {
 
-			chargeType = SaasIpdChargeType.valueOf(request.getChargeType().trim().toUpperCase());
+			chargeType = SaasIpdChargeType.valueOf(request.getChargeType().trim().toUpperCase(Locale.ROOT));
 
-		} catch (IllegalArgumentException ex) {
+		} catch (IllegalArgumentException exception) {
 
-			throw new RuntimeException("Invalid IPD charge type");
+			throw new RuntimeException("Invalid IPD charge type.");
 		}
 
 		BigDecimal amount = request.getAmount() == null ? BigDecimal.ZERO : request.getAmount();
+
+		if (amount.signum() < 0) {
+
+			throw new RuntimeException("Charge amount cannot be negative.");
+		}
 
 		SaasIpdCharge charge = new SaasIpdCharge();
 
@@ -476,49 +644,69 @@ public class SaasIpdService {
 
 		charge.setCreatedByAuthUserId(CurrentUserUtil.getUserId());
 
-		SaasIpdCharge savedCharge = chargeRepository.save(charge);
+		SaasIpdCharge saved = chargeRepository.save(charge);
 
-		admission.setTotalCharges(
-				admission.getTotalCharges() == null ? amount : admission.getTotalCharges().add(amount));
+		BigDecimal existingTotal = admission.getTotalCharges() == null ? BigDecimal.ZERO : admission.getTotalCharges();
+
+		admission.setTotalCharges(existingTotal.add(amount));
 
 		admission.touch();
 
 		admissionRepository.save(admission);
 
-		return toChargeResponse(savedCharge);
+		return toChargeResponse(saved);
 	}
 
+	@Transactional(readOnly = true)
 	public List<SaasIpdChargeResponse> getCharges(Long tenantId, Long admissionId) {
 
-		permissionService.requirePermission(tenantId, TenantModule.IPD, SaasPermissionAction.VIEW);
+		requirePermission(tenantId, SaasPermissionAction.VIEW);
 
-		tenantAccessService.validateTenantAccess(tenantId);
+		getAdmissionEntity(tenantId, admissionId);
 
 		return chargeRepository.findByTenantIdAndAdmissionIdOrderByChargeDateTimeDesc(tenantId, admissionId).stream()
 				.map(this::toChargeResponse).toList();
 	}
 
-	private void validateAdmissionRequest(SaasIpdAdmissionRequest request) {
+	/*
+	 * ================================================================ ACCESS /
+	 * VALIDATION ================================================================
+	 */
 
-		if (request.getTenantId() == null) {
-			throw new RuntimeException("tenantId is required");
+	private void requirePermission(Long tenantId, SaasPermissionAction action) {
+
+		if (tenantId == null) {
+
+			throw new RuntimeException("tenantId is required.");
 		}
 
-		if (request.getPatientId() == null) {
-			throw new RuntimeException("patientId is required");
+		tenantAccessService.validateTenantAccess(tenantId);
+
+		permissionService.requirePermission(tenantId, TenantModule.IPD, action);
+	}
+
+	private SaasIpdAdmission getAdmissionEntity(Long tenantId, Long admissionId) {
+
+		return admissionRepository.findByIdAndTenantIdAndActiveTrue(admissionId, tenantId)
+				.orElseThrow(() -> new RuntimeException("Admission not found."));
+	}
+
+	private SaasIpdAdmission getActiveAdmission(Long tenantId, Long admissionId) {
+
+		SaasIpdAdmission admission = getAdmissionEntity(tenantId, admissionId);
+
+		if (admission.getStatus() != SaasIpdStatus.ADMITTED) {
+
+			throw new RuntimeException("Operation is allowed only for an admitted patient.");
 		}
 
-		if (request.getDoctorProfileId() == null) {
-			throw new RuntimeException("doctorProfileId is required");
-		}
+		return admission;
+	}
 
-		if (request.getWardId() == null) {
-			throw new RuntimeException("wardId is required");
-		}
+	private SaasWard getWard(Long tenantId, Long wardId) {
 
-		if (request.getBedId() == null) {
-			throw new RuntimeException("bedId is required");
-		}
+		return wardRepository.findByIdAndTenantIdAndActiveTrue(wardId, tenantId)
+				.orElseThrow(() -> new RuntimeException("Ward not found."));
 	}
 
 	private SaasStaff getActiveDoctorStaff(Long doctorStaffId, Long tenantId) {
@@ -534,6 +722,95 @@ public class SaasIpdService {
 		return doctor;
 	}
 
+	private void validateDoctorOwnership(SaasStaff doctor) {
+
+		String role = normalizeRole(CurrentUserUtil.getRole());
+
+		if ("DOCTOR".equals(role)) {
+
+			Long currentAuthUserId = CurrentUserUtil.getUserId();
+
+			if (currentAuthUserId == null || !currentAuthUserId.equals(doctor.getAuthUserId())) {
+
+				throw new AccessDeniedException("Doctor can manage only their own IPD patients.");
+			}
+		}
+
+		if ("PATIENT".equals(role)) {
+
+			throw new AccessDeniedException("Patient cannot manage IPD clinical records.");
+		}
+	}
+
+	private void validateAdmissionRequest(SaasIpdAdmissionRequest request) {
+
+		if (request == null) {
+
+			throw new RuntimeException("Admission request is required.");
+		}
+
+		if (request.getTenantId() == null) {
+
+			throw new RuntimeException("tenantId is required.");
+		}
+
+		if (request.getPatientId() == null) {
+
+			throw new RuntimeException("patientId is required.");
+		}
+
+		if (request.getDoctorProfileId() == null) {
+
+			throw new RuntimeException("doctorProfileId is required.");
+		}
+
+		if (request.getWardId() == null) {
+
+			throw new RuntimeException("wardId is required.");
+		}
+
+		if (request.getBedId() == null) {
+
+			throw new RuntimeException("bedId is required.");
+		}
+	}
+
+	private void validateBedForWard(SaasBed bed, SaasWard ward) {
+
+		if (bed.getWardId() == null || !bed.getWardId().equals(ward.getId())) {
+
+			throw new RuntimeException("Selected bed does not belong to selected ward.");
+		}
+	}
+
+	private void ensureBedAvailable(SaasBed bed) {
+
+		if (bed.getStatus() != SaasBedStatus.AVAILABLE) {
+
+			if (bed.getStatus() == SaasBedStatus.MAINTENANCE) {
+
+				throw new RuntimeException("Selected bed is under maintenance.");
+			}
+
+			throw new RuntimeException("Selected bed is not available.");
+		}
+	}
+
+	private String normalizeRole(String role) {
+
+		if (role == null) {
+
+			return "";
+		}
+
+		return role.trim().toUpperCase(Locale.ROOT).replaceFirst("^ROLE_", "");
+	}
+
+	/*
+	 * ================================================================ RESPONSE
+	 * MAPPING ================================================================
+	 */
+
 	private String generateIpdNumber(SaasIpdAdmission admission) {
 
 		return "IPD-" + admission.getTenantId() + "-" + String.format("%05d", admission.getId());
@@ -541,8 +818,19 @@ public class SaasIpdService {
 
 	private SaasWardResponse toWardResponse(SaasWard ward) {
 
-		return new SaasWardResponse(ward.getId(), ward.getTenantId(), ward.getWardName(), ward.getWardType(),
-				ward.getDescription(), ward.getActive());
+		return new SaasWardResponse(
+
+				ward.getId(),
+
+				ward.getTenantId(),
+
+				ward.getWardName(),
+
+				ward.getWardType(),
+
+				ward.getDescription(),
+
+				ward.getActive());
 	}
 
 	private SaasBedResponse toBedResponse(SaasBed bed) {
@@ -550,9 +838,23 @@ public class SaasIpdService {
 		SaasWard ward = wardRepository.findByIdAndTenantIdAndActiveTrue(bed.getWardId(), bed.getTenantId())
 				.orElse(null);
 
-		return new SaasBedResponse(bed.getId(), bed.getTenantId(), bed.getWardId(),
-				ward == null ? null : ward.getWardName(), bed.getBedNumber(), bed.getDailyCharge(),
-				bed.getStatus().name(), bed.getActive());
+		return new SaasBedResponse(
+
+				bed.getId(),
+
+				bed.getTenantId(),
+
+				bed.getWardId(),
+
+				ward == null ? null : ward.getWardName(),
+
+				bed.getBedNumber(),
+
+				bed.getDailyCharge(),
+
+				bed.getStatus().name(),
+
+				bed.getActive());
 	}
 
 	private SaasIpdAdmissionResponse toAdmissionResponse(SaasIpdAdmission admission) {
@@ -568,26 +870,93 @@ public class SaasIpdService {
 		SaasBed bed = bedRepository.findByIdAndTenantIdAndActiveTrue(admission.getBedId(), admission.getTenantId())
 				.orElse(null);
 
-		return new SaasIpdAdmissionResponse(admission.getId(), admission.getTenantId(), admission.getIpdNumber(),
-				admission.getPatientId(), patient == null ? null : patient.getPatientName(),
-				patient == null ? null : patient.getMobile(), admission.getDoctorProfileId(),
-				doctor == null ? null : doctor.getStaffName(), doctor == null ? null : doctor.getDepartment(),
-				admission.getWardId(), ward == null ? null : ward.getWardName(), admission.getBedId(),
-				bed == null ? null : bed.getBedNumber(), admission.getAdmissionDateTime(),
-				admission.getDischargeDateTime(), admission.getReasonForAdmission(),
-				admission.getProvisionalDiagnosis(), admission.getDischargeSummary(), admission.getDischargeAdvice(),
-				admission.getAdvanceAmount(), admission.getTotalCharges(), admission.getStatus().name(),
-				admission.getActive(), admission.getCreatedAt());
+		return new SaasIpdAdmissionResponse(
+
+				admission.getId(),
+
+				admission.getTenantId(),
+
+				admission.getIpdNumber(),
+
+				admission.getPatientId(),
+
+				patient == null ? null : patient.getPatientName(),
+
+				patient == null ? null : patient.getMobile(),
+
+				admission.getDoctorProfileId(),
+
+				doctor == null ? null : doctor.getStaffName(),
+
+				doctor == null ? null : doctor.getDepartment(),
+
+				admission.getWardId(),
+
+				ward == null ? null : ward.getWardName(),
+
+				admission.getBedId(),
+
+				bed == null ? null : bed.getBedNumber(),
+
+				admission.getAdmissionDateTime(),
+
+				admission.getDischargeDateTime(),
+
+				admission.getReasonForAdmission(),
+
+				admission.getProvisionalDiagnosis(),
+
+				admission.getDischargeSummary(),
+
+				admission.getDischargeAdvice(),
+
+				admission.getAdvanceAmount(),
+
+				admission.getTotalCharges(),
+
+				admission.getStatus().name(),
+
+				admission.getActive(),
+
+				admission.getCreatedAt());
 	}
 
 	private SaasIpdDailyNoteResponse toDailyNoteResponse(SaasIpdDailyNote note) {
 
 		SaasStaff doctor = findDoctorStaff(note.getDoctorProfileId(), note.getTenantId());
 
-		return new SaasIpdDailyNoteResponse(note.getId(), note.getTenantId(), note.getAdmissionId(),
-				note.getDoctorProfileId(), doctor == null ? null : doctor.getStaffName(), note.getNoteDateTime(),
-				note.getProgressNote(), note.getTreatmentPlan(), note.getVitals(), note.getBloodPressure(),
-				note.getPulse(), note.getTemperature(), note.getSpo2(), note.getWeight(), note.getHeight(),
+		return new SaasIpdDailyNoteResponse(
+
+				note.getId(),
+
+				note.getTenantId(),
+
+				note.getAdmissionId(),
+
+				note.getDoctorProfileId(),
+
+				doctor == null ? null : doctor.getStaffName(),
+
+				note.getNoteDateTime(),
+
+				note.getProgressNote(),
+
+				note.getTreatmentPlan(),
+
+				note.getVitals(),
+
+				note.getBloodPressure(),
+
+				note.getPulse(),
+
+				note.getTemperature(),
+
+				note.getSpo2(),
+
+				note.getWeight(),
+
+				note.getHeight(),
+
 				note.getSugarLevel());
 	}
 
@@ -604,13 +973,27 @@ public class SaasIpdService {
 
 	private SaasIpdChargeResponse toChargeResponse(SaasIpdCharge charge) {
 
-		return new SaasIpdChargeResponse(charge.getId(), charge.getTenantId(), charge.getAdmissionId(),
-				charge.getChargeType().name(), charge.getDescription(), charge.getAmount(), charge.getChargeDateTime());
+		return new SaasIpdChargeResponse(
+
+				charge.getId(),
+
+				charge.getTenantId(),
+
+				charge.getAdmissionId(),
+
+				charge.getChargeType().name(),
+
+				charge.getDescription(),
+
+				charge.getAmount(),
+
+				charge.getChargeDateTime());
 	}
 
 	private String trimToNull(String value) {
 
 		if (value == null) {
+
 			return null;
 		}
 

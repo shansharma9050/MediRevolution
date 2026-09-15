@@ -2,6 +2,7 @@ package com.example.medi.saas.controller;
 
 import com.example.medi.saas.dto.*;
 import com.example.medi.saas.service.SaasIpdService;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -10,94 +11,138 @@ import java.util.List;
 @RequestMapping("/saas/ipd")
 public class SaasIpdController {
 
-    private final SaasIpdService ipdService;
+	private final SaasIpdService ipdService;
 
-    public SaasIpdController(SaasIpdService ipdService) {
-        this.ipdService = ipdService;
-    }
+	public SaasIpdController(SaasIpdService ipdService) {
 
-    @PostMapping("/wards")
-    public SaasWardResponse createWard(@RequestBody SaasWardRequest request) {
-        return ipdService.createWard(request);
-    }
+		this.ipdService = ipdService;
+	}
 
-    @GetMapping("/wards")
-    public List<SaasWardResponse> getWards(@RequestParam Long tenantId) {
-        return ipdService.getWards(tenantId);
-    }
+	/*
+	 * ================================================================ WARDS
+	 * ================================================================
+	 */
 
-    @PostMapping("/beds")
-    public SaasBedResponse createBed(@RequestBody SaasBedRequest request) {
-        return ipdService.createBed(request);
-    }
+	@PostMapping("/wards")
+	public SaasWardResponse createWard(@RequestBody SaasWardRequest request) {
 
-    @GetMapping("/beds")
-    public List<SaasBedResponse> getBeds(@RequestParam Long tenantId) {
-        return ipdService.getBeds(tenantId);
-    }
+		return ipdService.createWard(request);
+	}
 
-    @GetMapping("/beds/available")
-    public List<SaasBedResponse> getAvailableBeds(@RequestParam Long tenantId) {
-        return ipdService.getAvailableBeds(tenantId);
-    }
+	@GetMapping("/wards")
+	public List<SaasWardResponse> getWards(@RequestParam Long tenantId) {
 
-    @PostMapping("/admissions")
-    public SaasIpdAdmissionResponse admitPatient(@RequestBody SaasIpdAdmissionRequest request) {
-        return ipdService.admitPatient(request);
-    }
+		return ipdService.getWards(tenantId);
+	}
 
-    @GetMapping("/admissions")
-    public List<SaasIpdAdmissionResponse> getAdmissions(@RequestParam Long tenantId) {
-        return ipdService.getAdmissions(tenantId);
-    }
+	/*
+	 * ================================================================ BEDS
+	 * ================================================================
+	 */
 
-    @GetMapping("/admissions/{admissionId}")
-    public SaasIpdAdmissionResponse getAdmission(
-            @PathVariable Long admissionId,
-            @RequestParam Long tenantId
-    ) {
-        return ipdService.getAdmission(tenantId, admissionId);
-    }
+	@PostMapping("/beds")
+	public SaasBedResponse createBed(@RequestBody SaasBedRequest request) {
 
-    @GetMapping("/admissions/patient")
-    public List<SaasIpdAdmissionResponse> getPatientIpdHistory(
-            @RequestParam Long tenantId,
-            @RequestParam Long patientId
-    ) {
-        return ipdService.getPatientIpdHistory(tenantId, patientId);
-    }
+		return ipdService.createBed(request);
+	}
 
-    @PutMapping("/admissions/{admissionId}/discharge")
-    public SaasIpdAdmissionResponse dischargePatient(
-            @PathVariable Long admissionId,
-            @RequestBody SaasIpdDischargeRequest request
-    ) {
-        return ipdService.dischargePatient(admissionId, request);
-    }
+	@GetMapping("/beds")
+	public List<SaasBedResponse> getBeds(@RequestParam Long tenantId) {
 
-    @PostMapping("/daily-notes")
-    public SaasIpdDailyNoteResponse addDailyNote(@RequestBody SaasIpdDailyNoteRequest request) {
-        return ipdService.addDailyNote(request);
-    }
+		return ipdService.getBeds(tenantId);
+	}
 
-    @GetMapping("/daily-notes")
-    public List<SaasIpdDailyNoteResponse> getDailyNotes(
-            @RequestParam Long tenantId,
-            @RequestParam Long admissionId
-    ) {
-        return ipdService.getDailyNotes(tenantId, admissionId);
-    }
+	@GetMapping("/beds/available")
+	public List<SaasBedResponse> getAvailableBeds(@RequestParam Long tenantId) {
 
-    @PostMapping("/charges")
-    public SaasIpdChargeResponse addCharge(@RequestBody SaasIpdChargeRequest request) {
-        return ipdService.addCharge(request);
-    }
+		return ipdService.getAvailableBeds(tenantId);
+	}
 
-    @GetMapping("/charges")
-    public List<SaasIpdChargeResponse> getCharges(
-            @RequestParam Long tenantId,
-            @RequestParam Long admissionId
-    ) {
-        return ipdService.getCharges(tenantId, admissionId);
-    }
+	/*
+	 * ================================================================ ADMISSIONS
+	 * ================================================================
+	 */
+
+	@PostMapping("/admissions")
+	public SaasIpdAdmissionResponse admitPatient(@RequestBody SaasIpdAdmissionRequest request) {
+
+		return ipdService.admitPatient(request);
+	}
+
+	@GetMapping("/admissions")
+	public List<SaasIpdAdmissionResponse> getAdmissions(@RequestParam Long tenantId) {
+
+		return ipdService.getAdmissions(tenantId);
+	}
+
+	@GetMapping("/admissions/{admissionId}")
+	public SaasIpdAdmissionResponse getAdmission(@PathVariable Long admissionId, @RequestParam Long tenantId) {
+
+		return ipdService.getAdmission(tenantId, admissionId);
+	}
+
+	@GetMapping("/admissions/patient")
+	public List<SaasIpdAdmissionResponse> getPatientIpdHistory(@RequestParam Long tenantId,
+			@RequestParam Long patientId) {
+
+		return ipdService.getPatientIpdHistory(tenantId, patientId);
+	}
+
+	/*
+	 * ================================================================ BED TRANSFER
+	 * ================================================================
+	 */
+
+	@PutMapping("/admissions/{admissionId}/bed")
+	public SaasIpdAdmissionResponse transferBed(@PathVariable Long admissionId,
+			@RequestBody SaasIpdBedTransferRequest request) {
+
+		return ipdService.transferBed(admissionId, request);
+	}
+
+	/*
+	 * ================================================================ DISCHARGE
+	 * ================================================================
+	 */
+
+	@PutMapping("/admissions/{admissionId}/discharge")
+	public SaasIpdAdmissionResponse dischargePatient(@PathVariable Long admissionId,
+			@RequestBody SaasIpdDischargeRequest request) {
+
+		return ipdService.dischargePatient(admissionId, request);
+	}
+
+	/*
+	 * ================================================================ DAILY NOTES
+	 * ================================================================
+	 */
+
+	@PostMapping("/daily-notes")
+	public SaasIpdDailyNoteResponse addDailyNote(@RequestBody SaasIpdDailyNoteRequest request) {
+
+		return ipdService.addDailyNote(request);
+	}
+
+	@GetMapping("/daily-notes")
+	public List<SaasIpdDailyNoteResponse> getDailyNotes(@RequestParam Long tenantId, @RequestParam Long admissionId) {
+
+		return ipdService.getDailyNotes(tenantId, admissionId);
+	}
+
+	/*
+	 * ================================================================ CHARGES
+	 * ================================================================
+	 */
+
+	@PostMapping("/charges")
+	public SaasIpdChargeResponse addCharge(@RequestBody SaasIpdChargeRequest request) {
+
+		return ipdService.addCharge(request);
+	}
+
+	@GetMapping("/charges")
+	public List<SaasIpdChargeResponse> getCharges(@RequestParam Long tenantId, @RequestParam Long admissionId) {
+
+		return ipdService.getCharges(tenantId, admissionId);
+	}
 }
