@@ -13,7 +13,6 @@ import com.example.medi.saas.enums.TenantMemberRole;
 import com.example.medi.saas.enums.TenantModule;
 import com.example.medi.saas.repository.SaasAppointmentRepository;
 import com.example.medi.saas.repository.SaasDoctorAvailabilityRepository;
-import com.example.medi.saas.repository.SaasPatientRepository;
 import com.example.medi.saas.repository.TenantMemberRepository;
 import com.example.medi.saas.security.CurrentUserUtil;
 
@@ -27,39 +26,54 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 @Service
 public class SaasDoctorAvailabilityService {
 
 	private final SaasDoctorAvailabilityRepository availabilityRepository;
+
 	private final SaasAppointmentRepository appointmentRepository;
+
 	private final TenantMemberRepository tenantMemberRepository;
+
 	private final TenantAccessService tenantAccessService;
+
 	private final SaasPermissionService permissionService;
+
 	private final CurrentUserUtil currentUserService;
-	private final SaasPatientRepository patientRepository;
+
+	private final SaasPatientSelfResolverService patientSelfResolverService;
 
 	public SaasDoctorAvailabilityService(SaasDoctorAvailabilityRepository availabilityRepository,
 			SaasAppointmentRepository appointmentRepository, TenantMemberRepository tenantMemberRepository,
 			TenantAccessService tenantAccessService, SaasPermissionService permissionService,
-			CurrentUserUtil currentUserService, SaasPatientRepository patientRepository) {
+			CurrentUserUtil currentUserService, SaasPatientSelfResolverService patientSelfResolverService) {
+
 		this.availabilityRepository = availabilityRepository;
+
 		this.appointmentRepository = appointmentRepository;
+
 		this.tenantMemberRepository = tenantMemberRepository;
+
 		this.tenantAccessService = tenantAccessService;
+
 		this.permissionService = permissionService;
+
 		this.currentUserService = currentUserService;
-		this.patientRepository = patientRepository;
+
+		this.patientSelfResolverService = patientSelfResolverService;
 	}
 
 	/*
-	 * ========================================================= CREATE AVAILABILITY
-	 * =========================================================
+	 * ================================================================ CREATE
+	 * AVAILABILITY ================================================================
 	 */
 
 	@Transactional
 	public SaasDoctorAvailabilityResponse createAvailability(SaasDoctorAvailabilityRequest request) {
+
 		validateRequest(request);
 
 		tenantAccessService.validateTenantAccess(request.getTenantId());
@@ -72,9 +86,11 @@ public class SaasDoctorAvailabilityService {
 		boolean duplicateExists = availabilityRepository
 				.existsByTenantIdAndDoctorAuthUserIdAndAvailableDateAndStartTimeAndEndTimeAndStatus(
 						request.getTenantId(), request.getDoctorAuthUserId(), request.getAvailableDate(),
-						request.getStartTime(), request.getEndTime(), SaasAvailabilityStatus.ACTIVE);
+						normalizeTime(request.getStartTime()), normalizeTime(request.getEndTime()),
+						SaasAvailabilityStatus.ACTIVE);
 
 		if (duplicateExists) {
+
 			throw new RuntimeException("Availability already exists for this doctor, date and time.");
 		}
 
@@ -93,6 +109,7 @@ public class SaasDoctorAvailabilityService {
 			availability.setDoctorName(request.getDoctorName().trim());
 
 		} else {
+
 			availability.setDoctorName(doctorMember.getName());
 		}
 
@@ -114,12 +131,14 @@ public class SaasDoctorAvailabilityService {
 	}
 
 	/*
-	 * ========================================================= GET AVAILABILITY
-	 * RECORDS =========================================================
+	 * ================================================================ GET
+	 * AVAILABILITY RECORDS
+	 * ================================================================
 	 */
 
 	@Transactional(readOnly = true)
 	public List<SaasDoctorAvailabilityResponse> getAvailability(Long tenantId, Long doctorAuthUserId, LocalDate date) {
+
 		validateTenantId(tenantId);
 
 		tenantAccessService.validateTenantAccess(tenantId);
@@ -146,6 +165,7 @@ public class SaasDoctorAvailabilityService {
 					tenantId, date, SaasAvailabilityStatus.ACTIVE);
 
 		} else {
+
 			throw new RuntimeException("Please provide doctorAuthUserId or date.");
 		}
 
@@ -153,87 +173,89 @@ public class SaasDoctorAvailabilityService {
 	}
 
 	/*
-	 * ========================================================= PUBLIC SLOT API
-	 * =========================================================
+	 * ================================================================ SLOT API
+	 * ================================================================
 	 */
 
 	@Transactional(readOnly = true)
 	public List<SaasDoctorSlotResponse> getAvailableSlots(Long tenantId, Long doctorAuthUserId, LocalDate date) {
+
 		validateTenantId(tenantId);
 
 		if (doctorAuthUserId == null) {
+
 			throw new RuntimeException("Doctor is required.");
 		}
 
 		if (date == null) {
+
 			throw new RuntimeException("Date is required.");
+		}
+
+		if (date.isBefore(LocalDate.now())) {
+
+			return List.of();
 		}
 
 		Long currentAuthUserId = CurrentUserUtil.getUserId();
 
 		if (currentAuthUserId == null) {
+
 			throw new RuntimeException("Logged-in user ID not found.");
 		}
 
 		String role = normalizeRole(CurrentUserUtil.getRole());
 
 		/*
-		 * ========================================================= PATIENT ACCESS
-		 * =========================================================
+		 * PATIENT is not required to be a TenantMember.
 		 *
-		 * Patient tenant member nahi hota.
-		 *
-		 * Patient ka workspace relation saas_patients.tenant_id + auth_user_id se
-		 * verify hoga.
+		 * Canonical Patient 360 resolution also allows a merged duplicate login to
+		 * continue using appointment booking.
 		 */
+
 		if ("PATIENT".equals(role)) {
 
-			validatePatientWorkspaceAccess(tenantId, currentAuthUserId);
+			patientSelfResolverService.resolvePatientEntity(tenantId);
 
 		} else {
 
-			/*
-			 * ===================================================== NORMAL SaaS USER ACCESS
-			 * =====================================================
-			 */
 			tenantAccessService.validateTenantAccess(tenantId);
 
 			permissionService.requirePermission(tenantId, TenantModule.DOCTOR_AVAILABILITY, SaasPermissionAction.VIEW);
 		}
 
-		/*
-		 * Doctor selected workspace ka hi hona chahiye.
-		 *
-		 * Internal method bhi ye validation karta hai.
-		 */
 		validateDoctorBelongsToTenant(tenantId, doctorAuthUserId);
 
 		return getAvailableSlotsInternal(tenantId, doctorAuthUserId, date);
 	}
 
 	/*
-	 * ========================================================= INTERNAL SLOT
-	 * GENERATION Appointment service bhi isi method ko use karegi.
-	 * =========================================================
+	 * ================================================================ INTERNAL
+	 * SLOT GENERATION
+	 * ================================================================
 	 */
 
 	@Transactional(readOnly = true)
 	public List<SaasDoctorSlotResponse> getAvailableSlotsInternal(Long tenantId, Long doctorAuthUserId,
 			LocalDate date) {
+
 		validateTenantId(tenantId);
 
 		if (doctorAuthUserId == null) {
+
 			throw new RuntimeException("Doctor is required.");
 		}
 
 		if (date == null) {
+
 			throw new RuntimeException("Date is required.");
 		}
 
-		/*
-		 * Internal method me permission check nahi hai, lekin doctor tenant ka active
-		 * member hona chahiye.
-		 */
+		if (date.isBefore(LocalDate.now())) {
+
+			return List.of();
+		}
+
 		validateDoctorBelongsToTenant(tenantId, doctorAuthUserId);
 
 		List<SaasDoctorAvailability> availabilityList = availabilityRepository
@@ -241,6 +263,19 @@ public class SaasDoctorAvailabilityService {
 						doctorAuthUserId, date, SaasAvailabilityStatus.ACTIVE);
 
 		List<SaasDoctorSlotResponse> generatedSlots = generateSlotsFromAvailability(availabilityList);
+
+		/*
+		 * Today's slots that have already started should not be shown as bookable
+		 * options.
+		 */
+
+		if (LocalDate.now().equals(date)) {
+
+			LocalTime now = normalizeTime(LocalTime.now());
+
+			generatedSlots
+					.removeIf(slot -> slot.getStartTime() == null || !normalizeTime(slot.getStartTime()).isAfter(now));
+		}
 
 		Set<String> bookedSlotKeys = getBookedSlotKeys(tenantId, doctorAuthUserId, date);
 
@@ -251,6 +286,7 @@ public class SaasDoctorAvailabilityService {
 			boolean booked = bookedSlotKeys.contains(slotKey);
 
 			slot.setBooked(booked);
+
 			slot.setAvailable(!booked);
 		}
 
@@ -258,12 +294,14 @@ public class SaasDoctorAvailabilityService {
 	}
 
 	/*
-	 * ========================================================= INTERNAL SLOT
-	 * VALIDATION =========================================================
+	 * ================================================================ INTERNAL
+	 * SLOT VALIDATION
+	 * ================================================================
 	 */
 
 	@Transactional(readOnly = true)
 	public boolean isSlotAvailableInternal(Long tenantId, Long doctorAuthUserId, LocalDate date, LocalTime time) {
+
 		if (tenantId == null || doctorAuthUserId == null || date == null || time == null) {
 
 			return false;
@@ -279,15 +317,17 @@ public class SaasDoctorAvailabilityService {
 	}
 
 	/*
-	 * ========================================================= DELETE / DEACTIVATE
-	 * AVAILABILITY =========================================================
+	 * ================================================================ DELETE
+	 * AVAILABILITY ================================================================
 	 */
 
 	@Transactional
 	public void deleteAvailability(Long tenantId, Long availabilityId) {
+
 		validateTenantId(tenantId);
 
 		if (availabilityId == null) {
+
 			throw new RuntimeException("Availability id is required.");
 		}
 
@@ -299,6 +339,7 @@ public class SaasDoctorAvailabilityService {
 				.orElseThrow(() -> new RuntimeException("Availability not found."));
 
 		if (!tenantId.equals(availability.getTenantId())) {
+
 			throw new RuntimeException("Availability does not belong to selected workspace.");
 		}
 
@@ -310,22 +351,26 @@ public class SaasDoctorAvailabilityService {
 	}
 
 	/*
-	 * ========================================================= REQUEST VALIDATION
-	 * =========================================================
+	 * ================================================================ VALIDATION
+	 * ================================================================
 	 */
 
 	private void validateRequest(SaasDoctorAvailabilityRequest request) {
+
 		if (request == null) {
+
 			throw new RuntimeException("Availability request is required.");
 		}
 
 		validateTenantId(request.getTenantId());
 
 		if (request.getDoctorAuthUserId() == null) {
+
 			throw new RuntimeException("Doctor is required.");
 		}
 
 		if (request.getAvailableDate() == null) {
+
 			throw new RuntimeException("Available date is required.");
 		}
 
@@ -335,54 +380,66 @@ public class SaasDoctorAvailabilityService {
 		}
 
 		if (request.getStartTime() == null) {
+
 			throw new RuntimeException("Start time is required.");
 		}
 
 		if (request.getEndTime() == null) {
+
 			throw new RuntimeException("End time is required.");
 		}
 
-		if (!request.getEndTime().isAfter(request.getStartTime())) {
+		LocalTime startTime = normalizeTime(request.getStartTime());
+
+		LocalTime endTime = normalizeTime(request.getEndTime());
+
+		if (!endTime.isAfter(startTime)) {
 
 			throw new RuntimeException("End time must be after start time.");
 		}
 
-		if (request.getSlotDurationMinutes() == null || request.getSlotDurationMinutes() <= 0) {
+		Integer duration = request.getSlotDurationMinutes();
+
+		if (duration == null || duration <= 0) {
 
 			throw new RuntimeException("Slot duration is required.");
 		}
 
 		List<Integer> allowedDurations = List.of(5, 10, 15, 20, 30, 45, 60);
 
-		if (!allowedDurations.contains(request.getSlotDurationMinutes())) {
+		if (!allowedDurations.contains(duration)) {
+
 			throw new RuntimeException("Invalid slot duration. Allowed: 5, 10, 15, 20, 30, 45, 60 minutes.");
 		}
 
-		long totalMinutes = Duration.between(request.getStartTime(), request.getEndTime()).toMinutes();
+		long totalMinutes = Duration.between(startTime, endTime).toMinutes();
 
-		if (totalMinutes < request.getSlotDurationMinutes()) {
+		if (totalMinutes < duration) {
 
 			throw new RuntimeException("Time range must be greater than or equal to slot duration.");
 		}
 
-		if (totalMinutes % request.getSlotDurationMinutes() != 0) {
+		if (totalMinutes % duration != 0) {
 
 			throw new RuntimeException("Time range must be exactly divisible by slot duration.");
 		}
 	}
 
 	private void validateTenantId(Long tenantId) {
-		if (tenantId == null) {
-			throw new RuntimeException("Tenant id is required.");
+
+		if (tenantId == null || tenantId <= 0) {
+
+			throw new RuntimeException("Valid tenant id is required.");
 		}
 	}
 
 	/*
-	 * ========================================================= DOCTOR TENANT
-	 * VALIDATION =========================================================
+	 * ================================================================ DOCTOR
+	 * VALIDATION ================================================================
 	 */
 
 	private TenantMember validateDoctorBelongsToTenant(Long tenantId, Long doctorAuthUserId) {
+
 		TenantMember member = tenantMemberRepository
 				.findByTenantIdAndAuthUserIdAndActiveTrue(tenantId, doctorAuthUserId)
 				.orElseThrow(() -> new RuntimeException("Selected doctor is not a member of this workspace."));
@@ -395,41 +452,23 @@ public class SaasDoctorAvailabilityService {
 		return member;
 	}
 
-	private void validatePatientWorkspaceAccess(Long tenantId, Long authUserId) {
-
-		if (tenantId == null) {
-			throw new RuntimeException("Tenant id is required.");
-		}
-
-		if (authUserId == null) {
-			throw new RuntimeException("Patient authentication is required.");
-		}
-
-		patientRepository.findByTenantIdAndAuthUserIdAndActiveTrue(tenantId, authUserId)
-				.orElseThrow(() -> new RuntimeException("You are not assigned to this workspace."));
-	}
-
 	private String normalizeRole(String role) {
 
 		if (role == null) {
+
 			return "";
 		}
 
-		String normalizedRole = role.trim().toUpperCase();
-
-		if (normalizedRole.startsWith("ROLE_")) {
-			normalizedRole = normalizedRole.substring("ROLE_".length());
-		}
-
-		return normalizedRole;
+		return role.trim().toUpperCase(Locale.ROOT).replaceFirst("^ROLE_", "");
 	}
 
 	/*
-	 * ========================================================= OVERLAPPING
-	 * AVAILABILITY CHECK =========================================================
+	 * ================================================================ OVERLAP
+	 * VALIDATION ================================================================
 	 */
 
 	private void validateNoOverlappingAvailability(SaasDoctorAvailabilityRequest request) {
+
 		List<SaasDoctorAvailability> existingRecords = availabilityRepository
 				.findByTenantIdAndDoctorAuthUserIdAndAvailableDateAndStatusOrderByStartTimeAsc(request.getTenantId(),
 						request.getDoctorAuthUserId(), request.getAvailableDate(), SaasAvailabilityStatus.ACTIVE);
@@ -448,16 +487,18 @@ public class SaasDoctorAvailabilityService {
 		});
 
 		if (overlapExists) {
+
 			throw new RuntimeException("Doctor already has overlapping availability for the selected date and time.");
 		}
 	}
 
 	/*
-	 * ========================================================= SLOT GENERATION
-	 * =========================================================
+	 * ================================================================ SLOT
+	 * GENERATION ================================================================
 	 */
 
 	private List<SaasDoctorSlotResponse> generateSlotsFromAvailability(List<SaasDoctorAvailability> availabilityList) {
+
 		List<SaasDoctorSlotResponse> slots = new ArrayList<>();
 
 		if (availabilityList == null || availabilityList.isEmpty()) {
@@ -470,6 +511,7 @@ public class SaasDoctorAvailabilityService {
 			Integer duration = availability.getSlotDurationMinutes();
 
 			if (duration == null || duration <= 0) {
+
 				duration = 15;
 			}
 
@@ -484,11 +526,13 @@ public class SaasDoctorAvailabilityService {
 				SaasDoctorSlotResponse slot = new SaasDoctorSlotResponse();
 
 				slot.setStartTime(currentStart);
+
 				slot.setEndTime(currentEnd);
 
 				slot.setLabel(formatSlotLabel(currentStart, currentEnd));
 
 				slot.setAvailable(true);
+
 				slot.setBooked(false);
 
 				slots.add(slot);
@@ -501,14 +545,25 @@ public class SaasDoctorAvailabilityService {
 	}
 
 	/*
-	 * ========================================================= BOOKED APPOINTMENT
-	 * SLOT KEYS =========================================================
+	 * ================================================================ BOOKED SLOT
+	 * KEYS ================================================================
 	 */
 
 	private Set<String> getBookedSlotKeys(Long tenantId, Long doctorAuthUserId, LocalDate date) {
-		List<SaasAppointmentStatus> bookedStatuses = List.of(SaasAppointmentStatus.PENDING,
-				SaasAppointmentStatus.CONFIRMED, SaasAppointmentStatus.COMPLETED,
-				SaasAppointmentStatus.PAYMENT_PENDING);
+
+		List<SaasAppointmentStatus> bookedStatuses = List.of(
+
+				SaasAppointmentStatus.REQUESTED,
+
+				SaasAppointmentStatus.PAYMENT_PENDING,
+
+				SaasAppointmentStatus.PENDING,
+
+				SaasAppointmentStatus.CONFIRMED,
+
+				SaasAppointmentStatus.IN_CONSULTATION,
+
+				SaasAppointmentStatus.COMPLETED);
 
 		List<SaasAppointment> appointments = appointmentRepository
 				.findByTenantIdAndDoctorAuthUserIdAndAppointmentDateAndStatusIn(tenantId, doctorAuthUserId, date,
@@ -528,7 +583,9 @@ public class SaasDoctorAvailabilityService {
 	}
 
 	private String buildSingleTimeKey(LocalTime startTime) {
+
 		if (startTime == null) {
+
 			return "";
 		}
 
@@ -536,7 +593,9 @@ public class SaasDoctorAvailabilityService {
 	}
 
 	private LocalTime normalizeTime(LocalTime time) {
+
 		if (time == null) {
+
 			return null;
 		}
 
@@ -544,17 +603,19 @@ public class SaasDoctorAvailabilityService {
 	}
 
 	private String formatSlotLabel(LocalTime startTime, LocalTime endTime) {
+
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm a");
 
 		return startTime.format(formatter) + " - " + endTime.format(formatter);
 	}
 
 	/*
-	 * ========================================================= RESPONSE MAPPING
-	 * =========================================================
+	 * ================================================================ RESPONSE
+	 * ================================================================
 	 */
 
 	private SaasDoctorAvailabilityResponse toResponse(SaasDoctorAvailability availability) {
+
 		SaasDoctorAvailabilityResponse response = new SaasDoctorAvailabilityResponse();
 
 		response.setId(availability.getId());

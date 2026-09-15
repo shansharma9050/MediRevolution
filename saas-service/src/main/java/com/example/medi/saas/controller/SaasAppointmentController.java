@@ -3,6 +3,7 @@ package com.example.medi.saas.controller;
 import com.example.medi.saas.dto.ApiResponse;
 import com.example.medi.saas.dto.SaasAppointmentRequest;
 import com.example.medi.saas.dto.SaasAppointmentResponse;
+import com.example.medi.saas.service.SaasAppointmentLifecycleService;
 import com.example.medi.saas.service.SaasAppointmentPaymentService;
 import com.example.medi.saas.service.SaasAppointmentService;
 
@@ -20,16 +21,24 @@ public class SaasAppointmentController {
 
 	private final SaasAppointmentPaymentService paymentService;
 
+	private final SaasAppointmentLifecycleService lifecycleService;
+
 	public SaasAppointmentController(SaasAppointmentService appointmentService,
-			SaasAppointmentPaymentService paymentService) {
+			SaasAppointmentPaymentService paymentService, SaasAppointmentLifecycleService lifecycleService) {
+
 		this.appointmentService = appointmentService;
 
 		this.paymentService = paymentService;
+
+		this.lifecycleService = lifecycleService;
 	}
 
 	/*
-	 * OFFLINE appointment
+	 * ================================================================ CREATE
+	 * OFFLINE / WORKSPACE APPOINTMENT
+	 * ================================================================
 	 */
+
 	@PostMapping
 	public SaasAppointmentResponse createAppointment(@RequestBody SaasAppointmentRequest request) {
 
@@ -37,8 +46,11 @@ public class SaasAppointmentController {
 	}
 
 	/*
-	 * ONLINE appointment: create appointment + PhonePe checkout
+	 * ================================================================ ONLINE
+	 * APPOINTMENT + PHONEPE
+	 * ================================================================
 	 */
+
 	@PostMapping("/online-payment")
 	public ResponseEntity<?> startOnlinePayment(@RequestBody SaasAppointmentRequest request) {
 
@@ -46,15 +58,19 @@ public class SaasAppointmentController {
 
 			return ResponseEntity.ok(paymentService.bookOnlineAppointmentAndStartPayment(request));
 
-		} catch (RuntimeException e) {
+		} catch (RuntimeException exception) {
 
-			return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+			return ResponseEntity.badRequest()
+					.body(Map.of("message", safeMessage(exception, "Unable to start appointment payment.")));
 		}
 	}
 
 	/*
-	 * Workspace appointment register
+	 * ================================================================ WORKSPACE
+	 * APPOINTMENT REGISTER
+	 * ================================================================
 	 */
+
 	@GetMapping
 	public List<SaasAppointmentResponse> getAppointments(@RequestParam Long tenantId) {
 
@@ -62,19 +78,31 @@ public class SaasAppointmentController {
 	}
 
 	/*
-	 * Logged-in PATIENT only
+	 * ================================================================ PATIENT
+	 * APPOINTMENTS ================================================================
 	 */
+
 	@GetMapping("/patient")
 	public List<SaasAppointmentResponse> getMyPatientAppointments(@RequestParam Long tenantId) {
 
 		return appointmentService.getMyPatientAppointments(tenantId);
 	}
 
+	/*
+	 * ================================================================ SINGLE
+	 * APPOINTMENT ================================================================
+	 */
+
 	@GetMapping("/{appointmentId}")
 	public SaasAppointmentResponse getAppointment(@PathVariable Long appointmentId, @RequestParam Long tenantId) {
 
 		return appointmentService.getAppointment(tenantId, appointmentId);
 	}
+
+	/*
+	 * ================================================================ DOCTOR
+	 * APPOINTMENTS ================================================================
+	 */
 
 	@GetMapping("/doctor")
 	public List<SaasAppointmentResponse> getDoctorAppointments(@RequestParam Long tenantId,
@@ -83,6 +111,12 @@ public class SaasAppointmentController {
 		return appointmentService.getDoctorAppointments(tenantId, doctorAuthUserId);
 	}
 
+	/*
+	 * ================================================================ UPDATE
+	 * APPOINTMENT DETAILS
+	 * ================================================================
+	 */
+
 	@PutMapping("/{appointmentId}")
 	public SaasAppointmentResponse updateAppointment(@PathVariable Long appointmentId, @RequestParam Long tenantId,
 			@RequestBody SaasAppointmentRequest request) {
@@ -90,27 +124,56 @@ public class SaasAppointmentController {
 		return appointmentService.updateAppointment(tenantId, appointmentId, request);
 	}
 
+	/*
+	 * ================================================================ CONTROLLED
+	 * STATUS TRANSITION
+	 * ================================================================
+	 */
+
 	@PutMapping("/{appointmentId}/status")
 	public SaasAppointmentResponse updateStatus(@PathVariable Long appointmentId, @RequestParam Long tenantId,
 			@RequestParam String status) {
 
-		return appointmentService.updateStatus(tenantId, appointmentId, status);
+		return lifecycleService.updateStatus(tenantId, appointmentId, status);
 	}
+
+	/*
+	 * ================================================================ WORKSPACE
+	 * CANCEL ================================================================
+	 */
 
 	@DeleteMapping("/{appointmentId}")
 	public ApiResponse cancelAppointment(@PathVariable Long appointmentId, @RequestParam Long tenantId) {
 
-		return appointmentService.cancelAppointment(tenantId, appointmentId);
+		return lifecycleService.cancelWorkspaceAppointment(tenantId, appointmentId);
 	}
 
 	/*
-	 * ========================================================= PATIENT DELETE
-	 * EXPIRED APPOINTMENT =========================================================
-	 *
-	 * Patient sirf apne expired appointment ko remove kar sakta hai. Ye normal
-	 * workspace DELETE permission par depend nahi karega.
-	 *
+	 * ================================================================ PATIENT
+	 * CANCEL FUTURE APPOINTMENT
+	 * ================================================================
 	 */
+
+	@PutMapping("/patient/{appointmentId}/cancel")
+	public ResponseEntity<?> cancelPatientAppointment(@PathVariable Long appointmentId, @RequestParam Long tenantId) {
+
+		try {
+
+			return ResponseEntity.ok(lifecycleService.cancelPatientAppointment(tenantId, appointmentId));
+
+		} catch (RuntimeException exception) {
+
+			return ResponseEntity.badRequest()
+					.body(Map.of("message", safeMessage(exception, "Unable to cancel appointment.")));
+		}
+	}
+
+	/*
+	 * ================================================================ PATIENT
+	 * DELETE EXPIRED APPOINTMENT
+	 * ================================================================
+	 */
+
 	@DeleteMapping("/patient/{appointmentId}")
 	public ResponseEntity<?> deleteExpiredPatientAppointment(@PathVariable Long appointmentId,
 			@RequestParam Long tenantId) {
@@ -119,12 +182,18 @@ public class SaasAppointmentController {
 
 			return ResponseEntity.ok(appointmentService.deleteExpiredPatientAppointment(tenantId, appointmentId));
 
-		} catch (RuntimeException e) {
+		} catch (RuntimeException exception) {
 
 			return ResponseEntity.badRequest()
-					.body(Map.of("message", e.getMessage() == null ? "Unable to delete appointment." : e.getMessage()));
+					.body(Map.of("message", safeMessage(exception, "Unable to delete appointment.")));
 		}
 	}
+
+	/*
+	 * ================================================================ VERIFY
+	 * ONLINE PAYMENT
+	 * ================================================================
+	 */
 
 	@GetMapping("/payment/verify")
 	public ResponseEntity<?> verifyOnlinePayment(@RequestParam Long appointmentId,
@@ -134,9 +203,20 @@ public class SaasAppointmentController {
 
 			return ResponseEntity.ok(paymentService.verifyPayment(appointmentId, merchantOrderId));
 
-		} catch (RuntimeException e) {
+		} catch (RuntimeException exception) {
 
-			return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+			return ResponseEntity.badRequest()
+					.body(Map.of("message", safeMessage(exception, "Unable to verify payment.")));
 		}
+	}
+
+	private String safeMessage(RuntimeException exception, String fallback) {
+
+		if (exception == null || exception.getMessage() == null || exception.getMessage().isBlank()) {
+
+			return fallback;
+		}
+
+		return exception.getMessage().trim();
 	}
 }
