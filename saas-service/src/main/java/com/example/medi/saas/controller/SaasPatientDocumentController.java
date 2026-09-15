@@ -106,11 +106,6 @@ public class SaasPatientDocumentController {
             MultipartFile file
     ) {
 
-        /*
-         * Store physical file first.
-         * Metadata save failure triggers physical cleanup below.
-         */
-
         SaasPatientDocumentStorageService.StoredDocumentFile storedFile =
                 storageService.store(
                         tenantId,
@@ -171,7 +166,6 @@ public class SaasPatientDocumentController {
 
             /*
              * Private internal storage key.
-             * This is NOT a public filesystem URL.
              */
             request.setFileUrl(
                     storedFile.storageKey()
@@ -265,9 +259,6 @@ public class SaasPatientDocumentController {
             @RequestParam Long tenantId
     ) {
 
-        /*
-         * getDocument performs tenant access + PATIENTS VIEW permission.
-         */
         SaasPatientDocumentResponse document =
                 documentService.getDocument(
                         tenantId,
@@ -313,8 +304,16 @@ public class SaasPatientDocumentController {
                         contentDisposition.toString()
                 )
                 .header(
-                        HttpHeaders.CONTENT_TYPE,
+                        "X-Content-Type-Options",
                         "nosniff"
+                )
+                .header(
+                        HttpHeaders.CACHE_CONTROL,
+                        "no-store, no-cache, must-revalidate"
+                )
+                .header(
+                        HttpHeaders.PRAGMA,
+                        "no-cache"
                 )
                 .body(
                         resource
@@ -355,9 +354,6 @@ public class SaasPatientDocumentController {
             @RequestParam Long tenantId
     ) {
 
-        /*
-         * Capture storage key before metadata becomes inactive.
-         */
         SaasPatientDocumentResponse document =
                 documentService.getDocument(
                         tenantId,
