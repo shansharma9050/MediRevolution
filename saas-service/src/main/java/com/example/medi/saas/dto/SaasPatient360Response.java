@@ -70,6 +70,15 @@ public class SaasPatient360Response {
 
     /*
      * ============================================================
+     * MEDICATION HISTORY
+     * ============================================================
+     */
+
+    private List<MedicationHistoryItem> medicationHistory;
+
+
+    /*
+     * ============================================================
      * LONGITUDINAL HEALTH TIMELINE
      * ============================================================
      */
@@ -175,45 +184,54 @@ public class SaasPatient360Response {
     @AllArgsConstructor
     public static class ClinicalOverview {
 
-        /*
-         * Number of completed / recorded OPD encounters.
-         */
         private long opdVisitCount;
 
-        /*
-         * Number of IPD admission records.
-         */
         private long ipdAdmissionCount;
 
-        /*
-         * Laboratory investigation orders.
-         */
         private long labInvestigationCount;
 
-        /*
-         * Radiology investigation orders.
-         */
         private long radiologyInvestigationCount;
 
-        /*
-         * Billing history.
-         */
         private long invoiceCount;
 
-        /*
-         * Patient financial snapshot.
-         */
         private BigDecimal totalBilledAmount;
 
         private BigDecimal totalPaidAmount;
 
         private BigDecimal totalOutstandingAmount;
 
-        /*
-         * Most recent clinical / healthcare activity from the
-         * unified Patient 360 timeline.
-         */
         private LocalDateTime lastClinicalActivityAt;
+    }
+
+
+    /*
+     * ============================================================
+     * MEDICATION HISTORY ITEM
+     * ============================================================
+     */
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MedicationHistoryItem {
+
+        private Long prescriptionId;
+
+        private Long appointmentId;
+
+        private LocalDateTime prescribedAt;
+
+        private String diagnosis;
+
+        private String medicineName;
+
+        private String dosage;
+
+        private String frequency;
+
+        private String duration;
+
+        private String instructions;
     }
 
 
@@ -239,14 +257,8 @@ public class SaasPatient360Response {
          */
         private String type;
 
-        /*
-         * Primary record ID of the originating module.
-         */
         private Long referenceId;
 
-        /*
-         * Actual date/time when the clinical/business event happened.
-         */
         private LocalDateTime eventAt;
 
         private String title;
@@ -257,9 +269,6 @@ public class SaasPatient360Response {
 
         private String detail;
 
-        /*
-         * Populated where the event is related to an appointment.
-         */
         private Long appointmentId;
     }
 }
