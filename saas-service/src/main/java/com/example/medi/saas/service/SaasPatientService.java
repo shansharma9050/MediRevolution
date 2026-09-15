@@ -9,6 +9,7 @@ import com.example.medi.saas.dto.SaasPatientRequest;
 import com.example.medi.saas.dto.SaasPatientResponse;
 import com.example.medi.saas.entity.SaasAppointment;
 import com.example.medi.saas.entity.SaasDiagnosticOrder;
+import com.example.medi.saas.entity.SaasDiagnosticOrderItem;
 import com.example.medi.saas.entity.SaasInvoice;
 import com.example.medi.saas.entity.SaasIpdAdmission;
 import com.example.medi.saas.entity.SaasIpdDailyNote;
@@ -20,6 +21,7 @@ import com.example.medi.saas.enums.SaasDiagnosticType;
 import com.example.medi.saas.enums.SaasPermissionAction;
 import com.example.medi.saas.enums.TenantModule;
 import com.example.medi.saas.repository.SaasAppointmentRepository;
+import com.example.medi.saas.repository.SaasDiagnosticOrderItemRepository;
 import com.example.medi.saas.repository.SaasDiagnosticOrderRepository;
 import com.example.medi.saas.repository.SaasInvoiceRepository;
 import com.example.medi.saas.repository.SaasIpdAdmissionRepository;
@@ -70,6 +72,8 @@ public class SaasPatientService {
 
 	private final SaasDiagnosticOrderRepository diagnosticOrderRepository;
 
+	private final SaasDiagnosticOrderItemRepository diagnosticOrderItemRepository;
+
 	private final SaasInvoiceRepository invoiceRepository;
 
 	private final SaasIpdDailyNoteRepository ipdDailyNoteRepository;
@@ -80,32 +84,22 @@ public class SaasPatientService {
 			SaasPrescriptionMedicineRepository prescriptionMedicineRepository,
 			@Value("${internal.service.key}") String internalServiceKey, SaasOpdVisitRepository opdVisitRepository,
 			SaasIpdAdmissionRepository ipdAdmissionRepository, SaasDiagnosticOrderRepository diagnosticOrderRepository,
-			SaasInvoiceRepository invoiceRepository, SaasIpdDailyNoteRepository ipdDailyNoteRepository) {
+			SaasDiagnosticOrderItemRepository diagnosticOrderItemRepository, SaasInvoiceRepository invoiceRepository,
+			SaasIpdDailyNoteRepository ipdDailyNoteRepository) {
 
 		this.patientRepository = patientRepository;
-
 		this.tenantAccessService = tenantAccessService;
-
 		this.permissionService = permissionService;
-
 		this.authClient = authClient;
-
 		this.internalServiceKey = internalServiceKey;
-
 		this.appointmentRepository = appointmentRepository;
-
 		this.prescriptionRepository = prescriptionRepository;
-
 		this.prescriptionMedicineRepository = prescriptionMedicineRepository;
-
 		this.opdVisitRepository = opdVisitRepository;
-
 		this.ipdAdmissionRepository = ipdAdmissionRepository;
-
 		this.diagnosticOrderRepository = diagnosticOrderRepository;
-
+		this.diagnosticOrderItemRepository = diagnosticOrderItemRepository;
 		this.invoiceRepository = invoiceRepository;
-
 		this.ipdDailyNoteRepository = ipdDailyNoteRepository;
 	}
 
@@ -118,11 +112,6 @@ public class SaasPatientService {
 		permissionService.requirePermission(tenantId, TenantModule.PATIENTS, SaasPermissionAction.CREATE);
 
 		tenantAccessService.validateTenantAccess(tenantId);
-
-		/*
-		 * ============================================================ LOGIN CREDENTIAL
-		 * VALIDATION ============================================================
-		 */
 
 		if (request.getEmail() == null || request.getEmail().isBlank()) {
 
@@ -138,11 +127,6 @@ public class SaasPatientService {
 
 			throw new RuntimeException("Patient password must be at least 6 characters");
 		}
-
-		/*
-		 * ============================================================ CREATE / REUSE
-		 * AUTH USER ============================================================
-		 */
 
 		Optional<SaasPatient> existingPatient = patientRepository.findByTenantIdAndEmailIgnoreCase(tenantId,
 				request.getEmail());
@@ -173,11 +157,6 @@ public class SaasPatientService {
 
 			throw new RuntimeException("Invalid authentication role for patient");
 		}
-
-		/*
-		 * ============================================================ CREATE SAAS
-		 * PATIENT ============================================================
-		 */
 
 		SaasPatient patient = new SaasPatient();
 
@@ -252,22 +231,12 @@ public class SaasPatientService {
 		return toResponse(patient);
 	}
 
-	/*
-	 * ================================================================ PATIENT 360
-	 * ================================================================
-	 */
-
 	@Transactional(readOnly = true)
 	public SaasPatient360Response getPatient360(Long tenantId, Long patientId) {
 
 		permissionService.requirePermission(tenantId, TenantModule.PATIENTS, SaasPermissionAction.VIEW);
 
 		tenantAccessService.validateTenantAccess(tenantId);
-
-		/*
-		 * ============================================================ PATIENT
-		 * ============================================================
-		 */
 
 		SaasPatient patient = patientRepository.findByIdAndTenantIdAndActiveTrue(patientId, tenantId)
 				.orElseThrow(() -> new RuntimeException("Patient not found"));
@@ -349,11 +318,6 @@ public class SaasPatientService {
 					prescription.getFollowUpDate());
 		}
 
-		/*
-		 * ============================================================ LATEST CLINICAL
-		 * SNAPSHOT ============================================================
-		 */
-
 		SaasPatient360Response.VitalSnapshot vitalSnapshot = resolveLatestVitals(tenantId, patientId,
 				latestPrescription);
 
@@ -362,7 +326,7 @@ public class SaasPatientService {
 		LocalDate nextFollowUpDate = nextFollowUp.map(SaasPrescription::getFollowUpDate).orElse(null);
 
 		/*
-		 * ============================================================ OPD HISTORY
+		 * ============================================================ OPD
 		 * ============================================================
 		 */
 
@@ -372,7 +336,7 @@ public class SaasPatientService {
 		long opdVisitCount = opdVisits.size();
 
 		/*
-		 * ============================================================ IPD HISTORY
+		 * ============================================================ IPD
 		 * ============================================================
 		 */
 
@@ -383,7 +347,7 @@ public class SaasPatientService {
 
 		/*
 		 * ============================================================ LAB + RADIOLOGY
-		 * HISTORY ============================================================
+		 * ============================================================
 		 */
 
 		List<SaasDiagnosticOrder> diagnosticOrders = diagnosticOrderRepository
@@ -396,7 +360,7 @@ public class SaasPatientService {
 				.filter(order -> order.getDiagnosticType() == SaasDiagnosticType.RADIOLOGY).count();
 
 		/*
-		 * ============================================================ BILLING HISTORY
+		 * ============================================================ BILLING
 		 * ============================================================
 		 */
 
@@ -423,24 +387,22 @@ public class SaasPatientService {
 				patientId);
 
 		/*
+		 * ============================================================ INVESTIGATION +
+		 * REPORT HISTORY ============================================================
+		 */
+
+		List<SaasPatient360Response.InvestigationHistoryItem> investigationHistory = buildInvestigationHistory(tenantId,
+				diagnosticOrders);
+
+		/*
 		 * ============================================================ LONGITUDINAL
-		 * PATIENT TIMELINE ============================================================
+		 * TIMELINE ============================================================
 		 */
 
 		List<SaasPatient360Response.TimelineItem> timeline = buildPatientTimeline(tenantId, patientId);
 
-		/*
-		 * ============================================================ LAST CLINICAL
-		 * ACTIVITY ============================================================
-		 */
-
 		LocalDateTime lastClinicalActivityAt = timeline.stream().map(SaasPatient360Response.TimelineItem::getEventAt)
 				.filter(eventAt -> eventAt != null).max(LocalDateTime::compareTo).orElse(null);
-
-		/*
-		 * ============================================================ CLINICAL
-		 * OVERVIEW ============================================================
-		 */
 
 		SaasPatient360Response.ClinicalOverview clinicalOverview = new SaasPatient360Response.ClinicalOverview(
 
@@ -461,11 +423,6 @@ public class SaasPatientService {
 				totalOutstandingAmount,
 
 				lastClinicalActivityAt);
-
-		/*
-		 * ============================================================ FINAL PATIENT
-		 * 360 RESPONSE ============================================================
-		 */
 
 		return new SaasPatient360Response(
 
@@ -489,13 +446,14 @@ public class SaasPatientService {
 
 				medicationHistory,
 
+				investigationHistory,
+
 				timeline);
 	}
 
 	/*
-	 * ================================================================ PATIENT 360
-	 * MEDICATION HISTORY
-	 * ================================================================
+	 * ================================================================ MEDICATION
+	 * HISTORY ================================================================
 	 */
 
 	private List<SaasPatient360Response.MedicationHistoryItem> buildMedicationHistory(Long tenantId, Long patientId) {
@@ -579,9 +537,99 @@ public class SaasPatientService {
 	}
 
 	/*
-	 * ================================================================ PATIENT 360
-	 * LATEST VITALS
 	 * ================================================================
+	 * INVESTIGATION / REPORT HISTORY
+	 * ================================================================
+	 */
+
+	private List<SaasPatient360Response.InvestigationHistoryItem> buildInvestigationHistory(Long tenantId,
+			List<SaasDiagnosticOrder> diagnosticOrders) {
+
+		if (diagnosticOrders == null || diagnosticOrders.isEmpty()) {
+
+			return List.of();
+		}
+
+		List<Long> orderIds = diagnosticOrders.stream().map(SaasDiagnosticOrder::getId).filter(id -> id != null)
+				.toList();
+
+		if (orderIds.isEmpty()) {
+
+			return List.of();
+		}
+
+		List<SaasDiagnosticOrderItem> orderItems = diagnosticOrderItemRepository
+				.findByTenantIdAndOrderIdInOrderByOrderIdDescIdAsc(tenantId, orderIds);
+
+		Map<Long, List<SaasDiagnosticOrderItem>> itemsByOrder = new HashMap<>();
+
+		for (SaasDiagnosticOrderItem item : orderItems) {
+
+			itemsByOrder.computeIfAbsent(item.getOrderId(), key -> new ArrayList<>()).add(item);
+		}
+
+		List<SaasPatient360Response.InvestigationHistoryItem> history = new ArrayList<>();
+
+		for (SaasDiagnosticOrder order : diagnosticOrders) {
+
+			List<SaasPatient360Response.InvestigationTestItem> tests = itemsByOrder
+					.getOrDefault(order.getId(), List.of()).stream()
+					.map(item -> new SaasPatient360Response.InvestigationTestItem(
+
+							item.getTestId(),
+
+							item.getTestName(),
+
+							item.getTestCode(),
+
+							item.getPrice()))
+					.toList();
+
+			history.add(new SaasPatient360Response.InvestigationHistoryItem(
+
+					order.getId(),
+
+					order.getOrderNumber(),
+
+					order.getDiagnosticType() == null ? null : order.getDiagnosticType().name(),
+
+					order.getStatus() == null ? null : order.getStatus().name(),
+
+					order.getAppointmentId(),
+
+					order.getPrescriptionId(),
+
+					order.getOrderDateTime(),
+
+					order.getSampleCollectedAt(),
+
+					order.getReportReadyAt(),
+
+					order.getClinicalNotes(),
+
+					order.getResultSummary(),
+
+					order.getResultDetails(),
+
+					order.getReportFileUrl(),
+
+					tests));
+		}
+
+		history.sort(
+
+				Comparator.comparing(
+
+						SaasPatient360Response.InvestigationHistoryItem::getOrderedAt,
+
+						Comparator.nullsLast(Comparator.reverseOrder())));
+
+		return history;
+	}
+
+	/*
+	 * ================================================================ LATEST
+	 * VITALS ================================================================
 	 */
 
 	private SaasPatient360Response.VitalSnapshot resolveLatestVitals(Long tenantId, Long patientId,
@@ -671,9 +719,8 @@ public class SaasPatientService {
 	}
 
 	/*
-	 * ================================================================ PATIENT 360
-	 * LATEST DIAGNOSIS
-	 * ================================================================
+	 * ================================================================ LATEST
+	 * DIAGNOSIS ================================================================
 	 */
 
 	private String resolveLatestDiagnosis(Long tenantId, Long patientId,
@@ -736,18 +783,13 @@ public class SaasPatientService {
 	}
 
 	/*
-	 * ================================================================ PATIENT 360
+	 * ================================================================ PATIENT
 	 * TIMELINE ================================================================
 	 */
 
 	private List<SaasPatient360Response.TimelineItem> buildPatientTimeline(Long tenantId, Long patientId) {
 
 		List<SaasPatient360Response.TimelineItem> timeline = new ArrayList<>();
-
-		/*
-		 * ============================================================ APPOINTMENTS
-		 * ============================================================
-		 */
 
 		List<SaasAppointment> appointments = appointmentRepository
 				.findByTenantIdAndPatientIdAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(tenantId,
@@ -785,11 +827,6 @@ public class SaasPatientService {
 					appointment.getId()));
 		}
 
-		/*
-		 * ============================================================ PRESCRIPTIONS
-		 * ============================================================
-		 */
-
 		List<SaasPrescription> prescriptions = prescriptionRepository
 				.findByTenantIdAndPatientIdAndActiveTrueOrderByCreatedAtDesc(tenantId, patientId);
 
@@ -824,11 +861,6 @@ public class SaasPatientService {
 					prescription.getAppointmentId()));
 		}
 
-		/*
-		 * ============================================================ OPD
-		 * ============================================================
-		 */
-
 		List<SaasOpdVisit> opdVisits = opdVisitRepository
 				.findByTenantIdAndPatientIdAndActiveTrueOrderByVisitDateTimeDesc(tenantId, patientId);
 
@@ -856,11 +888,6 @@ public class SaasPatientService {
 
 					opd.getAppointmentId()));
 		}
-
-		/*
-		 * ============================================================ IPD
-		 * ============================================================
-		 */
 
 		List<SaasIpdAdmission> ipdAdmissions = ipdAdmissionRepository
 				.findByTenantIdAndPatientIdAndActiveTrueOrderByAdmissionDateTimeDesc(tenantId, patientId);
@@ -890,11 +917,6 @@ public class SaasPatientService {
 
 					null));
 		}
-
-		/*
-		 * ============================================================ LAB / RADIOLOGY
-		 * ============================================================
-		 */
 
 		List<SaasDiagnosticOrder> diagnosticOrders = diagnosticOrderRepository
 				.findByTenantIdAndPatientIdAndActiveTrueOrderByOrderDateTimeDesc(tenantId, patientId);
@@ -940,11 +962,6 @@ public class SaasPatientService {
 
 					order.getAppointmentId()));
 		}
-
-		/*
-		 * ============================================================ BILLING
-		 * ============================================================
-		 */
 
 		List<SaasInvoice> invoices = invoiceRepository
 				.findByTenantIdAndPatientIdAndActiveTrueOrderByInvoiceDateTimeDesc(tenantId, patientId);
@@ -1007,11 +1024,6 @@ public class SaasPatientService {
 					null));
 		}
 
-		/*
-		 * ============================================================ LATEST EVENT
-		 * FIRST ============================================================
-		 */
-
 		timeline.sort(
 
 				Comparator.comparing(
@@ -1072,11 +1084,6 @@ public class SaasPatientService {
 		return String.join(" • ", parts);
 	}
 
-	/*
-	 * ================================================================ SEARCH
-	 * ================================================================
-	 */
-
 	public List<SaasPatientResponse> searchPatients(Long tenantId, String keyword) {
 
 		permissionService.requirePermission(tenantId, TenantModule.PATIENTS, SaasPermissionAction.VIEW);
@@ -1104,11 +1111,6 @@ public class SaasPatientService {
 
 		return result.stream().distinct().map(this::toResponse).toList();
 	}
-
-	/*
-	 * ================================================================ UPDATE
-	 * PATIENT ================================================================
-	 */
 
 	public SaasPatientResponse updatePatient(Long tenantId, Long patientId, SaasPatientRequest request) {
 
@@ -1163,11 +1165,6 @@ public class SaasPatientService {
 		return toResponse(saved);
 	}
 
-	/*
-	 * ================================================================ DELETE
-	 * PATIENT ================================================================
-	 */
-
 	public ApiResponse deletePatient(Long tenantId, Long patientId) {
 
 		permissionService.requirePermission(tenantId, TenantModule.PATIENTS, SaasPermissionAction.DELETE);
@@ -1185,11 +1182,6 @@ public class SaasPatientService {
 
 		return new ApiResponse(true, "Patient deleted successfully");
 	}
-
-	/*
-	 * ================================================================ VALIDATION
-	 * ================================================================
-	 */
 
 	private void validateRequest(SaasPatientRequest request) {
 
@@ -1266,11 +1258,6 @@ public class SaasPatientService {
 
 				patient.getCreatedAt());
 	}
-
-	/*
-	 * ================================================================ LOGGED-IN
-	 * PATIENT ================================================================
-	 */
 
 	@Transactional(readOnly = true)
 	public SaasPatientResponse getMyPatient(Long tenantId) {

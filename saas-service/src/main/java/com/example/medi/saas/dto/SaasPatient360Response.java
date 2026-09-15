@@ -79,6 +79,15 @@ public class SaasPatient360Response {
 
     /*
      * ============================================================
+     * INVESTIGATION / REPORT HISTORY
+     * ============================================================
+     */
+
+    private List<InvestigationHistoryItem> investigationHistory;
+
+
+    /*
+     * ============================================================
      * LONGITUDINAL HEALTH TIMELINE
      * ============================================================
      */
@@ -237,6 +246,68 @@ public class SaasPatient360Response {
 
     /*
      * ============================================================
+     * INVESTIGATION HISTORY ITEM
+     * ============================================================
+     */
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class InvestigationHistoryItem {
+
+        private Long orderId;
+
+        private String orderNumber;
+
+        private String diagnosticType;
+
+        private String status;
+
+        private Long appointmentId;
+
+        private Long prescriptionId;
+
+        private LocalDateTime orderedAt;
+
+        private LocalDateTime sampleCollectedAt;
+
+        private LocalDateTime reportReadyAt;
+
+        private String clinicalNotes;
+
+        private String resultSummary;
+
+        private String resultDetails;
+
+        private String reportFileUrl;
+
+        private List<InvestigationTestItem> tests;
+    }
+
+
+    /*
+     * ============================================================
+     * INVESTIGATION TEST ITEM
+     * ============================================================
+     */
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class InvestigationTestItem {
+
+        private Long testId;
+
+        private String testName;
+
+        private String testCode;
+
+        private BigDecimal price;
+    }
+
+
+    /*
+     * ============================================================
      * LONGITUDINAL TIMELINE ITEM
      * ============================================================
      */
@@ -246,15 +317,6 @@ public class SaasPatient360Response {
     @AllArgsConstructor
     public static class TimelineItem {
 
-        /*
-         * APPOINTMENT
-         * PRESCRIPTION
-         * OPD
-         * IPD
-         * LAB
-         * RADIOLOGY
-         * BILLING
-         */
         private String type;
 
         private Long referenceId;
