@@ -52,6 +52,15 @@ logs/
 *.tar
 *.tar.gz
 
+# ==============================
+# Runtime Patient Document Vault
+# ==============================
+#
+# Uploaded clinical documents are runtime/private data.
+# They must NEVER be committed to Git.
+#
+**/data/patient-documents/
+
 # OS
 .DS_Store
 Thumbs.db
