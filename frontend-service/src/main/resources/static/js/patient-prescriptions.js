@@ -1,37 +1,95 @@
-let patientPrescriptions = [];
-let isLoadingPatientPrescriptions = false;
-const downloadingPrescriptionIds = new Set();
+"use strict";
 
-document.addEventListener("DOMContentLoaded", function() {
-	requirePatientRole();
-	loadMyPrescriptions();
-});
+let patientPrescriptions = [];
+
+let isLoadingPatientPrescriptions = false;
+
+const downloadingPrescriptionIds =
+	new Set();
+
+
+document.addEventListener(
+	"DOMContentLoaded",
+	async function() {
+
+		requirePatientRole();
+
+		await loadMyPrescriptions();
+	}
+);
+
 
 function requirePatientRole() {
+
+	const role =
+		String(
+			localStorage.getItem(
+				"role"
+			) || ""
+		)
+			.toUpperCase()
+			.replace(
+				"ROLE_",
+				""
+			);
+
+
 	if (
-		localStorage.getItem("role") !==
-		"PATIENT"
+		role !== "PATIENT"
 	) {
+
 		alert(
 			"Access denied. Only PATIENT can access this page."
 		);
+
 
 		window.location.href =
 			"/dashboard";
 	}
 }
 
+
 async function loadMyPrescriptions() {
-	if (isLoadingPatientPrescriptions) {
+
+	if (
+		isLoadingPatientPrescriptions
+	) {
+
 		return;
 	}
 
-	isLoadingPatientPrescriptions = true;
 
 	const token =
-		localStorage.getItem("token");
+		localStorage.getItem(
+			"token"
+		);
+
+
+	const tenantId =
+		localStorage.getItem(
+			"tenantId"
+		);
+
+
+	if (
+		!token ||
+		!tenantId
+	) {
+
+		showPatientPrescriptionMsg(
+			"Please select your SaaS workspace first."
+		);
+
+		return;
+	}
+
+
+	isLoadingPatientPrescriptions =
+		true;
+
 
 	showPatientPrescriptionsLoadingState();
+
 
 	setButtonLoading(
 		"refreshPrescriptionsBtn",
@@ -39,75 +97,92 @@ async function loadMyPrescriptions() {
 		true
 	);
 
+
 	try {
+
 		const response =
 			await fetch(
-				`${API_BASE}/doctor/patient/my-prescriptions`,
+				`${API_BASE}/saas/prescriptions/my?tenantId=${encodeURIComponent(tenantId)}`,
 				{
-					method: "GET",
-
 					headers: {
 						"Authorization":
-							"Bearer " + token
+							"Bearer " + token,
+
+						"Accept":
+							"application/json"
 					}
 				}
 			);
 
+
 		const result =
-			await readJsonSafely(response);
+			await readJsonSafely(
+				response
+			);
+
 
 		if (!response.ok) {
+
 			patientPrescriptions = [];
+
 
 			const message =
 				getErrorMessage(
 					result,
-					"Unable to load prescriptions"
+					"Unable to load prescriptions."
 				);
+
 
 			showPatientPrescriptionMsg(
 				message
 			);
 
+
 			showPatientPrescriptionsErrorState(
 				message
 			);
+
 
 			updatePrescriptionSummary();
 
 			return;
 		}
 
+
 		patientPrescriptions =
 			Array.isArray(result)
 				? result
 				: [];
 
+
 		sortPrescriptionsByDate();
 
 		renderPatientPrescriptions();
+
 		updatePrescriptionSummary();
 
+
 	} catch (error) {
+
 		console.error(
-			"Load patient prescriptions error:",
+			"Load SaaS patient prescriptions failed:",
 			error
 		);
 
+
 		patientPrescriptions = [];
 
-		showPatientPrescriptionMsg(
-			"Doctor service not reachable."
-		);
 
 		showPatientPrescriptionsErrorState(
-			"Doctor service is currently unavailable."
+			"SaaS prescription service is currently unavailable."
 		);
 
-		updatePrescriptionSummary();
 
 	} finally {
-		isLoadingPatientPrescriptions = false;
+
+		isLoadingPatientPrescriptions =
+			false;
+
 
 		setButtonLoading(
 			"refreshPrescriptionsBtn",
@@ -117,32 +192,43 @@ async function loadMyPrescriptions() {
 	}
 }
 
+
 function sortPrescriptionsByDate() {
+
 	patientPrescriptions.sort(
 		function(a, b) {
+
 			return (
 				safeDateTimestamp(
-					b.prescriptionDate
-				) -
+					b.createdAt
+				)
+				-
 				safeDateTimestamp(
-					a.prescriptionDate
+					a.createdAt
 				)
 			);
 		}
 	);
 }
 
+
 function renderPatientPrescriptions() {
+
 	const container =
 		document.getElementById(
 			"patientPrescriptionList"
 		);
 
+
 	if (!container) {
 		return;
 	}
 
-	if (!patientPrescriptions.length) {
+
+	if (
+		!patientPrescriptions.length
+	) {
+
 		container.innerHTML = `
 			<div class="patient-prescriptions-state">
 
@@ -155,7 +241,7 @@ function renderPatientPrescriptions() {
 				</h5>
 
 				<p class="text-muted mb-0">
-					Your doctor-created prescriptions will appear here.
+					Your SaaS workspace prescriptions will appear here.
 				</p>
 
 			</div>
@@ -164,222 +250,293 @@ function renderPatientPrescriptions() {
 		return;
 	}
 
-	let html = "";
 
-	patientPrescriptions.forEach(
-		function(prescription, index) {
+	container.innerHTML =
+		patientPrescriptions
+			.map(
+				function(item, index) {
 
-			const patient =
-				prescription.patient || {};
+					const prescriptionId =
+						Number(
+							item.id
+						);
 
-			const doctorName =
-				prescription.doctorName ||
-				prescription.doctorEmail ||
-				"Doctor";
 
-			const prescriptionId =
-				safeNumber(
-					prescription.id
-				);
+					const medicines =
+						Array.isArray(
+							item.medicines
+						)
+							? item.medicines
+							: [];
 
-			html += `
-				<article class="prescription-card"
-						 style="--card-delay:${Math.min(index * 65, 390)}ms">
 
-					<div class="prescription-card-header">
+					const medicineHtml =
+						medicines.length
+							? medicines
+								.map(
+									medicine => `
+											<div class="mb-2">
 
-						<div>
+												<strong>
+													${safe(
+										medicine.medicineName
+									)}
+												</strong>
 
-							<div class="prescription-heading-wrap">
+												<div class="text-muted small">
+													${safe(
+										medicine.dosage
+									)}
+													•
+													${safe(
+										medicine.frequency
+									)}
+													•
+													${safe(
+										medicine.duration
+									)}
+												</div>
 
-								<div class="prescription-icon">
-									<i class="bi bi-prescription2"></i>
-								</div>
+											</div>
+										`
+								)
+								.join("")
+							: "No medicines prescribed";
+
+
+					return `
+						<article
+							class="prescription-card"
+							style="--card-delay:${Math.min(
+						index * 65,
+						390
+					)}ms">
+
+							<div class="prescription-card-header">
 
 								<div>
 
-									<h5>
-										Prescription
-										${prescriptionId ? "#" + prescriptionId : ""}
-									</h5>
+									<div class="prescription-heading-wrap">
 
-									<div class="text-muted small mt-1">
-										Created:
-										${formatDateTime(prescription.prescriptionDate)}
+										<div class="prescription-icon">
+											<i class="bi bi-prescription2"></i>
+										</div>
+
+										<div>
+
+											<h5>
+												Prescription #${prescriptionId}
+											</h5>
+
+											<div class="text-muted small mt-1">
+												${formatDateTime(
+						item.createdAt
+					)}
+											</div>
+
+										</div>
+
+									</div>
+
+									<div class="prescription-meta">
+
+										<span class="prescription-chip">
+											<i class="bi bi-person-badge-fill"></i>
+											${safe(
+						item.doctorName
+					)}
+										</span>
+
+										${item.department
+							? `
+												<span class="prescription-chip">
+													${safe(item.department)}
+												</span>
+											`
+							: ""
+						}
+
 									</div>
 
 								</div>
 
-							</div>
-
-							<div class="prescription-meta">
-
-								<span class="prescription-chip">
-									<i class="bi bi-person-fill"></i>
-									${safe(patient.patientName)}
-								</span>
-
-								<span class="prescription-chip">
-									<i class="bi bi-person-badge-fill"></i>
-									${safe(doctorName)}
+								<span class="prescription-status">
+									<i class="bi bi-check2-circle"></i>
+									Available
 								</span>
 
 							</div>
 
-						</div>
 
-						<div class="text-end">
+							<div class="prescription-details-grid">
 
-							<span class="prescription-status">
-								<i class="bi bi-check2-circle"></i>
-								Available
-							</span>
+								<div class="prescription-detail-box">
 
-						</div>
+									<small>Diagnosis</small>
 
-					</div>
+									<strong>
+										${safe(
+							item.diagnosis
+						)}
+									</strong>
 
-					<div class="prescription-details-grid">
+								</div>
 
-						<div class="prescription-detail-box">
 
-							<small>Symptoms</small>
+								<div class="prescription-detail-box">
 
-							<strong>
-								${safe(prescription.symptoms)}
-							</strong>
+									<small>Follow Up</small>
 
-						</div>
+									<strong>
+										${formatDate(
+							item.followUpDate
+						)}
+									</strong>
 
-						<div class="prescription-detail-box">
+									<div class="text-muted small">
+										${safe(
+							item.followUpAdvice
+						)}
+									</div>
 
-							<small>Diagnosis</small>
+								</div>
 
-							<strong>
-								${safe(prescription.diagnosis)}
-							</strong>
 
-						</div>
+								<div class="prescription-detail-box full">
 
-						<div class="prescription-detail-box full">
+									<small>Medicines</small>
 
-							<small>Medicines</small>
+									<div>
+										${medicineHtml}
+									</div>
 
-							<strong>
-								${safe(prescription.medicines)}
-							</strong>
+								</div>
 
-						</div>
 
-						<div class="prescription-detail-box full">
+								<div class="prescription-detail-box full">
 
-							<small>Doctor Advice</small>
+									<small>Doctor Advice</small>
 
-							<strong>
-								${safe(prescription.advice)}
-							</strong>
+									<strong>
+										${safe(
+							item.advice
+						)}
+									</strong>
 
-						</div>
+								</div>
 
-					</div>
+							</div>
 
-					<div class="prescription-card-actions">
 
-						<button type="button"
-								id="downloadPrescriptionBtn_${prescriptionId}"
-								class="btn btn-medi"
-								style="width:auto;"
-								onclick="downloadMyPrescriptionPdf(${prescriptionId})"
-								${prescriptionId ? "" : "disabled"}>
+							<div class="prescription-card-actions">
 
-							<i class="bi bi-file-earmark-pdf-fill me-1"></i>
-							Download PDF
-						</button>
+								<button
+									type="button"
+									id="downloadPrescriptionBtn_${prescriptionId}"
+									class="btn btn-medi"
+									style="width:auto;"
+									onclick="downloadMyPrescriptionPdf(${prescriptionId})">
 
-					</div>
+									<i class="bi bi-file-earmark-pdf-fill me-1"></i>
+									Download PDF
 
-				</article>
-			`;
+								</button>
 
-		}
-	);
+							</div>
 
-	container.innerHTML = html;
+						</article>
+					`;
+				}
+			)
+			.join("");
 }
 
+
 function updatePrescriptionSummary() {
+
 	setSummaryValue(
 		"totalPrescriptions",
 		patientPrescriptions.length
 	);
 
-	const latestDate =
+
+	const latest =
 		patientPrescriptions.length
 			? formatDate(
 				patientPrescriptions[0]
-					.prescriptionDate
+					.createdAt
 			)
 			: "-";
 
-	const latestElement =
+
+	const element =
 		document.getElementById(
 			"latestPrescriptionDate"
 		);
 
-	if (latestElement) {
-		latestElement.innerText =
-			latestDate;
+
+	if (element) {
+
+		element.textContent =
+			latest;
 	}
 }
+
 
 async function downloadMyPrescriptionPdf(
 	prescriptionId
 ) {
-	const numericId =
-		Number(prescriptionId);
 
-	if (
-		!Number.isFinite(numericId) ||
-		numericId <= 0
-	) {
-		showPatientPrescriptionMsg(
-			"Invalid prescription ID"
+	const id =
+		Number(
+			prescriptionId
 		);
 
-		return;
-	}
 
 	if (
+		!Number.isFinite(id)
+		||
+		id <= 0
+		||
 		downloadingPrescriptionIds.has(
-			numericId
+			id
 		)
 	) {
+
 		return;
 	}
 
+
 	downloadingPrescriptionIds.add(
-		numericId
+		id
 	);
 
-	const token =
-		localStorage.getItem("token");
 
-	const buttonId =
-		`downloadPrescriptionBtn_${numericId}`;
+	const token =
+		localStorage.getItem(
+			"token"
+		);
+
+
+	const tenantId =
+		localStorage.getItem(
+			"tenantId"
+		);
+
 
 	setButtonLoading(
-		buttonId,
+		`downloadPrescriptionBtn_${id}`,
 		"Downloading...",
 		true
 	);
 
+
 	try {
+
 		const response =
 			await fetch(
-				`${API_BASE}/doctor/prescriptions/${encodeURIComponent(numericId)}/download`,
+				`${API_BASE}/saas/prescriptions/my/${id}/pdf?tenantId=${encodeURIComponent(tenantId)}`,
 				{
-					method: "GET",
-
 					headers: {
 						"Authorization":
 							"Bearer " + token
@@ -387,98 +544,110 @@ async function downloadMyPrescriptionPdf(
 				}
 			);
 
+
 		if (!response.ok) {
+
 			const result =
 				await readJsonSafely(
 					response
 				);
 
+
 			showPatientPrescriptionMsg(
 				getErrorMessage(
 					result,
-					"Unable to download prescription PDF"
+					"Unable to download prescription PDF."
 				)
 			);
 
 			return;
 		}
 
+
 		const blob =
 			await response.blob();
 
-		if (!blob.size) {
-			showPatientPrescriptionMsg(
-				"Prescription PDF is empty"
-			);
-
-			return;
-		}
 
 		const url =
 			window.URL.createObjectURL(
 				blob
 			);
 
-		const anchor =
-			document.createElement("a");
 
-		anchor.href = url;
+		const anchor =
+			document.createElement(
+				"a"
+			);
+
+
+		anchor.href =
+			url;
+
+
 		anchor.download =
-			`prescription-${numericId}.pdf`;
+			`saas-prescription-${id}.pdf`;
+
 
 		document.body.appendChild(
 			anchor
 		);
 
+
 		anchor.click();
+
 		anchor.remove();
 
+
 		window.setTimeout(
-			function() {
+			() =>
 				window.URL.revokeObjectURL(
 					url
-				);
-			},
+				),
 			1000
 		);
 
-		showPatientPrescriptionMsg(
-			"Prescription PDF downloaded successfully",
-			"success"
-		);
 
 	} catch (error) {
+
 		console.error(
-			"Download patient prescription error:",
+			"Prescription PDF download failed:",
 			error
 		);
 
+
 		showPatientPrescriptionMsg(
-			"Doctor service not reachable."
+			"Unable to download prescription PDF."
 		);
+
 
 	} finally {
+
 		downloadingPrescriptionIds.delete(
-			numericId
+			id
 		);
 
+
 		setButtonLoading(
-			buttonId,
+			`downloadPrescriptionBtn_${id}`,
 			"Download PDF",
 			false
 		);
 	}
 }
 
+
 function showPatientPrescriptionsLoadingState() {
+
 	const container =
 		document.getElementById(
 			"patientPrescriptionList"
 		);
 
+
 	if (!container) {
 		return;
 	}
+
 
 	container.innerHTML = `
 		<div class="patient-prescriptions-state">
@@ -499,17 +668,21 @@ function showPatientPrescriptionsLoadingState() {
 	`;
 }
 
+
 function showPatientPrescriptionsErrorState(
 	message
 ) {
+
 	const container =
 		document.getElementById(
 			"patientPrescriptionList"
 		);
 
+
 	if (!container) {
 		return;
 	}
+
 
 	container.innerHTML = `
 		<div class="patient-prescriptions-state">
@@ -523,244 +696,290 @@ function showPatientPrescriptionsErrorState(
 			</h5>
 
 			<p class="text-muted mb-0">
-				${escapeHtml(message)}
+				${safe(message)}
 			</p>
 
 		</div>
 	`;
 }
 
+
 function showPatientPrescriptionMsg(
 	message,
 	type = "danger"
 ) {
-	const msg =
-		document.getElementById("msg");
 
-	if (!msg) {
-		return;
-	}
-
-	msg.innerHTML = `
-		<div class="alert alert-${type}">
-			${escapeHtml(message)}
-		</div>
-	`;
-
-	setTimeout(
-		function() {
-			if (msg) {
-				msg.innerHTML = "";
-			}
-		},
-		5000
-	);
-}
-
-function formatDateTime(value) {
-	if (!value) {
-		return "-";
-	}
-
-	const date =
-		new Date(value);
-
-	if (Number.isNaN(date.getTime())) {
-		return safe(value);
-	}
-
-	return date.toLocaleString(
-		"en-IN",
-		{
-			day: "2-digit",
-			month: "short",
-			year: "numeric",
-			hour: "2-digit",
-			minute: "2-digit"
-		}
-	);
-}
-
-function formatDate(value) {
-	if (!value) {
-		return "-";
-	}
-
-	const date =
-		new Date(value);
-
-	if (Number.isNaN(date.getTime())) {
-		return safe(value);
-	}
-
-	return date.toLocaleDateString(
-		"en-IN",
-		{
-			day: "2-digit",
-			month: "short",
-			year: "numeric"
-		}
-	);
-}
-
-function safeDateTimestamp(value) {
-	const date =
-		new Date(value);
-
-	return Number.isNaN(date.getTime())
-		? 0
-		: date.getTime();
-}
-
-function setButtonLoading(
-	buttonId,
-	loadingText,
-	isLoading
-) {
-	const button =
-		document.getElementById(buttonId);
-
-	if (!button) {
-		return;
-	}
-
-	if (isLoading) {
-		button.dataset.originalHtml =
-			button.innerHTML;
-
-		button.innerHTML = `
-			<span class="spinner-border spinner-border-sm me-2"
-				  role="status"
-				  aria-hidden="true"></span>
-
-			${escapeHtml(loadingText)}
-		`;
-
-		button.disabled = true;
-
-	} else {
-		button.innerHTML =
-			button.dataset.originalHtml ||
-			button.innerHTML;
-
-		button.disabled = false;
-	}
-}
-
-function setSummaryValue(
-	id,
-	value
-) {
 	const element =
-		document.getElementById(id);
+		document.getElementById(
+			"msg"
+		);
+
 
 	if (!element) {
 		return;
 	}
 
-	const target =
-		Number(value) || 0;
 
-	const start =
-		Number(element.textContent) || 0;
+	element.innerHTML = `
+		<div class="alert alert-${type}">
+			${safe(message)}
+		</div>
+	`;
 
-	const difference =
-		target - start;
 
-	const duration = 500;
-	const startTime =
-		performance.now();
-
-	if (
-		difference === 0 ||
-		window.matchMedia(
-			"(prefers-reduced-motion: reduce)"
-		).matches
-	) {
-		element.textContent = target;
-		return;
-	}
-
-	function update(currentTime) {
-		const progress =
-			Math.min(
-				(currentTime - startTime) /
-					duration,
-				1
-			);
-
-		const eased =
-			1 - Math.pow(1 - progress, 3);
-
-		element.textContent =
-			Math.round(
-				start +
-					difference * eased
-			);
-
-		if (progress < 1) {
-			requestAnimationFrame(update);
-		}
-	}
-
-	requestAnimationFrame(update);
+	window.setTimeout(
+		() => {
+			element.innerHTML = "";
+		},
+		5000
+	);
 }
 
-async function readJsonSafely(response) {
-	try {
-		return await response.json();
-	} catch (error) {
-		return null;
-	}
+
+function readJsonSafely(
+	response
+) {
+
+	return response
+		.json()
+		.catch(
+			() => ({})
+		);
 }
+
 
 function getErrorMessage(
-	data,
+	result,
 	fallback
 ) {
-	if (!data) {
-		return fallback;
-	}
 
-	if (data.message) {
-		return data.message;
-	}
-
-	if (data.error) {
-		return data.error;
-	}
-
-	if (typeof data === "string") {
-		return data;
-	}
-
-	return fallback;
+	return result?.message
+		||
+		fallback;
 }
 
-function safe(value) {
-	return (
-		value === null ||
-		value === undefined ||
-		value === ""
+
+function safeDateTimestamp(
+	value
+) {
+
+	const timestamp =
+		new Date(
+			value
+		)
+			.getTime();
+
+
+	return Number.isFinite(
+		timestamp
 	)
-		? "-"
-		: escapeHtml(value);
-}
-
-function safeNumber(value) {
-	const numericValue =
-		Number(value);
-
-	return Number.isFinite(numericValue)
-		? numericValue
+		? timestamp
 		: 0;
 }
 
-function escapeHtml(value) {
-	return String(value || "")
-		.replace(/&/g, "&amp;")
-		.replace(/'/g, "&#39;")
-		.replace(/"/g, "&quot;")
-		.replace(/</g, "&lt;")
-		.replace(/>/g, "&gt;");
+
+function formatDateTime(
+	value
+) {
+
+	if (!value) {
+		return "-";
+	}
+
+
+	const date =
+		new Date(
+			value
+		);
+
+
+	if (
+		Number.isNaN(
+			date.getTime()
+		)
+	) {
+
+		return safe(
+			value
+		);
+	}
+
+
+	return date.toLocaleString(
+		"en-IN",
+		{
+			day:
+				"2-digit",
+
+			month:
+				"short",
+
+			year:
+				"numeric",
+
+			hour:
+				"2-digit",
+
+			minute:
+				"2-digit"
+		}
+	);
+}
+
+
+function formatDate(
+	value
+) {
+
+	if (!value) {
+		return "-";
+	}
+
+
+	const date =
+		new Date(
+			value
+		);
+
+
+	if (
+		Number.isNaN(
+			date.getTime()
+		)
+	) {
+
+		return safe(
+			value
+		);
+	}
+
+
+	return date.toLocaleDateString(
+		"en-IN",
+		{
+			day:
+				"2-digit",
+
+			month:
+				"short",
+
+			year:
+				"numeric"
+		}
+	);
+}
+
+
+function setSummaryValue(
+	id,
+	value
+) {
+
+	const element =
+		document.getElementById(
+			id
+		);
+
+
+	if (element) {
+
+		element.textContent =
+			String(
+				value ?? "-"
+			);
+	}
+}
+
+
+function setButtonLoading(
+	id,
+	text,
+	loading
+) {
+
+	const button =
+		document.getElementById(
+			id
+		);
+
+
+	if (!button) {
+		return;
+	}
+
+
+	button.disabled =
+		Boolean(
+			loading
+		);
+
+
+	if (loading) {
+
+		button.dataset.originalHtml =
+			button.innerHTML;
+
+
+		button.innerHTML = `
+			<span class="spinner-border spinner-border-sm me-1"></span>
+			${safe(text)}
+		`;
+
+		return;
+	}
+
+
+	if (
+		button.dataset.originalHtml
+	) {
+
+		button.innerHTML =
+			button.dataset.originalHtml;
+
+		delete button.dataset.originalHtml;
+	}
+}
+
+
+function safe(
+	value
+) {
+
+	if (
+		value === null
+		||
+		value === undefined
+		||
+		String(
+			value
+		).trim() === ""
+	) {
+
+		return "-";
+	}
+
+
+	return String(
+		value
+	)
+		.replaceAll(
+			"&",
+			"&amp;"
+		)
+		.replaceAll(
+			"<",
+			"&lt;"
+		)
+		.replaceAll(
+			">",
+			"&gt;"
+		)
+		.replaceAll(
+			"\"",
+			"&quot;"
+		)
+		.replaceAll(
+			"'",
+			"&#039;"
+		);
 }

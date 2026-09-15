@@ -1,25 +1,32 @@
 package com.example.medi.saas.service;
 
-import com.example.medi.saas.dto.*;
-import com.example.medi.saas.entity.SaasDoctorProfile;
+import com.example.medi.saas.dto.ApiResponse;
+import com.example.medi.saas.dto.SaasPrescriptionMedicineRequest;
+import com.example.medi.saas.dto.SaasPrescriptionMedicineResponse;
+import com.example.medi.saas.dto.SaasPrescriptionRequest;
+import com.example.medi.saas.dto.SaasPrescriptionResponse;
+import com.example.medi.saas.entity.SaasAppointment;
 import com.example.medi.saas.entity.SaasPatient;
 import com.example.medi.saas.entity.SaasPrescription;
 import com.example.medi.saas.entity.SaasPrescriptionMedicine;
 import com.example.medi.saas.entity.SaasStaff;
 import com.example.medi.saas.enums.SaasAppointmentStatus;
 import com.example.medi.saas.enums.SaasPermissionAction;
+import com.example.medi.saas.enums.SaasStaffRole;
 import com.example.medi.saas.enums.TenantModule;
 import com.example.medi.saas.repository.SaasAppointmentRepository;
-import com.example.medi.saas.repository.SaasDoctorProfileRepository;
 import com.example.medi.saas.repository.SaasPatientRepository;
 import com.example.medi.saas.repository.SaasPrescriptionMedicineRepository;
 import com.example.medi.saas.repository.SaasPrescriptionRepository;
 import com.example.medi.saas.repository.SaasStaffRepository;
 import com.example.medi.saas.security.CurrentUserUtil;
+
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class SaasPrescriptionService {
@@ -27,241 +34,596 @@ public class SaasPrescriptionService {
 	private final SaasPrescriptionRepository prescriptionRepository;
 	private final SaasPrescriptionMedicineRepository medicineRepository;
 	private final SaasPatientRepository patientRepository;
-	private final SaasDoctorProfileRepository doctorRepository;
 	private final SaasAppointmentRepository appointmentRepository;
+	private final SaasStaffRepository staffRepository;
+
 	private final TenantAccessService tenantAccessService;
 	private final SaasPermissionService permissionService;
-	private final SaasStaffRepository staffRepository;
+	private final SaasPatientSelfResolverService patientSelfResolverService;
 
 	public SaasPrescriptionService(SaasPrescriptionRepository prescriptionRepository,
 			SaasPrescriptionMedicineRepository medicineRepository, SaasPatientRepository patientRepository,
-			SaasDoctorProfileRepository doctorRepository, SaasAppointmentRepository appointmentRepository,
-			TenantAccessService tenantAccessService, SaasPermissionService permissionService,SaasStaffRepository staffRepository) {
+			SaasAppointmentRepository appointmentRepository, SaasStaffRepository staffRepository,
+			TenantAccessService tenantAccessService, SaasPermissionService permissionService,
+			SaasPatientSelfResolverService patientSelfResolverService) {
+
 		this.prescriptionRepository = prescriptionRepository;
+
 		this.medicineRepository = medicineRepository;
+
 		this.patientRepository = patientRepository;
-		this.doctorRepository = doctorRepository;
+
 		this.appointmentRepository = appointmentRepository;
+
+		this.staffRepository = staffRepository;
+
 		this.tenantAccessService = tenantAccessService;
+
 		this.permissionService = permissionService;
-		this.staffRepository=staffRepository;
+
+		this.patientSelfResolverService = patientSelfResolverService;
 	}
+
+	/*
+	 * ================================================================ CREATE
+	 * ================================================================
+	 */
 
 	@Transactional
 	public SaasPrescriptionResponse createPrescription(SaasPrescriptionRequest request) {
 
-		permissionService.requirePermission(request.getTenantId(), TenantModule.PRESCRIPTIONS,
-				SaasPermissionAction.CREATE);
-
 		validateRequest(request);
 
-		tenantAccessService.validateTenantAccess(request.getTenantId());
+		validateWorkspacePermission(request.getTenantId(), SaasPermissionAction.CREATE);
 
-		SaasPatient patient = patientRepository
-				.findByIdAndTenantIdAndActiveTrue(request.getPatientId(), request.getTenantId())
-				.orElseThrow(() -> new RuntimeException("Patient not found in selected workspace"));
+		SaasPatient patient = getPatient(request.getTenantId(), request.getPatientId());
 
-		SaasStaff staff = staffRepository
-				.findByIdAndTenantIdAndActiveTrue(request.getDoctorProfileId(), request.getTenantId())
-				.orElseThrow(() -> new RuntimeException("Doctor not found"));
+		SaasStaff doctor = getDoctor(request.getTenantId(), request.getDoctorProfileId());
 
-		if (request.getAppointmentId() != null) {
-			appointmentRepository.findByIdAndTenantIdAndActiveTrue(request.getAppointmentId(), request.getTenantId())
-					.orElseThrow(() -> new RuntimeException("Appointment not found in selected workspace"));
+		validateDoctorOwnership(doctor);
+
+		SaasAppointment appointment = validateLinkedAppointment(request, patient, doctor);
+
+		if (appointment != null && prescriptionRepository
+				.existsByTenantIdAndAppointmentIdAndActiveTrue(request.getTenantId(), appointment.getId())) {
+
+			throw new RuntimeException(
+					"A prescription already exists for this consultation. " + "Please edit the existing prescription.");
 		}
 
 		SaasPrescription prescription = new SaasPrescription();
-		prescription.setTenantId(request.getTenantId());
-		prescription.setPatientId(patient.getId());
-		prescription.setDoctorProfileId(staff.getId());
-		prescription.setAppointmentId(request.getAppointmentId());
-		prescription.setDiagnosis(request.getDiagnosis());
-		prescription.setClinicalNotes(request.getClinicalNotes());
-		prescription.setAdvice(request.getAdvice());
-		prescription.setLabTests(request.getLabTests());
-		prescription.setFollowUpAdvice(request.getFollowUpAdvice());
-		prescription.setFollowUpDate(request.getFollowUpDate());
-		prescription.setBloodPressure(request.getBloodPressure());
-		prescription.setPulse(request.getPulse());
-		prescription.setTemperature(request.getTemperature());
-		prescription.setSpo2(request.getSpo2());
-		prescription.setWeight(request.getWeight());
-		prescription.setHeight(request.getHeight());
-		prescription.setSugarLevel(request.getSugarLevel());
+
+		applyRequest(prescription, request, patient, doctor, appointment);
+
 		prescription.setCreatedByAuthUserId(CurrentUserUtil.getUserId());
+
 		prescription.setActive(true);
 
-		SaasPrescription savedPrescription = prescriptionRepository.save(prescription);
+		SaasPrescription saved = prescriptionRepository.saveAndFlush(prescription);
 
-		saveMedicines(request.getTenantId(), savedPrescription.getId(), request.getMedicines());
+		replaceMedicines(saved.getTenantId(), saved.getId(), request.getMedicines());
 
 		/*
-		 * Optional but useful: Prescription banne ke baad appointment completed kar do.
+		 * IMPORTANT:
+		 *
+		 * Creating a prescription DOES NOT complete the appointment. Consultation
+		 * completion belongs to OPD / appointment lifecycle.
 		 */
-		if (request.getAppointmentId() != null) {
-			appointmentRepository.findByIdAndTenantIdAndActiveTrue(request.getAppointmentId(), request.getTenantId())
-					.ifPresent(appointment -> {
-						appointment.setStatus(SaasAppointmentStatus.COMPLETED);
-						appointment.touch();
-						appointmentRepository.save(appointment);
-					});
-		}
 
-		return toResponse(savedPrescription);
+		return toResponse(saved);
 	}
 
+	/*
+	 * ================================================================ UPDATE
+	 * ================================================================
+	 */
+
+	@Transactional
+	public SaasPrescriptionResponse updatePrescription(Long tenantId, Long prescriptionId,
+			SaasPrescriptionRequest request) {
+
+		if (request == null) {
+
+			throw new RuntimeException("Prescription request is required.");
+		}
+
+		request.setTenantId(tenantId);
+
+		validateRequest(request);
+
+		validateWorkspacePermission(tenantId, SaasPermissionAction.UPDATE);
+
+		SaasPrescription prescription = getPrescriptionEntity(tenantId, prescriptionId);
+
+		SaasPatient patient = getPatient(tenantId, request.getPatientId());
+
+		SaasStaff doctor = getDoctor(tenantId, request.getDoctorProfileId());
+
+		validateDoctorOwnership(doctor);
+
+		SaasAppointment appointment = validateLinkedAppointmentForUpdate(request, patient, doctor, prescriptionId);
+
+		applyRequest(prescription, request, patient, doctor, appointment);
+
+		prescription.touch();
+
+		SaasPrescription saved = prescriptionRepository.saveAndFlush(prescription);
+
+		replaceMedicines(tenantId, saved.getId(), request.getMedicines());
+
+		return toResponse(saved);
+	}
+
+	/*
+	 * ================================================================ STAFF LIST /
+	 * READ ================================================================
+	 */
+
+	@Transactional(readOnly = true)
 	public List<SaasPrescriptionResponse> getPrescriptions(Long tenantId) {
 
-		permissionService.requirePermission(tenantId, TenantModule.PRESCRIPTIONS, SaasPermissionAction.VIEW);
-
-		tenantAccessService.validateTenantAccess(tenantId);
+		validateWorkspacePermission(tenantId, SaasPermissionAction.VIEW);
 
 		return prescriptionRepository.findByTenantIdAndActiveTrueOrderByCreatedAtDesc(tenantId).stream()
 				.map(this::toResponse).toList();
 	}
 
+	@Transactional(readOnly = true)
 	public SaasPrescriptionResponse getPrescription(Long tenantId, Long prescriptionId) {
 
-		permissionService.requirePermission(tenantId, TenantModule.PRESCRIPTIONS, SaasPermissionAction.VIEW);
+		validateWorkspacePermission(tenantId, SaasPermissionAction.VIEW);
 
-		tenantAccessService.validateTenantAccess(tenantId);
-
-		SaasPrescription prescription = prescriptionRepository
-				.findByIdAndTenantIdAndActiveTrue(prescriptionId, tenantId)
-				.orElseThrow(() -> new RuntimeException("Prescription not found"));
-
-		return toResponse(prescription);
+		return toResponse(getPrescriptionEntity(tenantId, prescriptionId));
 	}
 
+	@Transactional(readOnly = true)
 	public List<SaasPrescriptionResponse> getPatientEmr(Long tenantId, Long patientId) {
 
-		permissionService.requirePermission(tenantId, TenantModule.PRESCRIPTIONS, SaasPermissionAction.VIEW);
+		validateWorkspacePermission(tenantId, SaasPermissionAction.VIEW);
 
-		tenantAccessService.validateTenantAccess(tenantId);
-
-		patientRepository.findByIdAndTenantIdAndActiveTrue(patientId, tenantId)
-				.orElseThrow(() -> new RuntimeException("Patient not found"));
+		getPatient(tenantId, patientId);
 
 		return prescriptionRepository.findByTenantIdAndPatientIdAndActiveTrueOrderByCreatedAtDesc(tenantId, patientId)
 				.stream().map(this::toResponse).toList();
 	}
 
+	@Transactional(readOnly = true)
 	public List<SaasPrescriptionResponse> getDoctorPrescriptions(Long tenantId, Long doctorProfileId) {
 
-		permissionService.requirePermission(tenantId, TenantModule.PRESCRIPTIONS, SaasPermissionAction.VIEW);
+		validateWorkspacePermission(tenantId, SaasPermissionAction.VIEW);
 
-		tenantAccessService.validateTenantAccess(tenantId);
+		SaasStaff doctor = getDoctor(tenantId, doctorProfileId);
 
-		doctorRepository.findByIdAndTenantIdAndActiveTrue(doctorProfileId, tenantId)
-				.orElseThrow(() -> new RuntimeException("Doctor not found"));
+		validateDoctorOwnership(doctor);
 
 		return prescriptionRepository
-				.findByTenantIdAndDoctorProfileIdAndActiveTrueOrderByCreatedAtDesc(tenantId, doctorProfileId).stream()
+				.findByTenantIdAndDoctorProfileIdAndActiveTrueOrderByCreatedAtDesc(tenantId, doctor.getId()).stream()
 				.map(this::toResponse).toList();
 	}
 
+	@Transactional(readOnly = true)
 	public List<SaasPrescriptionResponse> getAppointmentPrescriptions(Long tenantId, Long appointmentId) {
 
-		permissionService.requirePermission(tenantId, TenantModule.PRESCRIPTIONS, SaasPermissionAction.VIEW);
-
-		tenantAccessService.validateTenantAccess(tenantId);
+		validateWorkspacePermission(tenantId, SaasPermissionAction.VIEW);
 
 		appointmentRepository.findByIdAndTenantIdAndActiveTrue(appointmentId, tenantId)
-				.orElseThrow(() -> new RuntimeException("Appointment not found"));
+				.orElseThrow(() -> new RuntimeException("Appointment not found."));
 
 		return prescriptionRepository
 				.findByTenantIdAndAppointmentIdAndActiveTrueOrderByCreatedAtDesc(tenantId, appointmentId).stream()
 				.map(this::toResponse).toList();
 	}
 
+	/*
+	 * ================================================================ PATIENT
+	 * PORTAL ================================================================
+	 */
+
+	@Transactional(readOnly = true)
+	public List<SaasPrescriptionResponse> getMyPrescriptions(Long tenantId) {
+
+		requirePatientRole();
+
+		SaasPatient patient = patientSelfResolverService.resolvePatientEntity(tenantId);
+
+		return prescriptionRepository
+				.findByTenantIdAndPatientIdAndActiveTrueOrderByCreatedAtDesc(tenantId, patient.getId()).stream()
+				.map(this::toResponse).toList();
+	}
+
+	@Transactional(readOnly = true)
+	public SaasPrescriptionResponse getMyPrescription(Long tenantId, Long prescriptionId) {
+
+		requirePatientRole();
+
+		SaasPatient patient = patientSelfResolverService.resolvePatientEntity(tenantId);
+
+		SaasPrescription prescription = getPrescriptionEntity(tenantId, prescriptionId);
+
+		if (!patient.getId().equals(prescription.getPatientId())) {
+
+			throw new AccessDeniedException("You cannot access another patient's prescription.");
+		}
+
+		return toResponse(prescription);
+	}
+
+	/*
+	 * ================================================================ DELETE
+	 * ================================================================
+	 */
+
 	@Transactional
 	public ApiResponse deletePrescription(Long tenantId, Long prescriptionId) {
 
-		permissionService.requirePermission(tenantId, TenantModule.PRESCRIPTIONS, SaasPermissionAction.DELETE);
+		validateWorkspacePermission(tenantId, SaasPermissionAction.DELETE);
 
-		tenantAccessService.validateTenantAccess(tenantId);
+		SaasPrescription prescription = getPrescriptionEntity(tenantId, prescriptionId);
 
-		SaasPrescription prescription = prescriptionRepository
-				.findByIdAndTenantIdAndActiveTrue(prescriptionId, tenantId)
-				.orElseThrow(() -> new RuntimeException("Prescription not found"));
+		SaasStaff doctor = getDoctor(tenantId, prescription.getDoctorProfileId());
+
+		validateDoctorOwnership(doctor);
 
 		prescription.setActive(false);
+
 		prescription.touch();
 
 		prescriptionRepository.save(prescription);
 
-		return new ApiResponse(true, "Prescription deleted successfully");
+		return new ApiResponse(true, "Prescription deleted successfully.");
 	}
 
-	private void validateRequest(SaasPrescriptionRequest request) {
+	/*
+	 * ================================================================ REQUEST →
+	 * ENTITY ================================================================
+	 */
 
-		if (request.getTenantId() == null) {
-			throw new RuntimeException("tenantId is required");
+	private void applyRequest(SaasPrescription prescription, SaasPrescriptionRequest request, SaasPatient patient,
+			SaasStaff doctor, SaasAppointment appointment) {
+
+		prescription.setTenantId(request.getTenantId());
+
+		prescription.setPatientId(patient.getId());
+
+		/*
+		 * Legacy field name retained. Value is canonical SaasStaff.id.
+		 */
+		prescription.setDoctorProfileId(doctor.getId());
+
+		prescription.setAppointmentId(appointment == null ? null : appointment.getId());
+
+		prescription.setDiagnosis(clean(request.getDiagnosis()));
+
+		prescription.setClinicalNotes(clean(request.getClinicalNotes()));
+
+		prescription.setAdvice(clean(request.getAdvice()));
+
+		prescription.setLabTests(clean(request.getLabTests()));
+
+		prescription.setFollowUpAdvice(clean(request.getFollowUpAdvice()));
+
+		prescription.setFollowUpDate(request.getFollowUpDate());
+
+		prescription.setBloodPressure(clean(request.getBloodPressure()));
+
+		prescription.setPulse(clean(request.getPulse()));
+
+		prescription.setTemperature(clean(request.getTemperature()));
+
+		prescription.setSpo2(clean(request.getSpo2()));
+
+		prescription.setWeight(clean(request.getWeight()));
+
+		prescription.setHeight(clean(request.getHeight()));
+
+		prescription.setSugarLevel(clean(request.getSugarLevel()));
+	}
+
+	/*
+	 * ================================================================ APPOINTMENT
+	 * VALIDATION ================================================================
+	 */
+
+	private SaasAppointment validateLinkedAppointment(SaasPrescriptionRequest request, SaasPatient patient,
+			SaasStaff doctor) {
+
+		if (request.getAppointmentId() == null) {
+
+			return null;
 		}
 
-		if (request.getPatientId() == null) {
-			throw new RuntimeException("patientId is required");
+		SaasAppointment appointment = getAppointment(request.getTenantId(), request.getAppointmentId());
+
+		validateAppointmentIdentity(appointment, patient, doctor);
+
+		if (appointment.getStatus() != SaasAppointmentStatus.IN_CONSULTATION) {
+
+			throw new RuntimeException(
+					"Prescription can be created for a linked appointment only while consultation is IN_CONSULTATION.");
 		}
 
-		if (request.getDoctorProfileId() == null) {
-			throw new RuntimeException("doctorProfileId is required");
+		return appointment;
+	}
+
+	private SaasAppointment validateLinkedAppointmentForUpdate(SaasPrescriptionRequest request, SaasPatient patient,
+			SaasStaff doctor, Long prescriptionId) {
+
+		if (request.getAppointmentId() == null) {
+
+			return null;
 		}
 
-		if (request.getDiagnosis() == null || request.getDiagnosis().isBlank()) {
-			throw new RuntimeException("Diagnosis is required");
+		SaasAppointment appointment = getAppointment(request.getTenantId(), request.getAppointmentId());
+
+		validateAppointmentIdentity(appointment, patient, doctor);
+
+		prescriptionRepository.findFirstByTenantIdAndAppointmentIdAndActiveTrueOrderByCreatedAtDesc(
+				request.getTenantId(), appointment.getId()).ifPresent(existing -> {
+
+					if (!existing.getId().equals(prescriptionId)) {
+
+						throw new RuntimeException("Another active prescription already exists for this appointment.");
+					}
+				});
+
+		return appointment;
+	}
+
+	private void validateAppointmentIdentity(SaasAppointment appointment, SaasPatient patient, SaasStaff doctor) {
+
+		if (!patient.getId().equals(appointment.getPatientId())) {
+
+			throw new RuntimeException("Selected patient does not match linked appointment.");
+		}
+
+		if (!doctor.getId().equals(appointment.getDoctorStaffId())) {
+
+			throw new RuntimeException("Selected doctor does not match linked appointment.");
 		}
 	}
 
-	private void saveMedicines(Long tenantId, Long prescriptionId, List<SaasPrescriptionMedicineRequest> medicines) {
+	/*
+	 * ================================================================ MEDICINES
+	 * ================================================================
+	 */
+
+	private void replaceMedicines(Long tenantId, Long prescriptionId, List<SaasPrescriptionMedicineRequest> medicines) {
+
+		medicineRepository.deleteByTenantIdAndPrescriptionId(tenantId, prescriptionId);
+
 		if (medicines == null || medicines.isEmpty()) {
+
 			return;
 		}
 
 		for (SaasPrescriptionMedicineRequest item : medicines) {
 
-			if (item.getMedicineName() == null || item.getMedicineName().isBlank()) {
+			if (item == null || item.getMedicineName() == null || item.getMedicineName().isBlank()) {
+
 				continue;
 			}
 
 			SaasPrescriptionMedicine medicine = new SaasPrescriptionMedicine();
+
 			medicine.setTenantId(tenantId);
+
 			medicine.setPrescriptionId(prescriptionId);
-			medicine.setMedicineName(item.getMedicineName());
-			medicine.setDosage(item.getDosage());
-			medicine.setFrequency(item.getFrequency());
-			medicine.setDuration(item.getDuration());
-			medicine.setInstructions(item.getInstructions());
+
+			medicine.setMedicineName(item.getMedicineName().trim());
+
+			medicine.setDosage(clean(item.getDosage()));
+
+			medicine.setFrequency(clean(item.getFrequency()));
+
+			medicine.setDuration(clean(item.getDuration()));
+
+			medicine.setInstructions(clean(item.getInstructions()));
 
 			medicineRepository.save(medicine);
 		}
 	}
+
+	/*
+	 * ================================================================ VALIDATION /
+	 * ACCESS ================================================================
+	 */
+
+	private void validateRequest(SaasPrescriptionRequest request) {
+
+		if (request == null) {
+
+			throw new RuntimeException("Prescription request is required.");
+		}
+
+		if (request.getTenantId() == null) {
+
+			throw new RuntimeException("tenantId is required.");
+		}
+
+		if (request.getPatientId() == null) {
+
+			throw new RuntimeException("patientId is required.");
+		}
+
+		if (request.getDoctorProfileId() == null) {
+
+			throw new RuntimeException("doctorProfileId is required.");
+		}
+
+		if (request.getDiagnosis() == null || request.getDiagnosis().isBlank()) {
+
+			throw new RuntimeException("Diagnosis is required.");
+		}
+	}
+
+	private void validateWorkspacePermission(Long tenantId, SaasPermissionAction action) {
+
+		tenantAccessService.validateTenantAccess(tenantId);
+
+		permissionService.requirePermission(tenantId, TenantModule.PRESCRIPTIONS, action);
+	}
+
+	private SaasPatient getPatient(Long tenantId, Long patientId) {
+
+		return patientRepository.findByIdAndTenantIdAndActiveTrue(patientId, tenantId)
+				.orElseThrow(() -> new RuntimeException("Patient not found in selected workspace."));
+	}
+
+	private SaasStaff getDoctor(Long tenantId, Long doctorStaffId) {
+
+		SaasStaff doctor = staffRepository.findByIdAndTenantIdAndActiveTrue(doctorStaffId, tenantId)
+				.orElseThrow(() -> new RuntimeException("Doctor not found."));
+
+		if (doctor.getStaffRole() != SaasStaffRole.DOCTOR) {
+
+			throw new RuntimeException("Selected staff member is not a doctor.");
+		}
+
+		return doctor;
+	}
+
+	private SaasAppointment getAppointment(Long tenantId, Long appointmentId) {
+
+		return appointmentRepository.findByIdAndTenantIdAndActiveTrue(appointmentId, tenantId)
+				.orElseThrow(() -> new RuntimeException("Appointment not found in selected workspace."));
+	}
+
+	private SaasPrescription getPrescriptionEntity(Long tenantId, Long prescriptionId) {
+
+		return prescriptionRepository.findByIdAndTenantIdAndActiveTrue(prescriptionId, tenantId)
+				.orElseThrow(() -> new RuntimeException("Prescription not found."));
+	}
+
+	private void validateDoctorOwnership(SaasStaff doctor) {
+
+		String role = normalizeRole(CurrentUserUtil.getRole());
+
+		if ("DOCTOR".equals(role)) {
+
+			Long authUserId = CurrentUserUtil.getUserId();
+
+			if (authUserId == null || !authUserId.equals(doctor.getAuthUserId())) {
+
+				throw new AccessDeniedException("Doctor can manage only their own prescriptions.");
+			}
+		}
+	}
+
+	private void requirePatientRole() {
+
+		if (!"PATIENT".equals(normalizeRole(CurrentUserUtil.getRole()))) {
+
+			throw new AccessDeniedException("Only patient can access this endpoint.");
+		}
+	}
+
+	private String normalizeRole(String role) {
+
+		if (role == null) {
+
+			return "";
+		}
+
+		return role.trim().toUpperCase(Locale.ROOT).replaceFirst("^ROLE_", "");
+	}
+
+	private String clean(String value) {
+
+		if (value == null) {
+
+			return null;
+		}
+
+		String cleanValue = value.trim();
+
+		return cleanValue.isBlank() ? null : cleanValue;
+	}
+
+	/*
+	 * ================================================================ RESPONSE
+	 * ================================================================
+	 */
 
 	private SaasPrescriptionResponse toResponse(SaasPrescription prescription) {
 
 		SaasPatient patient = patientRepository
 				.findByIdAndTenantIdAndActiveTrue(prescription.getPatientId(), prescription.getTenantId()).orElse(null);
 
-		SaasDoctorProfile doctor = doctorRepository
+		SaasStaff doctor = staffRepository
 				.findByIdAndTenantIdAndActiveTrue(prescription.getDoctorProfileId(), prescription.getTenantId())
 				.orElse(null);
 
 		List<SaasPrescriptionMedicineResponse> medicines = medicineRepository
 				.findByTenantIdAndPrescriptionIdOrderByIdAsc(prescription.getTenantId(), prescription.getId()).stream()
-				.map(medicine -> new SaasPrescriptionMedicineResponse(medicine.getId(), medicine.getMedicineName(),
-						medicine.getDosage(), medicine.getFrequency(), medicine.getDuration(),
+				.map(medicine -> new SaasPrescriptionMedicineResponse(
+
+						medicine.getId(),
+
+						medicine.getMedicineName(),
+
+						medicine.getDosage(),
+
+						medicine.getFrequency(),
+
+						medicine.getDuration(),
+
 						medicine.getInstructions()))
 				.toList();
 
-		return new SaasPrescriptionResponse(prescription.getId(), prescription.getTenantId(),
-				prescription.getPatientId(), patient == null ? null : patient.getPatientCode(),
-				patient == null ? null : patient.getPatientName(), patient == null ? null : patient.getMobile(),
-				prescription.getDoctorProfileId(), doctor == null ? null : doctor.getDoctorName(),
-				doctor == null ? null : doctor.getDepartment(), doctor == null ? null : doctor.getSpecialization(),
-				prescription.getAppointmentId(), prescription.getDiagnosis(), prescription.getClinicalNotes(),
-				prescription.getAdvice(), prescription.getLabTests(), prescription.getFollowUpAdvice(),
-				prescription.getFollowUpDate(), prescription.getBloodPressure(), prescription.getPulse(),
-				prescription.getTemperature(), prescription.getSpo2(), prescription.getWeight(),
-				prescription.getHeight(), prescription.getSugarLevel(), medicines, prescription.getActive(),
+		return new SaasPrescriptionResponse(
+
+				prescription.getId(),
+
+				prescription.getTenantId(),
+
+				prescription.getPatientId(),
+
+				patient == null ? null : patient.getPatientCode(),
+
+				patient == null ? null : patient.getPatientName(),
+
+				patient == null ? null : patient.getMobile(),
+
+				prescription.getDoctorProfileId(),
+
+				doctor == null ? null : doctor.getStaffName(),
+
+				doctor == null ? null : doctor.getDepartment(),
+
+				doctor == null ? null : doctor.getSpecialization(),
+
+				prescription.getAppointmentId(),
+
+				prescription.getDiagnosis(),
+
+				prescription.getClinicalNotes(),
+
+				prescription.getAdvice(),
+
+				prescription.getLabTests(),
+
+				prescription.getFollowUpAdvice(),
+
+				prescription.getFollowUpDate(),
+
+				prescription.getBloodPressure(),
+
+				prescription.getPulse(),
+
+				prescription.getTemperature(),
+
+				prescription.getSpo2(),
+
+				prescription.getWeight(),
+
+				prescription.getHeight(),
+
+				prescription.getSugarLevel(),
+
+				medicines,
+
+				prescription.getActive(),
+
 				prescription.getCreatedAt());
 	}
 }

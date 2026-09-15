@@ -5,6 +5,7 @@ import com.example.medi.saas.dto.SaasPrescriptionRequest;
 import com.example.medi.saas.dto.SaasPrescriptionResponse;
 import com.example.medi.saas.service.SaasPrescriptionPdfService;
 import com.example.medi.saas.service.SaasPrescriptionService;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,79 +17,115 @@ import java.util.List;
 @RequestMapping("/saas/prescriptions")
 public class SaasPrescriptionController {
 
-    private final SaasPrescriptionService prescriptionService;
-    private final SaasPrescriptionPdfService pdfService;
+	private final SaasPrescriptionService prescriptionService;
 
-    public SaasPrescriptionController(
-            SaasPrescriptionService prescriptionService,
-            SaasPrescriptionPdfService pdfService
-    ) {
-        this.prescriptionService = prescriptionService;
-        this.pdfService = pdfService;
-    }
+	private final SaasPrescriptionPdfService pdfService;
 
-    @PostMapping
-    public SaasPrescriptionResponse createPrescription(@RequestBody SaasPrescriptionRequest request) {
-        return prescriptionService.createPrescription(request);
-    }
+	public SaasPrescriptionController(SaasPrescriptionService prescriptionService,
+			SaasPrescriptionPdfService pdfService) {
 
-    @GetMapping
-    public List<SaasPrescriptionResponse> getPrescriptions(@RequestParam Long tenantId) {
-        return prescriptionService.getPrescriptions(tenantId);
-    }
+		this.prescriptionService = prescriptionService;
 
-    @GetMapping("/{prescriptionId}")
-    public SaasPrescriptionResponse getPrescription(
-            @PathVariable Long prescriptionId,
-            @RequestParam Long tenantId
-    ) {
-        return prescriptionService.getPrescription(tenantId, prescriptionId);
-    }
+		this.pdfService = pdfService;
+	}
 
-    @GetMapping("/patient")
-    public List<SaasPrescriptionResponse> getPatientEmr(
-            @RequestParam Long tenantId,
-            @RequestParam Long patientId
-    ) {
-        return prescriptionService.getPatientEmr(tenantId, patientId);
-    }
+	@PostMapping
+	public SaasPrescriptionResponse createPrescription(@RequestBody SaasPrescriptionRequest request) {
 
-    @GetMapping("/doctor")
-    public List<SaasPrescriptionResponse> getDoctorPrescriptions(
-            @RequestParam Long tenantId,
-            @RequestParam Long doctorProfileId
-    ) {
-        return prescriptionService.getDoctorPrescriptions(tenantId, doctorProfileId);
-    }
+		return prescriptionService.createPrescription(request);
+	}
 
-    @GetMapping("/appointment")
-    public List<SaasPrescriptionResponse> getAppointmentPrescriptions(
-            @RequestParam Long tenantId,
-            @RequestParam Long appointmentId
-    ) {
-        return prescriptionService.getAppointmentPrescriptions(tenantId, appointmentId);
-    }
+	@PutMapping("/{prescriptionId}")
+	public SaasPrescriptionResponse updatePrescription(@PathVariable Long prescriptionId, @RequestParam Long tenantId,
+			@RequestBody SaasPrescriptionRequest request) {
 
-    @GetMapping("/{prescriptionId}/pdf")
-    public ResponseEntity<byte[]> downloadPrescriptionPdf(
-            @PathVariable Long prescriptionId,
-            @RequestParam Long tenantId
-    ) {
-        byte[] pdf = pdfService.generatePrescriptionPdf(tenantId, prescriptionId);
+		return prescriptionService.updatePrescription(tenantId, prescriptionId, request);
+	}
 
-        String filename = "saas-prescription-" + prescriptionId + ".pdf";
+	@GetMapping
+	public List<SaasPrescriptionResponse> getPrescriptions(@RequestParam Long tenantId) {
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
-                .contentType(MediaType.APPLICATION_PDF)
-                .body(pdf);
-    }
+		return prescriptionService.getPrescriptions(tenantId);
+	}
 
-    @DeleteMapping("/{prescriptionId}")
-    public ApiResponse deletePrescription(
-            @PathVariable Long prescriptionId,
-            @RequestParam Long tenantId
-    ) {
-        return prescriptionService.deletePrescription(tenantId, prescriptionId);
-    }
+	@GetMapping("/patient")
+	public List<SaasPrescriptionResponse> getPatientEmr(@RequestParam Long tenantId, @RequestParam Long patientId) {
+
+		return prescriptionService.getPatientEmr(tenantId, patientId);
+	}
+
+	@GetMapping("/doctor")
+	public List<SaasPrescriptionResponse> getDoctorPrescriptions(@RequestParam Long tenantId,
+			@RequestParam Long doctorProfileId) {
+
+		return prescriptionService.getDoctorPrescriptions(tenantId, doctorProfileId);
+	}
+
+	@GetMapping("/appointment")
+	public List<SaasPrescriptionResponse> getAppointmentPrescriptions(@RequestParam Long tenantId,
+			@RequestParam Long appointmentId) {
+
+		return prescriptionService.getAppointmentPrescriptions(tenantId, appointmentId);
+	}
+
+	/*
+	 * ================================================================ PATIENT
+	 * PORTAL ================================================================
+	 */
+
+	@GetMapping("/my")
+	public List<SaasPrescriptionResponse> getMyPrescriptions(@RequestParam Long tenantId) {
+
+		return prescriptionService.getMyPrescriptions(tenantId);
+	}
+
+	@GetMapping("/my/{prescriptionId}")
+	public SaasPrescriptionResponse getMyPrescription(@PathVariable Long prescriptionId, @RequestParam Long tenantId) {
+
+		return prescriptionService.getMyPrescription(tenantId, prescriptionId);
+	}
+
+	@GetMapping("/my/{prescriptionId}/pdf")
+	public ResponseEntity<byte[]> downloadMyPrescriptionPdf(@PathVariable Long prescriptionId,
+			@RequestParam Long tenantId) {
+
+		byte[] pdf = pdfService.generatePatientPrescriptionPdf(tenantId, prescriptionId);
+
+		return buildPdfResponse(prescriptionId, pdf);
+	}
+
+	/*
+	 * ================================================================ STAFF
+	 * ================================================================
+	 */
+
+	@GetMapping("/{prescriptionId}")
+	public SaasPrescriptionResponse getPrescription(@PathVariable Long prescriptionId, @RequestParam Long tenantId) {
+
+		return prescriptionService.getPrescription(tenantId, prescriptionId);
+	}
+
+	@GetMapping("/{prescriptionId}/pdf")
+	public ResponseEntity<byte[]> downloadPrescriptionPdf(@PathVariable Long prescriptionId,
+			@RequestParam Long tenantId) {
+
+		byte[] pdf = pdfService.generatePrescriptionPdf(tenantId, prescriptionId);
+
+		return buildPdfResponse(prescriptionId, pdf);
+	}
+
+	@DeleteMapping("/{prescriptionId}")
+	public ApiResponse deletePrescription(@PathVariable Long prescriptionId, @RequestParam Long tenantId) {
+
+		return prescriptionService.deletePrescription(tenantId, prescriptionId);
+	}
+
+	private ResponseEntity<byte[]> buildPdfResponse(Long prescriptionId, byte[] pdf) {
+
+		String filename = "saas-prescription-" + prescriptionId + ".pdf";
+
+		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+				.header("X-Content-Type-Options", "nosniff").header(HttpHeaders.CACHE_CONTROL, "no-store")
+				.contentType(MediaType.APPLICATION_PDF).body(pdf);
+	}
 }

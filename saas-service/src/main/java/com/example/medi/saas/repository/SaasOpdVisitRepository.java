@@ -7,29 +7,55 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface SaasOpdVisitRepository extends JpaRepository<SaasOpdVisit, Long> {
+public interface SaasOpdVisitRepository
+        extends JpaRepository<SaasOpdVisit, Long> {
 
-    List<SaasOpdVisit> findByTenantIdAndActiveTrueOrderByVisitDateTimeDesc(Long tenantId);
+    List<SaasOpdVisit>
+            findByTenantIdAndActiveTrueOrderByVisitDateTimeDesc(
+                    Long tenantId
+            );
 
-    Optional<SaasOpdVisit> findByIdAndTenantIdAndActiveTrue(Long id, Long tenantId);
+    Optional<SaasOpdVisit>
+            findByIdAndTenantIdAndActiveTrue(
+                    Long id,
+                    Long tenantId
+            );
 
-    List<SaasOpdVisit> findByTenantIdAndPatientIdAndActiveTrueOrderByVisitDateTimeDesc(
+    List<SaasOpdVisit>
+            findByTenantIdAndPatientIdAndActiveTrueOrderByVisitDateTimeDesc(
+                    Long tenantId,
+                    Long patientId
+            );
+
+    List<SaasOpdVisit>
+            findByTenantIdAndDoctorProfileIdAndActiveTrueOrderByVisitDateTimeDesc(
+                    Long tenantId,
+                    Long doctorProfileId
+            );
+
+    Optional<SaasOpdVisit>
+            findFirstByTenantIdAndAppointmentIdAndActiveTrueOrderByCreatedAtDesc(
+                    Long tenantId,
+                    Long appointmentId
+            );
+
+    boolean existsByTenantIdAndAppointmentIdAndActiveTrue(
             Long tenantId,
-            Long patientId
+            Long appointmentId
     );
 
-    List<SaasOpdVisit> findByTenantIdAndDoctorProfileIdAndActiveTrueOrderByVisitDateTimeDesc(
-            Long tenantId,
-            Long doctorProfileId
+    long countByTenantIdAndActiveTrue(
+            Long tenantId
     );
-    
-    long countByTenantIdAndActiveTrue(Long tenantId);
 
-    List<SaasOpdVisit> findByTenantIdAndVisitDateTimeBetweenAndActiveTrueOrderByVisitDateTimeDesc(
-            Long tenantId,
-            LocalDateTime fromDateTime,
-            LocalDateTime toDateTime
+    List<SaasOpdVisit>
+            findByTenantIdAndVisitDateTimeBetweenAndActiveTrueOrderByVisitDateTimeDesc(
+                    Long tenantId,
+                    LocalDateTime fromDateTime,
+                    LocalDateTime toDateTime
+            );
+
+    void deleteByTenantId(
+            Long tenantId
     );
-    
-    void deleteByTenantId(Long tenantId);
 }
