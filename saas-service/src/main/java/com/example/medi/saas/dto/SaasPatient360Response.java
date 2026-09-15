@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -14,24 +15,73 @@ import java.util.List;
 @AllArgsConstructor
 public class SaasPatient360Response {
 
+    /*
+     * ============================================================
+     * PATIENT BASIC PROFILE
+     * ============================================================
+     */
+
     private SaasPatientResponse patient;
+
+
+    /*
+     * ============================================================
+     * APPOINTMENT SUMMARY
+     * ============================================================
+     */
 
     private long appointmentCount;
 
     private AppointmentSnapshot latestAppointment;
 
+
+    /*
+     * ============================================================
+     * PRESCRIPTION SUMMARY
+     * ============================================================
+     */
+
     private long prescriptionCount;
 
     private PrescriptionSnapshot latestPrescription;
+
+
+    /*
+     * ============================================================
+     * CLINICAL SUMMARY
+     * ============================================================
+     */
 
     private VitalSnapshot latestVitals;
 
     private String latestDiagnosis;
 
     private LocalDate nextFollowUpDate;
-    
+
+
+    /*
+     * ============================================================
+     * PATIENT 360 CLINICAL OVERVIEW
+     * ============================================================
+     */
+
+    private ClinicalOverview clinicalOverview;
+
+
+    /*
+     * ============================================================
+     * LONGITUDINAL HEALTH TIMELINE
+     * ============================================================
+     */
+
     private List<TimelineItem> timeline;
 
+
+    /*
+     * ============================================================
+     * APPOINTMENT SNAPSHOT
+     * ============================================================
+     */
 
     @Data
     @NoArgsConstructor
@@ -58,6 +108,12 @@ public class SaasPatient360Response {
     }
 
 
+    /*
+     * ============================================================
+     * PRESCRIPTION SNAPSHOT
+     * ============================================================
+     */
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -81,6 +137,12 @@ public class SaasPatient360Response {
     }
 
 
+    /*
+     * ============================================================
+     * LATEST VITAL SNAPSHOT
+     * ============================================================
+     */
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
@@ -100,16 +162,91 @@ public class SaasPatient360Response {
 
         private String sugarLevel;
     }
-    
+
+
+    /*
+     * ============================================================
+     * PATIENT 360 CLINICAL OVERVIEW
+     * ============================================================
+     */
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ClinicalOverview {
+
+        /*
+         * Number of completed / recorded OPD encounters.
+         */
+        private long opdVisitCount;
+
+        /*
+         * Number of IPD admission records.
+         */
+        private long ipdAdmissionCount;
+
+        /*
+         * Laboratory investigation orders.
+         */
+        private long labInvestigationCount;
+
+        /*
+         * Radiology investigation orders.
+         */
+        private long radiologyInvestigationCount;
+
+        /*
+         * Billing history.
+         */
+        private long invoiceCount;
+
+        /*
+         * Patient financial snapshot.
+         */
+        private BigDecimal totalBilledAmount;
+
+        private BigDecimal totalPaidAmount;
+
+        private BigDecimal totalOutstandingAmount;
+
+        /*
+         * Most recent clinical / healthcare activity from the
+         * unified Patient 360 timeline.
+         */
+        private LocalDateTime lastClinicalActivityAt;
+    }
+
+
+    /*
+     * ============================================================
+     * LONGITUDINAL TIMELINE ITEM
+     * ============================================================
+     */
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     public static class TimelineItem {
 
+        /*
+         * APPOINTMENT
+         * PRESCRIPTION
+         * OPD
+         * IPD
+         * LAB
+         * RADIOLOGY
+         * BILLING
+         */
         private String type;
 
+        /*
+         * Primary record ID of the originating module.
+         */
         private Long referenceId;
 
+        /*
+         * Actual date/time when the clinical/business event happened.
+         */
         private LocalDateTime eventAt;
 
         private String title;
@@ -120,6 +257,9 @@ public class SaasPatient360Response {
 
         private String detail;
 
+        /*
+         * Populated where the event is related to an appointment.
+         */
         private Long appointmentId;
     }
 }

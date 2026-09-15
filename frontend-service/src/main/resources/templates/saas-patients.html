@@ -592,6 +592,268 @@
 			color: #05285f;
 			font-weight: 900;
 		}
+		
+		.patient360-overview-section {
+			margin-top: 18px;
+			padding: 22px;
+			border: 1px solid #dfeaf1;
+			border-radius: 24px;
+			background:
+				linear-gradient(
+					145deg,
+					rgba(255, 255, 255, .98),
+					rgba(241, 250, 253, .96)
+				);
+			box-shadow:
+				0 14px 34px rgba(5, 40, 95, .07);
+		}
+
+		.patient360-overview-heading {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 14px;
+			margin-bottom: 18px;
+		}
+
+		.patient360-overview-heading-left {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+		}
+
+		.patient360-overview-heading-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 46px;
+			height: 46px;
+			flex: 0 0 46px;
+			border-radius: 15px;
+			color: #fff;
+			background:
+				linear-gradient(
+					135deg,
+					#05285f,
+					#08c7d4
+				);
+			font-size: 20px;
+			box-shadow:
+				0 10px 24px rgba(5, 40, 95, .15);
+		}
+
+		.patient360-overview-heading small {
+			display: block;
+			color: #7890a4;
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: .9px;
+			text-transform: uppercase;
+		}
+
+		.patient360-overview-heading h6 {
+			margin: 3px 0 0;
+			color: #05285f;
+			font-size: 17px;
+			font-weight: 900;
+		}
+
+		.patient360-overview-badge {
+			display: inline-flex;
+			align-items: center;
+			gap: 7px;
+			padding: 7px 11px;
+			border: 1px solid #cae8ef;
+			border-radius: 999px;
+			color: #0577b8;
+			background: #effbfc;
+			font-size: 10px;
+			font-weight: 900;
+			white-space: nowrap;
+		}
+
+		.patient360-overview-grid {
+			display: grid;
+			grid-template-columns:
+				repeat(4, minmax(0, 1fr));
+			gap: 13px;
+		}
+
+		.patient360-overview-card {
+			position: relative;
+			overflow: hidden;
+			min-height: 126px;
+			padding: 17px;
+			border: 1px solid #e5eef3;
+			border-radius: 18px;
+			background: #fff;
+			transition:
+				transform .25s ease,
+				box-shadow .25s ease,
+				border-color .25s ease;
+		}
+
+		.patient360-overview-card::after {
+			position: absolute;
+			right: -25px;
+			bottom: -30px;
+			width: 82px;
+			height: 82px;
+			border-radius: 50%;
+			background:
+				rgba(8, 199, 212, .07);
+			content: "";
+		}
+
+		.patient360-overview-card:hover {
+			transform: translateY(-3px);
+			border-color: #cae8ef;
+			box-shadow:
+				0 12px 26px rgba(5, 40, 95, .09);
+		}
+
+		.patient360-overview-card-head {
+			position: relative;
+			z-index: 1;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 9px;
+		}
+
+		.patient360-overview-card-icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 39px;
+			height: 39px;
+			flex: 0 0 39px;
+			border-radius: 13px;
+			color: #fff;
+			font-size: 17px;
+		}
+
+		.patient360-overview-card-icon.opd {
+			background:
+				linear-gradient(
+					135deg,
+					#087f5b,
+					#20c997
+				);
+		}
+
+		.patient360-overview-card-icon.ipd {
+			background:
+				linear-gradient(
+					135deg,
+					#6f42c1,
+					#9b72e8
+				);
+		}
+
+		.patient360-overview-card-icon.lab {
+			background:
+				linear-gradient(
+					135deg,
+					#0d6efd,
+					#08c7d4
+				);
+		}
+
+		.patient360-overview-card-icon.radiology {
+			background:
+				linear-gradient(
+					135deg,
+					#495057,
+					#858e96
+				);
+		}
+
+		.patient360-overview-card-icon.invoice {
+			background:
+				linear-gradient(
+					135deg,
+					#b76e00,
+					#f0ad24
+				);
+		}
+
+		.patient360-overview-card-icon.billed {
+			background:
+				linear-gradient(
+					135deg,
+					#05285f,
+					#0577b8
+				);
+		}
+
+		.patient360-overview-card-icon.paid {
+			background:
+				linear-gradient(
+					135deg,
+					#16834b,
+					#42c97b
+				);
+		}
+
+		.patient360-overview-card-icon.due {
+			background:
+				linear-gradient(
+					135deg,
+					#b02a37,
+					#dc3545
+				);
+		}
+
+		.patient360-overview-card small {
+			position: relative;
+			z-index: 1;
+			display: block;
+			margin-top: 13px;
+			color: #708397;
+			font-size: 10px;
+			font-weight: 800;
+			letter-spacing: .35px;
+			text-transform: uppercase;
+		}
+
+		.patient360-overview-card strong {
+			position: relative;
+			z-index: 1;
+			display: block;
+			margin-top: 4px;
+			color: #05285f;
+			font-size: 22px;
+			font-weight: 900;
+			line-height: 1.25;
+			word-break: break-word;
+		}
+
+		.patient360-overview-card strong.patient360-money {
+			font-size: 19px;
+		}
+
+		.patient360-last-activity {
+			display: flex;
+			align-items: center;
+			gap: 11px;
+			margin-top: 14px;
+			padding: 14px 16px;
+			border: 1px solid #dcecf2;
+			border-radius: 16px;
+			color: #526a80;
+			background: #f5fbfd;
+			font-size: 12px;
+		}
+
+		.patient360-last-activity i {
+			color: #0577b8;
+			font-size: 18px;
+		}
+
+		.patient360-last-activity strong {
+			color: #05285f;
+		}
 
 		.patient360-info-grid,
 		.patient360-vitals-grid {
@@ -801,6 +1063,11 @@
 				grid-template-columns:
 					repeat(2, minmax(0, 1fr));
 			}
+			
+			.patient360-overview-grid {
+				grid-template-columns:
+					repeat(2, minmax(0, 1fr));
+			}
 		}
 
 		@keyframes patientHeroReveal {
@@ -890,6 +1157,19 @@
 		}
 
 		@media(max-width:576px) {
+			
+			.patient360-overview-grid {
+				grid-template-columns: 1fr;
+			}
+
+			.patient360-overview-heading {
+				align-items: flex-start;
+				flex-direction: column;
+			}
+
+			.patient360-overview-section {
+				padding: 17px;
+			}
 			.saas-patients-hero {
 				padding: 26px 21px;
 				border-radius: 24px
@@ -1389,7 +1669,208 @@
 
 						</div>
 
+						<section class="patient360-overview-section">
 
+							<div class="patient360-overview-heading">
+
+								<div class="patient360-overview-heading-left">
+
+									<div class="patient360-overview-heading-icon">
+										<i class="bi bi-grid-1x2-fill"></i>
+									</div>
+
+									<div>
+										<small>Longitudinal Health Record</small>
+										<h6>Clinical & Financial Overview</h6>
+									</div>
+
+								</div>
+
+								<span class="patient360-overview-badge">
+									<i class="bi bi-stars"></i>
+									Patient 360
+								</span>
+
+							</div>
+
+
+							<div class="patient360-overview-grid">
+
+								<article class="patient360-overview-card">
+
+									<div class="patient360-overview-card-head">
+
+										<div class="patient360-overview-card-icon opd">
+											<i class="bi bi-person-walking"></i>
+										</div>
+
+									</div>
+
+									<small>OPD Visits</small>
+
+									<strong id="patient360OpdCount">
+										0
+									</strong>
+
+								</article>
+
+
+								<article class="patient360-overview-card">
+
+									<div class="patient360-overview-card-head">
+
+										<div class="patient360-overview-card-icon ipd">
+											<i class="bi bi-hospital-fill"></i>
+										</div>
+
+									</div>
+
+									<small>IPD Admissions</small>
+
+									<strong id="patient360IpdCount">
+										0
+									</strong>
+
+								</article>
+
+
+								<article class="patient360-overview-card">
+
+									<div class="patient360-overview-card-head">
+
+										<div class="patient360-overview-card-icon lab">
+											<i class="bi bi-droplet-half"></i>
+										</div>
+
+									</div>
+
+									<small>Lab Investigations</small>
+
+									<strong id="patient360LabCount">
+										0
+									</strong>
+
+								</article>
+
+
+								<article class="patient360-overview-card">
+
+									<div class="patient360-overview-card-head">
+
+										<div class="patient360-overview-card-icon radiology">
+											<i class="bi bi-radioactive"></i>
+										</div>
+
+									</div>
+
+									<small>Radiology</small>
+
+									<strong id="patient360RadiologyCount">
+										0
+									</strong>
+
+								</article>
+
+
+								<article class="patient360-overview-card">
+
+									<div class="patient360-overview-card-head">
+
+										<div class="patient360-overview-card-icon invoice">
+											<i class="bi bi-receipt-cutoff"></i>
+										</div>
+
+									</div>
+
+									<small>Total Invoices</small>
+
+									<strong id="patient360InvoiceCount">
+										0
+									</strong>
+
+								</article>
+
+
+								<article class="patient360-overview-card">
+
+									<div class="patient360-overview-card-head">
+
+										<div class="patient360-overview-card-icon billed">
+											<i class="bi bi-currency-rupee"></i>
+										</div>
+
+									</div>
+
+									<small>Total Billed</small>
+
+									<strong
+										id="patient360TotalBilled"
+										class="patient360-money">
+										₹0
+									</strong>
+
+								</article>
+
+
+								<article class="patient360-overview-card">
+
+									<div class="patient360-overview-card-head">
+
+										<div class="patient360-overview-card-icon paid">
+											<i class="bi bi-check-circle-fill"></i>
+										</div>
+
+									</div>
+
+									<small>Amount Paid</small>
+
+									<strong
+										id="patient360TotalPaid"
+										class="patient360-money">
+										₹0
+									</strong>
+
+								</article>
+
+
+								<article class="patient360-overview-card">
+
+									<div class="patient360-overview-card-head">
+
+										<div class="patient360-overview-card-icon due">
+											<i class="bi bi-exclamation-circle-fill"></i>
+										</div>
+
+									</div>
+
+									<small>Outstanding</small>
+
+									<strong
+										id="patient360Outstanding"
+										class="patient360-money">
+										₹0
+									</strong>
+
+								</article>
+
+							</div>
+
+
+							<div class="patient360-last-activity">
+
+								<i class="bi bi-clock-history"></i>
+
+								<div>
+									Last recorded healthcare activity:
+									<strong id="patient360LastActivity">
+										-
+									</strong>
+								</div>
+
+							</div>
+
+						</section>
+						
 						<div class="row g-3 mt-1">
 
 							<div class="col-lg-6">
@@ -1569,7 +2050,7 @@
 	<script th:src="@{/js/common-dashboard.js}"></script>
 	<script th:src="@{/js/module-switch.js}"></script>
 	<script th:src="@{/js/saas-auth-guard.js}"></script>
-	<script th:src="@{/js/saas-patients.js?v=20260713_1}"></script>
+	<script th:src="@{/js/saas-patients.js?v=20260915_1}"></script>
 	<script th:src="@{/js/pwa.js}"></script>
 
 </body>

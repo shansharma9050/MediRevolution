@@ -15,6 +15,7 @@ import com.example.medi.saas.entity.SaasIpdDailyNote;
 import com.example.medi.saas.entity.SaasOpdVisit;
 import com.example.medi.saas.entity.SaasPatient;
 import com.example.medi.saas.entity.SaasPrescription;
+import com.example.medi.saas.enums.SaasDiagnosticType;
 import com.example.medi.saas.enums.SaasPermissionAction;
 import com.example.medi.saas.enums.TenantModule;
 import com.example.medi.saas.repository.SaasAppointmentRepository;
@@ -32,6 +33,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -229,18 +231,65 @@ public class SaasPatientService {
 	@Transactional(readOnly = true)
 	public SaasPatient360Response getPatient360(Long tenantId, Long patientId) {
 
+		/*
+		 * ============================================================ PERMISSION +
+		 * TENANT ACCESS ============================================================
+		 */
+
 		permissionService.requirePermission(tenantId, TenantModule.PATIENTS, SaasPermissionAction.VIEW);
 
 		tenantAccessService.validateTenantAccess(tenantId);
 
+		/*
+		 * ============================================================ PATIENT
+		 * ============================================================
+		 */
+
 		SaasPatient patient = patientRepository.findByIdAndTenantIdAndActiveTrue(patientId, tenantId)
 				.orElseThrow(() -> new RuntimeException("Patient not found"));
+
+		/*
+		 * ============================================================ APPOINTMENTS
+		 * ============================================================
+		 */
 
 		long appointmentCount = appointmentRepository.countByTenantIdAndPatientIdAndActiveTrue(tenantId, patientId);
 
 		Optional<SaasAppointment> latestAppointment = appointmentRepository
 				.findFirstByTenantIdAndPatientIdAndActiveTrueOrderByAppointmentDateDescAppointmentTimeDesc(tenantId,
 						patientId);
+
+		SaasPatient360Response.AppointmentSnapshot appointmentSnapshot = null;
+
+		if (latestAppointment.isPresent()) {
+
+			SaasAppointment appointment = latestAppointment.get();
+
+			appointmentSnapshot = new SaasPatient360Response.AppointmentSnapshot(
+
+					appointment.getId(),
+
+					appointment.getDoctorName(),
+
+					appointment.getDepartment(),
+
+					appointment.getSpecialization(),
+
+					appointment.getAppointmentDate(),
+
+					appointment.getAppointmentTime(),
+
+					appointment.getAppointmentType() == null ? null : appointment.getAppointmentType().name(),
+
+					appointment.getStatus() == null ? null : appointment.getStatus().name(),
+
+					appointment.getSymptoms());
+		}
+
+		/*
+		 * ============================================================ PRESCRIPTIONS
+		 * ============================================================
+		 */
 
 		long prescriptionCount = prescriptionRepository.countByTenantIdAndPatientIdAndActiveTrue(tenantId, patientId);
 
@@ -251,46 +300,162 @@ public class SaasPatientService {
 				.findFirstByTenantIdAndPatientIdAndActiveTrueAndFollowUpDateGreaterThanEqualOrderByFollowUpDateAsc(
 						tenantId, patientId, LocalDate.now());
 
-		SaasPatient360Response.AppointmentSnapshot appointmentSnapshot = null;
-
-		if (latestAppointment.isPresent()) {
-
-			SaasAppointment appointment = latestAppointment.get();
-
-			appointmentSnapshot = new SaasPatient360Response.AppointmentSnapshot(appointment.getId(),
-					appointment.getDoctorName(), appointment.getDepartment(), appointment.getSpecialization(),
-					appointment.getAppointmentDate(), appointment.getAppointmentTime(),
-					appointment.getAppointmentType() == null ? null : appointment.getAppointmentType().name(),
-					appointment.getStatus() == null ? null : appointment.getStatus().name(), appointment.getSymptoms());
-		}
-
 		SaasPatient360Response.PrescriptionSnapshot prescriptionSnapshot = null;
-
-		SaasPatient360Response.VitalSnapshot vitalSnapshot = null;
-
-		String latestDiagnosis = null;
 
 		if (latestPrescription.isPresent()) {
 
 			SaasPrescription prescription = latestPrescription.get();
 
-			prescriptionSnapshot = new SaasPatient360Response.PrescriptionSnapshot(prescription.getId(),
-					prescription.getAppointmentId(), prescription.getDiagnosis(), prescription.getClinicalNotes(),
-					prescription.getAdvice(), prescription.getLabTests(), prescription.getFollowUpAdvice(),
-					prescription.getFollowUpDate());
+			prescriptionSnapshot = new SaasPatient360Response.PrescriptionSnapshot(
 
+					prescription.getId(),
+
+					prescription.getAppointmentId(),
+
+					prescription.getDiagnosis(),
+
+					prescription.getClinicalNotes(),
+
+					prescription.getAdvice(),
+
+					prescription.getLabTests(),
+
+					prescription.getFollowUpAdvice(),
+
+					prescription.getFollowUpDate());
 		}
 
-		vitalSnapshot = resolveLatestVitals(tenantId, patientId, latestPrescription);
+		/*
+		 * ============================================================ LATEST CLINICAL
+		 * SNAPSHOT ============================================================
+		 */
 
-		latestDiagnosis = resolveLatestDiagnosis(tenantId, patientId, latestPrescription);
+		SaasPatient360Response.VitalSnapshot vitalSnapshot = resolveLatestVitals(tenantId, patientId,
+				latestPrescription);
+
+		String latestDiagnosis = resolveLatestDiagnosis(tenantId, patientId, latestPrescription);
 
 		LocalDate nextFollowUpDate = nextFollowUp.map(SaasPrescription::getFollowUpDate).orElse(null);
 
+		/*
+		 * ============================================================ OPD HISTORY
+		 * ============================================================
+		 */
+
+		List<SaasOpdVisit> opdVisits = opdVisitRepository
+				.findByTenantIdAndPatientIdAndActiveTrueOrderByVisitDateTimeDesc(tenantId, patientId);
+
+		long opdVisitCount = opdVisits.size();
+
+		/*
+		 * ============================================================ IPD HISTORY
+		 * ============================================================
+		 */
+
+		List<SaasIpdAdmission> ipdAdmissions = ipdAdmissionRepository
+				.findByTenantIdAndPatientIdAndActiveTrueOrderByAdmissionDateTimeDesc(tenantId, patientId);
+
+		long ipdAdmissionCount = ipdAdmissions.size();
+
+		/*
+		 * ============================================================ LAB + RADIOLOGY
+		 * HISTORY ============================================================
+		 */
+
+		List<SaasDiagnosticOrder> diagnosticOrders = diagnosticOrderRepository
+				.findByTenantIdAndPatientIdAndActiveTrueOrderByOrderDateTimeDesc(tenantId, patientId);
+
+		long labInvestigationCount = diagnosticOrders.stream()
+				.filter(order -> order.getDiagnosticType() == SaasDiagnosticType.LAB).count();
+
+		long radiologyInvestigationCount = diagnosticOrders.stream()
+				.filter(order -> order.getDiagnosticType() == SaasDiagnosticType.RADIOLOGY).count();
+
+		/*
+		 * ============================================================ BILLING HISTORY
+		 * ============================================================
+		 */
+
+		List<SaasInvoice> invoices = invoiceRepository
+				.findByTenantIdAndPatientIdAndActiveTrueOrderByInvoiceDateTimeDesc(tenantId, patientId);
+
+		long invoiceCount = invoices.size();
+
+		BigDecimal totalBilledAmount = invoices.stream().map(SaasInvoice::getTotalAmount)
+				.filter(amount -> amount != null).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		BigDecimal totalPaidAmount = invoices.stream().map(SaasInvoice::getPaidAmount).filter(amount -> amount != null)
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		BigDecimal totalOutstandingAmount = invoices.stream().map(SaasInvoice::getDueAmount)
+				.filter(amount -> amount != null).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		/*
+		 * ============================================================ LONGITUDINAL
+		 * PATIENT TIMELINE ============================================================
+		 */
+
 		List<SaasPatient360Response.TimelineItem> timeline = buildPatientTimeline(tenantId, patientId);
 
-		return new SaasPatient360Response(toResponse(patient), appointmentCount, appointmentSnapshot, prescriptionCount,
-				prescriptionSnapshot, vitalSnapshot, latestDiagnosis, nextFollowUpDate, timeline);
+		/*
+		 * ============================================================ LAST CLINICAL
+		 * ACTIVITY ============================================================
+		 */
+
+		LocalDateTime lastClinicalActivityAt = timeline.stream().map(SaasPatient360Response.TimelineItem::getEventAt)
+				.filter(eventAt -> eventAt != null).max(LocalDateTime::compareTo).orElse(null);
+
+		/*
+		 * ============================================================ CLINICAL
+		 * OVERVIEW ============================================================
+		 */
+
+		SaasPatient360Response.ClinicalOverview clinicalOverview = new SaasPatient360Response.ClinicalOverview(
+
+				opdVisitCount,
+
+				ipdAdmissionCount,
+
+				labInvestigationCount,
+
+				radiologyInvestigationCount,
+
+				invoiceCount,
+
+				totalBilledAmount,
+
+				totalPaidAmount,
+
+				totalOutstandingAmount,
+
+				lastClinicalActivityAt);
+
+		/*
+		 * ============================================================ FINAL PATIENT
+		 * 360 RESPONSE ============================================================
+		 */
+
+		return new SaasPatient360Response(
+
+				toResponse(patient),
+
+				appointmentCount,
+
+				appointmentSnapshot,
+
+				prescriptionCount,
+
+				prescriptionSnapshot,
+
+				vitalSnapshot,
+
+				latestDiagnosis,
+
+				nextFollowUpDate,
+
+				clinicalOverview,
+
+				timeline);
 	}
 
 	private SaasPatient360Response.VitalSnapshot resolveLatestVitals(Long tenantId, Long patientId,
@@ -347,22 +512,11 @@ public class SaasPatientService {
 		return latestVitals;
 	}
 
-	private boolean hasAnyVitals(
-	        String bloodPressure,
-	        String pulse,
-	        String temperature,
-	        String spo2,
-	        String weight,
-	        String height,
-	        String sugarLevel) {
+	private boolean hasAnyVitals(String bloodPressure, String pulse, String temperature, String spo2, String weight,
+			String height, String sugarLevel) {
 
-	    return hasText(bloodPressure)
-	            || hasText(pulse)
-	            || hasText(temperature)
-	            || hasText(spo2)
-	            || hasText(weight)
-	            || hasText(height)
-	            || hasText(sugarLevel);
+		return hasText(bloodPressure) || hasText(pulse) || hasText(temperature) || hasText(spo2) || hasText(weight)
+				|| hasText(height) || hasText(sugarLevel);
 	}
 
 	private String resolveLatestDiagnosis(Long tenantId, Long patientId,

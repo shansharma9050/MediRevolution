@@ -786,11 +786,13 @@ function renderPatient360(data) {
 			"patient360Error"
 		);
 
+
 	if (loading) {
 		loading.classList.add(
 			"d-none"
 		);
 	}
+
 
 	if (error) {
 		error.classList.add(
@@ -798,31 +800,43 @@ function renderPatient360(data) {
 		);
 	}
 
+
 	if (content) {
 		content.classList.remove(
 			"d-none"
 		);
 	}
 
+
+	/*
+	 * ============================================================
+	 * PATIENT PROFILE
+	 * ============================================================
+	 */
+
 	const patient =
 		data?.patient || {};
+
 
 	setText(
 		"patient360Name",
 		patient.patientName ||
-		"Patient"
+			"Patient"
 	);
+
 
 	setText(
 		"patient360Code",
 		patient.patientCode ||
-		"-"
+			"-"
 	);
+
 
 	setText(
 		"patient360Age",
 		patient.age ?? "-"
 	);
+
 
 	setText(
 		"patient360Gender",
@@ -831,23 +845,27 @@ function renderPatient360(data) {
 		) || "-"
 	);
 
+
 	setText(
 		"patient360BloodGroup",
 		patient.bloodGroup ||
-		"-"
+			"-"
 	);
+
 
 	setText(
 		"patient360Mobile",
 		patient.mobile ||
-		"-"
+			"-"
 	);
+
 
 	setText(
 		"patient360Email",
 		patient.email ||
-		"-"
+			"-"
 	);
+
 
 	setText(
 		"patient360Location",
@@ -859,33 +877,51 @@ function renderPatient360(data) {
 			.join(", ") || "-"
 	);
 
+
+	/*
+	 * ============================================================
+	 * CLINICAL ALERTS
+	 * ============================================================
+	 */
+
 	setText(
 		"patient360Allergies",
 		patient.allergies ||
-		"No allergies recorded"
+			"No allergies recorded"
 	);
+
 
 	setText(
 		"patient360Diseases",
 		patient.existingDiseases ||
-		"No existing diseases recorded"
+			"No existing diseases recorded"
 	);
+
+
+	/*
+	 * ============================================================
+	 * PRIMARY SUMMARY
+	 * ============================================================
+	 */
 
 	setText(
 		"patient360AppointmentCount",
 		data?.appointmentCount ?? 0
 	);
 
+
 	setText(
 		"patient360PrescriptionCount",
 		data?.prescriptionCount ?? 0
 	);
 
+
 	setText(
 		"patient360Diagnosis",
 		data?.latestDiagnosis ||
-		"No diagnosis recorded"
+			"No diagnosis recorded"
 	);
+
 
 	setText(
 		"patient360NextFollowUp",
@@ -894,21 +930,206 @@ function renderPatient360(data) {
 		)
 	);
 
+
+	/*
+	 * ============================================================
+	 * PATIENT 360 CLINICAL OVERVIEW
+	 * ============================================================
+	 */
+
+	renderPatient360ClinicalOverview(
+		data?.clinicalOverview
+	);
+
+
+	/*
+	 * ============================================================
+	 * LATEST VITALS
+	 * ============================================================
+	 */
+
 	renderPatient360Vitals(
 		data?.latestVitals
 	);
+
+
+	/*
+	 * ============================================================
+	 * LATEST RECORDS
+	 * ============================================================
+	 */
 
 	renderPatient360LatestAppointment(
 		data?.latestAppointment
 	);
 
+
 	renderPatient360LatestPrescription(
 		data?.latestPrescription
 	);
 
+
+	/*
+	 * ============================================================
+	 * LONGITUDINAL TIMELINE
+	 * ============================================================
+	 */
+
 	renderPatient360Timeline(
 		data?.timeline
 	);
+}
+
+function renderPatient360ClinicalOverview(
+	overview
+) {
+
+	const data =
+		overview || {};
+
+
+	/*
+	 * ============================================================
+	 * CLINICAL ACTIVITY COUNTS
+	 * ============================================================
+	 */
+
+	setText(
+		"patient360OpdCount",
+		normalizePatient360Count(
+			data.opdVisitCount
+		)
+	);
+
+
+	setText(
+		"patient360IpdCount",
+		normalizePatient360Count(
+			data.ipdAdmissionCount
+		)
+	);
+
+
+	setText(
+		"patient360LabCount",
+		normalizePatient360Count(
+			data.labInvestigationCount
+		)
+	);
+
+
+	setText(
+		"patient360RadiologyCount",
+		normalizePatient360Count(
+			data.radiologyInvestigationCount
+		)
+	);
+
+
+	/*
+	 * ============================================================
+	 * FINANCIAL OVERVIEW
+	 * ============================================================
+	 */
+
+	setText(
+		"patient360InvoiceCount",
+		normalizePatient360Count(
+			data.invoiceCount
+		)
+	);
+
+
+	setText(
+		"patient360TotalBilled",
+		formatPatient360Currency(
+			data.totalBilledAmount
+		)
+	);
+
+
+	setText(
+		"patient360TotalPaid",
+		formatPatient360Currency(
+			data.totalPaidAmount
+		)
+	);
+
+
+	setText(
+		"patient360Outstanding",
+		formatPatient360Currency(
+			data.totalOutstandingAmount
+		)
+	);
+
+
+	/*
+	 * ============================================================
+	 * LAST ACTIVITY
+	 * ============================================================
+	 */
+
+	setText(
+		"patient360LastActivity",
+		formatPatient360DateTime(
+			data.lastClinicalActivityAt
+		)
+	);
+}
+
+function normalizePatient360Count(value) {
+
+	const number =
+		Number(value);
+
+	if (
+		!Number.isFinite(number) ||
+		number < 0
+	) {
+		return 0;
+	}
+
+	return Math.trunc(number);
+}
+
+
+function formatPatient360Currency(value) {
+
+	const amount =
+		Number(value);
+
+	const normalizedAmount =
+		Number.isFinite(amount)
+			? amount
+			: 0;
+
+	try {
+
+		return new Intl.NumberFormat(
+			"en-IN",
+			{
+				style: "currency",
+				currency: "INR",
+				minimumFractionDigits: 0,
+				maximumFractionDigits: 2
+			}
+		).format(
+			normalizedAmount
+		);
+
+	} catch (error) {
+
+		console.warn(
+			"Unable to format Patient 360 currency:",
+			error
+		);
+
+		return (
+			"₹" +
+			normalizedAmount.toFixed(2)
+		);
+	}
 }
 
 function renderPatient360Vitals(vitals) {
