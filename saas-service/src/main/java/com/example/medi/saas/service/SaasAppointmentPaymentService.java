@@ -14,365 +14,905 @@ import com.example.medi.saas.repository.SaasPatientRepository;
 import com.example.medi.saas.repository.SaasStaffRepository;
 import com.example.medi.saas.security.CurrentUserUtil;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
 public class SaasAppointmentPaymentService {
 
-	private final SaasAppointmentRepository appointmentRepository;
+    private final SaasAppointmentRepository appointmentRepository;
 
-	private final SaasPatientRepository patientRepository;
+    private final SaasPatientRepository patientRepository;
 
-	private final SaasStaffRepository staffRepository;
+    private final SaasStaffRepository staffRepository;
 
-	private final SaasAppointmentService appointmentService;
+    private final SaasAppointmentService appointmentService;
 
-	private final SaasPhonePeService phonePeService;
+    private final SaasPhonePeService phonePeService;
 
-	private final SaasVideoMeetingService meetingService;
+    private final SaasVideoMeetingService meetingService;
 
-	public SaasAppointmentPaymentService(SaasAppointmentRepository appointmentRepository,
-			SaasPatientRepository patientRepository, SaasStaffRepository staffRepository,
-			SaasAppointmentService appointmentService, SaasPhonePeService phonePeService,
-			SaasVideoMeetingService meetingService) {
+    private final SaasPatientSelfResolverService patientSelfResolverService;
 
-		this.appointmentRepository = appointmentRepository;
 
-		this.patientRepository = patientRepository;
+    public SaasAppointmentPaymentService(
+            SaasAppointmentRepository appointmentRepository,
+            SaasPatientRepository patientRepository,
+            SaasStaffRepository staffRepository,
+            SaasAppointmentService appointmentService,
+            SaasPhonePeService phonePeService,
+            SaasVideoMeetingService meetingService,
+            SaasPatientSelfResolverService patientSelfResolverService
+    ) {
 
-		this.staffRepository = staffRepository;
+        this.appointmentRepository =
+                appointmentRepository;
 
-		this.appointmentService = appointmentService;
+        this.patientRepository =
+                patientRepository;
 
-		this.phonePeService = phonePeService;
+        this.staffRepository =
+                staffRepository;
 
-		this.meetingService = meetingService;
-	}
+        this.appointmentService =
+                appointmentService;
 
-	@Transactional
-	public PaymentStartResponse bookOnlineAppointmentAndStartPayment(SaasAppointmentRequest request) {
+        this.phonePeService =
+                phonePeService;
 
-		if (request == null) {
+        this.meetingService =
+                meetingService;
 
-			throw new RuntimeException("Appointment request is required.");
-		}
+        this.patientSelfResolverService =
+                patientSelfResolverService;
+    }
 
-		Long authUserId = CurrentUserUtil.getUserId();
 
-		if (authUserId == null) {
+    /*
+     * ================================================================
+     * ONLINE APPOINTMENT + PAYMENT
+     * ================================================================
+     */
 
-			throw new RuntimeException("Patient login is required.");
-		}
+    @Transactional
+    public PaymentStartResponse bookOnlineAppointmentAndStartPayment(
+            SaasAppointmentRequest request
+    ) {
 
-		if (request.getTenantId() == null) {
+        if (request == null) {
 
-			throw new RuntimeException("Workspace is required.");
-		}
+            throw new RuntimeException(
+                    "Appointment request is required."
+            );
+        }
 
-		SaasPatient patient = patientRepository
-				.findByTenantIdAndAuthUserIdAndActiveTrue(request.getTenantId(), authUserId)
-				.orElseThrow(() -> new RuntimeException("Patient is not assigned to this workspace."));
 
-		if (request.getDoctorStaffId() == null) {
+        Long authUserId =
+                CurrentUserUtil.getUserId();
 
-			throw new RuntimeException("Doctor is required.");
-		}
 
-		SaasStaff doctor = staffRepository
-				.findByIdAndTenantIdAndActiveTrue(request.getDoctorStaffId(), request.getTenantId())
-				.orElseThrow(() -> new RuntimeException("Doctor not found."));
+        if (authUserId == null) {
 
-		if (request.getAppointmentDate() == null) {
+            throw new RuntimeException(
+                    "Patient login is required."
+            );
+        }
 
-			throw new RuntimeException("Appointment date is required.");
-		}
 
-		if (request.getAppointmentTime() == null) {
+        if (request.getTenantId() == null) {
 
-			throw new RuntimeException("Appointment time is required.");
-		}
+            throw new RuntimeException(
+                    "Workspace is required."
+            );
+        }
 
-		if (request.getSymptoms() == null || request.getSymptoms().isBlank()) {
 
-			throw new RuntimeException("Symptoms are required.");
-		}
+        /*
+         * Canonical patient resolution.
+         *
+         * If logged-in patient identity was merged into another Patient 360,
+         * the appointment is created against the canonical patient.
+         */
 
-		if (!Boolean.TRUE.equals(doctor.getOnlineConsultationEnabled())) {
+        SaasPatient patient =
+                patientSelfResolverService
+                        .resolvePatientEntity(
+                                request.getTenantId()
+                        );
 
-			throw new RuntimeException("Online consultation is not enabled for selected doctor.");
-		}
 
-		if (request.getAppointmentDate().isBefore(LocalDate.now())) {
+        if (request.getDoctorStaffId() == null) {
 
-			throw new RuntimeException("Appointment date cannot be in the past.");
-		}
+            throw new RuntimeException(
+                    "Doctor is required."
+            );
+        }
 
-		/*
-		 * Availability validation
-		 */
-		appointmentService.validateForOnlinePayment(request.getTenantId(), doctor.getAuthUserId(),
-				request.getAppointmentDate(), request.getAppointmentTime());
 
-		/*
-		 * Online consultation fee.
-		 *
-		 * Agar aapke SaaSStaff field ka exact naam onlineConsultationFee hai, ye
-		 * directly use hoga.
-		 */
-		Long fee = doctor.getOnlineConsultationFee();
+        SaasStaff doctor =
+                staffRepository
+                        .findByIdAndTenantIdAndActiveTrue(
+                                request.getDoctorStaffId(),
+                                request.getTenantId()
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new RuntimeException(
+                                                "Doctor not found."
+                                        )
+                        );
 
-		if (fee == null || fee <= 0) {
 
-			throw new RuntimeException("Online consultation fee is not configured for selected doctor.");
-		}
+        if (request.getAppointmentDate() == null) {
 
-		String merchantOrderId = "MR-SAAS-APT-" + UUID.randomUUID();
+            throw new RuntimeException(
+                    "Appointment date is required."
+            );
+        }
 
-		SaasAppointment appointment = new SaasAppointment();
 
-		appointment.setTenantId(request.getTenantId());
+        if (request.getAppointmentTime() == null) {
 
-		appointment.setPatientId(patient.getId());
+            throw new RuntimeException(
+                    "Appointment time is required."
+            );
+        }
 
-		appointment.setDoctorStaffId(doctor.getId());
 
-		appointment.setDoctorAuthUserId(doctor.getAuthUserId());
+        if (
+                request.getSymptoms() == null ||
+                request.getSymptoms().isBlank()
+        ) {
 
-		appointment.setDoctorName(doctor.getStaffName());
+            throw new RuntimeException(
+                    "Symptoms are required."
+            );
+        }
 
-		appointment.setDepartment(doctor.getDepartment());
 
-		appointment.setSpecialization(doctor.getSpecialization());
+        if (
+                !Boolean.TRUE.equals(
+                        doctor.getOnlineConsultationEnabled()
+                )
+        ) {
 
-		appointment.setAppointmentType(SaasAppointmentType.ONLINE);
+            throw new RuntimeException(
+                    "Online consultation is not enabled for selected doctor."
+            );
+        }
 
-		appointment.setAppointmentDate(request.getAppointmentDate());
 
-		appointment.setAppointmentTime(normalizeTime(request.getAppointmentTime()));
+        if (
+                request
+                        .getAppointmentDate()
+                        .isBefore(
+                                LocalDate.now()
+                        )
+        ) {
 
-		appointment.setSymptoms(request.getSymptoms().trim());
+            throw new RuntimeException(
+                    "Appointment date cannot be in the past."
+            );
+        }
 
-		appointment.setNotes(clean(request.getNotes()));
 
-		appointment.setStatus(SaasAppointmentStatus.PAYMENT_PENDING);
+        /*
+         * Availability validation.
+         */
 
-		appointment.setPaymentStatus("INITIATED");
+        appointmentService.validateForOnlinePayment(
 
-		appointment.setConsultationFee(fee);
+                request.getTenantId(),
 
-		appointment.setPaymentOrderId(merchantOrderId);
+                doctor.getAuthUserId(),
 
-		appointment.setCreatedByAuthUserId(authUserId);
+                request.getAppointmentDate(),
 
-		SaasAppointment saved = appointmentRepository.saveAndFlush(appointment);
+                request.getAppointmentTime()
+        );
 
-		String redirectUrl = phonePeService.createCheckoutPayment(merchantOrderId, fee * 100, saved.getId());
 
-		return new PaymentStartResponse(saved.getId(), merchantOrderId, redirectUrl);
-	}
+        Long fee =
+                doctor.getOnlineConsultationFee();
 
-	@Transactional
-	public SaasAppointment markPaymentSuccess(String merchantOrderId, String transactionId) {
 
-		SaasAppointment appointment = appointmentRepository.findByPaymentOrderId(merchantOrderId)
-				.orElseThrow(() -> new RuntimeException("Appointment not found."));
+        if (
+                fee == null ||
+                fee <= 0
+        ) {
 
-		if ("SUCCESS".equalsIgnoreCase(appointment.getPaymentStatus())) {
+            throw new RuntimeException(
+                    "Online consultation fee is not configured for selected doctor."
+            );
+        }
 
-			return appointment;
-		}
 
-		appointment.setPaymentStatus("SUCCESS");
+        String merchantOrderId =
+                "MR-SAAS-APT-"
+                        + UUID.randomUUID();
 
-		appointment.setStatus(SaasAppointmentStatus.CONFIRMED);
 
-		appointment.setPaymentTransactionId(transactionId);
+        SaasAppointment appointment =
+                new SaasAppointment();
 
-		if (appointment.getMeetingUrl() == null || appointment.getMeetingUrl().isBlank()) {
 
-			appointment.setMeetingUrl(meetingService.generateMeetingUrl(appointment.getId()));
-		}
+        appointment.setTenantId(
+                request.getTenantId()
+        );
 
-		appointment.touch();
+        appointment.setPatientId(
+                patient.getId()
+        );
 
-		return appointmentRepository.save(appointment);
-	}
+        appointment.setDoctorStaffId(
+                doctor.getId()
+        );
 
-	@Transactional
-	public SaasAppointmentResponse verifyPayment(Long appointmentId, String merchantOrderId) {
+        appointment.setDoctorAuthUserId(
+                doctor.getAuthUserId()
+        );
 
-		if (appointmentId == null) {
-			throw new RuntimeException("Appointment ID is required.");
-		}
+        appointment.setDoctorName(
+                doctor.getStaffName()
+        );
 
-		if (merchantOrderId == null || merchantOrderId.isBlank()) {
-			throw new RuntimeException("Merchant order ID is required.");
-		}
+        appointment.setDepartment(
+                doctor.getDepartment()
+        );
 
-		SaasAppointment appointment = appointmentRepository.findById(appointmentId)
-				.orElseThrow(() -> new RuntimeException("Appointment not found"));
+        appointment.setSpecialization(
+                doctor.getSpecialization()
+        );
 
-		if (!merchantOrderId.equals(appointment.getPaymentOrderId())) {
+        appointment.setAppointmentType(
+                SaasAppointmentType.ONLINE
+        );
 
-			throw new RuntimeException("Merchant order ID does not match appointment.");
-		}
+        appointment.setAppointmentDate(
+                request.getAppointmentDate()
+        );
 
-		/*
-		 * Already verified.
-		 */
-		if ("SUCCESS".equalsIgnoreCase(appointment.getPaymentStatus())
-				&& appointment.getStatus() == SaasAppointmentStatus.CONFIRMED) {
+        appointment.setAppointmentTime(
+                normalizeTime(
+                        request.getAppointmentTime()
+                )
+        );
 
-			return toResponse(appointment);
-		}
+        appointment.setSymptoms(
+                request
+                        .getSymptoms()
+                        .trim()
+        );
 
-		SaasPhonePayPaymentStatus paymentStatus = phonePeService.checkPaymentStatus(merchantOrderId);
+        appointment.setNotes(
+                clean(
+                        request.getNotes()
+                )
+        );
 
-		String state = paymentStatus.getState();
+        appointment.setStatus(
+                SaasAppointmentStatus.PAYMENT_PENDING
+        );
 
-		if ("COMPLETED".equalsIgnoreCase(state) || "SUCCESS".equalsIgnoreCase(state)) {
+        appointment.setPaymentStatus(
+                "INITIATED"
+        );
 
-			appointment.setPaymentStatus("SUCCESS");
+        appointment.setConsultationFee(
+                fee
+        );
 
-			appointment.setStatus(SaasAppointmentStatus.CONFIRMED);
+        appointment.setPaymentOrderId(
+                merchantOrderId
+        );
 
-			appointment.setPaymentTransactionId(paymentStatus.getTransactionId());
+        appointment.setCreatedByAuthUserId(
+                authUserId
+        );
 
-			if (appointment.getMeetingUrl() == null || appointment.getMeetingUrl().isBlank()) {
+        appointment.setActive(
+                true
+        );
 
-				appointment.setMeetingUrl(generateMeetingUrl(appointment.getId()));
-			}
 
-			appointment.touch();
+        SaasAppointment saved =
+                appointmentRepository
+                        .saveAndFlush(
+                                appointment
+                        );
 
-			SaasAppointment saved = appointmentRepository.save(appointment);
 
-			return toResponse(saved);
-		}
+        String redirectUrl =
+                phonePeService
+                        .createCheckoutPayment(
+                                merchantOrderId,
+                                fee * 100,
+                                saved.getId()
+                        );
 
-		if ("FAILED".equalsIgnoreCase(state) || "PAYMENT_FAILED".equalsIgnoreCase(state)) {
 
-			appointment.setPaymentStatus("FAILED");
+        return new PaymentStartResponse(
+                saved.getId(),
+                merchantOrderId,
+                redirectUrl
+        );
+    }
 
-			appointment.setStatus(SaasAppointmentStatus.PAYMENT_FAILED);
 
-			appointment.touch();
+    /*
+     * ================================================================
+     * PAYMENT SUCCESS
+     * ================================================================
+     */
 
-			SaasAppointment saved = appointmentRepository.save(appointment);
+    @Transactional
+    public SaasAppointment markPaymentSuccess(
+            String merchantOrderId,
+            String transactionId
+    ) {
 
-			return toResponse(saved);
-		}
+        SaasAppointment appointment =
+                appointmentRepository
+                        .findByPaymentOrderId(
+                                merchantOrderId
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new RuntimeException(
+                                                "Appointment not found."
+                                        )
+                        );
 
-		appointment.setPaymentStatus("PENDING");
 
-		appointment.touch();
+        if (
+                "SUCCESS".equalsIgnoreCase(
+                        appointment.getPaymentStatus()
+                )
+        ) {
 
-		SaasAppointment saved = appointmentRepository.save(appointment);
+            return appointment;
+        }
 
-		return toResponse(saved);
-	}
 
-	private String generateMeetingUrl(Long appointmentId) {
+        appointment.setPaymentStatus(
+                "SUCCESS"
+        );
 
-		String roomName = "medirevolution-saas-appointment-" + appointmentId + "-" + UUID.randomUUID();
+        appointment.setStatus(
+                SaasAppointmentStatus.CONFIRMED
+        );
 
-		return "https://meet.jit.si/" + roomName;
-	}
+        appointment.setPaymentTransactionId(
+                transactionId
+        );
 
-	private SaasAppointmentResponse toResponse(SaasAppointment appointment) {
 
-		SaasPatient patient = patientRepository
-				.findByIdAndTenantIdAndActiveTrue(appointment.getPatientId(), appointment.getTenantId()).orElse(null);
+        if (
+                appointment.getMeetingUrl() == null ||
+                appointment
+                        .getMeetingUrl()
+                        .isBlank()
+        ) {
 
-		SaasStaff doctorStaff = staffRepository
-				.findByIdAndTenantIdAndActiveTrue(appointment.getDoctorStaffId(), appointment.getTenantId())
-				.orElse(null);
+            appointment.setMeetingUrl(
+                    meetingService
+                            .generateMeetingUrl(
+                                    appointment.getId()
+                            )
+            );
+        }
 
-		SaasAppointmentResponse response = new SaasAppointmentResponse();
 
-		response.setId(appointment.getId());
+        appointment.touch();
 
-		response.setTenantId(appointment.getTenantId());
 
-		response.setPatientId(appointment.getPatientId());
+        return appointmentRepository.save(
+                appointment
+        );
+    }
 
-		response.setPatientCode(patient == null ? null : patient.getPatientCode());
 
-		response.setPatientName(patient == null ? null : patient.getPatientName());
+    /*
+     * ================================================================
+     * VERIFY PAYMENT
+     * ================================================================
+     */
 
-		response.setPatientMobile(patient == null ? null : patient.getMobile());
+    @Transactional
+    public SaasAppointmentResponse verifyPayment(
+            Long appointmentId,
+            String merchantOrderId
+    ) {
 
-		response.setDoctorStaffId(appointment.getDoctorStaffId());
+        if (appointmentId == null) {
 
-		response.setDoctorAuthUserId(appointment.getDoctorAuthUserId());
+            throw new RuntimeException(
+                    "Appointment ID is required."
+            );
+        }
 
-		response.setDoctorName(appointment.getDoctorName());
 
-		response.setDepartment(appointment.getDepartment());
+        if (
+                merchantOrderId == null ||
+                merchantOrderId.isBlank()
+        ) {
 
-		response.setSpecialization(doctorStaff == null ? null : doctorStaff.getSpecialization());
+            throw new RuntimeException(
+                    "Merchant order ID is required."
+            );
+        }
 
-		response.setAppointmentType(
-				appointment.getAppointmentType() == null ? null : appointment.getAppointmentType().name());
 
-		response.setAppointmentDate(appointment.getAppointmentDate());
+        SaasAppointment appointment =
+                appointmentRepository
+                        .findById(
+                                appointmentId
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new RuntimeException(
+                                                "Appointment not found"
+                                        )
+                        );
 
-		response.setAppointmentTime(appointment.getAppointmentTime());
 
-		response.setStatus(appointment.getStatus() == null ? null : appointment.getStatus().name());
+        /*
+         * If a patient is calling the verification endpoint, enforce
+         * canonical Patient 360 ownership.
+         */
 
-		response.setSymptoms(appointment.getSymptoms());
+        if (isPatientRole()) {
 
-		response.setNotes(appointment.getNotes());
+            SaasPatient patient =
+                    patientSelfResolverService
+                            .resolvePatientEntity(
+                                    appointment.getTenantId()
+                            );
 
-		response.setMeetingUrl(appointment.getMeetingUrl());
 
-		response.setActive(appointment.getActive());
+            if (
+                    !patient
+                            .getId()
+                            .equals(
+                                    appointment.getPatientId()
+                            )
+            ) {
 
-		response.setCreatedAt(appointment.getCreatedAt());
+                throw new AccessDeniedException(
+                        "You cannot verify another patient's appointment payment."
+                );
+            }
+        }
 
-		return response;
-	}
 
-	@Transactional
-	public SaasAppointment markPaymentFailed(String merchantOrderId) {
+        if (
+                !merchantOrderId.equals(
+                        appointment.getPaymentOrderId()
+                )
+        ) {
 
-		SaasAppointment appointment = appointmentRepository.findByPaymentOrderId(merchantOrderId)
-				.orElseThrow(() -> new RuntimeException("Appointment not found."));
+            throw new RuntimeException(
+                    "Merchant order ID does not match appointment."
+            );
+        }
 
-		if ("SUCCESS".equalsIgnoreCase(appointment.getPaymentStatus())) {
 
-			return appointment;
-		}
+        if (
+                "SUCCESS".equalsIgnoreCase(
+                        appointment.getPaymentStatus()
+                )
+                &&
+                appointment.getStatus()
+                        == SaasAppointmentStatus.CONFIRMED
+        ) {
 
-		appointment.setPaymentStatus("FAILED");
+            return toResponse(
+                    appointment
+            );
+        }
 
-		appointment.setStatus(SaasAppointmentStatus.PAYMENT_FAILED);
 
-		appointment.touch();
+        SaasPhonePayPaymentStatus paymentStatus =
+                phonePeService
+                        .checkPaymentStatus(
+                                merchantOrderId
+                        );
 
-		return appointmentRepository.save(appointment);
-	}
 
-	private LocalTime normalizeTime(LocalTime time) {
+        String state =
+                paymentStatus.getState();
 
-		return time.withSecond(0).withNano(0);
-	}
 
-	private String clean(String value) {
+        if (
+                "COMPLETED".equalsIgnoreCase(
+                        state
+                )
+                ||
+                "SUCCESS".equalsIgnoreCase(
+                        state
+                )
+        ) {
 
-		if (value == null) {
-			return null;
-		}
+            appointment.setPaymentStatus(
+                    "SUCCESS"
+            );
 
-		String v = value.trim();
+            appointment.setStatus(
+                    SaasAppointmentStatus.CONFIRMED
+            );
 
-		return v.isBlank() ? null : v;
-	}
+            appointment.setPaymentTransactionId(
+                    paymentStatus.getTransactionId()
+            );
+
+
+            if (
+                    appointment.getMeetingUrl() == null ||
+                    appointment
+                            .getMeetingUrl()
+                            .isBlank()
+            ) {
+
+                appointment.setMeetingUrl(
+                        generateMeetingUrl(
+                                appointment.getId()
+                        )
+                );
+            }
+
+
+            appointment.touch();
+
+
+            return toResponse(
+                    appointmentRepository.save(
+                            appointment
+                    )
+            );
+        }
+
+
+        if (
+                "FAILED".equalsIgnoreCase(
+                        state
+                )
+                ||
+                "PAYMENT_FAILED".equalsIgnoreCase(
+                        state
+                )
+        ) {
+
+            appointment.setPaymentStatus(
+                    "FAILED"
+            );
+
+            appointment.setStatus(
+                    SaasAppointmentStatus.PAYMENT_FAILED
+            );
+
+            appointment.touch();
+
+
+            return toResponse(
+                    appointmentRepository.save(
+                            appointment
+                    )
+            );
+        }
+
+
+        appointment.setPaymentStatus(
+                "PENDING"
+        );
+
+        appointment.touch();
+
+
+        return toResponse(
+                appointmentRepository.save(
+                        appointment
+                )
+        );
+    }
+
+
+    /*
+     * ================================================================
+     * PAYMENT FAILED
+     * ================================================================
+     */
+
+    @Transactional
+    public SaasAppointment markPaymentFailed(
+            String merchantOrderId
+    ) {
+
+        SaasAppointment appointment =
+                appointmentRepository
+                        .findByPaymentOrderId(
+                                merchantOrderId
+                        )
+                        .orElseThrow(
+                                () ->
+                                        new RuntimeException(
+                                                "Appointment not found."
+                                        )
+                        );
+
+
+        if (
+                "SUCCESS".equalsIgnoreCase(
+                        appointment.getPaymentStatus()
+                )
+        ) {
+
+            return appointment;
+        }
+
+
+        appointment.setPaymentStatus(
+                "FAILED"
+        );
+
+        appointment.setStatus(
+                SaasAppointmentStatus.PAYMENT_FAILED
+        );
+
+        appointment.touch();
+
+
+        return appointmentRepository.save(
+                appointment
+        );
+    }
+
+
+    /*
+     * ================================================================
+     * RESPONSE
+     * ================================================================
+     */
+
+    private SaasAppointmentResponse toResponse(
+            SaasAppointment appointment
+    ) {
+
+        SaasPatient patient =
+                patientRepository
+                        .findByIdAndTenantIdAndActiveTrue(
+                                appointment.getPatientId(),
+                                appointment.getTenantId()
+                        )
+                        .orElse(null);
+
+
+        SaasStaff doctorStaff =
+                staffRepository
+                        .findByIdAndTenantIdAndActiveTrue(
+                                appointment.getDoctorStaffId(),
+                                appointment.getTenantId()
+                        )
+                        .orElse(null);
+
+
+        SaasAppointmentResponse response =
+                new SaasAppointmentResponse();
+
+
+        response.setId(
+                appointment.getId()
+        );
+
+        response.setTenantId(
+                appointment.getTenantId()
+        );
+
+        response.setPatientId(
+                appointment.getPatientId()
+        );
+
+        response.setPatientCode(
+                patient == null
+                        ? null
+                        : patient.getPatientCode()
+        );
+
+        response.setPatientName(
+                patient == null
+                        ? null
+                        : patient.getPatientName()
+        );
+
+        response.setPatientMobile(
+                patient == null
+                        ? null
+                        : patient.getMobile()
+        );
+
+        response.setPatientEmail(
+                patient == null
+                        ? null
+                        : patient.getEmail()
+        );
+
+        response.setDoctorStaffId(
+                appointment.getDoctorStaffId()
+        );
+
+        response.setDoctorAuthUserId(
+                appointment.getDoctorAuthUserId()
+        );
+
+        response.setDoctorName(
+                appointment.getDoctorName()
+        );
+
+        response.setDepartment(
+                appointment.getDepartment()
+        );
+
+        response.setSpecialization(
+                doctorStaff == null
+                        ? appointment.getSpecialization()
+                        : doctorStaff.getSpecialization()
+        );
+
+        response.setAppointmentType(
+                appointment.getAppointmentType() == null
+                        ? null
+                        : appointment
+                                .getAppointmentType()
+                                .name()
+        );
+
+        response.setConsultationType(
+                appointment.getAppointmentType()
+                        == SaasAppointmentType.ONLINE
+                                ? "ONLINE"
+                                : "OFFLINE"
+        );
+
+        response.setAppointmentDate(
+                appointment.getAppointmentDate()
+        );
+
+        response.setAppointmentTime(
+                appointment.getAppointmentTime()
+        );
+
+        response.setStatus(
+                appointment.getStatus() == null
+                        ? null
+                        : appointment
+                                .getStatus()
+                                .name()
+        );
+
+        response.setSymptoms(
+                appointment.getSymptoms()
+        );
+
+        response.setNotes(
+                appointment.getNotes()
+        );
+
+        response.setMeetingUrl(
+                appointment.getMeetingUrl()
+        );
+
+        response.setConsultationFee(
+                appointment.getConsultationFee()
+        );
+
+        response.setPaymentStatus(
+                appointment.getPaymentStatus()
+        );
+
+        response.setPaymentOrderId(
+                appointment.getPaymentOrderId()
+        );
+
+        response.setPaymentTransactionId(
+                appointment.getPaymentTransactionId()
+        );
+
+        response.setActive(
+                appointment.getActive()
+        );
+
+        response.setCreatedAt(
+                appointment.getCreatedAt()
+        );
+
+
+        return response;
+    }
+
+
+    /*
+     * ================================================================
+     * HELPERS
+     * ================================================================
+     */
+
+    private boolean isPatientRole() {
+
+        String role =
+                CurrentUserUtil.getRole();
+
+
+        if (role == null) {
+
+            return false;
+        }
+
+
+        String normalized =
+                role
+                        .trim()
+                        .toUpperCase(
+                                Locale.ROOT
+                        )
+                        .replaceFirst(
+                                "^ROLE_",
+                                ""
+                        );
+
+
+        return "PATIENT".equals(
+                normalized
+        );
+    }
+
+
+    private String generateMeetingUrl(
+            Long appointmentId
+    ) {
+
+        String roomName =
+                "medirevolution-saas-appointment-"
+                        + appointmentId
+                        + "-"
+                        + UUID.randomUUID();
+
+
+        return "https://meet.jit.si/"
+                + roomName;
+    }
+
+
+    private LocalTime normalizeTime(
+            LocalTime time
+    ) {
+
+        return time
+                .withSecond(0)
+                .withNano(0);
+    }
+
+
+    private String clean(
+            String value
+    ) {
+
+        if (value == null) {
+
+            return null;
+        }
+
+
+        String cleanValue =
+                value.trim();
+
+
+        return cleanValue.isBlank()
+                ? null
+                : cleanValue;
+    }
 }

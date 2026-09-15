@@ -6,6 +6,7 @@ import com.example.medi.saas.entity.SaasPatientMerge;
 import com.example.medi.saas.repository.SaasPatientMergeRepository;
 import com.example.medi.saas.repository.SaasPatientRepository;
 import com.example.medi.saas.security.CurrentUserUtil;
+
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,8 +34,41 @@ public class SaasPatientSelfResolverService {
     }
 
 
+    /*
+     * ================================================================
+     * CURRENT PATIENT RESPONSE
+     * ================================================================
+     */
+
     @Transactional(readOnly = true)
     public SaasPatientResponse getMyPatient(
+            Long tenantId
+    ) {
+
+        return toResponse(
+                resolvePatientEntity(
+                        tenantId
+                )
+        );
+    }
+
+
+    /*
+     * ================================================================
+     * CANONICAL PATIENT RESOLUTION
+     * ================================================================
+     *
+     * Resolution order:
+     *
+     * 1. Normal active patient linked directly with logged-in auth user.
+     * 2. If that patient was merged, resolve the currently active
+     *    canonical target patient using the merge audit.
+     *
+     * Browser supplied patientId is never trusted here.
+     */
+
+    @Transactional(readOnly = true)
+    public SaasPatient resolvePatientEntity(
             Long tenantId
     ) {
 
@@ -68,13 +102,11 @@ public class SaasPatientSelfResolverService {
 
         if (directPatient.isPresent()) {
 
-            return toResponse(
-                    directPatient.get()
-            );
+            return directPatient.get();
         }
 
 
-        Optional<SaasPatientMerge> merge =
+        Optional<SaasPatientMerge> activeMerge =
                 mergeRepository
                         .findFirstByTenantIdAndSourceAuthUserIdAndStatusOrderByMergedAtDesc(
                                 tenantId,
@@ -83,26 +115,25 @@ public class SaasPatientSelfResolverService {
                         );
 
 
-        if (merge.isPresent()) {
+        if (activeMerge.isPresent()) {
 
-            SaasPatient canonicalPatient =
-                    patientRepository
-                            .findByIdAndTenantIdAndActiveTrue(
-                                    merge.get()
-                                            .getTargetPatientId(),
-                                    tenantId
-                            )
-                            .orElseThrow(
-                                    () ->
-                                            new AccessDeniedException(
-                                                    "Canonical patient record is unavailable."
-                                            )
-                            );
+            Long canonicalPatientId =
+                    activeMerge
+                            .get()
+                            .getTargetPatientId();
 
 
-            return toResponse(
-                    canonicalPatient
-            );
+            return patientRepository
+                    .findByIdAndTenantIdAndActiveTrue(
+                            canonicalPatientId,
+                            tenantId
+                    )
+                    .orElseThrow(
+                            () ->
+                                    new AccessDeniedException(
+                                            "Canonical patient record is unavailable."
+                                    )
+                    );
         }
 
 
@@ -111,6 +142,12 @@ public class SaasPatientSelfResolverService {
         );
     }
 
+
+    /*
+     * ================================================================
+     * RESPONSE
+     * ================================================================
+     */
 
     private SaasPatientResponse toResponse(
             SaasPatient patient
