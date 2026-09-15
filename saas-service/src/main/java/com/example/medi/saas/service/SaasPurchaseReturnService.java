@@ -5,6 +5,7 @@ import com.example.medi.saas.entity.*;
 import com.example.medi.saas.enums.*;
 import com.example.medi.saas.repository.*;
 import com.example.medi.saas.security.CurrentUserUtil;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,30 +26,52 @@ public class SaasPurchaseReturnService {
 	private static final BigDecimal HUNDRED = new BigDecimal("100");
 
 	private final SaasPurchaseReturnRepository returnRepository;
+
 	private final SaasPurchaseReturnItemRepository returnItemRepository;
+
 	private final SaasPurchaseRepository purchaseRepository;
+
 	private final SaasPurchaseItemRepository purchaseItemRepository;
+
 	private final SaasMedicineStockRepository stockRepository;
+
 	private final SaasInventoryService inventoryService;
+
 	private final TenantAccessService tenantAccessService;
+
 	private final SaasPermissionService permissionService;
+
 	private final SaasPartyLedgerService ledgerService;
 
 	public SaasPurchaseReturnService(SaasPurchaseReturnRepository returnRepository,
 			SaasPurchaseReturnItemRepository returnItemRepository, SaasPurchaseRepository purchaseRepository,
 			SaasPurchaseItemRepository purchaseItemRepository, SaasMedicineStockRepository stockRepository,
 			SaasInventoryService inventoryService, TenantAccessService tenantAccessService,
-			SaasPermissionService permissionService,SaasPartyLedgerService ledgerService) {
+			SaasPermissionService permissionService, SaasPartyLedgerService ledgerService) {
+
 		this.returnRepository = returnRepository;
+
 		this.returnItemRepository = returnItemRepository;
+
 		this.purchaseRepository = purchaseRepository;
+
 		this.purchaseItemRepository = purchaseItemRepository;
+
 		this.stockRepository = stockRepository;
+
 		this.inventoryService = inventoryService;
+
 		this.tenantAccessService = tenantAccessService;
+
 		this.permissionService = permissionService;
-		this.ledgerService=ledgerService;
+
+		this.ledgerService = ledgerService;
 	}
+
+	/*
+	 * ================================================================ READ
+	 * ================================================================
+	 */
 
 	public List<SaasPurchaseReturnResponse> getReturns(Long tenantId) {
 
@@ -67,6 +90,7 @@ public class SaasPurchaseReturnService {
 		permissionService.requirePermission(tenantId, TenantModule.PURCHASE_RETURNS, SaasPermissionAction.VIEW);
 
 		if (keyword == null || keyword.isBlank()) {
+
 			return getReturns(tenantId);
 		}
 
@@ -89,6 +113,7 @@ public class SaasPurchaseReturnService {
 		permissionService.requirePermission(tenantId, TenantModule.PURCHASE_RETURNS, SaasPermissionAction.VIEW);
 
 		return new SaasPurchaseReturnSummaryResponse(
+
 				returnRepository.countByTenantIdAndReturnStatusNot(tenantId, SaasPurchaseReturnStatus.CANCELLED),
 
 				safeLong(returnRepository.sumReturnedQuantity(tenantId)),
@@ -108,6 +133,11 @@ public class SaasPurchaseReturnService {
 				.map(this::toAvailabilityResponse).toList();
 	}
 
+	/*
+	 * ================================================================ CREATE
+	 * RETURN ================================================================
+	 */
+
 	@Transactional
 	public SaasPurchaseReturnResponse createReturn(SaasPurchaseReturnRequest request) {
 
@@ -119,7 +149,12 @@ public class SaasPurchaseReturnService {
 
 		permissionService.requirePermission(tenantId, TenantModule.PURCHASE_RETURNS, SaasPermissionAction.CREATE);
 
-		SaasPurchase purchase = findPurchase(tenantId, request.getPurchaseId());
+		/*
+		 * Lock purchase because return also adjusts purchase due.
+		 */
+
+		SaasPurchase purchase = purchaseRepository.findForUpdate(request.getPurchaseId(), tenantId)
+				.orElseThrow(() -> new RuntimeException("Purchase not found"));
 
 		if (SaasPurchaseStatus.CANCELLED.equals(purchase.getPurchaseStatus())) {
 
@@ -128,6 +163,11 @@ public class SaasPurchaseReturnService {
 
 		LocalDate returnDate = request.getReturnDate() == null ? LocalDate.now() : request.getReturnDate();
 
+		if (returnDate.isAfter(LocalDate.now())) {
+
+			throw new RuntimeException("Return date cannot be in the future");
+		}
+
 		if (purchase.getPurchaseDate() != null && returnDate.isBefore(purchase.getPurchaseDate())) {
 
 			throw new RuntimeException("Return date cannot be before purchase date");
@@ -135,7 +175,15 @@ public class SaasPurchaseReturnService {
 
 		Set<Long> purchaseItemIds = new HashSet<>();
 
-		CalculatedReturn calculatedReturn = calculateReturn(tenantId, purchase, request, purchaseItemIds);
+		CalculatedReturn calculatedReturn = calculateReturn(
+
+				tenantId,
+
+				purchase,
+
+				request,
+
+				purchaseItemIds);
 
 		BigDecimal otherCharges = nonNegativeAmount(request.getOtherCharges(), "Other charges");
 
@@ -145,8 +193,14 @@ public class SaasPurchaseReturnService {
 				calculatedReturn.taxableAmount().add(calculatedReturn.gstAmount()).add(otherCharges).add(roundOff));
 
 		if (grandTotal.compareTo(BigDecimal.ZERO) < 0) {
+
 			throw new RuntimeException("Return grand total cannot be negative");
 		}
+
+		/*
+		 * ------------------------------------------------------------ RETURN HEADER
+		 * ------------------------------------------------------------
+		 */
 
 		SaasPurchaseReturn purchaseReturn = new SaasPurchaseReturn();
 
@@ -194,30 +248,79 @@ public class SaasPurchaseReturnService {
 
 		SaasPurchaseReturn savedReturn = returnRepository.save(purchaseReturn);
 
+		/*
+		 * ------------------------------------------------------------ STOCK RETURN
+		 * ------------------------------------------------------------
+		 */
+
 		for (SaasPurchaseReturnItemRequest itemRequest : request.getItems()) {
 
-			processReturnItem(tenantId, purchase, savedReturn, itemRequest);
+			processReturnItem(
+
+					tenantId,
+
+					purchase,
+
+					savedReturn,
+
+					itemRequest);
 		}
-		
+
+		/*
+		 * ------------------------------------------------------------ SUPPLIER LEDGER
+		 * CREDIT ------------------------------------------------------------
+		 */
+
 		ledgerService.postLedgerEntry(
-		        savedReturn.getTenantId(),
-		        SaasPaymentPartyType.SUPPLIER,
-		        savedReturn.getSupplierId(),
-		        savedReturn.getSupplierCode(),
-		        savedReturn.getSupplierName(),
-		        savedReturn.getReturnDate(),
-		        SaasLedgerEntryType.PURCHASE_RETURN,
-		        "PURCHASE_RETURN",
-		        savedReturn.getId(),
-		        savedReturn.getReturnNumber(),
-		        savedReturn.getGrandTotal(),
-		        BigDecimal.ZERO,
-		        "Purchase return posted: "
-		                + savedReturn.getReturnNumber()
-		);
+
+				savedReturn.getTenantId(),
+
+				SaasPaymentPartyType.SUPPLIER,
+
+				savedReturn.getSupplierId(),
+
+				savedReturn.getSupplierCode(),
+
+				savedReturn.getSupplierName(),
+
+				savedReturn.getReturnDate(),
+
+				SaasLedgerEntryType.PURCHASE_RETURN,
+
+				"PURCHASE_RETURN",
+
+				savedReturn.getId(),
+
+				savedReturn.getReturnNumber(),
+
+				savedReturn.getGrandTotal(),
+
+				BigDecimal.ZERO,
+
+				"Purchase return posted: " + savedReturn.getReturnNumber());
+
+		/*
+		 * ------------------------------------------------------------ PURCHASE
+		 * OUTSTANDING ADJUSTMENT
+		 * ------------------------------------------------------------
+		 *
+		 * Return reduces amount still payable against original purchase. Paid amount is
+		 * NOT increased because return is not a payment.
+		 */
+
+		applyReturnCreditToPurchase(
+
+				purchase,
+
+				savedReturn.getGrandTotal());
 
 		return toResponse(savedReturn);
 	}
+
+	/*
+	 * ================================================================ CALCULATE
+	 * RETURN ================================================================
+	 */
 
 	private CalculatedReturn calculateReturn(Long tenantId, SaasPurchase purchase, SaasPurchaseReturnRequest request,
 			Set<Long> purchaseItemIds) {
@@ -241,12 +344,27 @@ public class SaasPurchaseReturnService {
 				throw new RuntimeException("Duplicate purchase items are not allowed");
 			}
 
-			SaasPurchaseItem purchaseItem = findPurchaseItem(tenantId, purchase.getId(),
+			SaasPurchaseItem purchaseItem = findPurchaseItem(
+
+					tenantId,
+
+					purchase.getId(),
+
 					itemRequest.getPurchaseItemId());
 
-			validateReturnAvailability(tenantId, purchaseItem, itemRequest);
+			validateReturnAvailability(
 
-			CalculatedItem item = calculateItem(purchaseItem, itemRequest.getReturnQuantity());
+					tenantId,
+
+					purchaseItem,
+
+					itemRequest);
+
+			CalculatedItem item = calculateItem(
+
+					purchaseItem,
+
+					itemRequest.getReturnQuantity());
 
 			grossAmount = grossAmount.add(item.grossAmount());
 
@@ -259,21 +377,47 @@ public class SaasPurchaseReturnService {
 			totalQuantity += itemRequest.getReturnQuantity();
 		}
 
-		return new CalculatedReturn(money(grossAmount), money(discountAmount), money(taxableAmount), money(gstAmount),
+		return new CalculatedReturn(
+
+				money(grossAmount),
+
+				money(discountAmount),
+
+				money(taxableAmount),
+
+				money(gstAmount),
+
 				totalQuantity);
 	}
+
+	/*
+	 * ================================================================ PROCESS
+	 * RETURN ITEM ================================================================
+	 */
 
 	private void processReturnItem(Long tenantId, SaasPurchase purchase, SaasPurchaseReturn purchaseReturn,
 			SaasPurchaseReturnItemRequest request) {
 
-		SaasPurchaseItem purchaseItem = findPurchaseItem(tenantId, purchase.getId(), request.getPurchaseItemId());
+		SaasPurchaseItem purchaseItem = findPurchaseItem(
+
+				tenantId,
+
+				purchase.getId(),
+
+				request.getPurchaseItemId());
 
 		SaasMedicineStock stock = stockRepository.findStockForUpdate(request.getStockId(), tenantId)
 				.orElseThrow(() -> new RuntimeException("Stock batch not found"));
 
 		validateStockMatchesPurchaseItem(purchaseItem, stock);
 
-		validateReturnAvailability(tenantId, purchaseItem, request);
+		validateReturnAvailability(
+
+				tenantId,
+
+				purchaseItem,
+
+				request);
 
 		int currentQuantity = stock.getCurrentQuantity() == null ? 0 : stock.getCurrentQuantity();
 
@@ -285,7 +429,11 @@ public class SaasPurchaseReturnService {
 					+ ". Current stock: " + currentQuantity + ", Return quantity: " + returnQuantity);
 		}
 
-		CalculatedItem calculatedItem = calculateItem(purchaseItem, returnQuantity);
+		CalculatedItem calculatedItem = calculateItem(
+
+				purchaseItem,
+
+				returnQuantity);
 
 		SaasPurchaseReturnReason reason = parseReturnReason(request.getReturnReason());
 
@@ -333,24 +481,158 @@ public class SaasPurchaseReturnService {
 
 		returnItemRepository.save(returnItem);
 
-		stock.setCurrentQuantity(currentQuantity - returnQuantity);
+		/*
+		 * Quarantine-aware physical stock reduction.
+		 */
 
-		stock.touch();
+		reduceStockForPurchaseReturn(
+
+				stock,
+
+				returnQuantity);
 
 		stockRepository.save(stock);
 
-		inventoryService.createMovement(tenantId, purchaseItem.getMedicineId(), stock.getId(),
-				SaasStockMovementType.PURCHASE_RETURN, returnQuantity,
-				buildMovementRemarks(purchaseReturn, reason, request.getReasonDetails()), purchaseReturn.getId());
+		inventoryService.createMovement(
+
+				tenantId,
+
+				purchaseItem.getMedicineId(),
+
+				stock.getId(),
+
+				SaasStockMovementType.PURCHASE_RETURN,
+
+				returnQuantity,
+
+				buildMovementRemarks(
+
+						purchaseReturn,
+
+						reason,
+
+						request.getReasonDetails()),
+
+				purchaseReturn.getId());
 	}
+
+	/*
+	 * ================================================================
+	 * QUARANTINE-AWARE STOCK REDUCTION
+	 * ================================================================
+	 */
+
+	private void reduceStockForPurchaseReturn(SaasMedicineStock stock, int returnQuantity) {
+
+		if (returnQuantity <= 0) {
+
+			throw new RuntimeException("Return quantity must be greater than zero");
+		}
+
+		int currentQuantity = stock.getCurrentQuantity() == null ? 0 : Math.max(stock.getCurrentQuantity(), 0);
+
+		int quarantinedQuantity = stock.getQuarantinedQuantity() == null ? 0
+				: Math.max(stock.getQuarantinedQuantity(), 0);
+
+		quarantinedQuantity = Math.min(quarantinedQuantity, currentQuantity);
+
+		if (returnQuantity > currentQuantity) {
+
+			throw new RuntimeException("Return quantity cannot exceed current physical stock");
+		}
+
+		int regularQuantity = currentQuantity - quarantinedQuantity;
+
+		/*
+		 * Return ordinary stock first.
+		 */
+
+		int regularReturn = Math.min(
+
+				returnQuantity,
+
+				regularQuantity);
+
+		if (regularReturn > 0) {
+
+			stock.decreaseCurrentQuantity(regularReturn);
+		}
+
+		/*
+		 * If remaining requested return belongs to quarantined stock, consume
+		 * quarantine and physical quantity together.
+		 */
+
+		int quarantinedReturn = returnQuantity - regularReturn;
+
+		if (quarantinedReturn > 0) {
+
+			stock.consumeQuarantinedQuantity(quarantinedReturn);
+		}
+
+		stock.touch();
+	}
+
+	/*
+	 * ================================================================ PURCHASE DUE
+	 * ADJUSTMENT ================================================================
+	 */
+
+	private void applyReturnCreditToPurchase(SaasPurchase purchase, BigDecimal returnAmount) {
+
+		BigDecimal amount = money(returnAmount);
+
+		if (amount.signum() <= 0) {
+
+			return;
+		}
+
+		BigDecimal currentDue = money(purchase.getDueAmount());
+
+		/*
+		 * Purchase can already be fully paid.
+		 *
+		 * In that situation return creates supplier credit in party ledger. Purchase
+		 * due cannot become negative.
+		 */
+
+		BigDecimal appliedAgainstDue = amount.min(currentDue);
+
+		BigDecimal newDue = money(currentDue.subtract(appliedAgainstDue));
+
+		purchase.setDueAmount(newDue);
+
+		if (newDue.signum() <= 0) {
+
+			purchase.setPaymentStatus(SaasPurchasePaymentStatus.PAID);
+
+		} else if (money(purchase.getPaidAmount()).signum() > 0) {
+
+			purchase.setPaymentStatus(SaasPurchasePaymentStatus.PARTIALLY_PAID);
+
+		} else {
+
+			purchase.setPaymentStatus(SaasPurchasePaymentStatus.UNPAID);
+		}
+
+		purchaseRepository.save(purchase);
+	}
+
+	/*
+	 * ================================================================ RETURN
+	 * AVAILABILITY ================================================================
+	 */
 
 	private void validateReturnAvailability(Long tenantId, SaasPurchaseItem purchaseItem,
 			SaasPurchaseReturnItemRequest request) {
 
 		int totalReceived = safeInteger(purchaseItem.getQuantity()) + safeInteger(purchaseItem.getFreeQuantity());
 
-		int previouslyReturned = safeLongToInteger(
-				returnItemRepository.sumReturnedQuantityByPurchaseItem(tenantId, purchaseItem.getId()));
+		int previouslyReturned = safeLongToInteger(returnItemRepository.sumReturnedQuantityByPurchaseItem(
+
+				tenantId,
+
+				purchaseItem.getId()));
 
 		int remainingReturnable = totalReceived - previouslyReturned;
 
@@ -394,7 +676,12 @@ public class SaasPurchaseReturnService {
 	private SaasPurchaseReturnAvailabilityResponse toAvailabilityResponse(SaasPurchaseItem item) {
 
 		SaasMedicineStock stock = stockRepository.findByTenantIdAndMedicineIdAndBatchNumberIgnoreCaseAndActiveTrue(
-				item.getTenantId(), item.getMedicineId(), item.getBatchNumber()).orElse(null);
+
+				item.getTenantId(),
+
+				item.getMedicineId(),
+
+				item.getBatchNumber()).orElse(null);
 
 		int purchasedQuantity = safeInteger(item.getQuantity());
 
@@ -402,21 +689,69 @@ public class SaasPurchaseReturnService {
 
 		int totalReceived = purchasedQuantity + freeQuantity;
 
-		int previouslyReturned = safeLongToInteger(
-				returnItemRepository.sumReturnedQuantityByPurchaseItem(item.getTenantId(), item.getId()));
+		int previouslyReturned = safeLongToInteger(returnItemRepository.sumReturnedQuantityByPurchaseItem(
 
-		int remainingReturnable = Math.max(totalReceived - previouslyReturned, 0);
+				item.getTenantId(),
+
+				item.getId()));
+
+		int remainingReturnable = Math.max(
+
+				totalReceived - previouslyReturned,
+
+				0);
 
 		int currentStock = stock == null ? 0 : safeInteger(stock.getCurrentQuantity());
 
-		int maximumReturnQuantity = Math.min(remainingReturnable, currentStock);
+		int maximumReturnQuantity = Math.min(
 
-		return new SaasPurchaseReturnAvailabilityResponse(item.getId(), item.getMedicineId(), item.getMedicineName(),
-				item.getMedicineType(), item.getManufacturer(), stock == null ? null : stock.getId(),
-				item.getBatchNumber(), item.getExpiryDate(), purchasedQuantity, freeQuantity, totalReceived,
-				previouslyReturned, remainingReturnable, currentStock, maximumReturnQuantity,
-				money(item.getPurchaseRate()), money(item.getDiscountPercentage()), money(item.getGstPercentage()));
+				remainingReturnable,
+
+				currentStock);
+
+		return new SaasPurchaseReturnAvailabilityResponse(
+
+				item.getId(),
+
+				item.getMedicineId(),
+
+				item.getMedicineName(),
+
+				item.getMedicineType(),
+
+				item.getManufacturer(),
+
+				stock == null ? null : stock.getId(),
+
+				item.getBatchNumber(),
+
+				item.getExpiryDate(),
+
+				purchasedQuantity,
+
+				freeQuantity,
+
+				totalReceived,
+
+				previouslyReturned,
+
+				remainingReturnable,
+
+				currentStock,
+
+				maximumReturnQuantity,
+
+				money(item.getPurchaseRate()),
+
+				money(item.getDiscountPercentage()),
+
+				money(item.getGstPercentage()));
 	}
+
+	/*
+	 * ================================================================ CALCULATIONS
+	 * ================================================================
+	 */
 
 	private CalculatedItem calculateItem(SaasPurchaseItem purchaseItem, Integer returnQuantity) {
 
@@ -439,21 +774,44 @@ public class SaasPurchaseReturnService {
 
 		BigDecimal lineTotal = money(taxableAmount.add(gstAmount));
 
-		return new CalculatedItem(purchaseRate, discountPercentage, gstPercentage, grossAmount, discountAmount,
-				taxableAmount, gstAmount, lineTotal);
+		return new CalculatedItem(
+
+				purchaseRate,
+
+				discountPercentage,
+
+				gstPercentage,
+
+				grossAmount,
+
+				discountAmount,
+
+				taxableAmount,
+
+				gstAmount,
+
+				lineTotal);
 	}
+
+	/*
+	 * ================================================================ REQUEST
+	 * VALIDATION ================================================================
+	 */
 
 	private void validateRequest(SaasPurchaseReturnRequest request) {
 
 		if (request == null) {
+
 			throw new RuntimeException("Purchase return request is required");
 		}
 
 		if (request.getTenantId() == null) {
+
 			throw new RuntimeException("tenantId is required");
 		}
 
 		if (request.getPurchaseId() == null) {
+
 			throw new RuntimeException("Purchase is required");
 		}
 
@@ -470,14 +828,17 @@ public class SaasPurchaseReturnService {
 	private void validateItemRequest(SaasPurchaseReturnItemRequest request) {
 
 		if (request == null) {
+
 			throw new RuntimeException("Purchase return item is required");
 		}
 
 		if (request.getPurchaseItemId() == null) {
+
 			throw new RuntimeException("Purchase item is required");
 		}
 
 		if (request.getStockId() == null) {
+
 			throw new RuntimeException("Stock batch is required");
 		}
 
@@ -489,9 +850,15 @@ public class SaasPurchaseReturnService {
 		parseReturnReason(request.getReturnReason());
 	}
 
+	/*
+	 * ================================================================ LOOKUPS
+	 * ================================================================
+	 */
+
 	private SaasPurchase findPurchase(Long tenantId, Long purchaseId) {
 
 		if (purchaseId == null) {
+
 			throw new RuntimeException("Purchase id is required");
 		}
 
@@ -501,13 +868,19 @@ public class SaasPurchaseReturnService {
 
 	private SaasPurchaseItem findPurchaseItem(Long tenantId, Long purchaseId, Long purchaseItemId) {
 
-		return purchaseItemRepository.findByIdAndTenantIdAndPurchaseId(purchaseItemId, tenantId, purchaseId)
-				.orElseThrow(() -> new RuntimeException("Purchase item not found"));
+		return purchaseItemRepository.findByIdAndTenantIdAndPurchaseId(
+
+				purchaseItemId,
+
+				tenantId,
+
+				purchaseId).orElseThrow(() -> new RuntimeException("Purchase item not found"));
 	}
 
 	private SaasPurchaseReturn findReturn(Long tenantId, Long returnId) {
 
 		if (returnId == null) {
+
 			throw new RuntimeException("Purchase return id is required");
 		}
 
@@ -515,9 +888,15 @@ public class SaasPurchaseReturnService {
 				.orElseThrow(() -> new RuntimeException("Purchase return not found"));
 	}
 
+	/*
+	 * ================================================================ ENUM /
+	 * REMARKS ================================================================
+	 */
+
 	private SaasPurchaseReturnReason parseReturnReason(String value) {
 
 		if (value == null || value.isBlank()) {
+
 			throw new RuntimeException("Return reason is required");
 		}
 
@@ -540,37 +919,120 @@ public class SaasPurchaseReturnService {
 		String details = normalizeOptional(reasonDetails);
 
 		if (details != null) {
+
 			remarks += ". " + details;
 		}
 
 		return remarks;
 	}
 
+	/*
+	 * ================================================================ RESPONSE
+	 * ================================================================
+	 */
+
 	private SaasPurchaseReturnResponse toResponse(SaasPurchaseReturn purchaseReturn) {
 
-		List<SaasPurchaseReturnItemResponse> items = returnItemRepository
-				.findByTenantIdAndPurchaseReturnIdOrderByIdAsc(purchaseReturn.getTenantId(), purchaseReturn.getId())
-				.stream().map(this::toItemResponse).toList();
+		List<SaasPurchaseReturnItemResponse> items = returnItemRepository.findByTenantIdAndPurchaseReturnIdOrderByIdAsc(
 
-		return new SaasPurchaseReturnResponse(purchaseReturn.getId(), purchaseReturn.getTenantId(),
-				purchaseReturn.getReturnNumber(), purchaseReturn.getReturnDate(), purchaseReturn.getPurchaseId(),
-				purchaseReturn.getPurchaseNumber(), purchaseReturn.getSupplierInvoiceNumber(),
-				purchaseReturn.getSupplierId(), purchaseReturn.getSupplierCode(), purchaseReturn.getSupplierName(),
-				purchaseReturn.getTotalQuantity(), purchaseReturn.getGrossAmount(), purchaseReturn.getDiscountAmount(),
-				purchaseReturn.getTaxableAmount(), purchaseReturn.getGstAmount(), purchaseReturn.getOtherCharges(),
-				purchaseReturn.getRoundOffAmount(), purchaseReturn.getGrandTotal(),
-				purchaseReturn.getReturnStatus().name(), purchaseReturn.getDebitNoteNumber(),
-				purchaseReturn.getRemarks(), purchaseReturn.getCreatedAt(), items);
+				purchaseReturn.getTenantId(),
+
+				purchaseReturn.getId()).stream().map(this::toItemResponse).toList();
+
+		return new SaasPurchaseReturnResponse(
+
+				purchaseReturn.getId(),
+
+				purchaseReturn.getTenantId(),
+
+				purchaseReturn.getReturnNumber(),
+
+				purchaseReturn.getReturnDate(),
+
+				purchaseReturn.getPurchaseId(),
+
+				purchaseReturn.getPurchaseNumber(),
+
+				purchaseReturn.getSupplierInvoiceNumber(),
+
+				purchaseReturn.getSupplierId(),
+
+				purchaseReturn.getSupplierCode(),
+
+				purchaseReturn.getSupplierName(),
+
+				purchaseReturn.getTotalQuantity(),
+
+				purchaseReturn.getGrossAmount(),
+
+				purchaseReturn.getDiscountAmount(),
+
+				purchaseReturn.getTaxableAmount(),
+
+				purchaseReturn.getGstAmount(),
+
+				purchaseReturn.getOtherCharges(),
+
+				purchaseReturn.getRoundOffAmount(),
+
+				purchaseReturn.getGrandTotal(),
+
+				purchaseReturn.getReturnStatus().name(),
+
+				purchaseReturn.getDebitNoteNumber(),
+
+				purchaseReturn.getRemarks(),
+
+				purchaseReturn.getCreatedAt(),
+
+				items);
 	}
 
 	private SaasPurchaseReturnItemResponse toItemResponse(SaasPurchaseReturnItem item) {
 
-		return new SaasPurchaseReturnItemResponse(item.getId(), item.getPurchaseItemId(), item.getMedicineId(),
-				item.getMedicineName(), item.getStockId(), item.getBatchNumber(), item.getExpiryDate(),
-				item.getReturnQuantity(), item.getPurchaseRate(), item.getGrossAmount(), item.getDiscountPercentage(),
-				item.getDiscountAmount(), item.getTaxableAmount(), item.getGstPercentage(), item.getGstAmount(),
-				item.getLineTotal(), item.getReturnReason().name(), item.getReasonDetails());
+		return new SaasPurchaseReturnItemResponse(
+
+				item.getId(),
+
+				item.getPurchaseItemId(),
+
+				item.getMedicineId(),
+
+				item.getMedicineName(),
+
+				item.getStockId(),
+
+				item.getBatchNumber(),
+
+				item.getExpiryDate(),
+
+				item.getReturnQuantity(),
+
+				item.getPurchaseRate(),
+
+				item.getGrossAmount(),
+
+				item.getDiscountPercentage(),
+
+				item.getDiscountAmount(),
+
+				item.getTaxableAmount(),
+
+				item.getGstPercentage(),
+
+				item.getGstAmount(),
+
+				item.getLineTotal(),
+
+				item.getReturnReason().name(),
+
+				item.getReasonDetails());
 	}
+
+	/*
+	 * ================================================================ NUMBERS /
+	 * WORKSPACE ================================================================
+	 */
 
 	private String generateReturnNumber(Long tenantId) {
 
@@ -595,6 +1057,11 @@ public class SaasPurchaseReturnService {
 		}
 	}
 
+	/*
+	 * ================================================================ COMMON
+	 * HELPERS ================================================================
+	 */
+
 	private BigDecimal money(BigDecimal value) {
 
 		return (value == null ? BigDecimal.ZERO : value).setScale(2, RoundingMode.HALF_UP);
@@ -605,6 +1072,7 @@ public class SaasPurchaseReturnService {
 		BigDecimal amount = money(value);
 
 		if (amount.compareTo(BigDecimal.ZERO) < 0) {
+
 			throw new RuntimeException(fieldName + " cannot be negative");
 		}
 
@@ -619,10 +1087,12 @@ public class SaasPurchaseReturnService {
 	private int safeLongToInteger(Long value) {
 
 		if (value == null || value <= 0) {
+
 			return 0;
 		}
 
 		if (value > Integer.MAX_VALUE) {
+
 			return Integer.MAX_VALUE;
 		}
 
@@ -637,6 +1107,7 @@ public class SaasPurchaseReturnService {
 	private String normalizeOptional(String value) {
 
 		if (value == null) {
+
 			return null;
 		}
 
@@ -644,6 +1115,11 @@ public class SaasPurchaseReturnService {
 
 		return normalized.isBlank() ? null : normalized;
 	}
+
+	/*
+	 * ================================================================ CALCULATION
+	 * RECORDS ================================================================
+	 */
 
 	private record CalculatedReturn(BigDecimal grossAmount, BigDecimal discountAmount, BigDecimal taxableAmount,
 			BigDecimal gstAmount, Integer totalQuantity) {

@@ -26,13 +26,22 @@ public class SaasPurchaseService {
 	private static final BigDecimal HUNDRED = new BigDecimal("100");
 
 	private final SaasPurchaseRepository purchaseRepository;
+
 	private final SaasPurchaseItemRepository purchaseItemRepository;
+
 	private final SaasSupplierRepository supplierRepository;
+
 	private final SaasInventoryService inventoryService;
+
 	private final TenantAccessService tenantAccessService;
+
 	private final SaasPermissionService permissionService;
+
 	private final SaasPartyLedgerService ledgerService;
+
 	private final MedicineServiceClient medicineServiceClient;
+
+	private final SaasPaymentTransactionRepository paymentTransactionRepository;
 
 	@Value("${internal.service.key}")
 	private String internalServiceKey;
@@ -41,18 +50,35 @@ public class SaasPurchaseService {
 			SaasPurchaseItemRepository purchaseItemRepository, SaasSupplierRepository supplierRepository,
 			SaasMedicineRepository medicineRepository, SaasInventoryService inventoryService,
 			TenantAccessService tenantAccessService, SaasPermissionService permissionService,
-			SaasPartyLedgerService ledgerService,MedicineServiceClient medicineServiceClient,
+			SaasPartyLedgerService ledgerService, MedicineServiceClient medicineServiceClient,
+			SaasPaymentTransactionRepository paymentTransactionRepository,
 			@Value("${internal.service.key}") String internalServiceKey) {
+
 		this.purchaseRepository = purchaseRepository;
+
 		this.purchaseItemRepository = purchaseItemRepository;
+
 		this.supplierRepository = supplierRepository;
+
 		this.inventoryService = inventoryService;
+
 		this.tenantAccessService = tenantAccessService;
+
 		this.permissionService = permissionService;
+
 		this.ledgerService = ledgerService;
+
 		this.medicineServiceClient = medicineServiceClient;
+
+		this.paymentTransactionRepository = paymentTransactionRepository;
+
 		this.internalServiceKey = internalServiceKey;
 	}
+
+	/*
+	 * ================================================================ READ
+	 * ================================================================
+	 */
 
 	public List<SaasPurchaseResponse> getPurchases(Long tenantId) {
 
@@ -71,6 +97,7 @@ public class SaasPurchaseService {
 		permissionService.requirePermission(tenantId, TenantModule.PURCHASES, SaasPermissionAction.VIEW);
 
 		if (keyword == null || keyword.isBlank()) {
+
 			return getPurchases(tenantId);
 		}
 
@@ -92,13 +119,25 @@ public class SaasPurchaseService {
 
 		permissionService.requirePermission(tenantId, TenantModule.PURCHASES, SaasPermissionAction.VIEW);
 
-		return new SaasPurchaseSummaryResponse(purchaseRepository.countByTenantId(tenantId),
-				money(purchaseRepository.sumGrandTotal(tenantId)), money(purchaseRepository.sumPaidAmount(tenantId)),
+		return new SaasPurchaseSummaryResponse(
+
+				purchaseRepository.countByTenantId(tenantId),
+
+				money(purchaseRepository.sumGrandTotal(tenantId)),
+
+				money(purchaseRepository.sumPaidAmount(tenantId)),
+
 				money(purchaseRepository.sumDueAmount(tenantId)));
 	}
 
+	/*
+	 * ================================================================ CREATE
+	 * PURCHASE + GOODS RECEIPT
+	 * ================================================================
+	 */
+
 	@Transactional
-	public SaasPurchaseResponse createPurchase(SaasPurchaseRequest request ,String authorization) {
+	public SaasPurchaseResponse createPurchase(SaasPurchaseRequest request, String authorization) {
 
 		validateRequest(request);
 
@@ -108,10 +147,23 @@ public class SaasPurchaseService {
 
 		permissionService.requirePermission(tenantId, TenantModule.PURCHASES, SaasPermissionAction.CREATE);
 
+		LocalDate purchaseDate = request.getPurchaseDate() == null ? LocalDate.now() : request.getPurchaseDate();
+
+		if (purchaseDate.isAfter(LocalDate.now())) {
+
+			throw new RuntimeException("Purchase date cannot be in the future");
+		}
+
+		if (request.getSupplierInvoiceDate() != null && request.getSupplierInvoiceDate().isAfter(LocalDate.now())) {
+
+			throw new RuntimeException("Supplier invoice date cannot be in the future");
+		}
+
 		SaasSupplier supplier = supplierRepository.findByIdAndTenantId(request.getSupplierId(), tenantId)
 				.orElseThrow(() -> new RuntimeException("Supplier not found in this workspace"));
 
 		if (!Boolean.TRUE.equals(supplier.getActive())) {
+
 			throw new RuntimeException("Selected supplier is inactive");
 		}
 
@@ -133,16 +185,23 @@ public class SaasPurchaseService {
 				.add(otherCharges).add(roundOffAmount));
 
 		if (grandTotal.compareTo(BigDecimal.ZERO) < 0) {
+
 			throw new RuntimeException("Grand total cannot be negative");
 		}
 
 		BigDecimal paidAmount = nonNegativeAmount(request.getPaidAmount(), "Paid amount");
 
 		if (paidAmount.compareTo(grandTotal) > 0) {
+
 			throw new RuntimeException("Paid amount cannot exceed grand total");
 		}
 
 		BigDecimal dueAmount = money(grandTotal.subtract(paidAmount));
+
+		/*
+		 * ------------------------------------------------------------ PURCHASE HEADER
+		 * ------------------------------------------------------------
+		 */
 
 		SaasPurchase purchase = new SaasPurchase();
 
@@ -150,7 +209,7 @@ public class SaasPurchaseService {
 
 		purchase.setPurchaseNumber(generatePurchaseNumber(tenantId));
 
-		purchase.setPurchaseDate(request.getPurchaseDate() == null ? LocalDate.now() : request.getPurchaseDate());
+		purchase.setPurchaseDate(purchaseDate);
 
 		purchase.setSupplierId(supplier.getId());
 
@@ -194,28 +253,38 @@ public class SaasPurchaseService {
 
 		SaasPurchase savedPurchase = purchaseRepository.save(purchase);
 
+		/*
+		 * ------------------------------------------------------------ PURCHASE ITEMS +
+		 * GOODS RECEIPT ------------------------------------------------------------
+		 */
+
 		for (SaasPurchaseItemRequest itemRequest : request.getItems()) {
 
 			GlobalMedicineResponse medicine;
 
 			try {
 
-			    medicine = medicineServiceClient.getMedicine(
-			            authorization,
-			            internalServiceKey,
-			            itemRequest.getMedicineId());
+				medicine = medicineServiceClient.getMedicine(
 
-			} catch (Exception ex) {
+						authorization,
 
-			    throw new RuntimeException("Medicine not found in Global Medicine Master");
+						internalServiceKey,
+
+						itemRequest.getMedicineId());
+
+			} catch (Exception exception) {
+
+				throw new RuntimeException("Medicine not found in Global Medicine Master");
 			}
 
 			if (medicine == null || medicine.getId() == null) {
-			    throw new RuntimeException("Medicine not found in Global Medicine Master");
+
+				throw new RuntimeException("Medicine not found in Global Medicine Master");
 			}
 
 			if (Boolean.FALSE.equals(medicine.isActive())) {
-			    throw new RuntimeException("Selected medicine is inactive");
+
+				throw new RuntimeException("Selected medicine is inactive");
 			}
 
 			CalculatedItem calculatedItem = calculateItem(itemRequest);
@@ -223,10 +292,15 @@ public class SaasPurchaseService {
 			SaasPurchaseItem item = new SaasPurchaseItem();
 
 			item.setTenantId(tenantId);
+
 			item.setPurchaseId(savedPurchase.getId());
+
 			item.setMedicineId(medicine.getId());
+
 			item.setMedicineName(medicine.getMedicineName());
+
 			item.setMedicineType(medicine.getMedicineType());
+
 			item.setManufacturer(medicine.getManufacturer());
 
 			item.setBatchNumber(normalizeRequired(itemRequest.getBatchNumber(), "Batch number"));
@@ -263,28 +337,190 @@ public class SaasPurchaseService {
 
 			int receivedQuantity = item.getQuantity() + item.getFreeQuantity();
 
-			inventoryService.addOrMergePurchaseStock(tenantId, medicine.getId(), item.getBatchNumber(),
-					item.getManufacturingDate(), item.getExpiryDate(), receivedQuantity, item.getPurchaseRate(),
-					item.getSaleRate(), item.getMrp(), item.getGstPercentage(), supplier.getId(),
-					supplier.getSupplierName(), savedPurchase.getId(), authorization);
+			inventoryService.addOrMergePurchaseStock(
+
+					tenantId,
+
+					medicine.getId(),
+
+					item.getBatchNumber(),
+
+					item.getManufacturingDate(),
+
+					item.getExpiryDate(),
+
+					receivedQuantity,
+
+					item.getPurchaseRate(),
+
+					item.getSaleRate(),
+
+					item.getMrp(),
+
+					item.getGstPercentage(),
+
+					supplier.getId(),
+
+					supplier.getSupplierName(),
+
+					savedPurchase.getId(),
+
+					authorization);
 		}
-		ledgerService.postLedgerEntry(savedPurchase.getTenantId(), SaasPaymentPartyType.SUPPLIER,
-				savedPurchase.getSupplierId(), savedPurchase.getSupplierCode(), savedPurchase.getSupplierName(),
-				savedPurchase.getPurchaseDate(), SaasLedgerEntryType.PURCHASE, "PURCHASE", savedPurchase.getId(),
-				savedPurchase.getPurchaseNumber(), BigDecimal.ZERO, savedPurchase.getGrandTotal(),
+
+		/*
+		 * ------------------------------------------------------------ SUPPLIER LEDGER
+		 * - PURCHASE PAYABLE
+		 * ------------------------------------------------------------
+		 */
+
+		ledgerService.postLedgerEntry(
+
+				savedPurchase.getTenantId(),
+
+				SaasPaymentPartyType.SUPPLIER,
+
+				savedPurchase.getSupplierId(),
+
+				savedPurchase.getSupplierCode(),
+
+				savedPurchase.getSupplierName(),
+
+				savedPurchase.getPurchaseDate(),
+
+				SaasLedgerEntryType.PURCHASE,
+
+				"PURCHASE",
+
+				savedPurchase.getId(),
+
+				savedPurchase.getPurchaseNumber(),
+
+				BigDecimal.ZERO,
+
+				savedPurchase.getGrandTotal(),
+
 				"Purchase invoice posted: " + savedPurchase.getPurchaseNumber());
 
-		if (savedPurchase.getPaidAmount() != null && savedPurchase.getPaidAmount().compareTo(BigDecimal.ZERO) > 0) {
+		/*
+		 * ------------------------------------------------------------ INITIAL PAYMENT
+		 * ------------------------------------------------------------
+		 *
+		 * Existing Purchase UI captures only paidAmount. It does not capture payment
+		 * mode/reference.
+		 *
+		 * Therefore payment mode is recorded as OTHER rather than inventing CASH / UPI
+		 * / CARD.
+		 */
 
-			ledgerService.postLedgerEntry(savedPurchase.getTenantId(), SaasPaymentPartyType.SUPPLIER,
-					savedPurchase.getSupplierId(), savedPurchase.getSupplierCode(), savedPurchase.getSupplierName(),
-					savedPurchase.getPurchaseDate(), SaasLedgerEntryType.SUPPLIER_PAYMENT, "PURCHASE_INITIAL_PAYMENT",
-					savedPurchase.getId(), savedPurchase.getPurchaseNumber(), savedPurchase.getPaidAmount(),
-					BigDecimal.ZERO, "Initial payment made against purchase " + savedPurchase.getPurchaseNumber());
+		if (savedPurchase.getPaidAmount() != null && savedPurchase.getPaidAmount().signum() > 0) {
+
+			recordInitialSupplierPayment(savedPurchase);
 		}
 
 		return toResponse(savedPurchase);
 	}
+
+	/*
+	 * ================================================================ INITIAL
+	 * SUPPLIER PAYMENT REGISTER
+	 * ================================================================
+	 */
+
+	private void recordInitialSupplierPayment(SaasPurchase purchase) {
+
+		BigDecimal amount = money(purchase.getPaidAmount());
+
+		if (amount.signum() <= 0) {
+
+			return;
+		}
+
+		BigDecimal supplierOutstandingBefore = money(ledgerService.getBusinessOutstanding(
+
+				purchase.getTenantId(),
+
+				SaasPaymentPartyType.SUPPLIER,
+
+				purchase.getSupplierId()));
+
+		if (amount.compareTo(supplierOutstandingBefore) > 0) {
+
+			throw new RuntimeException("Initial payment cannot exceed supplier outstanding balance");
+		}
+
+		SaasPaymentTransaction payment = new SaasPaymentTransaction();
+
+		payment.setTenantId(purchase.getTenantId());
+
+		payment.setPaymentNumber(generateInitialPaymentNumber(purchase.getTenantId()));
+
+		payment.setPaymentDate(purchase.getPurchaseDate());
+
+		payment.setTransactionType(SaasPaymentTransactionType.SUPPLIER_PAYMENT);
+
+		payment.setPartyType(SaasPaymentPartyType.SUPPLIER);
+
+		payment.setPartyId(purchase.getSupplierId());
+
+		payment.setPartyCode(purchase.getSupplierCode());
+
+		payment.setPartyName(purchase.getSupplierName());
+
+		payment.setAmount(amount);
+
+		payment.setPaymentMode(SaasPaymentMode.OTHER);
+
+		payment.setReferenceType("PURCHASE");
+
+		payment.setReferenceId(purchase.getId());
+
+		payment.setOutstandingBefore(supplierOutstandingBefore);
+
+		payment.setOutstandingAfter(money(supplierOutstandingBefore.subtract(amount)));
+
+		payment.setPaymentStatus(SaasPaymentStatus.POSTED);
+
+		payment.setRemarks("Initial supplier payment against purchase " + purchase.getPurchaseNumber()
+				+ ". Payment mode was not captured on purchase entry.");
+
+		payment.setCreatedByAuthUserId(CurrentUserUtil.getUserId());
+
+		SaasPaymentTransaction savedPayment = paymentTransactionRepository.save(payment);
+
+		ledgerService.postLedgerEntry(
+
+				purchase.getTenantId(),
+
+				SaasPaymentPartyType.SUPPLIER,
+
+				purchase.getSupplierId(),
+
+				purchase.getSupplierCode(),
+
+				purchase.getSupplierName(),
+
+				purchase.getPurchaseDate(),
+
+				SaasLedgerEntryType.SUPPLIER_PAYMENT,
+
+				"PAYMENT",
+
+				savedPayment.getId(),
+
+				savedPayment.getPaymentNumber(),
+
+				amount,
+
+				BigDecimal.ZERO,
+
+				"Initial payment made against purchase " + purchase.getPurchaseNumber());
+	}
+
+	/*
+	 * ================================================================ CALCULATIONS
+	 * ================================================================
+	 */
 
 	private CalculatedPurchase calculatePurchase(SaasPurchaseRequest request) {
 
@@ -297,6 +533,7 @@ public class SaasPurchaseService {
 		BigDecimal gstAmount = BigDecimal.ZERO;
 
 		int totalQuantity = 0;
+
 		int totalFreeQuantity = 0;
 
 		for (SaasPurchaseItemRequest item : request.getItems()) {
@@ -318,8 +555,19 @@ public class SaasPurchaseService {
 			totalFreeQuantity += item.getFreeQuantity() == null ? 0 : item.getFreeQuantity();
 		}
 
-		return new CalculatedPurchase(money(grossAmount), money(discountAmount), money(taxableAmount), money(gstAmount),
-				totalQuantity, totalFreeQuantity);
+		return new CalculatedPurchase(
+
+				money(grossAmount),
+
+				money(discountAmount),
+
+				money(taxableAmount),
+
+				money(gstAmount),
+
+				totalQuantity,
+
+				totalFreeQuantity);
 	}
 
 	private CalculatedItem calculateItem(SaasPurchaseItemRequest item) {
@@ -347,21 +595,48 @@ public class SaasPurchaseService {
 
 		BigDecimal lineTotal = money(taxableAmount.add(gstAmount));
 
-		return new CalculatedItem(purchaseRate, saleRate, mrp, discountPercentage, gstPercentage, grossAmount,
-				discountAmount, taxableAmount, gstAmount, lineTotal);
+		return new CalculatedItem(
+
+				purchaseRate,
+
+				saleRate,
+
+				mrp,
+
+				discountPercentage,
+
+				gstPercentage,
+
+				grossAmount,
+
+				discountAmount,
+
+				taxableAmount,
+
+				gstAmount,
+
+				lineTotal);
 	}
+
+	/*
+	 * ================================================================ VALIDATION
+	 * ================================================================
+	 */
 
 	private void validateRequest(SaasPurchaseRequest request) {
 
 		if (request == null) {
+
 			throw new RuntimeException("Purchase request is required");
 		}
 
 		if (request.getTenantId() == null) {
+
 			throw new RuntimeException("tenantId is required");
 		}
 
 		if (request.getSupplierId() == null) {
+
 			throw new RuntimeException("Supplier is required");
 		}
 
@@ -382,17 +657,25 @@ public class SaasPurchaseService {
 	private void validateItem(SaasPurchaseItemRequest item) {
 
 		if (item == null) {
+
 			throw new RuntimeException("Purchase item is required");
 		}
 
 		if (item.getMedicineId() == null) {
+
 			throw new RuntimeException("Medicine is required");
 		}
 
 		normalizeRequired(item.getBatchNumber(), "Batch number");
 
 		if (item.getExpiryDate() == null) {
+
 			throw new RuntimeException("Expiry date is required");
+		}
+
+		if (item.getManufacturingDate() != null && item.getManufacturingDate().isAfter(LocalDate.now())) {
+
+			throw new RuntimeException("Manufacturing date cannot be in the future");
 		}
 
 		if (item.getManufacturingDate() != null && item.getExpiryDate().isBefore(item.getManufacturingDate())) {
@@ -400,9 +683,9 @@ public class SaasPurchaseService {
 			throw new RuntimeException("Expiry date cannot be before manufacturing date");
 		}
 
-		if (item.getExpiryDate().isBefore(LocalDate.now())) {
+		if (!item.getExpiryDate().isAfter(LocalDate.now())) {
 
-			throw new RuntimeException("Expired medicine cannot be purchased");
+			throw new RuntimeException("Expired or expiring-today medicine cannot be purchased");
 		}
 
 		if (item.getQuantity() == null || item.getQuantity() <= 0) {
@@ -426,9 +709,15 @@ public class SaasPurchaseService {
 		validPercentage(item.getGstPercentage(), "GST percentage");
 	}
 
+	/*
+	 * ================================================================ FIND +
+	 * RESPONSE ================================================================
+	 */
+
 	private SaasPurchase findPurchase(Long tenantId, Long purchaseId) {
 
 		if (purchaseId == null) {
+
 			throw new RuntimeException("Purchase id is required");
 		}
 
@@ -442,38 +731,123 @@ public class SaasPurchaseService {
 				.findByTenantIdAndPurchaseIdOrderByIdAsc(purchase.getTenantId(), purchase.getId()).stream()
 				.map(this::toItemResponse).toList();
 
-		return new SaasPurchaseResponse(purchase.getId(), purchase.getTenantId(), purchase.getPurchaseNumber(),
-				purchase.getPurchaseDate(), purchase.getSupplierId(), purchase.getSupplierCode(),
-				purchase.getSupplierName(), purchase.getSupplierInvoiceNumber(), purchase.getSupplierInvoiceDate(),
-				purchase.getTotalQuantity(), purchase.getTotalFreeQuantity(), purchase.getGrossAmount(),
-				purchase.getDiscountAmount(), purchase.getTaxableAmount(), purchase.getGstAmount(),
-				purchase.getOtherCharges(), purchase.getRoundOffAmount(), purchase.getGrandTotal(),
-				purchase.getPaidAmount(), purchase.getDueAmount(), purchase.getPaymentStatus().name(),
-				purchase.getPurchaseStatus().name(), purchase.getRemarks(), purchase.getCreatedAt(), items);
+		return new SaasPurchaseResponse(
+
+				purchase.getId(),
+
+				purchase.getTenantId(),
+
+				purchase.getPurchaseNumber(),
+
+				purchase.getPurchaseDate(),
+
+				purchase.getSupplierId(),
+
+				purchase.getSupplierCode(),
+
+				purchase.getSupplierName(),
+
+				purchase.getSupplierInvoiceNumber(),
+
+				purchase.getSupplierInvoiceDate(),
+
+				purchase.getTotalQuantity(),
+
+				purchase.getTotalFreeQuantity(),
+
+				purchase.getGrossAmount(),
+
+				purchase.getDiscountAmount(),
+
+				purchase.getTaxableAmount(),
+
+				purchase.getGstAmount(),
+
+				purchase.getOtherCharges(),
+
+				purchase.getRoundOffAmount(),
+
+				purchase.getGrandTotal(),
+
+				purchase.getPaidAmount(),
+
+				purchase.getDueAmount(),
+
+				purchase.getPaymentStatus().name(),
+
+				purchase.getPurchaseStatus().name(),
+
+				purchase.getRemarks(),
+
+				purchase.getCreatedAt(),
+
+				items);
 	}
 
 	private SaasPurchaseItemResponse toItemResponse(SaasPurchaseItem item) {
 
-		return new SaasPurchaseItemResponse(item.getId(), item.getMedicineId(), item.getMedicineName(),
-				item.getMedicineType(), item.getManufacturer(), item.getBatchNumber(), item.getManufacturingDate(),
-				item.getExpiryDate(), item.getQuantity(), item.getFreeQuantity(), item.getPurchaseRate(),
-				item.getSaleRate(), item.getMrp(), item.getGrossAmount(), item.getDiscountPercentage(),
-				item.getDiscountAmount(), item.getTaxableAmount(), item.getGstPercentage(), item.getGstAmount(),
+		return new SaasPurchaseItemResponse(
+
+				item.getId(),
+
+				item.getMedicineId(),
+
+				item.getMedicineName(),
+
+				item.getMedicineType(),
+
+				item.getManufacturer(),
+
+				item.getBatchNumber(),
+
+				item.getManufacturingDate(),
+
+				item.getExpiryDate(),
+
+				item.getQuantity(),
+
+				item.getFreeQuantity(),
+
+				item.getPurchaseRate(),
+
+				item.getSaleRate(),
+
+				item.getMrp(),
+
+				item.getGrossAmount(),
+
+				item.getDiscountPercentage(),
+
+				item.getDiscountAmount(),
+
+				item.getTaxableAmount(),
+
+				item.getGstPercentage(),
+
+				item.getGstAmount(),
+
 				item.getLineTotal());
 	}
 
 	private SaasPurchasePaymentStatus resolvePaymentStatus(BigDecimal grandTotal, BigDecimal paidAmount) {
 
 		if (paidAmount.compareTo(BigDecimal.ZERO) <= 0) {
+
 			return SaasPurchasePaymentStatus.UNPAID;
 		}
 
 		if (paidAmount.compareTo(grandTotal) >= 0) {
+
 			return SaasPurchasePaymentStatus.PAID;
 		}
 
 		return SaasPurchasePaymentStatus.PARTIALLY_PAID;
 	}
+
+	/*
+	 * ================================================================ NUMBERS
+	 * ================================================================
+	 */
 
 	private String generatePurchaseNumber(Long tenantId) {
 
@@ -483,6 +857,20 @@ public class SaasPurchaseService {
 
 		return "PUR-" + tenantId + "-" + timestamp + "-" + random;
 	}
+
+	private String generateInitialPaymentNumber(Long tenantId) {
+
+		String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+
+		String random = UUID.randomUUID().toString().replace("-", "").substring(0, 5).toUpperCase(Locale.ROOT);
+
+		return "SPY-" + tenantId + "-" + timestamp + "-" + random;
+	}
+
+	/*
+	 * ================================================================ WORKSPACE
+	 * ================================================================
+	 */
 
 	private void validateWorkspace(Long tenantId) {
 
@@ -497,6 +885,11 @@ public class SaasPurchaseService {
 		}
 	}
 
+	/*
+	 * ================================================================ COMMON
+	 * HELPERS ================================================================
+	 */
+
 	private BigDecimal money(BigDecimal value) {
 
 		return (value == null ? BigDecimal.ZERO : value).setScale(2, RoundingMode.HALF_UP);
@@ -507,6 +900,7 @@ public class SaasPurchaseService {
 		BigDecimal amount = money(value);
 
 		if (amount.compareTo(BigDecimal.ZERO) < 0) {
+
 			throw new RuntimeException(fieldName + " cannot be negative");
 		}
 
@@ -530,6 +924,7 @@ public class SaasPurchaseService {
 		String normalized = normalizeOptional(value);
 
 		if (normalized == null) {
+
 			throw new RuntimeException(fieldName + " is required");
 		}
 
@@ -539,6 +934,7 @@ public class SaasPurchaseService {
 	private String normalizeOptional(String value) {
 
 		if (value == null) {
+
 			return null;
 		}
 
@@ -546,6 +942,12 @@ public class SaasPurchaseService {
 
 		return normalized.isBlank() ? null : normalized;
 	}
+
+	/*
+	 * ================================================================ INTERNAL
+	 * CALCULATION RECORDS
+	 * ================================================================
+	 */
 
 	private record CalculatedPurchase(BigDecimal grossAmount, BigDecimal discountAmount, BigDecimal taxableAmount,
 			BigDecimal gstAmount, Integer totalQuantity, Integer totalFreeQuantity) {
